@@ -1,13 +1,13 @@
 <template>
   <view class="navbar-container">
     <view class="navbar">
-      <view class="navbar-left" @click="handleBack">
+      <view class="navbar-left" @click="handleBackClick">
         <uni-icons type="left" size="24"></uni-icons>
       </view>
       <view class="navbar-center">
-        <text class="navbar-title">{{ modelName }}</text>
+        <text class="navbar-title">拍一拍</text>
       </view>
-      <view class="navbar-right">
+      <view class="navbar-right" @click="handleMoreClick">
         <uni-icons type="more-filled" size="24"></uni-icons>
       </view>
     </view>
@@ -16,16 +16,13 @@
 
 <script>
 export default {
-  name: 'PrintEditNavbar',
-  props: {
-    modelName: {
-      type: String,
-      default: '模型打印编辑'
-    }
-  },
+  name: 'PhotographyNavbar',
   methods: {
-    handleBack() {
+    handleBackClick() {
       this.$emit('back-click')
+    },
+    handleMoreClick() {
+      this.$emit('more-click')
     }
   }
 }
@@ -67,13 +64,6 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.navbar-left /deep/ .uni-icons,
-.navbar-right /deep/ .uni-icons {
-  font-size: 36rpx;
-  color: #333;
-  font-weight: 600;
 }
 
 .navbar-title {

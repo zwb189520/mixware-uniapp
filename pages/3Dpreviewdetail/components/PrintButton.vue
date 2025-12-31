@@ -45,7 +45,7 @@ export default {
       
       // 跳转到工作详情页面
       uni.navigateTo({
-        url: `/pages/modelDetail/3Dpreviewdetail/workdetail/workdetail?workId=001&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent('/static/img/logo.png')}&scale=${this.scale}`
+        url: `/pages/workdetail/workdetail?workId=001&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent('/static/img/logo.png')}&scale=${this.scale}`
       })
     }
   }

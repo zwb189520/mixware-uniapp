@@ -10,7 +10,7 @@
           <text class="navbar-title">画一画</text>
         </view>
         <view class="navbar-right" @click="clearCanvas">
-          <text class="nav-text">清空</text>
+          <uni-icons type="more-filled" size="24"></uni-icons>
         </view>
       </view>
     </view>
@@ -175,7 +175,7 @@ export default {
         canvasId: 'drawCanvas',
         success: (res) => {
           uni.navigateTo({
-            url: `/pages/modelDetail/3Dpreviewdetail/3Dpreviewdetail?id=drawn-${Date.now()}&name=画作生成的3D模型&url=${res.tempFilePath}`
+            url: `/pages/3Dpreviewdetail/3Dpreviewdetail?id=drawn-${Date.now()}&name=画作生成的3D模型&url=${res.tempFilePath}`
           })
         },
         fail: () => {
@@ -230,9 +230,8 @@ export default {
 
 .navbar-left /deep/ .uni-icons,
 .navbar-right /deep/ .uni-icons {
-  font-size: 36rpx;
+  font-size: 24rpx;
   color: #333;
-  font-weight: 600;
 }
 
 .navbar-title {

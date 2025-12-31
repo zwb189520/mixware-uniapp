@@ -9,7 +9,7 @@
 		{
 			"path": "pages/explore/explore",
 			"style": {
-				"navigationBarTitleText": "探索"
+				"navigationBarTitleText": ""
 			}
 		},
 		{
@@ -19,19 +19,19 @@
 			}
 		},
 		{
-			"path": "pages/modelDetail/3Dpreviewdetail/3Dpreviewdetail",
+			"path": "pages/3Dpreviewdetail/3Dpreviewdetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/modelDetail/3Dpreviewdetail/workdetail/workdetail",
+			"path": "pages/workdetail/workdetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/modelDetail/ShowcaseWorksDetail/ShowcaseWorksDetail",
+			"path": "pages/ShowcaseWorksDetail/ShowcaseWorksDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -39,19 +39,19 @@
 		{
 			"path": "pages/create/create",
 			"style": {
-				"navigationBarTitleText": "创建"
+				"navigationBarTitleText": ""
 			}
 		},
 		{
 			"path": "pages/photography/photography",
 			"style": {
-				"navigationBarTitleText": "拍照"
+				"navigationStyle": "custom"
 			}
 		},
 		{
 			"path": "pages/chat/chat",
 			"style": {
-				"navigationBarTitleText": "说一说"
+				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -69,7 +69,7 @@
 		{
 			"path": "pages/profile/profile",
 			"style": {
-				"navigationBarTitleText": "我的"
+				"navigationBarTitleText": ""
 			}
 		}
 	],

@@ -153,7 +153,7 @@ export default {
             setTimeout(() => {
               uni.hideLoading()
               uni.navigateTo({
-                url: `/pages/modelDetail/3Dpreviewdetail/3Dpreviewdetail?id=${Date.now()}&name=${this.modelName}_变体&url=${this.modelUrl}`
+                url: `/pages/3Dpreviewdetail/3Dpreviewdetail?id=${Date.now()}&name=${this.modelName}_变体&url=${this.modelUrl}`
               })
             }, 2000)
           }
