@@ -64,6 +64,10 @@ export default {
         uni.navigateTo({
           url: '/pages/draw/draw'
         })
+      } else if (tool.text === '变一变') {
+        uni.navigateTo({
+          url: '/pages/transform/transform'
+        })
       } else {
         uni.showToast({
           title: `选择了${tool.text}`,

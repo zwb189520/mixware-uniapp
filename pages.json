@@ -55,6 +55,12 @@
 			}
 		},
 		{
+			"path": "pages/transform/transform",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/draw/draw",
 			"style": {
 				"navigationStyle": "custom"
