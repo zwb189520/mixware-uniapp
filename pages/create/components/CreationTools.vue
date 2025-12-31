@@ -52,11 +52,21 @@ export default {
   },
   methods: {
     handleToolClick(tool) {
-      uni.showToast({
-        title: `选择了${tool.text}`,
-        icon: 'none'
-      })
-      console.log(`触发功能: ${tool.text} - ${tool.description}`)
+      if (tool.text === '拍一拍') {
+        uni.navigateTo({
+          url: '/pages/photography/photography'
+        })
+      } else if (tool.text === '说一说') {
+        uni.navigateTo({
+          url: '/pages/chat/chat'
+        })
+      } else {
+        uni.showToast({
+          title: `选择了${tool.text}`,
+          icon: 'none'
+        })
+        console.log(`触发功能: ${tool.text} - ${tool.description}`)
+      }
     }
   }
 }
