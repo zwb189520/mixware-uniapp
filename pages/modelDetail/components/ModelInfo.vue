@@ -28,16 +28,16 @@
       <view class="model-header">
         <text class="model-name">{{ modelInfo.name }}</text>
         <view class="model-stats">
-          <view class="stat-item" @click="handleLike">
-            <text class="stat-icon">{{ modelInfo.isLiked ? '❤️' : '🤍' }}</text>
+          <view class="stat-item" :class="{ 'liked': modelInfo.isLiked }" @click="handleLike">
+            <uni-icons :type="modelInfo.isLiked ? 'heart-filled' : 'heart'" size="24"></uni-icons>
             <text class="stat-text">{{ modelInfo.likes }}</text>
           </view>
-          <view class="stat-item" @click="handleCollect">
-            <text class="stat-icon">{{ modelInfo.isCollected ? '⭐' : '☆' }}</text>
+          <view class="stat-item" :class="{ 'liked': modelInfo.isCollected }" @click="handleCollect">
+            <uni-icons :type="modelInfo.isCollected ? 'star-filled' : 'star'" size="24"></uni-icons>
             <text class="stat-text">{{ modelInfo.collections }}</text>
           </view>
           <view class="stat-item">
-            <text class="stat-icon">📥</text>
+            <uni-icons type="cart" size="24"></uni-icons>
             <text class="stat-text">{{ modelInfo.downloads }}</text>
           </view>
         </view>
@@ -168,8 +168,13 @@ export default {
   gap: 8rpx;
 }
 
-.stat-icon {
-  font-size: 32rpx;
+.stat-item.liked {
+  color: #ff6b35;
+}
+
+.stat-item.liked .uni-icons,
+.stat-item.liked .uni-icons .uni-icons {
+  color: #ff6b35 !important;
 }
 
 .stat-text {

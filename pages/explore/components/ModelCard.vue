@@ -9,8 +9,8 @@
           <image class="author-avatar" :src="model.authorAvatar" @error="handleAvatarError"/>
           <text class="author-name">{{ model.author }}</text>
         </view>
-        <view class="card-like" @click.stop="handleLikeClick">
-          <text class="like-icon">{{ model.isLiked ? '❤️' : '🤍' }}</text>
+        <view class="card-like" :class="{ 'liked': model.isLiked }" @click.stop="handleLikeClick">
+          <uni-icons :type="model.isLiked ? 'heart-filled' : 'heart'" size="20"></uni-icons>
           <text class="like-count">{{ model.likes }}</text>
         </view>
       </view>
@@ -99,7 +99,15 @@ export default {
   font-size: 24rpx;
   color: #666;
 }
-.like-icon {
-  margin-right: 6rpx;
+
+/* 已点赞状态 */
+.card-like.liked {
+  color: #ff6b35;
 }
+
+.card-like.liked .uni-icons,
+.card-like.liked .uni-icons .uni-icons {
+  color: #ff6b35 !important;
+}
+
 </style>

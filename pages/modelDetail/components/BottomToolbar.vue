@@ -1,16 +1,15 @@
 <template>
   <view class="toolbar-container">
     <view class="toolbar">
-      <view class="toolbar-item" @click="handleLike">
-        <text class="toolbar-icon">{{ modelInfo.isLiked ? '❤️' : '🤍' }}</text>
+      <view class="toolbar-item" :class="{ 'liked': modelInfo.isLiked }" @click="handleLike">
+        <uni-icons :type="modelInfo.isLiked ? 'heart-filled' : 'heart'" size="24"></uni-icons>
         <text class="toolbar-text">点赞 {{ modelInfo.likes }}</text>
       </view>
-      <view class="toolbar-item" @click="handleCollect">
-        <text class="toolbar-icon">{{ modelInfo.isCollected ? '⭐' : '☆' }}</text>
+      <view class="toolbar-item" :class="{ 'liked': modelInfo.isCollected }" @click="handleCollect">
+        <uni-icons :type="modelInfo.isCollected ? 'star-filled' : 'star'" size="24"></uni-icons>
         <text class="toolbar-text">收藏 {{ modelInfo.collections }}</text>
       </view>
       <view class="toolbar-item primary" @click="handlePrint">
-        <text class="toolbar-icon">🖨️</text>
         <text class="toolbar-text">打印</text>
       </view>
     </view>
@@ -105,5 +104,15 @@ export default {
 
 .toolbar-item.primary .toolbar-text {
   color: #fff;
+}
+
+/* 已点赞和已收藏状态 */
+.toolbar-item.liked {
+  color: #ff6b35;
+}
+
+.toolbar-item.liked .uni-icons,
+.toolbar-item.liked .uni-icons .uni-icons {
+  color: #ff6b35 !important;
 }
 </style>

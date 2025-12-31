@@ -5,7 +5,6 @@
       :class="{ 'print-button-active': isActive }"
       @click="handlePrintClick"
     >
-      <text class="print-button-icon">🖨️</text>
       <text class="print-button-text">{{ buttonText }}</text>
     </view>
   </view>

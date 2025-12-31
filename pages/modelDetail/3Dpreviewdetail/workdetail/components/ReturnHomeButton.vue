@@ -4,7 +4,6 @@
       class="return-home-button"
       @click="handleReturnHome"
     >
-      <text class="return-home-icon">🏠</text>
       <text class="return-home-text">返回首页</text>
     </view>
   </view>

@@ -20,8 +20,8 @@
                     <image class="author-avatar" :src="item.authorAvatar" @error="handleAvatarError"/>
                     <text class="author-name">{{ item.author }}</text>
                   </view>
-                  <view class="card-like" @click.stop="handleLikeClick(item)">
-                    <text class="like-icon">{{ item.isLiked ? '❤️' : '🤍' }}</text>
+                  <view class="card-like" :class="{ 'liked': item.isLiked }" @click.stop="handleLikeClick(item)">
+                    <uni-icons :type="item.isLiked ? 'heart-filled' : 'heart'" size="20"></uni-icons>
                     <text class="like-count">{{ item.likes }}</text>
                   </view>
                 </view>
@@ -48,8 +48,8 @@
                     <image class="author-avatar" :src="item.authorAvatar" @error="handleAvatarError"/>
                     <text class="author-name">{{ item.author }}</text>
                   </view>
-                  <view class="card-like" @click.stop="handleLikeClick(item)">
-                    <text class="like-icon">{{ item.isLiked ? '❤️' : '🤍' }}</text>
+                  <view class="card-like" :class="{ 'liked': item.isLiked }" @click.stop="handleLikeClick(item)">
+                    <uni-icons :type="item.isLiked ? 'heart-filled' : 'heart'" size="20"></uni-icons>
                     <text class="like-count">{{ item.likes }}</text>
                   </view>
                 </view>
@@ -189,10 +189,17 @@ export default {
   align-items: center;
 }
 
-.like-icon {
-  font-size: 20rpx;
-  margin-right: 8rpx;
+/* 已点赞状态 */
+.card-like.liked {
+  color: #ff6b35;
 }
+
+.card-like.liked .uni-icons,
+.card-like.liked .uni-icons .uni-icons {
+  color: #ff6b35 !important;
+}
+
+
 
 .like-count {
   font-size: 24rpx;

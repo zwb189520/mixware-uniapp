@@ -36,7 +36,7 @@
                   :class="{ 'liked': comment.isLiked }"
                   @click="handleLikeClick(comment.id)"
                 >
-                  <text class="action-icon">{{ comment.isLiked ? '❤️' : '🤍' }}</text>
+                  <uni-icons :type="comment.isLiked ? 'hand-thumbsup' : 'hand-up'" size="20"></uni-icons>
                   <text class="action-text">{{ comment.likes }}</text>
                 </view>
               </view>
