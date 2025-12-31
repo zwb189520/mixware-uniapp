@@ -1,0 +1,85 @@
+{
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+		}
+	},
+	"pages": [
+		{
+			"path": "pages/explore/explore",
+			"style": {
+				"navigationBarTitleText": "探索"
+			}
+		},
+		{
+			"path": "pages/modelDetail/modelDetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/modelDetail/3Dpreviewdetail/3Dpreviewdetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/modelDetail/3Dpreviewdetail/workdetail/workdetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/modelDetail/ShowcaseWorksDetail/ShowcaseWorksDetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/create/create",
+			"style": {
+				"navigationBarTitleText": "创建"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#1296db",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/explore/explore",
+				"iconPath": "static/img/tab-explore.png",
+				"selectedIconPath": "static/img/tab-explore-active.png",
+				"text": "探索"
+			},
+			{
+				"pagePath": "pages/create/create",
+				"iconPath": "static/img/tab-create.png",
+				"selectedIconPath": "static/img/tab-create-active.png",
+				"text": "创建"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"iconPath": "static/img/tab-profile.png",
+				"selectedIconPath": "static/img/tab-profile-active.png",
+				"text": "我的"
+			}
+		]
+	},
+	"uniIdRouter": {}
+}
