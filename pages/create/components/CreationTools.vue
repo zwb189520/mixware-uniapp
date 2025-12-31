@@ -60,6 +60,10 @@ export default {
         uni.navigateTo({
           url: '/pages/chat/chat'
         })
+      } else if (tool.text === '画一画') {
+        uni.navigateTo({
+          url: '/pages/draw/draw'
+        })
       } else {
         uni.showToast({
           title: `选择了${tool.text}`,

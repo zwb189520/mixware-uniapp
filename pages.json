@@ -55,6 +55,12 @@
 			}
 		},
 		{
+			"path": "pages/draw/draw",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/profile/profile",
 			"style": {
 				"navigationBarTitleText": "我的"
