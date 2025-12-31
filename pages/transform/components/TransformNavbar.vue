@@ -1,15 +1,15 @@
 <template>
-  <view class="navbar">
-    <view class="navbar-left" @click="handleBackClick">
-      <text class="back-icon">←</text>
-      <text class="back-text">返回</text>
-    </view>
-    
-    <view class="navbar-center">
-      <text class="navbar-title">变一变 - {{ modelName }}</text>
-    </view>
-    
-    <view class="navbar-right">
+  <view class="navbar-container">
+    <view class="navbar">
+      <view class="navbar-left" @click="handleBackClick">
+        <uni-icons type="left" size="24"></uni-icons>
+      </view>
+      <view class="navbar-center">
+        <text class="navbar-title">变一变 - {{ modelName }}</text>
+      </view>
+      <view class="navbar-right" @click="handleMoreClick">
+        <uni-icons type="more-filled" size="24"></uni-icons>
+      </view>
     </view>
   </view>
 </template>
@@ -26,55 +26,55 @@ export default {
   methods: {
     handleBackClick() {
       this.$emit('back-click')
+    },
+    handleMoreClick() {
+      this.$emit('more-click')
     }
   }
 }
 </script>
 
 <style scoped>
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
+.navbar-container {
   background: #fff;
   border-bottom: 1rpx solid #e0e0e0;
-  padding: 0 32rpx;
-  position: sticky;
-  top: 0;
+  padding-top: env(safe-area-inset-top);
   z-index: 100;
 }
 
-.navbar-left {
+.navbar {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  padding: 0 32rpx;
+  position: relative;
+}
+
+.navbar-left,
+.navbar-right {
+  flex: 1;
   display: flex;
   align-items: center;
 }
 
-.back-icon {
-  font-size: 32rpx;
-  color: #333;
-  margin-right: 16rpx;
+.navbar-left {
+  justify-content: flex-start;
 }
 
-.back-text {
-  font-size: 28rpx;
-  color: #333;
+.navbar-right {
+  justify-content: flex-end;
 }
 
 .navbar-center {
-  flex: 1;
-  text-align: center;
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .navbar-title {
   font-size: 32rpx;
-  font-weight: 500;
   color: #333;
-}
-
-.navbar-right {
-  width: 100rpx;
-  display: flex;
-  justify-content: flex-end;
+  font-weight: 600;
 }
 </style>

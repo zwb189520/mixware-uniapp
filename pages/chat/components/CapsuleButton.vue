@@ -45,6 +45,7 @@ export default {
   justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
+  margin-bottom: 50rpx;
 }
 
 .capsule-button:active {
