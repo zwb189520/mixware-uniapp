@@ -7,6 +7,9 @@
       
       <view class="printer-details">
         <view class="printer-name">{{ printerInfo.name }}</view>
+        <view class="printed-object" v-if="showPrintedObject">
+          <view class="object-shape"></view>
+        </view>
         <view class="printer-status" :class="statusClass">
           <uni-icons :type="statusIcon" :size="16" :color="statusColor"></uni-icons>
           <text class="status-text">{{ printerInfo.statusText }}</text>
@@ -26,7 +29,8 @@ export default {
         status: 'idle', // idle, printing, completed, error
         statusText: '睡觉',
         statusColor: '#999'
-      }
+      },
+      filamentHeight: 0
     }
   },
   computed: {
@@ -50,10 +54,14 @@ export default {
         error: '#ff4757'
       }
       return colorMap[this.printerInfo.status] || '#999'
+    },
+    showPrintedObject() {
+      return this.filamentHeight > 50
     }
   },
   mounted() {
     this.updatePrinterStatus()
+    this.updateFilamentHeight()
   },
   methods: {
     updatePrinterStatus() {
@@ -74,6 +82,12 @@ export default {
           ...randomStatus
         }
       }, 5000)
+    },
+    updateFilamentHeight() {
+      // 模拟丝材高度变化
+      setInterval(() => {
+        this.filamentHeight = Math.floor(Math.random() * 100)
+      }, 3000)
     }
   }
 }
@@ -149,5 +163,17 @@ export default {
 
 .status-text {
   font-weight: 500;
+}
+
+.printed-object {
+  margin-bottom: 20rpx;
+}
+
+.object-shape {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8rpx;
+  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.1);
 }
 </style>

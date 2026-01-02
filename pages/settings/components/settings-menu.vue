@@ -35,10 +35,19 @@ export default {
   methods: {
     handleMenuClick(item) {
       if (item.id === 1) {
-        // 跳转到个人资料编辑页面
-        uni.navigateTo({
-          url: '/pages/profile-edit/profile-edit'
-        })
+        // 检查登录状态
+        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+        if (!isLoggedIn) {
+          // 未登录，跳转到登录页面
+          uni.navigateTo({
+            url: '/pages/login/login'
+          })
+        } else {
+          // 已登录，跳转到个人资料编辑页面
+          uni.navigateTo({
+            url: '/pages/profile-edit/profile-edit'
+          })
+        }
       } else {
         console.log('点击菜单:', item.title)
       }
