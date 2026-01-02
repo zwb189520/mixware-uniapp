@@ -110,4 +110,8 @@ export default {
 .move-up .tool-button {
   transform: none !important;
 }
+
+.move-up .tool-button:active {
+  transform: scale(0.95) !important;
+}
 </style>

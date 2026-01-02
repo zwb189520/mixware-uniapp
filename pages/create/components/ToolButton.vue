@@ -2,7 +2,7 @@
   <view class="tool-button" @click="$emit('click')" :style="{ height: cardHeight + 'rpx', backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }">
     <view class="button-overlay"></view>
     <view class="button-content">
-      <uni-icons :type="icon" size="60" color="#ffffff"></uni-icons>
+      <uni-icons :type="icon" size="40" color="#333"></uni-icons>
       <text class="button-text">{{ text }}</text>
       <text class="button-desc">{{ description }}</text>
     </view>
@@ -57,27 +57,30 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.15);
   z-index: 1;
 }
 .button-content {
-  position: relative;
+  position: absolute;
+  bottom: 20rpx;
+  left: 20rpx;
   z-index: 2;
+  text-align: left;
 }
 .button-content uni-icons {
-  margin-bottom: 20rpx;
+  margin-bottom: 12rpx;
   display: block;
 }
 .button-text {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: bold;
-  color: #ffffff;
+  color: #333;
   display: block;
-  margin-bottom: 10rpx;
+  margin-bottom: 8rpx;
 }
 .button-desc {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 20rpx;
+  color: #666;
   display: block;
 }
 </style>
