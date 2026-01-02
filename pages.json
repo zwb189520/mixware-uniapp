@@ -85,12 +85,6 @@
 			}
 		},
 		{
-			"path": "pages/find-partner/find-partner",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
 			"path": "pages/printer-intro/printer-intro",
 			"style": {
 				"navigationStyle": "custom"
@@ -104,6 +98,12 @@
 		},
 		{
 			"path": "pages/profile-edit/profile-edit",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/printer-print/printer-print",
 			"style": {
 				"navigationStyle": "custom"
 			}

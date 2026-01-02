@@ -34,12 +34,24 @@
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
     </view>
+    
+    <!-- 添加打印机弹框 -->
+    <AddPrinterModal 
+      :visible="showAddPrinter" 
+      @select-printer="onSelectPrinter" 
+      @cancel="onCancelAddPrinter" 
+    />
   </view>
 </template>
 
 <script>
+import AddPrinterModal from './AddPrinterModal.vue'
+
 export default {
   name: 'PrinterPartner',
+  components: {
+    AddPrinterModal
+  },
   data() {
     return {
       isBound: false,
@@ -47,19 +59,29 @@ export default {
         name: '',
         model: '',
         isOnline: false
-      }
+      },
+      showAddPrinter: false
     }
   },
   methods: {
     handleFindPartner() {
-      uni.navigateTo({
-        url: '/pages/find-partner/find-partner'
-      })
+      this.showAddPrinter = true
     },
     handlePrinterIntro() {
       uni.navigateTo({
         url: '/pages/printer-intro/printer-intro'
       })
+    },
+    onSelectPrinter(printerId) {
+      this.showAddPrinter = false
+      // 跳转到打印机打印页面
+      uni.navigateTo({
+        url: `/pages/printer-print/printer-print?printerId=${printerId}`
+      })
+    },
+    onCancelAddPrinter() {
+      this.showAddPrinter = false
+      console.log('用户取消添加打印机')
     },
     checkPrinterStatus() {
       // 这里可以检查打印机绑定状态
