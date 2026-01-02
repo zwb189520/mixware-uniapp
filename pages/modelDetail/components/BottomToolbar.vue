@@ -108,11 +108,11 @@ export default {
 
 /* 已点赞和已收藏状态 */
 .toolbar-item.liked {
-  color: #ff6b35;
+  color: #ff2d55;
 }
 
 .toolbar-item.liked .uni-icons,
 .toolbar-item.liked .uni-icons .uni-icons {
-  color: #ff6b35 !important;
+  color: #ff2d55 !important;
 }
 </style>

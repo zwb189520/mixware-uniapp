@@ -36,7 +36,7 @@
                   :class="{ 'liked': comment.isLiked }"
                   @click="handleLikeClick(comment.id)"
                 >
-                  <uni-icons :type="comment.isLiked ? 'hand-thumbsup' : 'hand-up'" size="20"></uni-icons>
+                  <uni-icons :type="comment.isLiked ? 'heart-filled' : 'heart'" size="20"></uni-icons>
                   <text class="action-text">{{ comment.likes }}</text>
                 </view>
               </view>
@@ -190,7 +190,7 @@ export default {
 }
 
 .action-item.liked {
-  color: #e53e3e;
+  color: #ff2d55;
 }
 
 .action-icon {
@@ -200,6 +200,12 @@ export default {
 .action-text {
   font-size: 24rpx;
   font-weight: 500;
+}
+
+.action-item.liked .action-text,
+.action-item.liked .uni-icons,
+.action-item.liked .uni-icons .uni-icons {
+  color: #ff2d55 !important;
 }
 
 .comment-replies {

@@ -169,12 +169,12 @@ export default {
 }
 
 .stat-item.liked {
-  color: #ff6b35;
+  color: #ff2d55;
 }
 
 .stat-item.liked .uni-icons,
 .stat-item.liked .uni-icons .uni-icons {
-  color: #ff6b35 !important;
+  color: #ff2d55 !important;
 }
 
 .stat-text {
