@@ -6,6 +6,9 @@
     <view class="navbar-title">
       <text>打印机</text>
     </view>
+    <view class="navbar-right">
+      <uni-icons type="more-filled" size="24" @click="handleMoreClick"></uni-icons>
+    </view>
   </view>
 </template>
 
@@ -15,6 +18,9 @@ export default {
   methods: {
     handleBack() {
       uni.navigateBack()
+    },
+    handleMoreClick() {
+      this.$emit('more-click')
     }
   }
 }
@@ -40,5 +46,11 @@ export default {
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
+}
+
+.navbar-right {
+  width: 60rpx;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
