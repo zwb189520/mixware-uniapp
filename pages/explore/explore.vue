@@ -67,7 +67,7 @@ import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import SearchModal from './components/SearchModal.vue'
 import WaterfallLayout from './components/WaterfallLayout.vue'
-import { modelApi } from '@/common/api.js'
+import { modelApi } from '@/sheep/api/api.js'
 
 export default {
   components: {

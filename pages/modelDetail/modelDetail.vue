@@ -45,7 +45,7 @@ import ModelInfo from './components/ModelInfo.vue'
 import PrintInfo from './components/PrintInfo.vue'
 import ShowcaseWorks from './components/ShowcaseWorks.vue'
 import BottomToolbar from './components/BottomToolbar.vue'
-import { modelApi } from '@/common/api.js'
+import { modelApi } from '@/sheep/api/api.js'
 
 export default {
   components: {
