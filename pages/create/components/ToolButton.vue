@@ -2,7 +2,6 @@
   <view class="tool-button" @click="$emit('click')" :style="{ height: cardHeight + 'rpx', backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }">
     <view class="button-overlay"></view>
     <view class="button-content">
-      <uni-icons :type="icon" size="40" color="#333"></uni-icons>
       <text class="button-text">{{ text }}</text>
       <text class="button-desc">{{ description }}</text>
     </view>
