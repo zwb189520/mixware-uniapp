@@ -175,7 +175,7 @@ export default {
         canvasId: 'drawCanvas',
         success: (res) => {
           uni.navigateTo({
-            url: `/pages/3Dpreviewdetail/3Dpreviewdetail?id=drawn-${Date.now()}&name=画作生成的3D模型&url=${res.tempFilePath}`
+            url: `/pages/3Dpreviewdetail/preview3DDetail?id=drawn-${Date.now()}&name=画作生成的3D模型&url=${res.tempFilePath}`
           })
         },
         fail: () => {

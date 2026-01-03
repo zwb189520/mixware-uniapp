@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import MessageNavbar from './components/message-navbar.vue'
-import MessageList from './components/message-list.vue'
+import MessageNavbar from './components/messageNavbar.vue'
+import MessageList from './components/messageList.vue'
 
 export default {
   name: 'Message',

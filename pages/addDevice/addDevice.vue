@@ -106,9 +106,8 @@ export default {
         return
       }
       
-      // 跳转到设备绑定成功页面
       uni.navigateTo({
-        url: `/pages/device-success/device-success?printerId=${this.printerId}`
+        url: `/pages/deviceSuccess/deviceSuccess?printerId=${this.printerId}`
       })
     }
   }

@@ -47,9 +47,8 @@ export default {
       uni.navigateBack()
     },
     handleReady() {
-      // 跳转到添加设备页面
       uni.navigateTo({
-        url: `/pages/add-device/add-device?printerId=${this.printerId}`
+        url: `/pages/addDevice/addDevice?printerId=${this.printerId}`
       })
     }
   }

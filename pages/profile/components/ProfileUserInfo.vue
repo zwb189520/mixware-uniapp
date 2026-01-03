@@ -26,14 +26,12 @@ export default {
   methods: {
     handleLogin() {
       if (!this.isLoggedIn) {
-        // 跳转到登录页面
         uni.navigateTo({
           url: '/pages/login/login'
         })
       } else {
-        // 跳转到个人资料编辑页面
         uni.navigateTo({
-          url: '/pages/profile-edit/profile-edit'
+          url: '/pages/profileEdit/profileEdit'
         })
       }
     },

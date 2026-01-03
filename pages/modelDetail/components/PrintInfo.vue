@@ -45,9 +45,8 @@ export default {
     },
 
     handleModelClick(model) {
-      // 跳转到3D模型预览编辑页面
       uni.navigateTo({
-        url: `/pages/3Dpreviewdetail/3Dpreviewdetail?id=${model.id}&name=${encodeURIComponent(model.name)}&url=${encodeURIComponent(model.image)}`
+        url: `/pages/3Dpreviewdetail/preview3DDetail?id=${model.id}&name=${encodeURIComponent(model.name)}&url=${encodeURIComponent(model.image)}`
       })
     },
 

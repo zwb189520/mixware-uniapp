@@ -9,11 +9,11 @@
 </template>
 
 <script>
-import ProfileHeader from './components/profile-header.vue'
-import ProfileUserInfo from './components/profile-user-info.vue'
-import ProfileMedals from './components/profile-medals.vue'
-import ShowcaseButton from './components/showcase-button.vue'
-import PrinterPartner from './components/printer-partner.vue'
+import ProfileHeader from './components/ProfileHeader.vue'
+import ProfileUserInfo from './components/ProfileUserInfo.vue'
+import ProfileMedals from './components/ProfileMedals.vue'
+import ShowcaseButton from './components/ShowcaseButton.vue'
+import PrinterPartner from './components/PrinterPartner.vue'
 
 export default {
   name: 'Profile',

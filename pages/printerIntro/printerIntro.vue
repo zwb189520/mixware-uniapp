@@ -15,9 +15,9 @@
 </template>
 
 <script>
-import PrinterIntroNavbar from './components/printer-intro-navbar.vue'
-import PrinterInfo from './components/printer-info.vue'
-import RealtimeProgress from './components/realtime-progress.vue'
+import PrinterIntroNavbar from './components/PrinterIntroNavbar.vue'
+import PrinterInfo from './components/PrinterInfo.vue'
+import RealtimeProgress from './components/RealtimeProgress.vue'
 import PrinterMenu from './components/PrinterMenu.vue'
 
 export default {

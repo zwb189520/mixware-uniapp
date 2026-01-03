@@ -69,14 +69,13 @@ export default {
     },
     handlePrinterIntro() {
       uni.navigateTo({
-        url: '/pages/printer-intro/printer-intro'
+        url: '/pages/printerIntro/printerIntro'
       })
     },
     onSelectPrinter(printerId) {
       this.showAddPrinter = false
-      // 跳转到打印机打印页面
       uni.navigateTo({
-        url: `/pages/printer-print/printer-print?printerId=${printerId}`
+        url: `/pages/printerPrint/printerPrint?printerId=${printerId}`
       })
     },
     onCancelAddPrinter() {

@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import CreationTools from '@/pages/create/components/CreationTools.vue'
+import CreationTools from '@/pages/create/components/creationTools.vue'
 
 export default {
   components: {

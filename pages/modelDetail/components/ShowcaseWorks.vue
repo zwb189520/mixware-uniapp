@@ -36,7 +36,7 @@ export default {
   methods: {
     handleWorkClick(image, index) {
       uni.navigateTo({
-        url: `/pages/ShowcaseWorksDetail/ShowcaseWorksDetail?workId=${index}`
+        url: `/pages/showcaseWorksDetail/ShowcaseWorksDetail?workId=${index}`
       })
     },
 

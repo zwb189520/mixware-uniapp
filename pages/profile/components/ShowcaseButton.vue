@@ -14,7 +14,7 @@ export default {
   methods: {
     handleShowcaseClick() {
       uni.navigateTo({
-        url: '/pages/my-works/my-works'
+        url: '/pages/myWorks/myWorks'
       })
     }
   }

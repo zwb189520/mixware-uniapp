@@ -88,7 +88,7 @@ export default {
       }
       
       uni.navigateTo({
-        url: '/pages/3Dpreviewdetail/3Dpreviewdetail'
+        url: '/pages/3Dpreviewdetail/preview3DDetail'
       })
     }
   }

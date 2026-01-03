@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import SettingsNavbar from './components/settings-navbar.vue'
-import SettingsMenu from './components/settings-menu.vue'
+import SettingsNavbar from './components/settingsNavbar.vue'
+import SettingsMenu from './components/settingsMenu.vue'
 
 export default {
   name: 'Settings',

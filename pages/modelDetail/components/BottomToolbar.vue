@@ -35,9 +35,8 @@ export default {
     },
 
     handlePrint() {
-      // 跳转到3D模型预览编辑页面
       uni.navigateTo({
-        url: '/pages/3Dpreviewdetail/3Dpreviewdetail'
+        url: '/pages/3Dpreviewdetail/preview3DDetail'
       })
     }
   }

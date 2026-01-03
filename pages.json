@@ -19,7 +19,7 @@
 			}
 		},
 		{
-			"path": "pages/3Dpreviewdetail/3Dpreviewdetail",
+			"path": "pages/3Dpreviewdetail/preview3DDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -85,7 +85,7 @@
 			}
 		},
 		{
-			"path": "pages/printer-intro/printer-intro",
+			"path": "pages/printerIntro/printerIntro",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -97,31 +97,31 @@
 			}
 		},
 		{
-			"path": "pages/profile-edit/profile-edit",
+			"path": "pages/profileEdit/profileEdit",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printer-print/printer-print",
+			"path": "pages/printerPrint/printerPrint",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/add-device/add-device",
+			"path": "pages/addDevice/addDevice",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/device-success/device-success",
+			"path": "pages/deviceSuccess/deviceSuccess",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/my-works/my-works",
+			"path": "pages/myWorks/myWorks",
 			"style": {
 				"navigationStyle": "custom"
 			}
