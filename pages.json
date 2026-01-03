@@ -103,6 +103,48 @@
 			}
 		},
 		{
+			"path": "pages/loginUserAgreement/loginUserAgreement",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/loginPrivacy/loginPrivacy",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/loginMixwareAgreement/loginMixwareAgreement",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/accountSecurity/accountSecurity",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/resetPassword/resetPassword",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/emailBinding/emailBinding",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/thirdPartyBinding/thirdPartyBinding",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/profileEdit/profileEdit",
 			"style": {
 				"navigationStyle": "custom"

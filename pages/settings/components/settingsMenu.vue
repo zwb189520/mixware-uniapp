@@ -35,7 +35,6 @@ export default {
   methods: {
     handleMenuClick(item) {
       if (item.id === 1) {
-        // 检查登录状态
         const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
         if (!isLoggedIn) {
           uni.navigateTo({
@@ -46,8 +45,19 @@ export default {
             url: '/pages/profileEdit/profileEdit'
           })
         }
-        console.log('点击菜单:', item.title)
+      } else if (item.id === 2) {
+        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+        if (!isLoggedIn) {
+          uni.navigateTo({
+            url: '/pages/login/login'
+          })
+        } else {
+          uni.navigateTo({
+            url: '/pages/accountSecurity/accountSecurity'
+          })
+        }
       }
+      console.log('点击菜单:', item.title)
     },
     handleLogout() {
       uni.showModal({

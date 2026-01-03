@@ -7,12 +7,27 @@
       </view>
       
       <view class="login-form">
+        <view class="login-tabs">
+          <view 
+            :class="['tab-item', { 'tab-active': loginType === 'code' }]" 
+            @click="switchLoginType('code')"
+          >
+            验证码登录
+          </view>
+          <view 
+            :class="['tab-item', { 'tab-active': loginType === 'password' }]" 
+            @click="switchLoginType('password')"
+          >
+            密码登录
+          </view>
+        </view>
+        
         <view class="form-item">
           <text class="form-label">邮箱</text>
           <input class="form-input" v-model="email" placeholder="请输入邮箱地址" />
         </view>
         
-        <view class="form-item">
+        <view v-if="loginType === 'code'" class="form-item">
           <text class="form-label">验证码</text>
           <view class="code-input-container">
             <input class="form-input code-input" v-model="code" placeholder="请输入验证码" />
@@ -20,6 +35,11 @@
               {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
             </button>
           </view>
+        </view>
+        
+        <view v-if="loginType === 'password'" class="form-item">
+          <text class="form-label">密码</text>
+          <input class="form-input" v-model="password" type="password" placeholder="请输入密码" />
         </view>
         
         <view class="agreement-item">
@@ -45,14 +65,9 @@
         </view>
         
         <view class="third-party-buttons">
-          <view class="third-party-btn" @click="handleWechatLogin">
-            <uni-icons type="color" size="24" color="#07c160"></uni-icons>
-            <text class="third-party-text">微信登录</text>
-          </view>
-          
-          <view class="third-party-btn" @click="handleQQLogin">
-            <uni-icons type="color" size="24" color="#1296db"></uni-icons>
-            <text class="third-party-text">QQ登录</text>
+          <view class="third-party-btn google-btn" @click="handleGoogleLogin">
+            <text class="google-icon">G</text>
+            <text class="third-party-text">Google登录</text>
           </view>
         </view>
       </view>
@@ -65,8 +80,10 @@ export default {
   name: 'Login',
   data() {
     return {
+      loginType: 'code',
       email: '',
       code: '',
+      password: '',
       agreed: false,
       countdown: 0,
       timer: null
@@ -84,6 +101,10 @@ export default {
   },
   
   methods: {
+    switchLoginType(type) {
+      this.loginType = type
+    },
+    
     toggleAgreement() {
       this.agreed = !this.agreed
     },
@@ -166,15 +187,32 @@ export default {
     },
     
     handleLogin() {
-      if (!this.email || !this.code) {
+      if (!this.email) {
         uni.showToast({
-          title: '请填写邮箱和验证码',
+          title: '请填写邮箱',
           icon: 'none'
         })
         return
       }
       
-      // 检查是否已阅读协议
+      if (this.loginType === 'code') {
+        if (!this.code) {
+          uni.showToast({
+            title: '请填写验证码',
+            icon: 'none'
+          })
+          return
+        }
+      } else {
+        if (!this.password) {
+          uni.showToast({
+            title: '请填写密码',
+            icon: 'none'
+          })
+          return
+        }
+      }
+      
       if (!this.agreed) {
         uni.showToast({
           title: '请先阅读并同意用户协议',
@@ -183,11 +221,17 @@ export default {
         return
       }
       
-      // 获取已注册用户列表
+      if (this.loginType === 'code') {
+        this.handleCodeLogin()
+      } else {
+        this.handlePasswordLogin()
+      }
+    },
+    
+    handleCodeLogin() {
       const registeredUsers = uni.getStorageSync('registeredUsers') || []
       const verificationCodes = uni.getStorageSync('verificationCodes') || {}
       
-      // 验证验证码
       const emailCode = verificationCodes[this.email]
       if (!emailCode || emailCode.code !== this.code) {
         uni.showToast({
@@ -197,11 +241,9 @@ export default {
         return
       }
       
-      // 检查用户是否已存在
       let user = registeredUsers.find(u => u.email === this.email)
       
       if (!user) {
-        // 用户不存在，创建新用户
         user = {
           id: Date.now(),
           email: this.email,
@@ -215,7 +257,39 @@ export default {
         uni.setStorageSync('registeredUsers', registeredUsers)
       }
       
-      // 登录成功，保存用户信息（不包含验证码）
+      const userInfo = {
+        id: user.id,
+        nickname: user.nickname,
+        email: user.email,
+        avatar: user.avatar || '',
+        region: user.region || '',
+        gender: user.gender || ''
+      }
+      
+      this.loginSuccess(userInfo)
+    },
+    
+    handlePasswordLogin() {
+      const registeredUsers = uni.getStorageSync('registeredUsers') || []
+      
+      let user = registeredUsers.find(u => u.email === this.email)
+      
+      if (!user) {
+        uni.showToast({
+          title: '账号不存在',
+          icon: 'none'
+        })
+        return
+      }
+      
+      if (user.password !== this.password) {
+        uni.showToast({
+          title: '密码错误',
+          icon: 'none'
+        })
+        return
+      }
+      
       const userInfo = {
         id: user.id,
         nickname: user.nickname,
@@ -251,41 +325,42 @@ export default {
     },
     
     handleUserAgreement() {
-      uni.showModal({
-        title: '用户协议',
-        content: '用户协议内容...',
-        showCancel: false
+      uni.navigateTo({
+        url: '/pages/loginUserAgreement/loginUserAgreement'
       })
     },
     
     handlePrivacy() {
-      uni.showModal({
-        title: '隐私通知',
-        content: '隐私通知内容...',
-        showCancel: false
+      uni.navigateTo({
+        url: '/pages/loginPrivacy/loginPrivacy'
       })
     },
     
     handleMixwareAgreement() {
-      uni.showModal({
-        title: 'mixware用户协议',
-        content: 'mixware用户协议内容...',
-        showCancel: false
+      uni.navigateTo({
+        url: '/pages/loginMixwareAgreement/loginMixwareAgreement'
       })
     },
     
-    handleWechatLogin() {
-      uni.showToast({
-        title: '微信登录功能开发中',
-        icon: 'none'
+    handleGoogleLogin() {
+      uni.showLoading({
+        title: '正在登录...'
       })
-    },
-    
-    handleQQLogin() {
-      uni.showToast({
-        title: 'QQ登录功能开发中',
-        icon: 'none'
-      })
+      
+      setTimeout(() => {
+        uni.hideLoading()
+        
+        const userInfo = {
+          id: Date.now(),
+          nickname: 'Google用户',
+          email: 'google@example.com',
+          avatar: '',
+          region: '',
+          gender: ''
+        }
+        
+        this.loginSuccess(userInfo)
+      }, 1500)
     }
   }
 }
@@ -325,6 +400,39 @@ export default {
   background-color: #fff;
   border-radius: 16rpx;
   padding: 40rpx;
+}
+
+.login-tabs {
+  display: flex;
+  margin-bottom: 40rpx;
+  border-bottom: 2rpx solid #eee;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+  cursor: pointer;
+}
+
+.tab-active {
+  color: #007aff;
+  font-weight: 600;
+}
+
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background-color: #007aff;
+  border-radius: 2rpx;
 }
 
 .form-item {
@@ -454,11 +562,12 @@ export default {
 
 .third-party-buttons {
   display: flex;
-  gap: 30rpx;
+  justify-content: center;
 }
 
 .third-party-btn {
   flex: 1;
+  max-width: 400rpx;
   height: 80rpx;
   background-color: #fff;
   border: 2rpx solid #eee;
@@ -467,6 +576,23 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 10rpx;
+}
+
+.google-btn {
+  border-color: #ddd;
+}
+
+.google-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background: linear-gradient(135deg, #4285F4 0%, #34A853 25%, #FBBC05 50%, #EA4335 75%, #4285F4 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: bold;
 }
 
 .third-party-text {
