@@ -91,6 +91,12 @@
 			}
 		},
 		{
+			"path": "pages/printerMoreIntro/printerMoreIntro",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": ""

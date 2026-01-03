@@ -5,26 +5,19 @@
         <uni-icons type="left" size="24"></uni-icons>
       </view>
       <view class="navbar-center">
-        <text class="navbar-title">打印机</text>
+        <text class="navbar-title">打印机信息</text>
       </view>
-      <view class="navbar-right" @click="handleMoreClick">
-        <uni-icons type="more-filled" size="24"></uni-icons>
-      </view>
+      <view class="navbar-right"></view>
     </view>
   </view>
 </template>
 
 <script>
 export default {
-  name: 'PrinterIntroNavbar',
+  name: 'PrinterMoreIntroNavbar',
   methods: {
     handleBackClick() {
       uni.navigateBack()
-    },
-    handleMoreClick() {
-      uni.navigateTo({
-        url: '/pages/printerMoreIntro/printerMoreIntro'
-      })
     }
   }
 }
