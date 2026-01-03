@@ -45,10 +45,10 @@ export default {
     },
 
     handleModelClick(model) {
-      uni.navigateTo({
-        url: `/pages/3Dpreviewdetail/preview3DDetail?id=${model.id}&name=${encodeURIComponent(model.name)}&url=${encodeURIComponent(model.image)}`
-      })
-    },
+          uni.navigateTo({
+            url: `/pages/printer/3Dpreviewdetail/preview3DDetail?id=${model.id}&name=${encodeURIComponent(model.name)}&url=${encodeURIComponent(model.image)}`
+          })
+        },
 
     handleImageError(e) {
       console.log('图片加载失败:', e)

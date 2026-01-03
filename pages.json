@@ -19,19 +19,19 @@
 			}
 		},
 		{
-			"path": "pages/3Dpreviewdetail/preview3DDetail",
+			"path": "pages/printer/3Dpreviewdetail/preview3DDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/workdetail/workdetail",
+			"path": "pages/works/workDetail/workDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/ShowcaseWorksDetail/ShowcaseWorksDetail",
+			"path": "pages/works/showcaseWorksDetail/ShowcaseWorksDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -43,133 +43,133 @@
 			}
 		},
 		{
-			"path": "pages/photography/photography",
+			"path": "pages/create/photography/photography",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/chat/chat",
+			"path": "pages/create/chat/chat",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/transform/transform",
+			"path": "pages/create/transform/transform",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/draw/draw",
+			"path": "pages/create/draw/draw",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/profile/profile",
+			"path": "pages/user/profile/profile",
 			"style": {
 				"navigationBarTitleText": ""
 			}
 		},
 		{
-			"path": "pages/settings/settings",
+			"path": "pages/settings/settings/settings",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/message/message",
+			"path": "pages/message/message/message",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printerIntro/printerIntro",
+			"path": "pages/printer/printerIntro/printerIntro",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printerMoreIntro/printerMoreIntro",
+			"path": "pages/printer/printerMoreIntro/printerMoreIntro",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/login/login",
+			"path": "pages/auth/login/login",
 			"style": {
 				"navigationBarTitleText": ""
 			}
 		},
 		{
-			"path": "pages/loginUserAgreement/loginUserAgreement",
+			"path": "pages/auth/loginUserAgreement/loginUserAgreement",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/loginPrivacy/loginPrivacy",
+			"path": "pages/auth/loginPrivacy/loginPrivacy",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/loginMixwareAgreement/loginMixwareAgreement",
+			"path": "pages/auth/loginMixwareAgreement/loginMixwareAgreement",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/accountSecurity/accountSecurity",
+			"path": "pages/user/accountSecurity/accountSecurity",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/resetPassword/resetPassword",
+			"path": "pages/auth/resetPassword/resetPassword",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/emailBinding/emailBinding",
+			"path": "pages/auth/emailBinding/emailBinding",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/thirdPartyBinding/thirdPartyBinding",
+			"path": "pages/user/thirdPartyBinding/thirdPartyBinding",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/profileEdit/profileEdit",
+			"path": "pages/user/profileEdit/profileEdit",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printerPrint/printerPrint",
+			"path": "pages/printer/printerPrint/printerPrint",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/addDevice/addDevice",
+			"path": "pages/printer/addDevice/addDevice",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/deviceSuccess/deviceSuccess",
+			"path": "pages/printer/deviceSuccess/deviceSuccess",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/myWorks/myWorks",
+			"path": "pages/works/myWorks/myWorks",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -189,20 +189,20 @@
 		"list": [
 			{
 				"pagePath": "pages/explore/explore",
-				"iconPath": "static/img/tab-explore.png",
-				"selectedIconPath": "static/img/tab-explore-active.png",
+				"iconPath": "static/tabs/tab-explore.png",
+				"selectedIconPath": "static/tabs/tab-explore-active.png",
 				"text": "探索"
 			},
 			{
 				"pagePath": "pages/create/create",
-				"iconPath": "static/img/tab-create.png",
-				"selectedIconPath": "static/img/tab-create-active.png",
+				"iconPath": "static/tabs/tab-create.png",
+				"selectedIconPath": "static/tabs/tab-create-active.png",
 				"text": "创建"
 			},
 			{
-				"pagePath": "pages/profile/profile",
-				"iconPath": "static/img/tab-profile.png",
-				"selectedIconPath": "static/img/tab-profile-active.png",
+				"pagePath": "pages/user/profile/profile",
+				"iconPath": "static/tabs/tab-profile.png",
+				"selectedIconPath": "static/tabs/tab-profile-active.png",
 				"text": "我的"
 			}
 		]

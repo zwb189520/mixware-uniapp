@@ -5,8 +5,8 @@
     
     <!-- 顶部背景组件 -->
     <BackgroundHeader
-      background-image="/static/img/explore-bg.png"
-      logo-image="/static/img/logo.png"
+      background-image="/static/images/explore-bg.png"
+      logo-image="/static/images/logo.png"
       welcome-text="欢迎来到Mixware"
     />
 
@@ -360,7 +360,6 @@ export default {
     },
     handleModelClick(item) { 
       console.log('点击模型:', item.name);
-      // 跳转到模型详情页面
       uni.navigateTo({
         url: `/pages/modelDetail/modelDetail?id=${item.id}`
       })

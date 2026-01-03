@@ -37,10 +37,10 @@ export default {
       })
     },
     handleSettings() {
-      uni.navigateTo({
-        url: '/pages/messageSettings/messageSettings'
-      })
-    }
+        uni.navigateTo({
+          url: '/pages/settings/settings/settings'
+        })
+      }
   }
 }
 </script>

@@ -35,10 +35,10 @@ export default {
   },
   methods: {
     handleWorkClick(image, index) {
-      uni.navigateTo({
-        url: `/pages/showcaseWorksDetail/ShowcaseWorksDetail?workId=${index}`
-      })
-    },
+          uni.navigateTo({
+            url: `/pages/works/showcaseWorksDetail/ShowcaseWorksDetail?workId=${index}`
+          })
+        },
 
     handleImageError(e) {
       console.log('图片加载失败:', e)

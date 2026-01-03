@@ -28,25 +28,25 @@ export default {
           text: '拍一拍',
           description: '拍照生成3D模型',
           icon: 'camera',
-          backgroundImage: '/static/img/camera-card.png'
+          backgroundImage: '/static/images/create/camera-card.png'
         },
         {
           text: '说一说',
           description: '对话生成3D模型',
           icon: 'chat',
-          backgroundImage: '/static/img/chat-card.png'
+          backgroundImage: '/static/images/create/chat-card.png'
         },
         {
           text: '画一画',
           description: '涂鸦生成3D模型',
           icon: 'color',
-          backgroundImage: '/static/img/draw-card.png'
+          backgroundImage: '/static/images/create/draw-card.png'
         },
         {
           text: '变一变',
           description: '根据模型调整参数生成模型',
           icon: 'compose',
-          backgroundImage: '/static/img/transform-card.png'
+          backgroundImage: '/static/images/create/transform-card.png'
         }
       ]
     }
@@ -65,19 +65,19 @@ export default {
     handleToolClick(tool) {
       if (tool.text === '拍一拍') {
         uni.navigateTo({
-          url: '/pages/photography/photography'
+          url: '/pages/create/photography/photography'
         })
       } else if (tool.text === '说一说') {
         uni.navigateTo({
-          url: '/pages/chat/chat'
+          url: '/pages/create/chat/chat'
         })
       } else if (tool.text === '画一画') {
         uni.navigateTo({
-          url: '/pages/draw/draw'
+          url: '/pages/create/draw/draw'
         })
       } else if (tool.text === '变一变') {
         uni.navigateTo({
-          url: '/pages/transform/transform'
+          url: '/pages/create/transform/transform'
         })
       } else {
         uni.showToast({

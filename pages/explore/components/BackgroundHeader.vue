@@ -14,11 +14,11 @@ export default {
   props: {
     backgroundImage: {
       type: String,
-      default: '/static/img/explore-bg.png'
+      default: '/static/images/explore-bg.png'
     },
     logoImage: {
       type: String,
-      default: '/static/img/logo.png'
+      default: '/static/images/logo.png'
     },
     welcomeText: {
       type: String,

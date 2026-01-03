@@ -34,31 +34,31 @@ export default {
   },
   methods: {
     handleMenuClick(item) {
-      if (item.id === 1) {
-        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
-        if (!isLoggedIn) {
-          uni.navigateTo({
-            url: '/pages/login/login'
-          })
-        } else {
-          uni.navigateTo({
-            url: '/pages/profileEdit/profileEdit'
-          })
-        }
-      } else if (item.id === 2) {
-        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
-        if (!isLoggedIn) {
-          uni.navigateTo({
-            url: '/pages/login/login'
-          })
-        } else {
-          uni.navigateTo({
-            url: '/pages/accountSecurity/accountSecurity'
-          })
-        }
-      }
-      console.log('点击菜单:', item.title)
-    },
+          if (item.id === 1) {
+            const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+            if (!isLoggedIn) {
+              uni.navigateTo({
+                url: '/pages/auth/login/login'
+              })
+            } else {
+              uni.navigateTo({
+                url: '/pages/user/profileEdit/profileEdit'
+              })
+            }
+          } else if (item.id === 2) {
+            const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+            if (!isLoggedIn) {
+              uni.navigateTo({
+                url: '/pages/auth/login/login'
+              })
+            } else {
+              uni.navigateTo({
+                url: '/pages/user/accountSecurity/accountSecurity'
+              })
+            }
+          }
+          console.log('点击菜单:', item.title)
+        },
     handleLogout() {
       uni.showModal({
         title: '提示',
@@ -82,7 +82,7 @@ export default {
             // 返回profile页面
             setTimeout(() => {
               uni.switchTab({
-                url: '/pages/profile/profile'
+                url: '/pages/user/profile/profile'
               })
             }, 1000)
           }

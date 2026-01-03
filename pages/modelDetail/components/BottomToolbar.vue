@@ -35,10 +35,10 @@ export default {
     },
 
     handlePrint() {
-      uni.navigateTo({
-        url: '/pages/3Dpreviewdetail/preview3DDetail'
-      })
-    }
+          uni.navigateTo({
+            url: '/pages/printer/3Dpreviewdetail/preview3DDetail'
+          })
+        }
   }
 }
 </script>
