@@ -7,6 +7,7 @@
       <text>消息</text>
     </view>
     <view class="navbar-right">
+      <uni-icons type="gear" size="20" @click="handleSettings"></uni-icons>
       <uni-icons type="trash" size="20" @click="handleClear"></uni-icons>
     </view>
   </view>
@@ -38,7 +39,7 @@ export default {
     },
     handleSettings() {
         uni.navigateTo({
-          url: '/pages/settings/settings/settings'
+          url: '/pages/message/messageSettings/messageSettings'
         })
       }
   }

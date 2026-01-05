@@ -85,6 +85,12 @@
 			}
 		},
 		{
+			"path": "pages/message/messageSettings/messageSettings",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/printer/printerIntro/printerIntro",
 			"style": {
 				"navigationStyle": "custom"

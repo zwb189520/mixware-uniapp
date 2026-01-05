@@ -27,8 +27,7 @@ export default {
     return {
       menuItems: [
         { id: 1, title: '个人资料' },
-        { id: 2, title: '账户与安全' },
-        { id: 3, title: '消息设置' }
+        { id: 2, title: '账户与安全' }
       ]
     }
   },

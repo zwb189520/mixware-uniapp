@@ -2,8 +2,8 @@
   <view class="search-bar" @click="handleClick">
     <view class="search-left" @click.stop="handleScan">
       <uni-icons type="scan" size="30"></uni-icons>
-      <view class="divider"></view>
     </view>
+    <view class="divider"></view>
     <input 
       class="search-input" 
       :placeholder="placeholder" 
@@ -43,7 +43,7 @@ export default {
 .search-bar {
   margin-top: 20rpx;
   margin-bottom: 10rpx;
-  background: #fff;
+  background: #f5f5f5;
   border-radius: 50rpx;
   padding: 20rpx 25rpx;
   display: flex;
@@ -53,13 +53,14 @@ export default {
 .search-left {
   display: flex;
   align-items: center;
-  margin-right: 20rpx;
+  margin-left: 30rpx;
 }
 .divider {
   width: 2rpx;
   height: 30rpx;
   background: #e0e0e0;
-  margin-right: 20rpx;
+  margin-left: 30rpx;
+  margin-right: 30rpx;
 }
 .search-input {
   flex: 1;

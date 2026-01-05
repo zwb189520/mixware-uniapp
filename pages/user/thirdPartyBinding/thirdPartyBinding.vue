@@ -164,7 +164,7 @@ export default {
 .binding-name {
   font-size: 30rpx;
   color: #333;
-  font-weight: 500;
+  font-weight: 400;
   margin-bottom: 8rpx;
 }
 

@@ -173,7 +173,7 @@ export default {
   font-size: 28rpx;
   color: #333;
   margin-bottom: 20rpx;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .form-input {
@@ -203,6 +203,7 @@ export default {
   border: none;
   border-radius: 8rpx;
   font-size: 24rpx;
+  line-height: 80rpx;
 }
 
 .code-btn:disabled {

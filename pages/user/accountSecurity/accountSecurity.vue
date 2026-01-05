@@ -31,7 +31,7 @@
       
       <view class="security-item" @click="handleDeleteAccount">
         <text class="item-label">注销账号</text>
-        <view class="item-value">已绑定</view>
+        <view class="item-value"></view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
     </view>
@@ -167,7 +167,7 @@ export default {
 .item-label {
   font-size: 28rpx;
   color: #333;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .item-value {
