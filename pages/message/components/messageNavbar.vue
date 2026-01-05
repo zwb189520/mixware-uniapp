@@ -7,8 +7,8 @@
       <text>消息</text>
     </view>
     <view class="navbar-right">
-      <uni-icons type="gear" size="20" @click="handleSettings"></uni-icons>
-      <uni-icons type="trash" size="20" @click="handleClear"></uni-icons>
+      <uni-icons type="gear" size="24" @click="handleSettings"></uni-icons>
+      <uni-icons type="trash" size="24" @click="handleClear"></uni-icons>
     </view>
   </view>
 </template>

@@ -17,7 +17,7 @@
           <text class="setting-label">推送通知</text>
           <text class="setting-desc">系统中的横幅通知</text>
         </view>
-        <uni-icons type="right" size="16" color="#999"></uni-icons>
+        <uni-icons type="right" size="24" color="#999"></uni-icons>
       </view>
 
       <view class="section-title">应用内消息</view>
@@ -142,7 +142,7 @@ export default {
   font-size: 28rpx;
   color: #333;
   font-weight: 400;
-}
+} 
 
 .setting-desc {
   display: block;
