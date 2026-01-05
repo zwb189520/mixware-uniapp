@@ -7,175 +7,175 @@
 	},
 	"pages": [
 		{
-			"path": "pages/explore/explore",
+			"path": "pages/explore/explore/explore",
 			"style": {
 				"navigationBarTitleText": ""
 			}
 		},
 		{
-			"path": "pages/modelDetail/modelDetail",
+			"path": "pages/explore/modelDetail/modelDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printer/3Dpreviewdetail/preview3DDetail",
+			"path": "pages/explore/3Dpreviewdetail/preview3DDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/works/workDetail/workDetail",
+			"path": "pages/explore/workDetail/workDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/works/showcaseWorksDetail/ShowcaseWorksDetail",
+			"path": "pages/explore/showcaseWorksDetail/showcaseWorksDetail",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/create/create",
+			"path": "pages/create/create/create",
 			"style": {
 				"navigationBarTitleText": ""
 			}
 		},
 		{
-			"path": "pages/createDetail/photography/photography",
+			"path": "pages/create/createDetail/photography/photography",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/createDetail/chat/chat",
+			"path": "pages/create/createDetail/chat/chat",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/createDetail/transform/transform",
+			"path": "pages/create/createDetail/transform/transform",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/createDetail/draw/draw",
+			"path": "pages/create/createDetail/draw/draw",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/user/profile/profile",
+			"path": "pages/profile/user/profile/profile",
 			"style": {
 				"navigationBarTitleText": ""
 			}
 		},
 		{
-			"path": "pages/settings/settings/settings",
+			"path": "pages/profile/settings/settings/settings",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/message/message/message",
+			"path": "pages/profile/message/message/message",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/message/messageSettings/messageSettings",
+			"path": "pages/profile/message/messageSettings/messageSettings",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printer/printerIntro/printerIntro",
+			"path": "pages/profile/printer/printerIntro/printerIntro",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printer/printerMoreIntro/printerMoreIntro",
+			"path": "pages/profile/printer/printerMoreIntro/printerMoreIntro",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/auth/login/login",
+			"path": "pages/profile/auth/login/login",
 			"style": {
 				"navigationBarTitleText": ""
 			}
 		},
 		{
-			"path": "pages/auth/loginUserAgreement/loginUserAgreement",
+			"path": "pages/profile/auth/loginUserAgreement/loginUserAgreement",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/auth/loginPrivacy/loginPrivacy",
+			"path": "pages/profile/auth/loginPrivacy/loginPrivacy",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/auth/loginMixwareAgreement/loginMixwareAgreement",
+			"path": "pages/profile/auth/loginMixwareAgreement/loginMixwareAgreement",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/user/accountSecurity/accountSecurity",
+			"path": "pages/profile/user/accountSecurity/accountSecurity",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/auth/resetPassword/resetPassword",
+			"path": "pages/profile/auth/resetPassword/resetPassword",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/auth/emailBinding/emailBinding",
+			"path": "pages/profile/auth/emailBinding/emailBinding",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/user/thirdPartyBinding/thirdPartyBinding",
+			"path": "pages/profile/user/thirdPartyBinding/thirdPartyBinding",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/user/profileEdit/profileEdit",
+			"path": "pages/profile/user/profileEdit/profileEdit",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printer/printerPrint/printerPrint",
+			"path": "pages/profile/printer/printerPrint/printerPrint",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printer/addDevice/addDevice",
+			"path": "pages/profile/printer/addDevice/addDevice",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/printer/deviceSuccess/deviceSuccess",
+			"path": "pages/profile/printer/deviceSuccess/deviceSuccess",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/works/myWorks/myWorks",
+			"path": "pages/profile/myWorks/myWorks",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -194,19 +194,19 @@
 		"borderStyle": "black",
 		"list": [
 			{
-				"pagePath": "pages/explore/explore",
+				"pagePath": "pages/explore/explore/explore",
 				"iconPath": "static/tabs/tab-explore.png",
 				"selectedIconPath": "static/tabs/tab-explore-active.png",
 				"text": "探索"
 			},
 			{
-				"pagePath": "pages/create/create",
+				"pagePath": "pages/create/create/create",
 				"iconPath": "static/tabs/tab-create.png",
 				"selectedIconPath": "static/tabs/tab-create-active.png",
 				"text": "创建"
 			},
 			{
-				"pagePath": "pages/user/profile/profile",
+				"pagePath": "pages/profile/user/profile/profile",
 				"iconPath": "static/tabs/tab-profile.png",
 				"selectedIconPath": "static/tabs/tab-profile-active.png",
 				"text": "我的"
@@ -214,13 +214,13 @@
 		]
 	},
 	"uniIdRouter": {},
-	"condition" : { //模式配置，仅开发期间生效
-		"current": 0, //当前激活的模式(list 的索引项)
+	"condition" : { 
+		"current": 0, 
 		"list": [
 			{
-				"name": "", //模式名称
-				"path": "", //启动页面，必选
-				"query": "" //启动参数，在页面的onLoad函数里面得到
+				"name": "", 
+				"path": "", 
+				"query": "" 
 			}
 		]
 	}
