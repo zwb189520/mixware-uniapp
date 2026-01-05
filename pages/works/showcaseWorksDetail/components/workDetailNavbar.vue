@@ -7,9 +7,6 @@
       <view class="navbar-center">
         <text class="navbar-title">{{ title || '作品详情' }}</text>
       </view>
-      <view class="navbar-right">
-        <text class="navbar-more">...</text>
-      </view>
     </view>
   </view>
 </template>

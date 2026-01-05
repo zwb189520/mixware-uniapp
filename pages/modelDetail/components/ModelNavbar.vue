@@ -7,9 +7,6 @@
       <view class="navbar-center">
         <text class="navbar-title">{{ modelName }}</text>
       </view>
-      <view class="navbar-right" @click="handleMoreClick">
-        <uni-icons type="more-filled" size="24"></uni-icons>
-      </view>
     </view>
   </view>
 </template>

@@ -43,25 +43,25 @@
 			}
 		},
 		{
-			"path": "pages/create/photography/photography",
+			"path": "pages/createDetail/photography/photography",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/create/chat/chat",
+			"path": "pages/createDetail/chat/chat",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/create/transform/transform",
+			"path": "pages/createDetail/transform/transform",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/create/draw/draw",
+			"path": "pages/createDetail/draw/draw",
 			"style": {
 				"navigationStyle": "custom"
 			}

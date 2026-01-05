@@ -65,19 +65,19 @@ export default {
     handleToolClick(tool) {
       if (tool.text === '拍一拍') {
         uni.navigateTo({
-          url: '/pages/create/photography/photography'
+          url: '/pages/createDetail/photography/photography'
         })
       } else if (tool.text === '说一说') {
         uni.navigateTo({
-          url: '/pages/create/chat/chat'
+          url: '/pages/createDetail/chat/chat'
         })
       } else if (tool.text === '画一画') {
         uni.navigateTo({
-          url: '/pages/create/draw/draw'
+          url: '/pages/createDetail/draw/draw'
         })
       } else if (tool.text === '变一变') {
         uni.navigateTo({
-          url: '/pages/create/transform/transform'
+          url: '/pages/createDetail/transform/transform'
         })
       } else {
         uni.showToast({
