@@ -49,6 +49,7 @@ export default {
   flex: 1;
   display: flex;
   align-items: center;
+  width: 88rpx;
 }
 
 .navbar-left {
@@ -60,10 +61,15 @@ export default {
 }
 
 .navbar-center {
-  flex: 2;
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: absolute;
+  left: 88rpx;
+  right: 88rpx;
+  top: 0;
+  bottom: 0;
 }
 
 .navbar-title {

@@ -93,7 +93,7 @@ export default {
       console.warn('模型图片加载失败:', e.detail.errMsg)
     },
     handleAvatarError(e) {
-      console.warn('头像图片加载失败:', e.detail.errMsg)
+      e.target.src = '/static/images/logo.png'
     }
   }
 }
@@ -157,6 +157,7 @@ export default {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   overflow: hidden;
 }
 

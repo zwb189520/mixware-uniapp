@@ -22,7 +22,7 @@ export default {
     },
     welcomeText: {
       type: String,
-      default: '欢迎来到Mixware'
+      default: '欢迎来到Mixwar'
     }
   }
 }
