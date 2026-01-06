@@ -37,18 +37,18 @@ export default {
       },
     
     loadUserInfo() {
-      // 从本地存储加载用户信息
       const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
       const userInfo = uni.getStorageSync('userInfo') || {}
       
       console.log('Profile - 加载用户信息:', { isLoggedIn, userInfo })
       
-      this.isLoggedIn = isLoggedIn
-      if (userInfo && Object.keys(userInfo).length > 0) {
+      if (isLoggedIn && userInfo && Object.keys(userInfo).length > 0) {
+        this.isLoggedIn = true
         this.userInfo = userInfo
         console.log('Profile - 更新用户信息:', this.userInfo)
       } else {
-        console.log('Profile - 未找到用户信息，使用默认值')
+        console.log('Profile - 未找到用户信息，重置为未登录状态')
+        this.resetUserInfo()
       }
     },
     

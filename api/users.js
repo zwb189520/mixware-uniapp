@@ -15,7 +15,7 @@ export function login(email, password) {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 || res.data.code === 1) {
             resolve(res.data)
           } else {
             reject(new Error(res.data.msg || '登录失败'))
@@ -84,7 +84,7 @@ export function register(userData) {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 || res.data.code === 1) {
             resolve(res.data)
           } else {
             reject(new Error(res.data.msg || '注册失败'))
@@ -171,7 +171,7 @@ export function getUserInfo(id) {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 || res.data.code === 1) {
             resolve(res.data)
           } else {
             reject(new Error(res.data.msg || '获取用户信息失败'))
@@ -201,7 +201,7 @@ export function updateUserInfo(userInfo) {
       data: userInfo,
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 || res.data.code === 1) {
             resolve(res.data)
           } else {
             reject(new Error(res.data.msg || '更新用户信息失败'))
@@ -261,19 +261,67 @@ export async function loginWithPassword(email, password) {
   try {
     const res = await login(email, password)
     
-    // 保存用户信息
-    const userInfo = {
-      id: res.data.userId,
-      nickname: res.data.username,
-      email: email,
-      avatar: res.data.avatarUrl || '',
-      accountStatus: res.data.accountStatus
+    uni.setStorageSync('token', res.data.token)
+    
+    const userId = res.data.userId
+    console.log('登录返回的userId:', userId)
+    
+    const storedUserInfo = uni.getStorageSync('userInfo') || {}
+    console.log('本地存储的userInfo:', storedUserInfo)
+    console.log('本地存储的id:', storedUserInfo.id)
+    
+    if (storedUserInfo && storedUserInfo.id === userId) {
+      console.log('使用本地存储的用户信息')
+      
+      storedUserInfo.accountStatus = res.data.accountStatus
+      
+      uni.setStorageSync('userInfo', storedUserInfo)
+      uni.setStorageSync('isLoggedIn', true)
+      
+      uni.$emit('userLogin', storedUserInfo)
+      
+      return res
     }
     
-    // 保存token
-    uni.setStorageSync('token', res.data.token)
-    uni.setStorageSync('userInfo', userInfo)
-    uni.setStorageSync('isLoggedIn', true)
+    console.log('本地没有匹配的用户信息，使用接口获取')
+    
+    try {
+      const userInfoRes = await getUserInfo(userId)
+      
+      const userInfo = {
+        id: userId,
+        nickname: userInfoRes.data.username,
+        email: userInfoRes.data.email,
+        avatar: userInfoRes.data.avatarUrl || '',
+        birthday: userInfoRes.data.birthday || '',
+        region: '',
+        gender: '',
+        accountStatus: res.data.accountStatus
+      }
+      
+      uni.setStorageSync('userInfo', userInfo)
+      uni.setStorageSync('isLoggedIn', true)
+      
+      uni.$emit('userLogin', userInfo)
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      
+      const userInfo = {
+        id: userId,
+        nickname: res.data.username,
+        email: email,
+        avatar: res.data.avatarUrl || '',
+        birthday: '',
+        region: '',
+        gender: '',
+        accountStatus: res.data.accountStatus
+      }
+      
+      uni.setStorageSync('userInfo', userInfo)
+      uni.setStorageSync('isLoggedIn', true)
+      
+      uni.$emit('userLogin', userInfo)
+    }
     
     return res
   } catch (error) {
@@ -286,19 +334,38 @@ export async function loginWithCode(email, verificationCode) {
   try {
     const res = await loginByCode(email, verificationCode)
     
-    // 保存用户信息
+    const storedUserInfo = uni.getStorageSync('userInfo') || {}
+    
+    if (storedUserInfo && storedUserInfo.id === res.data.userId) {
+      console.log('使用本地存储的用户信息')
+      
+      storedUserInfo.accountStatus = res.data.accountStatus
+      
+      uni.setStorageSync('token', res.data.token)
+      uni.setStorageSync('userInfo', storedUserInfo)
+      uni.setStorageSync('isLoggedIn', true)
+      
+      uni.$emit('userLogin', storedUserInfo)
+      
+      return res
+    }
+    
     const userInfo = {
       id: res.data.userId,
-      nickname: res.data.username,
-      email: email,
-      avatar: res.data.avatarUrl || '',
+      nickname: storedUserInfo.nickname || res.data.username,
+      email: storedUserInfo.email || email,
+      avatar: storedUserInfo.avatar || res.data.avatarUrl || '',
+      birthday: storedUserInfo.birthday || '',
+      region: storedUserInfo.region || '',
+      gender: storedUserInfo.gender || '',
       accountStatus: res.data.accountStatus
     }
     
-    // 保存token
     uni.setStorageSync('token', res.data.token)
     uni.setStorageSync('userInfo', userInfo)
     uni.setStorageSync('isLoggedIn', true)
+    
+    uni.$emit('userLogin', userInfo)
     
     return res
   } catch (error) {
@@ -454,7 +521,7 @@ export function deleteUser(id) {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 || res.data.code === 1) {
             resolve(res.data)
           } else {
             reject(new Error(res.data.msg || '删除用户失败'))

@@ -5,6 +5,8 @@ export function addFavorite(modelId, groupId = null) {
     const queryParams = new URLSearchParams()
     queryParams.append('modelId', modelId)
     if (groupId) queryParams.append('groupId', groupId)
+    
+    const token = uni.getStorageSync('token') || ''
 
     uni.request({
       url: `${BASE_URL}/user-model-favorite/add?${queryParams.toString()}`,
@@ -12,7 +14,8 @@ export function addFavorite(modelId, groupId = null) {
       timeout: 10000,
       header: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
         if (res.statusCode === 200) {
@@ -42,6 +45,8 @@ export function cancelFavorite(modelId) {
   return new Promise((resolve, reject) => {
     const queryParams = new URLSearchParams()
     queryParams.append('modelId', modelId)
+    
+    const token = uni.getStorageSync('token') || ''
 
     uni.request({
       url: `${BASE_URL}/user-model-favorite/cancel?${queryParams.toString()}`,
@@ -49,7 +54,8 @@ export function cancelFavorite(modelId) {
       timeout: 10000,
       header: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
         if (res.statusCode === 200) {

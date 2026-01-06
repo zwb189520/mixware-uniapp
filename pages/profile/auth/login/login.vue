@@ -280,6 +280,13 @@ export default {
         }, 500)
       } catch (error) {
         uni.hideLoading()
+        
+        if (this.timer) {
+          clearInterval(this.timer)
+          this.timer = null
+        }
+        this.countdown = 0
+        
         uni.showToast({
           title: error.message || '登录失败',
           icon: 'none'
@@ -297,7 +304,9 @@ export default {
           username: this.username,
           email: this.email,
           password: this.password,
-          verificationCode: this.code
+          confirmPassword: this.confirmPassword,
+          verificationCode: this.code,
+          privacyAgreed: true
         })
         
         uni.hideLoading()
@@ -313,6 +322,13 @@ export default {
         }, 500)
       } catch (error) {
         uni.hideLoading()
+        
+        if (this.timer) {
+          clearInterval(this.timer)
+          this.timer = null
+        }
+        this.countdown = 0
+        
         uni.showToast({
           title: error.message || '注册失败',
           icon: 'none'

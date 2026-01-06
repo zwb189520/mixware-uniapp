@@ -94,14 +94,19 @@ export function getModelList(params = {}) {
 export function getModelDetail(modelId) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
+    const url = `${BASE_URL}/models/${modelId}`
+    console.log('请求URL:', url)
+    console.log('Token:', token ? '已设置' : '未设置')
+    
     uni.request({
-      url: `${BASE_URL}/api/models/${modelId}`,
+      url: url,
       method: 'GET',
       header: {
         'Content-Type': 'application/json',
         'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
+        console.log('API响应:', res)
         if (res.statusCode === 200) {
           if (res.data.code === 1) {
             resolve(res.data);
@@ -113,6 +118,7 @@ export function getModelDetail(modelId) {
         }
       },
       fail: (err) => {
+        console.error('API请求失败:', err)
         reject(new Error(`网络请求失败: ${err.errMsg}`));
       }
     });

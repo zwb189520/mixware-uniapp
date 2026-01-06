@@ -5,34 +5,37 @@
         <uni-icons type="left" size="24"></uni-icons>
       </view>
       <view class="navbar-title">
-        <text>3D预览</text>
+        <text>{{ modelName }}</text>
       </view>
       <view class="navbar-right"></view>
     </view>
 
     <view class="content">
-      <view class="model-preview">
-        <image class="model-image" :src="modelUrl" mode="aspectFit"></image>
+      <view class="model-container" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+        <canvas canvas-id="modelCanvas" class="model-canvas"></canvas>
+        <image 
+          v-if="!isCanvasReady" 
+          class="model-image" 
+          :src="modelUrl" 
+          mode="aspectFit"
+          :style="{
+            transform: `scale(${scale}) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
+          }"
+        ></image>
       </view>
 
-      <view class="model-info">
-        <text class="model-name">{{ modelName }}</text>
-        <text class="model-id">模型ID: {{ modelId }}</text>
-      </view>
-
-      <view class="print-settings">
-        <view class="setting-item">
-          <text class="setting-label">打印材料</text>
-          <text class="setting-value">PLA</text>
-        </view>
-        <view class="setting-item">
-          <text class="setting-label">打印质量</text>
-          <text class="setting-value">标准</text>
-        </view>
-        <view class="setting-item">
-          <text class="setting-label">填充率</text>
-          <text class="setting-value">20%</text>
-        </view>
+      <view class="zoom-control">
+        <text class="zoom-label">缩放</text>
+        <slider 
+          class="zoom-slider" 
+          :value="scale * 100" 
+          min="50" 
+          max="200" 
+          @change="handleZoomChange"
+          activeColor="#007aff"
+          backgroundColor="#e0e0e0"
+        ></slider>
+        <text class="zoom-value">{{ Math.round(scale * 100) }}%</text>
       </view>
     </view>
 
@@ -43,27 +46,77 @@
 </template>
 
 <script>
+import { sendPrintCommand } from '@/api/iot.js'
+
 export default {
   data() {
     return {
       modelId: '',
       modelName: '',
-      modelUrl: ''
+      modelUrl: '',
+      scale: 1,
+      rotateX: 0,
+      rotateY: 0,
+      lastTouchX: 0,
+      lastTouchY: 0,
+      isCanvasReady: false
     }
   },
   onLoad(options) {
     this.modelId = options.id || ''
     this.modelName = options.name || '3D模型'
-    this.modelUrl = options.url || '/static/images/explore-bg.png'
+    this.modelUrl = decodeURIComponent(options.url || '/static/images/explore-bg.png')
   },
   methods: {
     handleBack() {
       uni.navigateBack()
     },
-    handlePrint() {
-      uni.navigateTo({
-        url: '/pages/explore/workDetail/workDetail'
-      })
+    handleTouchStart(e) {
+      this.lastTouchX = e.touches[0].clientX
+      this.lastTouchY = e.touches[0].clientY
+    },
+    handleTouchMove(e) {
+      const deltaX = e.touches[0].clientX - this.lastTouchX
+      const deltaY = e.touches[0].clientY - this.lastTouchY
+      
+      this.rotateY += deltaX * 0.5
+      this.rotateX -= deltaY * 0.5
+      
+      this.lastTouchX = e.touches[0].clientX
+      this.lastTouchY = e.touches[0].clientY
+    },
+    handleTouchEnd() {
+    },
+    handleZoomChange(e) {
+      this.scale = e.detail.value / 100
+    },
+    async handlePrint() {
+      try {
+        uni.showLoading({
+          title: '发送打印命令...'
+        })
+        
+        const deviceId = uni.getStorageSync('deviceId') || 'default-device'
+        const res = await sendPrintCommand(deviceId, this.modelId, 'start')
+        
+        uni.hideLoading()
+        uni.showToast({
+          title: '打印命令已发送',
+          icon: 'success'
+        })
+        
+        setTimeout(() => {
+          uni.navigateTo({
+            url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelUrl)}&scale=${Math.round(this.scale * 100)}`
+          })
+        }, 1500)
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({
+          title: error.message || '发送打印命令失败',
+          icon: 'none'
+        })
+      }
     }
   }
 }
@@ -100,72 +153,59 @@ export default {
 
 .content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 20rpx;
 }
 
-.model-preview {
+.model-container {
+  flex: 1;
   background-color: #fff;
   border-radius: 16rpx;
   padding: 40rpx;
-  margin-bottom: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.model-canvas {
+  width: 100%;
+  height: 100%;
 }
 
 .model-image {
   width: 100%;
-  height: 400rpx;
+  height: 100%;
+  transition: transform 0.1s ease-out;
 }
 
-.model-info {
+.zoom-control {
   background-color: #fff;
   border-radius: 16rpx;
   padding: 30rpx;
-  margin-bottom: 20rpx;
-}
-
-.model-name {
-  display: block;
-  font-size: 32rpx;
-  color: #333;
-  font-weight: 600;
-  margin-bottom: 10rpx;
-}
-
-.model-id {
-  display: block;
-  font-size: 24rpx;
-  color: #999;
-}
-
-.print-settings {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 30rpx;
-}
-
-.setting-item {
+  margin-top: 20rpx;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  gap: 20rpx;
 }
 
-.setting-item:last-child {
-  border-bottom: none;
-}
-
-.setting-label {
+.zoom-label {
   font-size: 28rpx;
   color: #333;
+  width: 80rpx;
 }
 
-.setting-value {
+.zoom-slider {
+  flex: 1;
+}
+
+.zoom-value {
   font-size: 28rpx;
   color: #666;
+  width: 100rpx;
+  text-align: right;
 }
 
 .bottom-button {

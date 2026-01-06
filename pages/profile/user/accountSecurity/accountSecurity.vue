@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { deleteUser } from '@/api/users.js'
+
 export default {
   name: 'AccountSecurity',
   methods: {
@@ -83,10 +85,14 @@ export default {
                     title: '注销中...'
                   })
                   
-                  setTimeout(() => {
+                  const userInfo = uni.getStorageSync('userInfo') || {}
+                  
+                  deleteUser(userInfo.id).then(() => {
                     uni.hideLoading()
                     
                     uni.clearStorageSync()
+                    
+                    uni.$emit('userLogout')
                     
                     uni.showToast({
                       title: '账号已注销',
@@ -95,10 +101,17 @@ export default {
                     
                     setTimeout(() => {
                       uni.reLaunch({
-                      url: '/pages/profile/auth/login/login'
-                    })
+                        url: '/pages/profile/user/profile/profile'
+                      })
                     }, 1500)
-                  }, 1500)
+                  }).catch((error) => {
+                    uni.hideLoading()
+                    
+                    uni.showToast({
+                      title: error.message || '注销失败',
+                      icon: 'none'
+                    })
+                  })
                 }
               }
             })

@@ -44,11 +44,14 @@
 </template>
 
 <script>
+import { updateUserInfo } from '@/api/users.js'
+
 export default {
   name: 'ProfileEdit',
   data() {
     return {
       userInfo: {
+        id: '',
         nickname: '',
         avatar: '',
         region: '',
@@ -63,23 +66,39 @@ export default {
     },
     
     handleSave() {
-      // 保存用户信息
-      uni.setStorageSync('userInfo', this.userInfo)
-      
-      console.log('ProfileEdit - 保存用户信息:', this.userInfo)
-      
-      uni.showToast({
-        title: '保存成功',
-        icon: 'success'
+      uni.showLoading({
+        title: '保存中...'
       })
       
-      // 发送用户资料更新事件
-      uni.$emit('profileUpdate', this.userInfo)
-      
-      // 返回上一页
-      setTimeout(() => {
-        uni.navigateBack()
-      }, 500)
+      updateUserInfo({
+        username: this.userInfo.nickname,
+        avatarUrl: this.userInfo.avatar,
+        email: this.userInfo.email
+      }).then(() => {
+        uni.hideLoading()
+        
+        uni.setStorageSync('userInfo', this.userInfo)
+        
+        console.log('ProfileEdit - 保存用户信息:', this.userInfo)
+        
+        uni.showToast({
+          title: '保存成功',
+          icon: 'success'
+        })
+        
+        uni.$emit('profileUpdate', this.userInfo)
+        
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 500)
+      }).catch((error) => {
+        uni.hideLoading()
+        
+        uni.showToast({
+          title: error.message || '保存失败',
+          icon: 'none'
+        })
+      })
     },
     
     handleAvatarEdit() {

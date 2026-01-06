@@ -12,6 +12,8 @@
       <!-- 3D模型简介组件 -->
       <ModelInfo
         :model-info="modelInfo"
+        :print-models="printModels"
+        :showcase-works="showcaseWorks"
         @like-click="handleLike"
         @collect-click="handleCollect"
         @download-click="handleDownload"
@@ -42,8 +44,6 @@
 <script>
 import ModelNavbar from './components/ModelNavbar.vue'
 import ModelInfo from './components/ModelInfo.vue'
-import PrintInfo from './components/PrintInfo.vue'
-import ShowcaseWorks from './components/ShowcaseWorks.vue'
 import BottomToolbar from './components/BottomToolbar.vue'
 import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
 import { getModelDetail } from '@/api/models.js'
@@ -52,8 +52,6 @@ export default {
   components: {
     ModelNavbar,
     ModelInfo,
-    PrintInfo,
-    ShowcaseWorks,
     BottomToolbar
   },
   data() {
@@ -99,8 +97,12 @@ export default {
         title: '加载中...'
       })
       try {
+        console.log('请求模型详情，ID:', id)
         const res = await getModelDetail(id)
+        console.log('模型详情API返回:', res)
         const data = res.data
+        console.log('data.modelParam:', data.modelParam)
+        
         this.modelInfo = {
           id: String(data.modelId || data.id),
           name: data.name || '',
@@ -116,7 +118,25 @@ export default {
           author: data.userId || '',
           authorAvatar: data.previewUrl || ''
         }
-        this.printModels = data.printModels || []
+        
+        let modelParam = {}
+        try {
+          if (data.modelParam) {
+            modelParam = typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
+            console.log('解析后的modelParam:', modelParam)
+          }
+        } catch (e) {
+          console.log('解析modelParam失败:', e)
+        }
+        
+        this.printModels = [{
+          id: data.modelId || data.id,
+          name: data.name || '模型',
+          image: data.previewUrl || '',
+          size: modelParam.size || modelParam.modelSize || modelParam.dimensions || '未知',
+          printTime: modelParam.printTime || modelParam.printDuration || modelParam.estimatedTime || '未知'
+        }]
+        console.log('printModels:', this.printModels)
         this.showcaseWorks = data.showcaseWorks || []
         uni.hideLoading()
       } catch (error) {
