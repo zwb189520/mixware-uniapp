@@ -67,6 +67,8 @@ import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import SearchModal from './components/SearchModal.vue'
 import WaterfallLayout from './components/waterfallLayout.vue'
+import { getModelPage } from '@/api/models.js'
+import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
 
 export default {
   components: {
@@ -114,12 +116,46 @@ export default {
     }
   },
   methods: {
-    loadModels(params = {}) {
+    async loadModels(params = {}) {
       this.loading = true
-      setTimeout(() => {
+      try {
+        console.log('开始调用API...')
+        const res = await getModelPage({
+          current: params.current || 1,
+          size: params.size || 30
+        })
+        
+        console.log('API返回数据:', res)
+        
+        if (res.code === 1 && res.data && res.data.records) {
+          console.log('获取到真实数据:', res.data.records.length, '条')
+          this.assignModelsToTabs(res.data.records)
+        } else {
+          console.log('API返回格式不正确，使用模拟数据')
+          this.useMockData()
+        }
+      } catch (error) {
+        console.error('获取模型列表失败:', error)
         this.useMockData()
+      } finally {
         this.loading = false
-      }, 500)
+      }
+    },
+    
+    // 映射API分类到tab分类 - 优化移动端显示
+    mapCategoryToTab(apiCategory) {
+      if (!apiCategory) return 'daily'
+      
+      const categoryMap = {
+        '日用居家': 'daily',
+        '玩具手办': 'hot', 
+        '时尚穿戴': 'category',
+        '数码电器': 'category',
+        '建筑模型': 'category',
+        '艺术创意': 'category'
+      }
+      
+      return categoryMap[apiCategory] || 'daily'
     },
     
     assignModelsToTabs(models) {
@@ -128,26 +164,43 @@ export default {
         return
       }
       
-      // 根据分类字段或其他逻辑来分配数据
-      const categories = ['daily', 'hot', 'category']
+      // 将API数据转换为组件需要的格式 - 优化移动端显示
+      const formattedModels = models.map(model => ({
+        id: model.modelId,
+        name: model.name || '未命名模型',
+        desc: model.description || model.name || '暂无描述',
+        image: model.previewUrl || '/static/images/logo.png', // 移动端默认图片
+        author: model.userId ? model.userId.substring(0, 8) : '匿名用户', // 移动端显示简短用户ID
+        authorAvatar: model.previewUrl || '/static/images/user-avatar.png', // 移动端默认头像
+        likes: model.collectCount || 0,
+        isLiked: false,
+        viewCount: model.viewCount || 0,
+        category: this.mapCategoryToTab(model.category) // 映射分类到tab
+      }))
+      
+      // 根据分类分配到不同tab - 优化移动端显示数量
       const tabData = {
-        daily: [],
-        hot: [],
-        category: []
+        daily: formattedModels.filter(m => m.category === 'daily').slice(0, 10), // 移动端限制显示数量
+        hot: formattedModels.filter(m => m.category === 'hot' || m.viewCount > 1000).slice(0, 10),
+        category: formattedModels.filter(m => m.category !== 'daily' && m.category !== 'hot').slice(0, 10)
       }
       
-      models.forEach((model, index) => {
-        // 简单的分配逻辑：每3个一组分别分配到不同tab
-        const tabIndex = index % 3
-        const category = categories[tabIndex]
-        tabData[category].push(model)
-      })
+      // 移动端数据平衡处理
+      const totalModels = formattedModels.length
+      if (tabData.daily.length === 0 && totalModels > 0) {
+        tabData.daily = formattedModels.slice(0, Math.min(8, Math.ceil(totalModels / 3)))
+      }
+      if (tabData.hot.length === 0 && totalModels > 0) {
+        tabData.hot = formattedModels.slice(Math.ceil(totalModels / 3), Math.min(8, Math.ceil(totalModels * 2 / 3)))
+      }
+      if (tabData.category.length === 0 && totalModels > 0) {
+        tabData.category = formattedModels.slice(Math.ceil(totalModels * 2 / 3), Math.min(8, totalModels))
+      }
       
-      // 确保每个tab至少有6个数据
+      // 移动端最少数据保证 - 减少数量优化性能
       Object.keys(tabData).forEach(tab => {
-        if (tabData[tab].length < 6) {
-          // 如果数据不够，循环使用现有数据
-          const needed = 6 - tabData[tab].length
+        if (tabData[tab].length < 4) {
+          const needed = 4 - tabData[tab].length
           const mockData = this.getMockDataForTab(tab, needed)
           tabData[tab] = [...tabData[tab], ...mockData]
         }
@@ -372,9 +425,32 @@ export default {
     handleAuthorClick(item) {
       console.log('点击作者:', item.author);
     },
-    toggleLike(item) {
-      item.isLiked = !item.isLiked;
-      item.isLiked ? item.likes++ : item.likes--;
+    async toggleLike(item) {
+      try {
+        if (item.isLiked) {
+          await cancelFavorite(item.id)
+          item.isLiked = false
+          item.likes--
+          uni.showToast({
+            title: '已取消收藏',
+            icon: 'success'
+          })
+        } else {
+          await addFavorite(item.id)
+          item.isLiked = true
+          item.likes++
+          uni.showToast({
+            title: '收藏成功',
+            icon: 'success'
+          })
+        }
+      } catch (error) {
+        console.error('收藏操作失败:', error)
+        uni.showToast({
+          title: error.message || '操作失败',
+          icon: 'none'
+        })
+      }
     }
   }
 }

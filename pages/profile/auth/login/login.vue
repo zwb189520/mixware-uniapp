@@ -9,17 +9,22 @@
       <view class="login-form">
         <view class="login-tabs">
           <view 
-            :class="['tab-item', { 'tab-active': loginType === 'code' }]" 
-            @click="switchLoginType('code')"
+            :class="['tab-item', { 'tab-active': loginType === 'login' }]" 
+            @click="switchLoginType('login')"
           >
-            验证码登录
+            登录
           </view>
           <view 
-            :class="['tab-item', { 'tab-active': loginType === 'password' }]" 
-            @click="switchLoginType('password')"
+            :class="['tab-item', { 'tab-active': loginType === 'register' }]" 
+            @click="switchLoginType('register')"
           >
-            密码登录
+            注册
           </view>
+        </view>
+        
+        <view v-if="loginType === 'register'" class="form-item">
+          <text class="form-label">用户名</text>
+          <input class="form-input" v-model="username" placeholder="请输入用户名" />
         </view>
         
         <view class="form-item">
@@ -27,7 +32,7 @@
           <input class="form-input" v-model="email" placeholder="请输入邮箱地址" />
         </view>
         
-        <view v-if="loginType === 'code'" class="form-item">
+        <view v-if="loginType === 'register'" class="form-item">
           <text class="form-label">验证码</text>
           <view class="code-input-container">
             <input class="form-input code-input" v-model="code" placeholder="请输入验证码" />
@@ -37,9 +42,14 @@
           </view>
         </view>
         
-        <view v-if="loginType === 'password'" class="form-item">
+        <view class="form-item">
           <text class="form-label">密码</text>
           <input class="form-input" v-model="password" type="password" placeholder="请输入密码" />
+        </view>
+        
+        <view v-if="loginType === 'register'" class="form-item">
+          <text class="form-label">确认密码</text>
+          <input class="form-input" v-model="confirmPassword" type="password" placeholder="请再次输入密码" />
         </view>
         
         <view class="agreement-item">
@@ -54,12 +64,10 @@
           </text>
         </view>
         
-        <view class="auto-register-hint">未注册的邮箱将自动创建账号</view>
-        
-        <button class="login-btn" @click="handleLogin">登录</button>
+        <button class="login-btn" @click="handleLogin">{{ loginType === 'login' ? '登录' : '注册' }}</button>
       </view>
       
-      <view class="third-party-login">
+      <view v-if="loginType === 'login'" class="third-party-login">
         <view class="divider">
           <text class="divider-text">第三方登录</text>
         </view>
@@ -76,14 +84,18 @@
 </template>
 
 <script>
+import { sendVerificationCodeWithHandler, loginWithPassword, registerWithHandler, thirdPartyLoginWithHandler } from '@/api/users.js'
+
 export default {
   name: 'Login',
   data() {
     return {
-      loginType: 'code',
+      loginType: 'login',
+      username: '',
       email: '',
       code: '',
       password: '',
+      confirmPassword: '',
       agreed: false,
       countdown: 0,
       timer: null
@@ -110,10 +122,7 @@ export default {
     },
     
     initializeTestUser() {
-      // 初始化测试用户
       const registeredUsers = uni.getStorageSync('registeredUsers') || []
-      
-      // 检查是否已有测试用户
       const hasTestUser = registeredUsers.some(user => user.email === 'test@example.com')
       
       if (!hasTestUser) {
@@ -132,7 +141,7 @@ export default {
       }
     },
     
-    handleGetCode() {
+    async handleGetCode() {
       if (!this.email) {
         uni.showToast({
           title: '请先输入邮箱地址',
@@ -151,39 +160,37 @@ export default {
         return
       }
       
-      // 检查是否已阅读协议
-      if (!this.agreed) {
+      try {
+        uni.showLoading({
+          title: '发送中...'
+        })
+        
+        await sendVerificationCodeWithHandler(this.email)
+        
+        uni.hideLoading()
+        
+        // 倒计时
+        this.countdown = 60
+        this.timer = setInterval(() => {
+          if (this.countdown > 0) {
+            this.countdown--
+          } else {
+            clearInterval(this.timer)
+            this.timer = null
+          }
+        }, 1000)
+        
         uni.showToast({
-          title: '请先阅读并同意用户协议',
+          title: '验证码已发送',
+          icon: 'success'
+        })
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({
+          title: error.message || '发送验证码失败',
           icon: 'none'
         })
-        return
       }
-      
-      // 生成验证码（实际项目中应该是服务端发送）
-      const verificationCode = '123456'
-      
-      // 保存验证码到本地存储（实际项目中应该保存在服务端）
-      const verificationCodes = uni.getStorageSync('verificationCodes') || {}
-      verificationCodes[this.email] = {
-        code: verificationCode,
-        time: Date.now()
-      }
-      uni.setStorageSync('verificationCodes', verificationCodes)
-      
-      // 开始倒计时
-      this.countdown = 60
-      this.timer = setInterval(() => {
-        this.countdown--
-        if (this.countdown <= 0) {
-          clearInterval(this.timer)
-        }
-      }, 1000)
-      
-      uni.showToast({
-        title: '验证码已发送',
-        icon: 'success'
-      })
     },
     
     handleLogin() {
@@ -195,7 +202,23 @@ export default {
         return
       }
       
-      if (this.loginType === 'code') {
+      if (!this.password) {
+        uni.showToast({
+          title: '请填写密码',
+          icon: 'none'
+        })
+        return
+      }
+      
+      if (this.loginType === 'register') {
+        if (!this.username) {
+          uni.showToast({
+            title: '请填写用户名',
+            icon: 'none'
+          })
+          return
+        }
+        
         if (!this.code) {
           uni.showToast({
             title: '请填写验证码',
@@ -203,10 +226,18 @@ export default {
           })
           return
         }
-      } else {
-        if (!this.password) {
+        
+        if (!this.confirmPassword) {
           uni.showToast({
-            title: '请填写密码',
+            title: '请确认密码',
+            icon: 'none'
+          })
+          return
+        }
+        
+        if (this.password !== this.confirmPassword) {
+          uni.showToast({
+            title: '两次密码不一致',
             icon: 'none'
           })
           return
@@ -221,107 +252,72 @@ export default {
         return
       }
       
-      if (this.loginType === 'code') {
-        this.handleCodeLogin()
-      } else {
+      if (this.loginType === 'login') {
         this.handlePasswordLogin()
+      } else {
+        this.handleRegister()
       }
     },
     
-    handleCodeLogin() {
-      const registeredUsers = uni.getStorageSync('registeredUsers') || []
-      const verificationCodes = uni.getStorageSync('verificationCodes') || {}
-      
-      const emailCode = verificationCodes[this.email]
-      if (!emailCode || emailCode.code !== this.code) {
+    async handlePasswordLogin() {
+      try {
+        uni.showLoading({
+          title: '登录中...'
+        })
+        
+        await loginWithPassword(this.email, this.password)
+        
+        uni.hideLoading()
+        
         uni.showToast({
-          title: '验证码错误',
+          title: '登录成功',
+          icon: 'success'
+        })
+        
+        // 延迟返回上一页
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 500)
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({
+          title: error.message || '登录失败',
           icon: 'none'
         })
-        return
       }
-      
-      let user = registeredUsers.find(u => u.email === this.email)
-      
-      if (!user) {
-        user = {
-          id: Date.now(),
+    },
+    
+    async handleRegister() {
+      try {
+        uni.showLoading({
+          title: '注册中...'
+        })
+        
+        await registerWithHandler({
+          username: this.username,
           email: this.email,
-          code: this.code,
-          nickname: this.email.split('@')[0],
-          avatar: '',
-          region: '',
-          gender: ''
-        }
-        registeredUsers.push(user)
-        uni.setStorageSync('registeredUsers', registeredUsers)
-      }
-      
-      const userInfo = {
-        id: user.id,
-        nickname: user.nickname,
-        email: user.email,
-        avatar: user.avatar || '',
-        region: user.region || '',
-        gender: user.gender || ''
-      }
-      
-      this.loginSuccess(userInfo)
-    },
-    
-    handlePasswordLogin() {
-      const registeredUsers = uni.getStorageSync('registeredUsers') || []
-      
-      let user = registeredUsers.find(u => u.email === this.email)
-      
-      if (!user) {
+          password: this.password,
+          verificationCode: this.code
+        })
+        
+        uni.hideLoading()
+        
         uni.showToast({
-          title: '账号不存在',
+          title: '注册成功',
+          icon: 'success'
+        })
+        
+        // 延迟返回上一页
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 500)
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({
+          title: error.message || '注册失败',
           icon: 'none'
         })
-        return
       }
-      
-      if (user.password !== this.password) {
-        uni.showToast({
-          title: '密码错误',
-          icon: 'none'
-        })
-        return
-      }
-      
-      const userInfo = {
-        id: user.id,
-        nickname: user.nickname,
-        email: user.email,
-        avatar: user.avatar || '',
-        region: user.region || '',
-        gender: user.gender || ''
-      }
-      
-      this.loginSuccess(userInfo)
-    },
-    
-    loginSuccess(userInfo) {
-      // 保存用户信息到本地存储
-      uni.setStorageSync('userInfo', userInfo)
-      uni.setStorageSync('isLoggedIn', true)
-      
-      console.log('Login - 保存用户信息:', userInfo)
-      console.log('Login - 设置登录状态:', true)
-      
-      uni.showToast({
-        title: '登录成功',
-        icon: 'success'
-      })
-      
-      // 使用事件通信通知上一页刷新
-      uni.$emit('userLogin', userInfo)
-      
-      // 延迟返回上一页
-      setTimeout(() => {
-        uni.navigateBack()
-      }, 500)
     },
     
     handleUserAgreement() {
@@ -342,25 +338,39 @@ export default {
       })
     },
     
-    handleGoogleLogin() {
+    async handleGoogleLogin() {
       uni.showLoading({
         title: '正在登录...'
       })
       
-      setTimeout(() => {
-        uni.hideLoading()
+      try {
+        // 模拟Google登录，实际项目中需要集成Google SDK
+        const googleCode = 'mock_google_code_' + Date.now()
         
-        const userInfo = {
-          id: Date.now(),
+        await thirdPartyLoginWithHandler('google', googleCode, {
           nickname: 'Google用户',
           email: 'google@example.com',
-          avatar: '',
-          region: '',
-          gender: ''
-        }
+          avatarUrl: ''
+        })
         
-        this.loginSuccess(userInfo)
-      }, 1500)
+        uni.hideLoading()
+        
+        uni.showToast({
+          title: '登录成功',
+          icon: 'success'
+        })
+        
+        // 延迟返回上一页
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 500)
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({
+          title: error.message || 'Google登录失败',
+          icon: 'none'
+        })
+      }
     }
   }
 }
@@ -373,15 +383,15 @@ export default {
 }
 
 .login-container {
-  padding: 40rpx 30rpx;
+  padding: 20rpx 30rpx;
 }
 
 .login-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 60rpx;
-  padding-top: 80rpx;
+  margin-bottom: 40rpx;
+  padding-top: 20rpx;
 }
 
 .logo {

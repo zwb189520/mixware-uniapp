@@ -13,7 +13,6 @@
             >
               <image class="card-img" :src="item.image" mode="widthFix" @error="handleImageError"/>
               <view class="card-info">
-                <text class="card-title">{{ item.name }}</text>
                 <text class="card-desc">{{ item.desc }}</text>
                 <view class="card-footer">
                   <view class="card-author" @click.stop="handleAuthorClick(item)">
@@ -21,7 +20,7 @@
                     <text class="author-name">{{ item.author }}</text>
                   </view>
                   <view class="card-like" :class="{ 'liked': item.isLiked }" @click.stop="handleLikeClick(item)">
-                    <uni-icons :type="item.isLiked ? 'heart-filled' : 'heart'" size="20"></uni-icons>
+                    <text class="like-icon">{{ item.isLiked ? '❤️' : '🤍' }}</text>
                     <text class="like-count">{{ item.likes }}</text>
                   </view>
                 </view>
@@ -41,7 +40,6 @@
             >
               <image class="card-img" :src="item.image" mode="widthFix" @error="handleImageError"/>
               <view class="card-info">
-                <text class="card-title">{{ item.name }}</text>
                 <text class="card-desc">{{ item.desc }}</text>
                 <view class="card-footer">
                   <view class="card-author" @click.stop="handleAuthorClick(item)">
@@ -137,15 +135,6 @@ export default {
 
 .card-info {
   padding: 20rpx;
-}
-
-.card-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #333333;
-  line-height: 1.4;
-  margin-bottom: 8rpx;
-  display: block;
 }
 
 .card-desc {
