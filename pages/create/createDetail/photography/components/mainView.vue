@@ -20,22 +20,25 @@
     <view class="generate-section">
       <button 
         class="generate-3d-btn" 
-        :class="{ 'btn-disabled': !uploadedImage }" 
-        :disabled="!uploadedImage"
+        :class="{ 'btn-disabled': !uploadedImage || isGenerating }" 
+        :disabled="!uploadedImage || isGenerating"
         @click="handleGenerate3D"
       >
-        <text>{{ uploadedImage ? '生成3D模型' : '请先上传图片' }}</text>
+        <text>{{ isGenerating ? '生成中...' : (uploadedImage ? '生成3D模型' : '请先上传图片') }}</text>
       </button>
     </view>
   </view>
 </template>
 
 <script>
+import { imageToModel } from '@/api/hunyuan3d.js'
+
 export default {
   name: 'MainView',
   data() {
     return {
-      uploadedImage: null
+      uploadedImage: null,
+      isGenerating: false
     }
   },
   methods: {
@@ -78,7 +81,7 @@ export default {
       })
     },
     
-    handleGenerate3D() {
+    async handleGenerate3D() {
       if (!this.uploadedImage) {
         uni.showToast({
           title: '请先上传图片',
@@ -87,9 +90,43 @@ export default {
         return
       }
       
-      uni.navigateTo({
-        url: '/pages/explore/3Dpreviewdetail/preview3DDetail'
-      })
+      this.isGenerating = true
+      
+      try {
+        uni.showLoading({
+          title: '生成3D模型中...'
+        })
+        
+        const res = await imageToModel(this.uploadedImage, '')
+        
+        uni.hideLoading()
+        
+        if (res.data && res.data.taskId) {
+          uni.showToast({
+            title: '3D模型生成中',
+            icon: 'success'
+          })
+          
+          setTimeout(() => {
+            uni.navigateTo({
+              url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${res.data.taskId}&name=生成的3D模型&url=${encodeURIComponent(this.uploadedImage)}`
+            })
+          }, 1500)
+        } else {
+          uni.showToast({
+            title: '生成失败，请重试',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({
+          title: error.message || '生成3D模型失败',
+          icon: 'none'
+        })
+      } finally {
+        this.isGenerating = false
+      }
     }
   }
 }

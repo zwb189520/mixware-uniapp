@@ -36,10 +36,6 @@
             <uni-icons :type="modelInfo.isCollected ? 'star-filled' : 'star'" size="24"></uni-icons>
             <text class="stat-text">{{ modelInfo.collections }}</text>
           </view>
-          <view class="stat-item">
-            <uni-icons type="cart" size="24"></uni-icons>
-            <text class="stat-text">{{ modelInfo.downloads }}</text>
-          </view>
         </view>
       </view>
 
@@ -167,7 +163,7 @@ export default {
 
     handlePrintModelClick(model) {
       uni.navigateTo({
-        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${model.id}&name=${encodeURIComponent(model.name)}&url=${encodeURIComponent(model.image)}`
+        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${model.id}&name=${encodeURIComponent(model.name)}&url=${encodeURIComponent(model.modelFile || model.image)}`
       })
     },
 

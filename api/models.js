@@ -1,5 +1,5 @@
 // 模型管理API
-const BASE_URL = 'http://app.mixwarebot.cn/api'; // API服务器地址
+import { BASE_URL } from './config'; // API服务器地址
 
 /**
  * 添加模型
@@ -94,7 +94,7 @@ export function getModelList(params = {}) {
 export function getModelDetail(modelId) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
-    const url = `${BASE_URL}/models/${modelId}`
+    const url = `${BASE_URL}/api/models/${modelId}`
     console.log('请求URL:', url)
     console.log('Token:', token ? '已设置' : '未设置')
     
@@ -106,11 +106,12 @@ export function getModelDetail(modelId) {
         'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
-        console.log('API响应:', res)
+        console.log('模型详情API响应:', res)
         if (res.statusCode === 200) {
           if (res.data.code === 1) {
             resolve(res.data);
           } else {
+            console.log('模型详情API错误:', res.data)
             reject(new Error(res.data.msg || '获取模型详情失败'));
           }
         } else {
@@ -205,7 +206,7 @@ export function getModelPage(params = {}) {
     if (params.category) queryParams.append('category', params.category);
     if (params.sort) queryParams.append('sort', params.sort);
 
-    const requestUrl = `${BASE_URL}/models/page?${queryParams.toString()}`;
+    const requestUrl = `${BASE_URL}/api/models/page?${queryParams.toString()}`;
     console.log('请求URL:', requestUrl);
 
     uni.request({
@@ -277,6 +278,76 @@ export function getMyModels(params = {}) {
   });
 }
 
+/**
+ * 从模型数据中提取并处理模型信息
+ * @param {Object} modelData 模型数据对象
+ * @returns {Object} 处理后的模型信息
+ */
+export function processModelData(modelData) {
+  if (!modelData) {
+    return {
+      downloadUrl: '',
+      modelUrl: '',
+      modelType: 'glb',
+      thumb: '',
+      dimensions: { x: 0, y: 0, z: 0 }
+    }
+  }
+  
+  let downloadUrl = ''
+  
+  if (modelData.modelFile) {
+    downloadUrl = modelData.modelFile
+  } else if (modelData.downloadUrl) {
+    downloadUrl = modelData.downloadUrl
+  } else if (modelData.modelUrl) {
+    downloadUrl = modelData.modelUrl
+  }
+  
+  const modelType = extractFileType(downloadUrl)
+  
+  let thumb = ''
+  if (modelData.previewUrl) {
+    thumb = modelData.previewUrl
+  } else if (modelData.thumb) {
+    thumb = modelData.thumb
+  } else if (modelData.image) {
+    thumb = modelData.image
+  }
+  
+  const dimensions = modelData.dimensions ? {
+    x: modelData.dimensions.x || modelData.dimensions.width || 0,
+    y: modelData.dimensions.y || modelData.dimensions.height || 0,
+    z: modelData.dimensions.z || modelData.dimensions.depth || 0
+  } : { x: 0, y: 0, z: 0 }
+  
+  return {
+    downloadUrl,
+    modelUrl: downloadUrl,
+    modelType,
+    thumb,
+    dimensions,
+    name: modelData.name || ''
+  }
+}
+
+function extractFileType(url) {
+  if (!url) return ''
+  try {
+    const urlWithoutQuery = url.split('?')[0]
+    const ext = urlWithoutQuery.split('.').pop().toLowerCase()
+    const typeMap = {
+      'glb': 'glb',
+      'gltf': 'gltf',
+      'obj': 'obj',
+      'stl': 'stl'
+    }
+    return typeMap[ext] || ''
+  } catch (e) {
+    return ''
+  }
+}
+
 export default {
   addModel,
   getModelList,
@@ -284,5 +355,6 @@ export default {
   updateModel,
   deleteModel,
   getModelPage,
-  getMyModels
+  getMyModels,
+  processModelData
 };

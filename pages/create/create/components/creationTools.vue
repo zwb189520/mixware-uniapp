@@ -48,7 +48,8 @@ export default {
           icon: 'compose',
           backgroundImage: '/static/images/create/transform-card.png'
         }
-      ]
+      ],
+      isNavigating: false
     }
   },
   methods: {
@@ -63,21 +64,37 @@ export default {
     },
     
     handleToolClick(tool) {
+      if (this.isNavigating) return
+      
+      this.isNavigating = true
+      
       if (tool.text === '拍一拍') {
         uni.navigateTo({
-          url: '/pages/create/createDetail/photography/photography'
+          url: '/pages/create/createDetail/photography/photography',
+          complete: () => {
+            this.isNavigating = false
+          }
         })
       } else if (tool.text === '说一说') {
         uni.navigateTo({
-          url: '/pages/create/createDetail/chat/chat'
+          url: '/pages/create/createDetail/chat/chat',
+          complete: () => {
+            this.isNavigating = false
+          }
         })
       } else if (tool.text === '画一画') {
         uni.navigateTo({
-          url: '/pages/create/createDetail/draw/draw'
+          url: '/pages/create/createDetail/draw/draw',
+          complete: () => {
+            this.isNavigating = false
+          }
         })
       } else if (tool.text === '变一变') {
         uni.navigateTo({
-          url: '/pages/create/createDetail/transform/transform'
+          url: '/pages/create/createDetail/transform/transform',
+          complete: () => {
+            this.isNavigating = false
+          }
         })
       } else {
         uni.showToast({
@@ -85,6 +102,7 @@ export default {
           icon: 'none'
         })
         console.log(`触发功能: ${tool.text} - ${tool.description}`)
+        this.isNavigating = false
       }
     }
   }

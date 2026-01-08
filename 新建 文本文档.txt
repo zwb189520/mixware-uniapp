@@ -1,0 +1,249 @@
+原始页面参数: {id: 'undefined', name: 'testgod', url: 'http://47.102.212.37:9000/wango/image/2025/12/19/54db5885-1da0-48f5-88bf-7b6a4c933cad.png'}
+preview3DDetail.vue:260 从URL提取模型类型: {url: 'http://47.102.212.37:9000/wango/image/2025/12/19/54db5885-1da0-48f5-88bf-7b6a4c933cad.png', ext: 'png', type: ''}
+preview3DDetail.vue:129 解析后的页面参数: {id: 'undefined', name: 'testgod', url: 'http://47.102.212.37:9000/wango/image/2025/12/19/54db5885-1da0-48f5-88bf-7b6a4c933cad.png', modelType: '', rawUrl: 'http://47.102.212.37:9000/wango/image/2025/12/19/54db5885-1da0-48f5-88bf-7b6a4c933cad.png'}
+models.js:98 请求URL: http://app.mixwarebot.cn/api/models/undefined
+models.js:99 Token: 已设置
+preview3D.vue:232 开始加载模型: {modelurl: 'http://47.102.212.37:9000/wango/image/2025/12/19/54db5885-1da0-48f5-88bf-7b6a4c933cad.png', modelType: ''}
+preview3D.vue:247 模型加载成功，结果类型: _Texture isBufferGeometry: false
+preview3D.vue:267 添加模型到场景，类型: _Texture
+chunk-D33SFU7Y.js:284  THREE.Object3D.add: object not an instance of THREE.Object3D. _Texture {isTexture: true, uuid: 'a7a8bc20-7415-4f5b-8b91-5fbd97fd362d', name: '', source: Source, mipmaps: Array(0), …}
+error @ chunk-D33SFU7Y.js:284
+add @ chunk-D33SFU7Y.js:8197
+loadModel @ preview3D.vue:268
+await in loadModel
+onload @ preview3D.vue:195
+callWithErrorHandling @ vue.runtime.esm.js:1418
+callWithAsyncErrorHandling @ vue.runtime.esm.js:1425
+emit @ vue.runtime.esm.js:1941
+(匿名) @ vue.runtime.esm.js:9182
+init @ stage.vue:271
+(匿名) @ stage.vue:279
+await in (匿名)
+(匿名) @ vue.runtime.esm.js:4209
+callWithErrorHandling @ vue.runtime.esm.js:1418
+callWithAsyncErrorHandling @ vue.runtime.esm.js:1425
+hook.__weh.hook.__weh @ vue.runtime.esm.js:4187
+flushPostFlushCbs @ vue.runtime.esm.js:1591
+flushJobs @ vue.runtime.esm.js:1629
+Promise.then
+queueFlush @ vue.runtime.esm.js:1532
+queueJob @ vue.runtime.esm.js:1526
+(匿名) @ vue.runtime.esm.js:7494
+resetScheduling @ vue.runtime.esm.js:263
+triggerEffects @ vue.runtime.esm.js:307
+triggerRefValue @ vue.runtime.esm.js:1067
+set value @ vue.runtime.esm.js:1112
+(匿名) @ vue.runtime.esm.js:3805
+Promise.then
+setup @ vue.runtime.esm.js:3804
+callWithErrorHandling @ vue.runtime.esm.js:1418
+setupStatefulComponent @ vue.runtime.esm.js:8991
+setupComponent @ vue.runtime.esm.js:8952
+mountComponent @ vue.runtime.esm.js:7265
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+mountChildren @ vue.runtime.esm.js:6947
+processFragment @ vue.runtime.esm.js:7161
+patch @ vue.runtime.esm.js:6673
+mountChildren @ vue.runtime.esm.js:6947
+processFragment @ vue.runtime.esm.js:7161
+patch @ vue.runtime.esm.js:6673
+mountChildren @ vue.runtime.esm.js:6947
+mountElement @ vue.runtime.esm.js:6854
+processElement @ vue.runtime.esm.js:6819
+patch @ vue.runtime.esm.js:6687
+mountChildren @ vue.runtime.esm.js:6947
+mountElement @ vue.runtime.esm.js:6854
+processElement @ vue.runtime.esm.js:6819
+patch @ vue.runtime.esm.js:6687
+mountChildren @ vue.runtime.esm.js:6947
+processFragment @ vue.runtime.esm.js:7161
+patch @ vue.runtime.esm.js:6673
+componentUpdateFn @ vue.runtime.esm.js:7375
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+setupRenderEffect @ vue.runtime.esm.js:7510
+mountComponent @ vue.runtime.esm.js:7277
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+mountChildren @ vue.runtime.esm.js:6947
+mountElement @ vue.runtime.esm.js:6854
+processElement @ vue.runtime.esm.js:6819
+patch @ vue.runtime.esm.js:6687
+componentUpdateFn @ vue.runtime.esm.js:7375
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+setupRenderEffect @ vue.runtime.esm.js:7510
+mountComponent @ vue.runtime.esm.js:7277
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+componentUpdateFn @ vue.runtime.esm.js:7375
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+setupRenderEffect @ vue.runtime.esm.js:7510
+mountComponent @ vue.runtime.esm.js:7277
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+componentUpdateFn @ vue.runtime.esm.js:7456
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+updateComponent @ vue.runtime.esm.js:7308
+processComponent @ vue.runtime.esm.js:7242
+patch @ vue.runtime.esm.js:6699
+componentUpdateFn @ vue.runtime.esm.js:7456
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+callWithErrorHandling @ vue.runtime.esm.js:1418
+flushJobs @ vue.runtime.esm.js:1623
+Promise.then
+queueFlush @ vue.runtime.esm.js:1532
+queueJob @ vue.runtime.esm.js:1526
+scheduler @ vue.runtime.esm.js:3219
+resetScheduling @ vue.runtime.esm.js:263
+triggerEffects @ vue.runtime.esm.js:307
+triggerRefValue @ vue.runtime.esm.js:1067
+set value @ vue.runtime.esm.js:1112
+finalizeNavigation @ vue-router.mjs:3469
+(匿名) @ vue-router.mjs:3334
+Promise.then
+pushWithRedirect @ vue-router.mjs:3301
+push @ vue-router.mjs:3226
+install @ vue-router.mjs:3668
+use @ vue.runtime.esm.js:5200
+initRouter @ uni-h5.es.js:16287
+install @ uni-h5.es.js:16356
+use @ vue.runtime.esm.js:5200
+(匿名) @ main.js:22
+preview3D.vue:284 模型加载成功
+preview3DDetail.vue:226 模型加载完成
+models.js:109 模型详情API响应: {data: {…}, statusCode: 200, header: {…}, cookies: Array(0), errMsg: 'request:ok'}
+models.js:114 模型详情API错误: {code: 100301, msg: '模型不存在', data: null}
+preview3DDetail.vue:211  获取模型详情失败: Error: 模型不存在
+    at success (models.js:115:20)
+    at uni-h5.es.js:2712:17
+    at Object.callback (uni-h5.es.js:2807:21)
+    at invokeCallback (uni-h5.es.js:2735:19)
+    at invokeSuccess (uni-h5.es.js:2979:10)
+    at resolve (uni-h5.es.js:3070:25)
+    at xhr.onload (uni-h5.es.js:20633:9)
+fetchModelInfo @ preview3DDetail.vue:211
+await in fetchModelInfo
+onLoad @ preview3DDetail.vue:144
+callWithErrorHandling @ vue.runtime.esm.js:1418
+callWithAsyncErrorHandling @ vue.runtime.esm.js:1425
+hook.__weh.hook.__weh @ vue.runtime.esm.js:4187
+invokeArrayFns @ uni-shared.es.js:469
+invokeHook @ uni-h5.es.js:1192
+initHooks @ uni-h5.es.js:16131
+applyOptions @ uni-h5.es.js:16147
+applyOptions @ vue.runtime.esm.js:4930
+finishComponentSetup @ vue.runtime.esm.js:9100
+handleSetupResult @ vue.runtime.esm.js:9051
+setupStatefulComponent @ vue.runtime.esm.js:9020
+setupComponent @ vue.runtime.esm.js:8952
+mountComponent @ vue.runtime.esm.js:7265
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+componentUpdateFn @ vue.runtime.esm.js:7456
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+callWithErrorHandling @ vue.runtime.esm.js:1418
+flushJobs @ vue.runtime.esm.js:1623
+Promise.then
+queueFlush @ vue.runtime.esm.js:1532
+queueJob @ vue.runtime.esm.js:1526
+(匿名) @ vue.runtime.esm.js:7494
+resetScheduling @ vue.runtime.esm.js:263
+triggerEffects @ vue.runtime.esm.js:307
+triggerRefValue @ vue.runtime.esm.js:1067
+set value @ vue.runtime.esm.js:1112
+(匿名) @ vue.runtime.esm.js:3805
+Promise.then
+setup @ vue.runtime.esm.js:3804
+callWithErrorHandling @ vue.runtime.esm.js:1418
+setupStatefulComponent @ vue.runtime.esm.js:8991
+setupComponent @ vue.runtime.esm.js:8952
+mountComponent @ vue.runtime.esm.js:7265
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+mountChildren @ vue.runtime.esm.js:6947
+processFragment @ vue.runtime.esm.js:7161
+patch @ vue.runtime.esm.js:6673
+mountChildren @ vue.runtime.esm.js:6947
+processFragment @ vue.runtime.esm.js:7161
+patch @ vue.runtime.esm.js:6673
+mountChildren @ vue.runtime.esm.js:6947
+mountElement @ vue.runtime.esm.js:6854
+processElement @ vue.runtime.esm.js:6819
+patch @ vue.runtime.esm.js:6687
+mountChildren @ vue.runtime.esm.js:6947
+mountElement @ vue.runtime.esm.js:6854
+processElement @ vue.runtime.esm.js:6819
+patch @ vue.runtime.esm.js:6687
+mountChildren @ vue.runtime.esm.js:6947
+processFragment @ vue.runtime.esm.js:7161
+patch @ vue.runtime.esm.js:6673
+componentUpdateFn @ vue.runtime.esm.js:7375
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+setupRenderEffect @ vue.runtime.esm.js:7510
+mountComponent @ vue.runtime.esm.js:7277
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+mountChildren @ vue.runtime.esm.js:6947
+mountElement @ vue.runtime.esm.js:6854
+processElement @ vue.runtime.esm.js:6819
+patch @ vue.runtime.esm.js:6687
+componentUpdateFn @ vue.runtime.esm.js:7375
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+setupRenderEffect @ vue.runtime.esm.js:7510
+mountComponent @ vue.runtime.esm.js:7277
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+componentUpdateFn @ vue.runtime.esm.js:7375
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+setupRenderEffect @ vue.runtime.esm.js:7510
+mountComponent @ vue.runtime.esm.js:7277
+processComponent @ vue.runtime.esm.js:7231
+patch @ vue.runtime.esm.js:6699
+componentUpdateFn @ vue.runtime.esm.js:7456
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+updateComponent @ vue.runtime.esm.js:7308
+processComponent @ vue.runtime.esm.js:7242
+patch @ vue.runtime.esm.js:6699
+componentUpdateFn @ vue.runtime.esm.js:7456
+run @ vue.runtime.esm.js:180
+instance.update @ vue.runtime.esm.js:7500
+callWithErrorHandling @ vue.runtime.esm.js:1418
+flushJobs @ vue.runtime.esm.js:1623
+Promise.then
+queueFlush @ vue.runtime.esm.js:1532
+queueJob @ vue.runtime.esm.js:1526
+scheduler @ vue.runtime.esm.js:3219
+resetScheduling @ vue.runtime.esm.js:263
+triggerEffects @ vue.runtime.esm.js:307
+triggerRefValue @ vue.runtime.esm.js:1067
+set value @ vue.runtime.esm.js:1112
+finalizeNavigation @ vue-router.mjs:3469
+(匿名) @ vue-router.mjs:3334
+Promise.then
+pushWithRedirect @ vue-router.mjs:3301
+push @ vue-router.mjs:3226
+install @ vue-router.mjs:3668
+use @ vue.runtime.esm.js:5200
+initRouter @ uni-h5.es.js:16287
+install @ uni-h5.es.js:16356
+use @ vue.runtime.esm.js:5200
+(匿名) @ main.js:22
+useThree.js:656 H5 environment detected, using full path: http://localhost:5174/static/img/logo.png
+useThree.js:718 Created 100mm×100mm×100mm cube at position: _Vector3 {x: 0, y: 0, z: 50}
+useThree.js:656 H5 environment detected, using full path: http://localhost:5174/static/img/logo.png
+useThree.js:718 Created 100mm×100mm×100mm cube at position: _Vector3 {x: 0, y: 0, z: 50}
+:5174/#/pages/explor…-7b6a4c933cad.png:1  Uncaught (in promise) Event {isTrusted: true, type: 'error', target: img, currentTarget: null, eventPhase: 0, …}
+useThree.js:663 Logo texture loaded successfully from: http://localhost:5174/static/img/logo.png
+useThree.js:634 Logo loaded and added at position (0, 0, -0.5) on XZ plane (horizontal) at cube bottom
+useThree.js:663 Logo texture loaded successfully from: http://localhost:5174/static/img/logo.png
+useThree.js:634 Logo loaded and added at position (0, 0, -0.5) on XZ plane (horizontal) at cube bottom

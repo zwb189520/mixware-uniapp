@@ -1,4 +1,4 @@
-const BASE_URL = 'http://app.mixwarebot.cn/api'
+import { BASE_URL } from './config'
 
 export function addFavorite(modelId, groupId = null) {
   return new Promise((resolve, reject) => {

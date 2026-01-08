@@ -638,7 +638,7 @@ const createPlatformCube = (scene, boundingBox = null) => {
 	const textureLoader = new THREE.TextureLoader()
 	
 	// 默认 logo 路径
-	let logoPath = '/static/img/logo.png'
+	let logoPath = '/static/images/logo.png'
 	
 	// 如果是 H5 环境且路径是相对路径，尝试构建完整 URL
 	if (typeof window !== 'undefined' && window.location && !logoPath.startsWith('http')) {
@@ -677,15 +677,15 @@ const createPlatformCube = (scene, boundingBox = null) => {
 			
 			// 尝试备用路径
 			const fallbackPaths = [
-				'/static/img/logo.png',
-				'./static/img/logo.png',
-				'static/img/logo.png'
+				'/static/images/logo.png',
+				'./static/images/logo.png',
+				'static/images/logo.png'
 			]
 			
 			let fallbackIndex = 0
 			const tryFallback = () => {
 				if (fallbackIndex >= fallbackPaths.length) {
-					console.error('All logo paths failed. Please check if logo.png exists at /static/img/logo.png')
+					console.error('All logo paths failed. Please check if logo.png exists at /static/images/logo.png')
 					return
 				}
 				

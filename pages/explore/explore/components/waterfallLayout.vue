@@ -20,7 +20,7 @@
                     <text class="author-name">{{ item.author }}</text>
                   </view>
                   <view class="card-like" :class="{ 'liked': item.isLiked }" @click.stop="handleLikeClick(item)">
-                    <text class="like-icon">{{ item.isLiked ? '❤️' : '🤍' }}</text>
+                    <uni-icons :type="item.isLiked ? 'heart-filled' : 'heart'" size="20"></uni-icons>
                     <text class="like-count">{{ item.likes }}</text>
                   </view>
                 </view>
@@ -184,8 +184,7 @@ export default {
   color: #ff2d55;
 }
 
-.card-like.liked .uni-icons,
-.card-like.liked .uni-icons .uni-icons {
+.card-like.liked .uni-icons {
   color: #ff2d55 !important;
 }
 

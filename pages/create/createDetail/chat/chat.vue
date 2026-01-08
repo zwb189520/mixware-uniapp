@@ -72,13 +72,15 @@
         :disabled="!inputMessage.trim() || isWaitingForResponse"
         @click="handleSendMessage"
       >
-        <text>发送</text>
+        发送
       </button>
     </view>
   </view>
 </template>
 
 <script>
+import { textToModel } from '@/api/hunyuan3d.js'
+
 export default {
   data() {
     return {
@@ -105,7 +107,7 @@ export default {
       const welcomeMessage = {
         id: Date.now(),
         type: 'text',
-        content: '你好！我是AI绘画助手。我可以帮你将文字描述转换成图片。\n\n你可以这样使用我：\n• 描述你想要生成的图片内容\n• 说明图片风格（如：写实、动漫、油画等）\n• 指定颜色、构图等具体要求\n• 我会根据你的描述生成对应图片\n\n例如："帮我画一个海边日落，橙色天空，水彩风格"\n\n现在就开始创作吧！',
+        content: '你好！我是AI 3D模型生成助手。我可以帮你将文字描述转换成3D模型。\n\n你可以这样使用我：\n• 描述你想要生成的3D模型\n• 说明模型风格（如：写实、卡通、科幻等）\n• 指定颜色、形状等具体要求\n• 我会根据你的描述生成对应3D模型\n\n例如："帮我生成一个机器人模型，金属质感，未来风格"\n\n现在就开始创作吧！',
         author: 'AI助手',
         timestamp: new Date(),
         isUser: false
@@ -152,20 +154,34 @@ export default {
       this.scrollToBottom()
     },
 
-    simulateAIResponse(userMessage) {
-      const responses = [
-        "我理解你的想法，这是一个很有趣的观点。",
-        "让我帮你分析一下这个问题。",
-        "根据你的描述，我建议你可以考虑这个方案。",
-        "这是一个很好的问题，让我为你详细解答。",
-        "我明白你的意思，让我提供一些建议。",
-        "你说得很有道理，我同意你的看法。",
-        "这个问题很有意思，让我思考一下。",
-        "我可以帮你处理这个问题，请稍等。"
-      ]
-      
-      // 添加打字效果
-      this.addMessageWithTypingEffect(responses[Math.floor(Math.random() * responses.length)])
+    async simulateAIResponse(userMessage) {
+      try {
+        uni.showLoading({
+          title: '生成3D模型中...'
+        })
+        
+        const res = await textToModel(userMessage)
+        
+        uni.hideLoading()
+        
+        if (res.data && res.data.taskId) {
+          const responseMessage = `3D模型生成中，任务ID: ${res.data.taskId}`
+          this.addMessageWithTypingEffect(responseMessage)
+          
+          setTimeout(() => {
+            uni.navigateTo({
+              url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${res.data.taskId}&name=生成的3D模型&url=${encodeURIComponent('/static/images/explore-bg.png')}`
+            })
+          }, 1500)
+        } else {
+          const errorMessage = '生成失败，请重试'
+          this.addMessageWithTypingEffect(errorMessage)
+        }
+      } catch (error) {
+        uni.hideLoading()
+        const errorMessage = error.message || '生成3D模型失败'
+        this.addMessageWithTypingEffect(errorMessage)
+      }
     },
 
     addMessageWithTypingEffect(message) {

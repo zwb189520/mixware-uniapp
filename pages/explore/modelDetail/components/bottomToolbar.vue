@@ -37,7 +37,7 @@ export default {
     handlePrint() {
       const modelId = this.modelInfo.id || this.modelInfo.modelId || ''
       const modelName = this.modelInfo.name || '3D模型'
-      const modelUrl = this.modelInfo.image || this.modelInfo.coverImage || ''
+      const modelUrl = this.modelInfo.modelFile || this.modelInfo.image || this.modelInfo.coverImage || ''
       uni.navigateTo({
         url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelName)}&url=${encodeURIComponent(modelUrl)}`
       })

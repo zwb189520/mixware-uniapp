@@ -1,23 +1,28 @@
 import { BASE_URL } from './config'
 
-export function updateUserInfo(userInfoDTO) {
+export function getDeviceList() {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/updateUserInfo`,
-      method: 'PUT',
+      url: `${BASE_URL}/api/devices/page`,
+      method: 'GET',
+      data: {
+        current: 1,
+        size: 100
+      },
       header: {
         'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      data: userInfoDTO,
       success: (res) => {
+        console.log('设备列表API响应:', res)
         if (res.statusCode === 200) {
           if (res.data.code === 1) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '更新用户信息失败'))
+            console.log('设备列表API错误:', res.data)
+            reject(new Error(res.data.msg || '获取设备列表失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))
@@ -30,26 +35,56 @@ export function updateUserInfo(userInfoDTO) {
   })
 }
 
-export function updateUserStatus(userId, accountStatus) {
+export function updateDeviceInfo(deviceUpdateDTO) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/status/${userId}`,
+      url: `${BASE_URL}/api/devices/update`,
+      method: 'PUT',
+      header: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      },
+      data: deviceUpdateDTO,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          if (res.data.code === 1) {
+            resolve(res.data)
+          } else {
+            reject(new Error(res.data.msg || '更新设备信息失败'))
+          }
+        } else {
+          reject(new Error(`请求失败: ${res.statusCode}`))
+        }
+      },
+      fail: (err) => {
+        reject(new Error(`网络请求失败: ${err.errMsg}`))
+      }
+    })
+  })
+}
+
+export function updateDeviceStatus(deviceId, deviceStatus) {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('token') || ''
+    
+    uni.request({
+      url: `${BASE_URL}/api/devices/status/${deviceId}`,
       method: 'PUT',
       header: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       data: {
-        accountStatus: accountStatus
+        deviceStatus: deviceStatus
       },
       success: (res) => {
         if (res.statusCode === 200) {
           if (res.data.code === 1) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '更新用户状态失败'))
+            reject(new Error(res.data.msg || '更新设备状态失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))
@@ -62,24 +97,24 @@ export function updateUserStatus(userId, accountStatus) {
   })
 }
 
-export function thirdPartyLogin(thirdPartyLoginDTO) {
+export function parseSnCode(snCode) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/thirdPartyLogin`,
+      url: `${BASE_URL}/api/devices/parseSnCode`,
       method: 'POST',
       header: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json'
       },
-      data: thirdPartyLoginDTO,
+      data: { snCode },
       success: (res) => {
         if (res.statusCode === 200) {
           if (res.data.code === 1) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '第三方登录失败'))
+            reject(new Error(res.data.msg || '解析SN码失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))
@@ -92,102 +127,12 @@ export function thirdPartyLogin(thirdPartyLoginDTO) {
   })
 }
 
-export function sendVerificationCode(sendVerificationCodeDTO) {
+export function setDefaultDevice(deviceId) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/sendVerificationCode`,
-      method: 'POST',
-      header: {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json'
-      },
-      data: sendVerificationCodeDTO,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code === 1) {
-            resolve(res.data)
-          } else {
-            reject(new Error(res.data.msg || '发送验证码失败'))
-          }
-        } else {
-          reject(new Error(`请求失败: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
-      }
-    })
-  })
-}
-
-export function register(registerDTO) {
-  return new Promise((resolve, reject) => {
-    const token = uni.getStorageSync('token') || ''
-    
-    uni.request({
-      url: `${BASE_URL}/api/users/register`,
-      method: 'POST',
-      header: {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json'
-      },
-      data: registerDTO,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code === 1) {
-            resolve(res.data)
-          } else {
-            reject(new Error(res.data.msg || '注册失败'))
-          }
-        } else {
-          reject(new Error(`请求失败: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
-      }
-    })
-  })
-}
-
-export function login(loginDTO) {
-  return new Promise((resolve, reject) => {
-    const token = uni.getStorageSync('token') || ''
-    
-    uni.request({
-      url: `${BASE_URL}/api/users/login`,
-      method: 'POST',
-      header: {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json'
-      },
-      data: loginDTO,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code === 1) {
-            resolve(res.data)
-          } else {
-            reject(new Error(res.data.msg || '登录失败'))
-          }
-        } else {
-          reject(new Error(`请求失败: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
-      }
-    })
-  })
-}
-
-export function logout() {
-  return new Promise((resolve, reject) => {
-    const token = uni.getStorageSync('token') || ''
-    
-    uni.request({
-      url: `${BASE_URL}/api/users/logout`,
+      url: `${BASE_URL}/api/devices/default/${deviceId}`,
       method: 'POST',
       header: {
         'Authorization': token ? `Bearer ${token}` : '',
@@ -195,10 +140,10 @@ export function logout() {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 1) {
+          if (res.data.code === 0) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '退出登录失败'))
+            reject(new Error(res.data.msg || '设置默认设备失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))
@@ -211,22 +156,111 @@ export function logout() {
   })
 }
 
-export function getUserInfo(userId) {
+export function createDevice(deviceCreateDTO) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/${userId}`,
+      url: `${BASE_URL}/api/devices/create`,
+      method: 'POST',
+      header: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      },
+      data: deviceCreateDTO,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          if (res.data.code === 0) {
+            resolve(res.data)
+          } else {
+            reject(new Error(res.data.msg || '创建设备失败'))
+          }
+        } else {
+          reject(new Error(`请求失败: ${res.statusCode}`))
+        }
+      },
+      fail: (err) => {
+        reject(new Error(`网络请求失败: ${err.errMsg}`))
+      }
+    })
+  })
+}
+
+export function bindDevice(bindRequest) {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('token') || ''
+    
+    uni.request({
+      url: `${BASE_URL}/api/devices/bind`,
+      method: 'POST',
+      header: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      },
+      data: bindRequest,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          if (res.data.code === 0) {
+            resolve(res.data)
+          } else {
+            reject(new Error(res.data.msg || '绑定设备失败'))
+          }
+        } else {
+          reject(new Error(`请求失败: ${res.statusCode}`))
+        }
+      },
+      fail: (err) => {
+        reject(new Error(`网络请求失败: ${err.errMsg}`))
+      }
+    })
+  })
+}
+
+export function getDevicesPage(params) {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('token') || ''
+    
+    uni.request({
+      url: `${BASE_URL}/api/devices/page`,
+      method: 'GET',
+      header: {
+        'Authorization': token ? `Bearer ${token}` : ''
+      },
+      data: params,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          if (res.data.code === 0) {
+            resolve(res.data)
+          } else {
+            reject(new Error(res.data.msg || '获取设备列表失败'))
+          }
+        } else {
+          reject(new Error(`请求失败: ${res.statusCode}`))
+        }
+      },
+      fail: (err) => {
+        reject(new Error(`网络请求失败: ${err.errMsg}`))
+      }
+    })
+  })
+}
+
+export function getDeviceInfo(deviceId) {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('token') || ''
+    
+    uni.request({
+      url: `${BASE_URL}/api/devices/info/${deviceId}`,
       method: 'GET',
       header: {
         'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 1) {
+          if (res.data.code === 0) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '获取用户信息失败'))
+            reject(new Error(res.data.msg || '获取设备信息失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))
@@ -239,22 +273,22 @@ export function getUserInfo(userId) {
   })
 }
 
-export function getCurrentUserInfo() {
+export function getUserDevices(userId) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/me`,
+      url: `${BASE_URL}/api/devices/getUserDevice/${userId}`,
       method: 'GET',
       header: {
         'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 1) {
+          if (res.data.code === 0) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '获取当前用户信息失败'))
+            reject(new Error(res.data.msg || '获取用户设备失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))
@@ -267,24 +301,24 @@ export function getCurrentUserInfo() {
   })
 }
 
-export function resetPassword(resetPasswordDTO) {
+export function getDefaultDevice() {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/resetPassword`,
-      method: 'POST',
+      url: `${BASE_URL}/api/devices/default`,
+      method: 'GET',
       header: {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json'
+        'Authorization': token ? `Bearer ${token}` : ''
       },
-      data: resetPasswordDTO,
       success: (res) => {
+        console.log('获取默认设备API响应:', res)
         if (res.statusCode === 200) {
           if (res.data.code === 1) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '重置密码失败'))
+            console.log('获取默认设备API错误:', res.data)
+            reject(new Error(res.data.msg || '获取默认设备失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))
@@ -297,185 +331,52 @@ export function resetPassword(resetPasswordDTO) {
   })
 }
 
-export function changePassword(changePasswordDTO) {
+export function deleteDevice(deviceId) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
     
     uni.request({
-      url: `${BASE_URL}/api/users/changePassword`,
-      method: 'POST',
+      url: `${BASE_URL}/api/devices/delete/${deviceId}`,
+      method: 'DELETE',
+      header: {
+        'Authorization': token ? `Bearer ${token}` : ''
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          if (res.data.code === 0) {
+            resolve(res.data)
+          } else {
+            reject(new Error(res.data.msg || '删除设备失败'))
+          }
+        } else {
+          reject(new Error(`请求失败: ${res.statusCode}`))
+        }
+      },
+      fail: (err) => {
+        reject(new Error(`网络请求失败: ${err.errMsg}`))
+      }
+    })
+  })
+}
+
+export function batchDeleteDevices(deviceIds) {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('token') || ''
+    
+    uni.request({
+      url: `${BASE_URL}/api/devices/batch`,
+      method: 'DELETE',
       header: {
         'Authorization': token ? `Bearer ${token}` : '',
         'Content-Type': 'application/json'
       },
-      data: changePasswordDTO,
+      data: deviceIds,
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 1) {
+          if (res.data.code === 0) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.msg || '修改密码失败'))
-          }
-        } else {
-          reject(new Error(`请求失败: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
-      }
-    })
-  })
-}
-
-export function sendVerificationCodeWithHandler(email) {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${BASE_URL}/api/users/sendVerificationCode`,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json'
-      },
-      data: { email },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code === 1) {
-            resolve(res.data)
-          } else {
-            reject(new Error(res.data.msg || '发送验证码失败'))
-          }
-        } else {
-          reject(new Error(`请求失败: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
-      }
-    })
-  })
-}
-
-export function loginWithPassword(email, password) {
-  return new Promise((resolve, reject) => {
-    console.log('登录请求参数:', { email, password: '***' })
-    console.log('请求URL:', `${BASE_URL}/api/users/login`)
-    
-    uni.request({
-      url: `${BASE_URL}/api/users/login`,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json'
-      },
-      data: { email, password },
-      success: (res) => {
-        console.log('登录API响应:', res)
-        if (res.statusCode === 200) {
-          if (res.data.code === 1) {
-            const { token, userId, username, nickname, avatar } = res.data.data
-            if (token) {
-              uni.setStorageSync('token', token)
-            }
-            if (userId) {
-              uni.setStorageSync('userId', userId)
-            }
-            if (username) {
-              uni.setStorageSync('username', username)
-            }
-            
-            const userInfo = {
-              userId,
-              username,
-              nickname: nickname || username,
-              avatar: avatar || '/static/default-avatar.png'
-            }
-            uni.setStorageSync('userInfo', userInfo)
-            uni.setStorageSync('isLoggedIn', true)
-            
-            uni.$emit('userLogin', userInfo)
-            
-            resolve(res.data)
-          } else {
-            console.log('登录API错误:', res.data)
-            reject(new Error(res.data.msg || '登录失败'))
-          }
-        } else {
-          console.log('登录HTTP错误:', res.statusCode)
-          reject(new Error(`请求失败: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        console.log('登录网络错误:', err)
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
-      }
-    })
-  })
-}
-
-export function registerWithHandler(registerData) {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${BASE_URL}/api/users/register`,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json'
-      },
-      data: registerData,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code === 1) {
-            const { token, userId, username } = res.data.data
-            if (token) {
-              uni.setStorageSync('token', token)
-            }
-            if (userId) {
-              uni.setStorageSync('userId', userId)
-            }
-            if (username) {
-              uni.setStorageSync('username', username)
-            }
-            resolve(res.data)
-          } else {
-            reject(new Error(res.data.msg || '注册失败'))
-          }
-        } else {
-          reject(new Error(`请求失败: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        reject(new Error(`网络请求失败: ${err.errMsg}`))
-      }
-    })
-  })
-}
-
-export function thirdPartyLoginWithHandler(platform, code, extraData = {}) {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${BASE_URL}/api/users/thirdPartyLogin`,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        platform,
-        code,
-        ...extraData
-      },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code === 1) {
-            const { token, userId, username } = res.data.data
-            if (token) {
-              uni.setStorageSync('token', token)
-            }
-            if (userId) {
-              uni.setStorageSync('userId', userId)
-            }
-            if (username) {
-              uni.setStorageSync('username', username)
-            }
-            resolve(res.data)
-          } else {
-            reject(new Error(res.data.msg || '第三方登录失败'))
+            reject(new Error(res.data.msg || '批量删除设备失败'))
           }
         } else {
           reject(new Error(`请求失败: ${res.statusCode}`))

@@ -19,16 +19,6 @@
         @download-click="handleDownload"
         @share-click="handleShare"
       />
-
-      <!-- 3D模型打印信息组件 -->
-      <PrintInfo
-        :print-models="printModels"
-      />
-
-      <!-- 作品展示组件 -->
-      <ShowcaseWorks
-        :showcase-works="showcaseWorks"
-      />
     </scroll-view>
 
     <!-- 底部工具栏组件 -->
@@ -104,7 +94,7 @@ export default {
         console.log('data.modelParam:', data.modelParam)
         
         this.modelInfo = {
-          id: String(data.modelId || data.id),
+          id: String(id),
           name: data.name || '',
           description: data.description || '',
           category: data.category || '',
@@ -116,7 +106,8 @@ export default {
           isLiked: data.isLiked || false,
           isCollected: data.isCollected || false,
           author: data.userId || '',
-          authorAvatar: data.previewUrl || ''
+          authorAvatar: data.previewUrl || '',
+          modelFile: data.downloadUrl || data.modelFile || data.modelUrl || ''
         }
         
         let modelParam = {}
@@ -130,12 +121,13 @@ export default {
         }
         
         this.printModels = [{
-          id: data.modelId || data.id,
-          name: data.name || '模型',
-          image: data.previewUrl || '',
-          size: modelParam.size || modelParam.modelSize || modelParam.dimensions || '未知',
-          printTime: modelParam.printTime || modelParam.printDuration || modelParam.estimatedTime || '未知'
-        }]
+                id: id,
+                name: data.name || '模型',
+                image: data.previewUrl || '',
+                modelFile: data.downloadUrl || data.modelFile || data.modelUrl || '',
+                size: modelParam.size || modelParam.modelSize || modelParam.dimensions || '未知',
+                printTime: modelParam.printTime || modelParam.printDuration || modelParam.estimatedTime || '未知'
+              }]
         console.log('printModels:', this.printModels)
         this.showcaseWorks = data.showcaseWorks || []
         uni.hideLoading()
@@ -238,7 +230,7 @@ export default {
       // 进入3D模型基础浏览
       const modelId = this.modelInfo.id || this.modelId || ''
       const modelName = this.modelInfo.name || '3D模型'
-      const modelUrl = this.modelInfo.images[0] || ''
+      const modelUrl = this.modelInfo.modelFile || this.modelInfo.images[0] || ''
       uni.navigateTo({
         url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelName)}&url=${encodeURIComponent(modelUrl)}`
       })
