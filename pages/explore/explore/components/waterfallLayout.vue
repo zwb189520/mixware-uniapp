@@ -1,10 +1,8 @@
 <template>
   <view class="waterfall-container">
-    <transition name="fade-slide" mode="out-in">
-      <view class="waterfall-box" :key="currentTab + '-box'">
+    <view class="waterfall-box" :key="currentTab + '-box'">
         <!-- 左列 -->
         <view class="waterfall-col">
-          <transition-group name="card-fade">
             <view 
               class="model-card" 
               v-for="item in leftList" 
@@ -26,12 +24,10 @@
                 </view>
               </view>
             </view>
-          </transition-group>
         </view>
         
         <!-- 右列 -->
         <view class="waterfall-col">
-          <transition-group name="card-fade">
             <view 
               class="model-card" 
               v-for="item in rightList" 
@@ -53,10 +49,8 @@
                 </view>
               </view>
             </view>
-          </transition-group>
         </view>
       </view>
-    </transition>
   </view>
 </template>
 
@@ -193,40 +187,5 @@ export default {
 .like-count {
   font-size: 24rpx;
   color: #999999;
-}
-
-/* 过渡动画 */
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.5s ease;
-}
-
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateY(20rpx);
-}
-
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-20rpx);
-}
-
-.card-fade-enter-active,
-.card-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.card-fade-enter-from {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-.card-fade-leave-to {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-.card-fade-move {
-  transition: transform 0.3s ease;
 }
 </style>

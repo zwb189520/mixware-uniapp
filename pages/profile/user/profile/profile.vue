@@ -1,6 +1,10 @@
 <template>
   <view class="profile-page">
-    <profile-header />
+    <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
+    <view class="header-right">
+      <uni-icons type="gear" size="24" @click="handleSettings"></uni-icons>
+      <uni-icons type="notification" size="24" @click="handleNotification"></uni-icons>
+    </view>
     <profile-user-info />
     <profile-medals />
     <showcase-button />
@@ -9,7 +13,6 @@
 </template>
 
 <script>
-import ProfileHeader from './components/ProfileHeader.vue'
 import ProfileUserInfo from './components/ProfileUserInfo.vue'
 import ProfileMedals from './components/ProfileMedals.vue'
 import ShowcaseButton from './components/ShowcaseButton.vue'
@@ -18,11 +21,31 @@ import PrinterPartner from './components/PrinterPartner.vue'
 export default {
   name: 'Profile',
   components: {
-    ProfileHeader,
     ProfileUserInfo,
     ProfileMedals,
     ShowcaseButton,
     PrinterPartner
+  },
+  data() {
+    return {
+      statusBarHeight: 0
+    }
+  },
+  onLoad() {
+    const systemInfo = uni.getSystemInfoSync()
+    this.statusBarHeight = systemInfo.statusBarHeight
+  },
+  methods: {
+    handleSettings() {
+      uni.navigateTo({
+        url: '/pages/profile/settings/settings/settings'
+      })
+    },
+    handleNotification() {
+      uni.navigateTo({
+        url: '/pages/profile/message/message/message'
+      })
+    }
   }
 }
 </script>
@@ -31,5 +54,15 @@ export default {
 .profile-page {
   min-height: 100vh;
   background-color: #f5f5f5;
+}
+.safe-area-top {
+  width: 100%;
+}
+.header-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  gap: 30rpx;
 }
 </style>

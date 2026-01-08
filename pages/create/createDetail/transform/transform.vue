@@ -1,5 +1,6 @@
 <template>
   <view class="page-container">
+    <safe-area />
     <!-- 导航栏 -->
     <TransformNavbar
       :model-name="modelName"
@@ -67,6 +68,7 @@ import RotationControl from './components/RotationControl.vue'
 import ColorMark from './components/ColorMark.vue'
 import PaintingGuide from './components/PaintingGuide.vue'
 import GenerateButton from './components/GenerateButton.vue'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   components: {
@@ -76,7 +78,8 @@ export default {
     RotationControl,
     ColorMark,
     PaintingGuide,
-    GenerateButton
+    GenerateButton,
+    SafeArea
   },
   data() {
     return {
@@ -182,6 +185,10 @@ export default {
   flex-direction: column;
   height: 100vh;
   background: #f5f5f5;
+}
+
+.safe-area-top {
+  background: #fff;
 }
 
 .content-scroll {

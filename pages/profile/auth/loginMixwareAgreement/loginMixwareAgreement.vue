@@ -93,7 +93,6 @@ export default {
   height: 88rpx;
   padding: 0 32rpx;
   background: #fff;
-  padding-top: env(safe-area-inset-top);
 }
 
 .navbar-left,

@@ -45,7 +45,8 @@
 </template>
 
 <script>
-import AddPrinterModal from './AddPrinterModal.vue'
+import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
+import { getDefaultDevice, setDefaultDevice } from '@/api/devices.js'
 
 export default {
   name: 'PrinterPartner',
@@ -72,24 +73,51 @@ export default {
           url: '/pages/profile/printer/printerIntro/printerIntro'
         })
       },
-      onSelectPrinter(printerId) {
-        this.showAddPrinter = false
-        uni.navigateTo({
-          url: `/pages/profile/printer/printerPrint/printerPrint?printerId=${printerId}`
-        })
+      async onSelectPrinter(printerId) {
+        try {
+          uni.showLoading({
+            title: '设置中...'
+          })
+          
+          await setDefaultDevice(printerId)
+          
+          uni.hideLoading()
+          uni.showToast({
+            title: '设置成功',
+            icon: 'success'
+          })
+          
+          this.showAddPrinter = false
+          await this.checkPrinterStatus()
+        } catch (error) {
+          uni.hideLoading()
+          console.error('设置默认设备失败:', error)
+          uni.showToast({
+            title: error.message || '设置失败',
+            icon: 'none'
+          })
+        }
       },
     onCancelAddPrinter() {
       this.showAddPrinter = false
       console.log('用户取消添加打印机')
     },
-    checkPrinterStatus() {
-      // 这里可以检查打印机绑定状态
-      // 暂时使用模拟数据
-      this.isBound = false
-      this.printerInfo = {
-        name: '我的3D打印机',
-        model: 'Ender-3 V2',
-        isOnline: true
+    async checkPrinterStatus() {
+      try {
+        const res = await getDefaultDevice()
+        if (res.data && res.data.deviceId) {
+          this.isBound = true
+          this.printerInfo = {
+            name: res.data.deviceName || '我的3D打印机',
+            model: res.data.deviceModel || '未知型号',
+            isOnline: res.data.deviceStatus === 1
+          }
+        } else {
+          this.isBound = false
+        }
+      } catch (error) {
+        console.error('获取设备信息失败:', error)
+        this.isBound = false
       }
     }
   },

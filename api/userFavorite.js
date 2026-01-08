@@ -2,14 +2,13 @@ import { BASE_URL } from './config'
 
 export function addFavorite(modelId, groupId = null) {
   return new Promise((resolve, reject) => {
-    const queryParams = new URLSearchParams()
-    queryParams.append('modelId', modelId)
-    if (groupId) queryParams.append('groupId', groupId)
+    let queryString = `modelId=${encodeURIComponent(modelId)}`
+    if (groupId) queryString += `&groupId=${encodeURIComponent(groupId)}`
     
     const token = uni.getStorageSync('token') || ''
 
     uni.request({
-      url: `${BASE_URL}/user-model-favorite/add?${queryParams.toString()}`,
+      url: `${BASE_URL}/user-model-favorite/add?${queryString}`,
       method: 'PUT',
       timeout: 10000,
       header: {
@@ -43,13 +42,12 @@ export function addFavorite(modelId, groupId = null) {
 
 export function cancelFavorite(modelId) {
   return new Promise((resolve, reject) => {
-    const queryParams = new URLSearchParams()
-    queryParams.append('modelId', modelId)
+    const queryString = `modelId=${encodeURIComponent(modelId)}`
     
     const token = uni.getStorageSync('token') || ''
 
     uni.request({
-      url: `${BASE_URL}/user-model-favorite/cancel?${queryParams.toString()}`,
+      url: `${BASE_URL}/user-model-favorite/cancel?${queryString}`,
       method: 'DELETE',
       timeout: 10000,
       header: {

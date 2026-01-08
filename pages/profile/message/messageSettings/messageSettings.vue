@@ -1,5 +1,6 @@
 <template>
   <view class="message-settings-page">
+    <safe-area />
     <view class="navbar">
       <view class="navbar-left" @click="handleBack">
         <uni-icons type="left" size="24"></uni-icons>
@@ -43,8 +44,13 @@
 </template>
 
 <script>
+import SafeArea from '@/components/safe-area/safe-area.vue'
+
 export default {
   name: 'MessageSettings',
+  components: {
+    SafeArea
+  },
   data() {
     return {
       messageReminder: true,
@@ -81,6 +87,10 @@ export default {
   background: #f5f5f5;
 }
 
+.safe-area-top {
+  background: #fff;
+}
+
 .navbar {
   display: flex;
   align-items: center;
@@ -88,7 +98,6 @@ export default {
   height: 88rpx;
   padding: 0 32rpx;
   background: #fff;
-  padding-top: env(safe-area-inset-top);
 }
 
 .navbar-left,

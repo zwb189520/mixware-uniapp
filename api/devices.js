@@ -130,6 +130,11 @@ export function parseSnCode(snCode) {
 export function setDefaultDevice(deviceId) {
   return new Promise((resolve, reject) => {
     const token = uni.getStorageSync('token') || ''
+    const userId = uni.getStorageSync('userId') || ''
+    
+    console.log('设置默认设备 - 设备ID:', deviceId)
+    console.log('设置默认设备 - 用户ID:', userId)
+    console.log('设置默认设备 - Token:', token ? '已设置' : '未设置')
     
     uni.request({
       url: `${BASE_URL}/api/devices/default/${deviceId}`,
@@ -139,8 +144,11 @@ export function setDefaultDevice(deviceId) {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       success: (res) => {
+        console.log('设置默认设备API响应:', res)
+        console.log('设置默认设备响应数据:', res.data)
+        console.log('设置默认设备响应code:', res.data?.code)
         if (res.statusCode === 200) {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 || res.data.code === 1) {
             resolve(res.data)
           } else {
             reject(new Error(res.data.msg || '设置默认设备失败'))

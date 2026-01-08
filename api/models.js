@@ -59,14 +59,14 @@ export function addModel(modelData) {
  */
 export function getModelList(params = {}) {
   return new Promise((resolve, reject) => {
-    const queryParams = new URLSearchParams();
-    if (params.page) queryParams.append('page', params.page);
-    if (params.pageSize) queryParams.append('pageSize', params.pageSize);
-    if (params.category) queryParams.append('category', params.category);
-    if (params.keyword) queryParams.append('keyword', params.keyword);
+    let queryString = ''
+    const keys = Object.keys(params)
+    if (keys.length > 0) {
+      queryString = '?' + keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
+    }
 
     uni.request({
-      url: `${BASE_URL}/api/models/list?${queryParams.toString()}`,
+      url: `${BASE_URL}/api/models/list${queryString}`,
       method: 'GET',
       success: (res) => {
         if (res.statusCode === 200) {
@@ -199,20 +199,19 @@ export function deleteModel(modelId) {
  */
 export function getModelPage(params = {}) {
   return new Promise((resolve, reject) => {
-    const queryParams = new URLSearchParams();
-    if (params.current) queryParams.append('current', params.current);
-    if (params.size) queryParams.append('size', params.size);
-    if (params.name) queryParams.append('name', params.name);
-    if (params.category) queryParams.append('category', params.category);
-    if (params.sort) queryParams.append('sort', params.sort);
+    let queryString = ''
+    const keys = Object.keys(params)
+    if (keys.length > 0) {
+      queryString = '?' + keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
+    }
 
-    const requestUrl = `${BASE_URL}/api/models/page?${queryParams.toString()}`;
+    const requestUrl = `${BASE_URL}/api/models/page${queryString}`;
     console.log('请求URL:', requestUrl);
 
     uni.request({
       url: requestUrl,
       method: 'GET',
-      timeout: 10000, // 移动端设置10秒超时
+      timeout: 10000,
       header: {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
@@ -231,7 +230,6 @@ export function getModelPage(params = {}) {
       },
       fail: (err) => {
         console.error('API请求失败:', err)
-        // 移动端网络错误处理
         if (err.errMsg.includes('timeout')) {
           reject(new Error('网络请求超时，请检查网络连接'));
         } else if (err.errMsg.includes('network')) {
@@ -253,12 +251,14 @@ export function getModelPage(params = {}) {
  */
 export function getMyModels(params = {}) {
   return new Promise((resolve, reject) => {
-    const queryParams = new URLSearchParams();
-    if (params.current) queryParams.append('current', params.current);
-    if (params.size) queryParams.append('size', params.size);
+    let queryString = ''
+    const keys = Object.keys(params)
+    if (keys.length > 0) {
+      queryString = '?' + keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
+    }
 
     uni.request({
-      url: `${BASE_URL}/models/my?${queryParams.toString()}`,
+      url: `${BASE_URL}/models/my${queryString}`,
       method: 'GET',
       success: (res) => {
         if (res.statusCode === 200) {

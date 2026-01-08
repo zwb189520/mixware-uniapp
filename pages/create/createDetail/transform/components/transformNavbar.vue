@@ -38,7 +38,6 @@ export default {
 .navbar-container {
   background: #fff;
   border-bottom: 1rpx solid #e0e0e0;
-  padding-top: env(safe-area-inset-top);
   z-index: 100;
 }
 

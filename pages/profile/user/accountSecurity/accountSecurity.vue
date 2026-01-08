@@ -1,5 +1,6 @@
 <template>
   <view class="account-security-page">
+    <safe-area />
     <view class="navbar">
       <view class="navbar-left" @click="handleBack">
         <uni-icons type="left" size="24"></uni-icons>
@@ -40,9 +41,13 @@
 
 <script>
 import { deleteUser } from '@/api/users.js'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'AccountSecurity',
+  components: {
+    SafeArea
+  },
   methods: {
     handleBack() {
       uni.navigateBack()
@@ -129,6 +134,10 @@ export default {
   background: #f5f5f5;
 }
 
+.safe-area-top {
+  background: #fff;
+}
+
 .navbar {
   display: flex;
   align-items: center;
@@ -136,7 +145,6 @@ export default {
   height: 88rpx;
   padding: 0 32rpx;
   background: #fff;
-  padding-top: env(safe-area-inset-top);
 }
 
 .navbar-left,

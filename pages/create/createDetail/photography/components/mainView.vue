@@ -75,7 +75,9 @@ export default {
               current: this.uploadedImage
             })
           } else if (res.tapIndex === 1) {
-            this.handleUpload()
+            setTimeout(() => {
+              this.handleUpload()
+            }, 100)
           }
         }
       })

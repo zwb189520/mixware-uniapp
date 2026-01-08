@@ -91,15 +91,14 @@ export default {
   },
   methods: {
     useMockData() {
-      // 使用示例数据
       this.modelName = '机械臂底座'
-      this.modelImage = '/static/img/logo.png'
+      this.modelImage = '/static/images/logo.png'
       this.modelScale = 100
-      this.estimatedTime = 120 // 预计剩余120分钟
+      this.estimatedTime = 120
       this.currentProgress = 0
       this.printerName = 'Ender-3 V2'
       this.printerStatus = '忙碌'
-      this.printerImage = '/static/img/logo.png'
+      this.printerImage = '/static/images/logo.png'
       this.currentTemp = 185
       this.targetTemp = 200
     },

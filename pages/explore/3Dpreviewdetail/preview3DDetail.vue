@@ -65,25 +65,18 @@
         <text class="next-btn-text">开始打印</text>
       </button>
     </view>
-    
-    <AddPrinterModal 
-      :visible="showAddPrinter" 
-      @select-printer="onSelectPrinter" 
-      @cancel="showAddPrinter = false"
-    />
   </view>
 </template>
 
 <script>
 import { sendPrintCommand } from '@/api/iot.js'
 import { getModelDetail } from '@/api/models.js'
+import { getDefaultDevice } from '@/api/devices.js'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
-import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
 
 export default {
   components: {
-    Preview3D,
-    AddPrinterModal
+    Preview3D
   },
   data() {
     return {
@@ -104,8 +97,7 @@ export default {
       // 缩放相关
       modelScale: 0.6,
       scalePercent: 100,
-      modelInfo: {},
-      showAddPrinter: false
+      modelInfo: {}
     }
   },
   computed: {
@@ -260,19 +252,27 @@ export default {
         console.warn('缩放应用失败:', error)
       }
     },
-    async handlePrint(device = null) {
-      this.showAddPrinter = true
-    },
-    
-    async onSelectPrinter(printerId) {
-      this.showAddPrinter = false
-      
+    async handlePrint() {
       try {
+        uni.showLoading({
+          title: '获取设备信息...'
+        })
+        
+        const deviceRes = await getDefaultDevice()
+        const deviceId = deviceRes.data?.data?.deviceId
+        
+        if (!deviceId) {
+          uni.hideLoading()
+          uni.showToast({
+            title: '请先添加设备',
+            icon: 'none'
+          })
+          return
+        }
+        
         uni.showLoading({
           title: '发送打印命令...'
         })
-        
-        const deviceId = uni.getStorageSync('deviceId') || 'default-device'
         
         console.log('设备ID:', deviceId)
         console.log('发送打印命令:', { deviceId, modelId: this.modelId })

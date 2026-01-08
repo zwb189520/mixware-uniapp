@@ -1,5 +1,6 @@
 <template>
   <view class="page-container">
+    <safe-area />
     <view class="navbar">
       <view class="navbar-left" @click="handleBackClick">
         <uni-icons type="left" size="24"></uni-icons>
@@ -16,7 +17,12 @@
 </template>
 
 <script>
+import SafeArea from '@/components/safe-area/safe-area.vue'
+
 export default {
+  components: {
+    SafeArea
+  },
   data() {
     return {}
   },
@@ -36,6 +42,10 @@ export default {
   flex-direction: column;
   height: 100vh;
   background: #f5f5f5;
+}
+
+.safe-area-top {
+  background: #fff;
 }
 
 .navbar {

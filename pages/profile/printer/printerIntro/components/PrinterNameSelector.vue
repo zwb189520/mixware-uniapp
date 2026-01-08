@@ -20,23 +20,40 @@
 </template>
 
 <script>
+import { getDeviceList } from '@/api/devices.js'
+
 export default {
   name: 'PrinterNameSelector',
   data() {
     return {
       showDropdown: false,
       currentPrinter: {
-        id: 1,
-        name: 'Mixware Pro'
+        id: '',
+        name: '选择设备'
       },
-      printers: [
-        { id: 1, name: 'Mixware Pro' },
-        { id: 2, name: 'Mixware Mini' },
-        { id: 3, name: 'Mixware Studio' }
-      ]
+      printers: []
     }
   },
+  async mounted() {
+    await this.loadDevices()
+  },
   methods: {
+    async loadDevices() {
+      try {
+        const res = await getDeviceList()
+        if (res.data && res.data.records) {
+          this.printers = res.data.records.map(device => ({
+            id: device.deviceId,
+            name: device.deviceName || device.deviceId
+          }))
+          if (this.printers.length > 0) {
+            this.currentPrinter = this.printers[0]
+          }
+        }
+      } catch (error) {
+        console.error('获取设备列表失败:', error)
+      }
+    },
     toggleDropdown() {
       this.showDropdown = !this.showDropdown
     },

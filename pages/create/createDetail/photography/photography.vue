@@ -1,5 +1,6 @@
 <template>
   <view class="page">
+    <safe-area />
     <PhotographyNavbar
       @back-click="handleBack"
       @more-click="handleMore"
@@ -11,11 +12,13 @@
 <script>
 import PhotographyNavbar from './components/PhotographyNavbar.vue'
 import MainView from './components/MainView.vue'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   components: {
     PhotographyNavbar,
-    MainView
+    MainView,
+    SafeArea
   },
   data() {
     return {}
@@ -53,5 +56,9 @@ export default {
 .page {
   height: 100vh;
   background: #ffffff;
+}
+
+.safe-area-top {
+  background: #fff;
 }
 </style>

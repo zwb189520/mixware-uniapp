@@ -64,11 +64,10 @@ export default {
   },
   methods: {
     useMockData() {
-      // 使用示例数据
       this.workTitle = '机械臂作品详情'
       this.userName = '张设计师'
-      this.userAvatar = '/static/img/logo.png'
-      this.modelImage = '/static/img/logo.png'
+      this.userAvatar = '/static/images/logo.png'
+      this.modelImage = '/static/images/logo.png'
       this.description = '使用PLA材料打印的机械臂，经过精心调校后运行稳定，适合教育和演示使用。'
       this.workInfo = {
         printTime: '2024-01-15',
@@ -80,7 +79,7 @@ export default {
         {
           id: 1,
           userName: '李工程师',
-          userAvatar: '/static/img/logo.png',
+          userAvatar: '/static/images/logo.png',
           content: '这个模型设计得很不错，关节活动很流畅！',
           time: '2小时前',
           likes: 5,
@@ -97,7 +96,7 @@ export default {
         {
           id: 2,
           userName: '王老师',
-          userAvatar: '/static/img/logo.png',
+          userAvatar: '/static/images/logo.png',
           content: '能否分享一下打印参数？',
           time: '3小时前',
           likes: 2,

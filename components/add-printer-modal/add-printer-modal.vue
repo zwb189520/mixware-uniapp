@@ -6,27 +6,29 @@
       </view>
       
       <view class="modal-body">
-        <view class="printer-item" @tap="handleSelectPrinter(1)">
-          <image class="printer-icon" src="/static/img/printer-icon.png" mode="aspectFit" />
-          <view class="printer-info">
-            <text class="printer-name">3D打印机</text>
-            <text class="printer-model">Ender-3 V2</text>
-          </view>
+        <view v-if="loading" class="loading">
+          <text>加载中...</text>
         </view>
-        
-        <view class="printer-item" @tap="handleSelectPrinter(2)">
-          <image class="printer-icon" src="/static/img/printer-icon.png" mode="aspectFit" />
-          <view class="printer-info">
-            <text class="printer-name">3D打印机</text>
-            <text class="printer-model">Ender-3 S1</text>
-          </view>
+        <view v-else-if="deviceList.length === 0" class="empty">
+          <text>暂无可用设备</text>
         </view>
-        
-        <view class="printer-item" @tap="handleSelectPrinter(3)">
-          <image class="printer-icon" src="/static/img/printer-icon.png" mode="aspectFit" />
-          <view class="printer-info">
-            <text class="printer-name">3D打印机</text>
-            <text class="printer-model">CR-10</text>
+        <view v-else>
+          <view v-for="device in deviceList" :key="device.deviceId" class="printer-item">
+            <view class="printer-main" @tap="handleSelectPrinter(device.deviceId)">
+              <image class="printer-icon" src="/static/img/printer-icon.png" mode="aspectFit" />
+              <view class="printer-info">
+                <text class="printer-name">{{ device.deviceName || '未命名设备' }}</text>
+                <text class="printer-model">{{ device.deviceModel || '未知型号' }}</text>
+              </view>
+            </view>
+            <view class="printer-actions">
+              <view class="bind-btn" @tap="handleBindDevice(device.deviceId)">
+                <uni-icons type="link" size="18" color="#007aff"></uni-icons>
+              </view>
+              <view class="delete-btn" @tap="handleDeleteDevice(device.deviceId)">
+                <uni-icons type="trash" size="18" color="#ff4d4f"></uni-icons>
+              </view>
+            </view>
           </view>
         </view>
       </view>
@@ -39,6 +41,8 @@
 </template>
 
 <script>
+import { getDeviceList, deleteDevice, bindDevice } from '@/api/devices.js'
+
 export default {
   name: 'AddPrinterModal',
   props: {
@@ -47,9 +51,92 @@ export default {
       default: false
     }
   },
+  data() {
+    return {
+      deviceList: [],
+      loading: false
+    }
+  },
+  watch: {
+    visible(newVal) {
+      if (newVal) {
+        this.loadDeviceList()
+      }
+    }
+  },
   methods: {
+    async loadDeviceList() {
+      this.loading = true
+      try {
+        const res = await getDeviceList()
+        const currentUserId = uni.getStorageSync('userId') || ''
+        console.log('当前用户ID:', currentUserId)
+        console.log('设备列表完整响应:', res)
+        console.log('设备列表数据:', res.data)
+        console.log('设备列表记录:', res.data?.records)
+        if (res.data && res.data.records) {
+          this.deviceList = res.data.records
+          console.log('最终设备列表:', this.deviceList)
+          this.deviceList.forEach((device, index) => {
+            console.log(`设备${index}:`, {
+              deviceId: device.deviceId,
+              deviceName: device.deviceName,
+              deviceModel: device.deviceModel,
+              userId: device.userId,
+              deviceStatus: device.deviceStatus
+            })
+          })
+        }
+      } catch (error) {
+        console.error('获取设备列表失败:', error)
+      } finally {
+        this.loading = false
+      }
+    },
     handleSelectPrinter(printerId) {
+      console.log('选择的设备ID:', printerId)
+      const selectedDevice = this.deviceList.find(d => d.deviceId === printerId)
+      console.log('选择的设备详情:', selectedDevice)
       this.$emit('select-printer', printerId)
+    },
+    async handleBindDevice(deviceId) {
+      try {
+        uni.showLoading({
+          title: '绑定中...'
+        })
+        
+        await bindDevice({
+          deviceId: deviceId
+        })
+        
+        uni.hideLoading()
+        uni.showToast({
+          title: '绑定成功',
+          icon: 'success'
+        })
+        
+        await this.loadDeviceList()
+      } catch (error) {
+        uni.hideLoading()
+        console.error('绑定设备失败:', error)
+        
+        if (error.message && error.message.includes('已绑定其他用户')) {
+          uni.showModal({
+            title: '提示',
+            content: '设备已绑定其他用户，需要先删除设备才能重新绑定。是否删除该设备？',
+            success: async (res) => {
+              if (res.confirm) {
+                await this.handleDeleteDevice(deviceId)
+              }
+            }
+          })
+        } else {
+          uni.showToast({
+            title: error.message || '绑定失败',
+            icon: 'none'
+          })
+        }
+      }
     },
     handleCancel() {
       this.$emit('cancel')
@@ -103,6 +190,14 @@ export default {
   margin-bottom: 40rpx;
 }
 
+.loading,
+.empty {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
 .printer-item {
   display: flex;
   align-items: center;
@@ -110,6 +205,12 @@ export default {
   background-color: #f5f5f5;
   border-radius: 16rpx;
   margin-bottom: 20rpx;
+}
+
+.printer-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .printer-icon {
@@ -134,6 +235,17 @@ export default {
   display: block;
   font-size: 28rpx;
   color: #666;
+}
+
+.printer-actions {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.bind-btn,
+.delete-btn {
+  padding: 10rpx;
 }
 
 .modal-footer {

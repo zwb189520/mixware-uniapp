@@ -59,7 +59,7 @@
 				type: Boolean,
 				default: true
 			},
-			// Logo 图片路径（可选，默认使用 /static/img/logo.png）
+			// Logo 图片路径（可选，默认使用 /static/images/logo.png）
 			logoPath: {
 				type: String,
 				default: ''
@@ -654,7 +654,7 @@
 				const textureLoader = new THREE.TextureLoader()
 				
 				// 获取 logo 路径：优先使用 props 传入的路径，否则使用默认路径
-				let logoPath = this.props.logoPath || '/static/img/logo.png'
+				let logoPath = this.props.logoPath || '/static/images/logo.png'
 				
 				// 如果是 H5 环境且路径是相对路径，尝试构建完整 URL
 				if (typeof window !== 'undefined' && window.location && !logoPath.startsWith('http')) {
@@ -693,15 +693,15 @@
 						
 						// 尝试备用路径
 						const fallbackPaths = [
-							'/static/img/logo.png',
-							'./static/img/logo.png',
-							'static/img/logo.png'
+							'/static/images/logo.png',
+							'./static/images/logo.png',
+							'static/images/logo.png'
 						]
 						
 						let fallbackIndex = 0
 						const tryFallback = () => {
 							if (fallbackIndex >= fallbackPaths.length) {
-								console.error('All logo paths failed. Please check if logo.png exists at /static/img/logo.png')
+								console.error('All logo paths failed. Please check if logo.png exists at /static/images/logo.png')
 								return
 							}
 							

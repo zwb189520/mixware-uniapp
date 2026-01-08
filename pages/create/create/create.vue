@@ -42,9 +42,6 @@ export default {
   color: transparent;
   display: none;
 }
-.safe-area-top {
-  width: 100%;
-}
 .content {
   padding: 40rpx;
   min-height: calc(100vh - var(--status-bar-height));

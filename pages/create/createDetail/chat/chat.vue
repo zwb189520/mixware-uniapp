@@ -1,5 +1,6 @@
 <template>
   <view class="chat-page">
+    <safe-area />
     <!-- 顶部导航栏 -->
     <view class="navbar">
       <view class="navbar-left" @click="handleBackClick">
@@ -80,8 +81,12 @@
 
 <script>
 import { textToModel } from '@/api/hunyuan3d.js'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
+  components: {
+    SafeArea
+  },
   data() {
     return {
       messages: [],
@@ -288,6 +293,10 @@ export default {
   display: flex;
   flex-direction: column;
   background: #f5f5f5;
+}
+
+.safe-area-top {
+  background: #fff;
 }
 
 .navbar {

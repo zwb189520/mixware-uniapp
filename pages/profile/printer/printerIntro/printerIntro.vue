@@ -27,6 +27,8 @@ import PrinterNameSelector from './components/PrinterNameSelector.vue'
 import PrinterStatus from './components/PrinterStatus.vue'
 import PrinterImage from './components/PrinterImage.vue'
 import PrinterProgress from './components/PrinterProgress.vue'
+import { getDeviceStatus } from '@/api/iot.js'
+import { getDefaultDevice } from '@/api/devices.js'
 
 export default {
   name: 'PrinterIntro',
@@ -42,12 +44,44 @@ export default {
       printerStatus: 'idle',
       progress: 0,
       estimatedTime: '0分钟',
-      showEncouragement: true
+      showEncouragement: true,
+      deviceId: ''
     }
   },
+  async mounted() {
+    await this.loadDefaultDevice()
+    await this.loadDeviceStatus()
+  },
   methods: {
+    async loadDefaultDevice() {
+      try {
+        const res = await getDefaultDevice()
+        if (res.data && res.data.deviceId) {
+          this.deviceId = res.data.deviceId
+        }
+      } catch (error) {
+        console.error('获取默认设备失败:', error)
+      }
+    },
+    async loadDeviceStatus() {
+      if (!this.deviceId) return
+      
+      try {
+        const res = await getDeviceStatus(this.deviceId)
+        if (res.data) {
+          const status = res.data
+          const printProgress = status.virtualSdcard?.progress || 0
+          this.progress = Math.round(printProgress)
+          this.printerStatus = this.progress > 0 && this.progress < 100 ? 'printing' : 'idle'
+          this.showEncouragement = this.printerStatus === 'printing'
+        }
+      } catch (error) {
+        console.error('获取设备状态失败:', error)
+      }
+    },
     handlePrinterChange(printer) {
-      console.log('切换打印机:', printer)
+      this.deviceId = printer.id
+      this.loadDeviceStatus()
     }
   }
 }

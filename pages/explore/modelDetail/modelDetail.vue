@@ -1,5 +1,6 @@
 <template>
   <view class="page-container">
+    <safe-area />
     <!-- 模型导航栏组件 -->
     <ModelNavbar
       :model-name="modelInfo.name || '模型详情'"
@@ -35,6 +36,7 @@
 import ModelNavbar from './components/ModelNavbar.vue'
 import ModelInfo from './components/ModelInfo.vue'
 import BottomToolbar from './components/BottomToolbar.vue'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
 import { getModelDetail } from '@/api/models.js'
 
@@ -42,7 +44,8 @@ export default {
   components: {
     ModelNavbar,
     ModelInfo,
-    BottomToolbar
+    BottomToolbar,
+    SafeArea
   },
   data() {
     return {
@@ -67,7 +70,6 @@ export default {
     }
   },
   onLoad(options) {
-    // 从路由参数获取模型ID
     if (options.id) {
       this.modelId = options.id
       this.loadModelDetail(options.id)
@@ -245,6 +247,10 @@ export default {
   display: flex;
   flex-direction: column;
   background: #f5f5f5;
+}
+
+.safe-area-top {
+  background: #fff;
 }
 
 .content-scroll {

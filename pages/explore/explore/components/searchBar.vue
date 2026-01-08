@@ -7,7 +7,7 @@
     <input 
       class="search-input" 
       :placeholder="placeholder" 
-      disabled
+      readonly
       :value="keyword"
       @click.stop="handleClick"
     />

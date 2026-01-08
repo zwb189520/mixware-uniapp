@@ -1,34 +1,32 @@
 <template>
-  <transition name="search-fade">
-    <view v-if="visible" class="search-modal">
-      <view class="search-header">
-        <uni-icons type="left" size="24" @click="handleBack"/>
-        <view class="search-input-box">
-          <uni-icons type="search" size="20" color="#999"/>
-          <input 
-            class="search-input-active" 
-            :placeholder="placeholder" 
-            v-model="keyword"
-            @input="handleInput"
-            @confirm="handleSearch"
-          />
-          <uni-icons type="camera" size="24" color="#999" @click="handleCamera"/>
-        </view>
-        <text class="search-btn" @click="handleSearch">搜索</text>
+  <view v-if="visible" class="search-modal">
+    <view class="search-header">
+      <uni-icons type="left" size="24" @click="handleBack"/>
+      <view class="search-input-box">
+        <uni-icons type="search" size="20" color="#999"/>
+        <input 
+          class="search-input-active" 
+          :placeholder="placeholder" 
+          v-model="keyword"
+          @input="handleInput"
+          @confirm="handleSearch"
+        />
+        <uni-icons type="camera" size="24" color="#999" @click="handleCamera"/>
       </view>
-      <view class="hot-search">
-        <text class="hot-title">热门搜索</text>
-        <view class="hot-tags">
-          <text 
-            class="tag" 
-            v-for="(tag, i) in hotTags" 
-            :key="i" 
-            @click="handleTagClick(tag)"
-          >{{ tag }}</text>
-        </view>
+      <text class="search-btn" @click="handleSearch">搜索</text>
+    </view>
+    <view class="hot-search">
+      <text class="hot-title">热门搜索</text>
+      <view class="hot-tags">
+        <text 
+          class="tag" 
+          v-for="(tag, i) in hotTags" 
+          :key="i" 
+          @click="handleTagClick(tag)"
+        >{{ tag }}</text>
       </view>
     </view>
-  </transition>
+  </view>
 </template>
 
 <script>
@@ -135,17 +133,5 @@ export default {
   border-radius: 50rpx;
   font-size: 28rpx;
   color: #666;
-}
-/* 搜索页面丝滑过渡 */
-.search-fade-enter-active,.search-fade-leave-active {
-  transition: all .35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-.search-fade-enter-from {
-  opacity: 0;
-  transform: translateY(100%);
-}
-.search-fade-leave-to {
-  opacity: 0;
-  transform: translateY(100%);
 }
 </style>

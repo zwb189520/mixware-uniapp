@@ -288,8 +288,12 @@ export class ServerModelGenerator {
 	 * @returns {Promise<string>} 预览图URL
 	 */
 	async getPreview(params) {
-		const queryString = new URLSearchParams(params).toString()
-		return `${this.apiBaseUrl}/preview?${queryString}`
+		let queryString = ''
+		const keys = Object.keys(params)
+		if (keys.length > 0) {
+			queryString = '?' + keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
+		}
+		return `${this.apiBaseUrl}/preview${queryString}`
 	}
 }
 

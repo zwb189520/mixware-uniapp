@@ -9,7 +9,7 @@
 		{
 			"path": "pages/explore/explore/explore",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -39,7 +39,7 @@
 		{
 			"path": "pages/create/create/create",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -69,7 +69,7 @@
 		{
 			"path": "pages/profile/user/profile/profile",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -105,7 +105,7 @@
 		{
 			"path": "pages/profile/auth/login/login",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationStyle": "custom"
 			}
 		},
 		{

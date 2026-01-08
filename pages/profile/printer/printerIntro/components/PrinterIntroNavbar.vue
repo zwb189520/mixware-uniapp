@@ -33,7 +33,6 @@ export default {
 <style scoped>
 .navbar-container {
   background: #fff;
-  padding-top: env(safe-area-inset-top);
   z-index: 100;
 }
 

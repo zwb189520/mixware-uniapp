@@ -24,6 +24,11 @@
 
         <!-- 分类标签组件 -->
         <CategoryTabs
+          :tabs="[
+            { label: '每日推荐', value: 'daily' },
+            { label: '热门创作', value: 'hot' },
+            { label: '其他类目', value: 'category' }
+          ]"
           :current-tab="currentTab"
           @tab-change="switchTab"
         />
@@ -83,7 +88,6 @@ export default {
       showSearch: false,
       keyword: '',
       currentTab: 'daily',
-      statusBarHeight: 0,
       loading: false,
       hotTags: ['手办', '手机支架', '高达', '收纳', '解压', '盒子', '可动', '我的世界', '钥匙扣', '收纳盒', '伸缩剑', '解压玩具', '摆件', '面具', '海贼王', '纸巾盒', '钢铁侠', 'k2', '挂件', '航模', '马里奥'],
       dailyModels: [],
@@ -350,9 +354,9 @@ export default {
           id: Date.now() + i,
           name: template[i % template.length] + (i + 1),
           desc: `这是${template[i % template.length]}的描述`,
-          image: '/static/img/logo.png',
+          image: '/static/images/logo.png',
           author: '示例用户',
-          authorAvatar: '/static/img/logo.png',
+          authorAvatar: '/static/images/logo.png',
           likes: Math.floor(Math.random() * 1000) + 1,
           isLiked: false,
           viewCount: Math.floor(Math.random() * 10000) + 100,
@@ -470,12 +474,6 @@ export default {
   display: none;
 }
 
-/* 安全区域 */
-.safe-area-top {
-  width: 100%;
-}
-
-/* 白色圆角盖：从搜索框开始向下 */
 .main-card {
   background: #fff;
   border-top-left-radius: 32rpx;

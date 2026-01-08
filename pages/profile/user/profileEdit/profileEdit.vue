@@ -1,5 +1,6 @@
 <template>
   <view class="profile-edit-page">
+    <safe-area />
     <view class="navbar">
       <uni-icons type="left" size="20" color="#333" @click="handleBack"></uni-icons>
       <text class="navbar-title">个人资料</text>
@@ -45,9 +46,13 @@
 
 <script>
 import { updateUserInfo } from '@/api/users.js'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'ProfileEdit',
+  components: {
+    SafeArea
+  },
   data() {
     return {
       userInfo: {
@@ -59,7 +64,6 @@ export default {
       }
     }
   },
-  
   methods: {
     handleBack() {
       uni.navigateBack()
@@ -161,6 +165,10 @@ export default {
 .profile-edit-page {
   min-height: 100vh;
   background-color: #f5f5f5;
+}
+
+.safe-area-top {
+  background: #fff;
 }
 
 .navbar {

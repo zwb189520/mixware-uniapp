@@ -68,5 +68,18 @@
     "uniStatistics" : {
         "enable" : false
     },
+    "h5" : {
+        "devServer" : {
+            "proxy" : {
+                "/hunyuan3d" : {
+                    "target" : "http://app.mixwarebot.cn",
+                    "changeOrigin" : true,
+                    "pathRewrite" : {
+                        "^/hunyuan3d" : "/hunyuan3d"
+                    }
+                }
+            }
+        }
+    },
     "vueVersion" : "3"
 }

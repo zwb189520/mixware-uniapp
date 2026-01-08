@@ -447,6 +447,34 @@ export function registerWithHandler(registerData) {
   })
 }
 
+export function deleteUser(userId) {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('token') || ''
+    
+    uni.request({
+      url: `${BASE_URL}/api/users/deleteUser/${userId}`,
+      method: 'DELETE',
+      header: {
+        'Authorization': token ? `Bearer ${token}` : ''
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          if (res.data.code === 1) {
+            resolve(res.data)
+          } else {
+            reject(new Error(res.data.msg || '删除用户失败'))
+          }
+        } else {
+          reject(new Error(`请求失败: ${res.statusCode}`))
+        }
+      },
+      fail: (err) => {
+        reject(new Error(`网络请求失败: ${err.errMsg}`))
+      }
+    })
+  })
+}
+
 export function thirdPartyLoginWithHandler(platform, code, extraData = {}) {
   return new Promise((resolve, reject) => {
     uni.request({
