@@ -46,6 +46,7 @@
 
 <script>
 import { updateUserInfo } from '@/api/users.js'
+import { BASE_URL } from '@/api/config.js'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
@@ -61,7 +62,8 @@ export default {
         avatar: '',
         region: '',
         gender: ''
-      }
+      },
+      tempAvatar: ''
     }
   },
   methods: {
@@ -74,35 +76,89 @@ export default {
         title: '保存中...'
       })
       
-      updateUserInfo({
-        username: this.userInfo.nickname,
-        avatarUrl: this.userInfo.avatar,
-        email: this.userInfo.email
-      }).then(() => {
-        uni.hideLoading()
+      const saveUserInfo = (avatarUrl) => {
+        const updateData = {
+          username: this.userInfo.nickname,
+          avatarUrl: avatarUrl || this.userInfo.avatar
+        }
         
-        uni.setStorageSync('userInfo', this.userInfo)
-        
-        console.log('ProfileEdit - 保存用户信息:', this.userInfo)
-        
-        uni.showToast({
-          title: '保存成功',
-          icon: 'success'
+        updateUserInfo(updateData).then(() => {
+          uni.hideLoading()
+          
+          this.userInfo.avatar = avatarUrl || this.userInfo.avatar
+          uni.setStorageSync('userInfo', this.userInfo)
+          
+          console.log('ProfileEdit - 保存用户信息:', this.userInfo)
+          
+          uni.showToast({
+            title: '保存成功',
+            icon: 'success'
+          })
+          
+          uni.$emit('profileUpdate', this.userInfo)
+          
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 500)
+        }).catch((error) => {
+          uni.hideLoading()
+          
+          uni.showToast({
+            title: error.message || '保存失败',
+            icon: 'none'
+          })
         })
-        
-        uni.$emit('profileUpdate', this.userInfo)
-        
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 500)
-      }).catch((error) => {
-        uni.hideLoading()
-        
-        uni.showToast({
-          title: error.message || '保存失败',
-          icon: 'none'
+      }
+      
+      if (this.tempAvatar) {
+        const token = uni.getStorageSync('token') || ''
+        uni.uploadFile({
+          url: `${BASE_URL}/api/upload/image`,
+          filePath: this.tempAvatar,
+          name: 'file',
+          header: {
+            'Authorization': token ? `Bearer ${token}` : ''
+          },
+          success: (uploadRes) => {
+            if (uploadRes.statusCode === 200) {
+              try {
+                const uploadData = JSON.parse(uploadRes.data)
+                if (uploadData.code === 0 || uploadData.code === 1) {
+                  const avatarUrl = uploadData.data.fileUrl
+                  saveUserInfo(avatarUrl)
+                } else {
+                  uni.hideLoading()
+                  uni.showToast({
+                    title: uploadData.msg || '上传头像失败',
+                    icon: 'none'
+                  })
+                }
+              } catch (e) {
+                uni.hideLoading()
+                uni.showToast({
+                  title: '上传头像失败',
+                  icon: 'none'
+                })
+              }
+            } else {
+              uni.hideLoading()
+              uni.showToast({
+                title: '上传头像失败',
+                icon: 'none'
+              })
+            }
+          },
+          fail: (err) => {
+            uni.hideLoading()
+            uni.showToast({
+              title: '上传头像失败',
+              icon: 'none'
+            })
+          }
         })
-      })
+      } else {
+        saveUserInfo(null)
+      }
     },
     
     handleAvatarEdit() {
@@ -111,7 +167,8 @@ export default {
         sizeType: ['original', 'compressed'],
         sourceType: ['album', 'camera'],
         success: (res) => {
-          this.userInfo.avatar = res.tempFilePaths[0]
+          this.tempAvatar = res.tempFilePaths[0]
+          this.userInfo.avatar = this.tempAvatar
         }
       })
     },

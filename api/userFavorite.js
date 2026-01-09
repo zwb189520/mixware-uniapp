@@ -8,7 +8,7 @@ export function addFavorite(modelId, groupId = null) {
     const token = uni.getStorageSync('token') || ''
 
     uni.request({
-      url: `${BASE_URL}/user-model-favorite/add?${queryString}`,
+      url: `${BASE_URL}/api/user-model-favorite/add?${queryString}`,
       method: 'PUT',
       timeout: 10000,
       header: {
@@ -47,7 +47,7 @@ export function cancelFavorite(modelId) {
     const token = uni.getStorageSync('token') || ''
 
     uni.request({
-      url: `${BASE_URL}/user-model-favorite/cancel?${queryString}`,
+      url: `${BASE_URL}/api/user-model-favorite/cancel?${queryString}`,
       method: 'DELETE',
       timeout: 10000,
       header: {

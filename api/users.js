@@ -381,11 +381,16 @@ export function loginWithPassword(email, password) {
               uni.setStorageSync('username', username)
             }
             
+            let avatarUrl = avatar || '/static/default-avatar.png'
+            if (avatarUrl.startsWith('blob:')) {
+              avatarUrl = '/static/default-avatar.png'
+            }
+            
             const userInfo = {
               userId,
               username,
               nickname: nickname || username,
-              avatar: avatar || '/static/default-avatar.png'
+              avatar: avatarUrl
             }
             uni.setStorageSync('userInfo', userInfo)
             uni.setStorageSync('isLoggedIn', true)

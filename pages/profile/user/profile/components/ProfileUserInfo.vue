@@ -44,6 +44,14 @@ export default {
       
       if (isLoggedIn && userInfo && Object.keys(userInfo).length > 0) {
         this.isLoggedIn = true
+        
+        let avatarUrl = userInfo.avatar || '/static/default-avatar.png'
+        if (avatarUrl.startsWith('blob:')) {
+          avatarUrl = '/static/default-avatar.png'
+          userInfo.avatar = avatarUrl
+          uni.setStorageSync('userInfo', userInfo)
+        }
+        
         this.userInfo = userInfo
         console.log('Profile - 更新用户信息:', this.userInfo)
       } else {

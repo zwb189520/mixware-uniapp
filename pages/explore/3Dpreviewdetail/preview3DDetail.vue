@@ -95,7 +95,7 @@ export default {
         z: 0
       },
       // 缩放相关
-      modelScale: 0.6,
+      modelScale: 1,
       scalePercent: 100,
       modelInfo: {}
     }

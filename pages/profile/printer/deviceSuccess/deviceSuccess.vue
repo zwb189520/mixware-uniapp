@@ -1,5 +1,6 @@
 <template>
   <view class="device-success-page">
+    <safe-area></safe-area>
     <!-- navbar -->
     <view class="navbar">
       <view class="navbar-left">
@@ -40,8 +41,13 @@
 </template>
 
 <script>
+import SafeArea from '@/components/safe-area/safe-area.vue'
+
 export default {
   name: 'DeviceSuccess',
+  components: {
+    SafeArea
+  },
   data() {
     return {
       printerId: null

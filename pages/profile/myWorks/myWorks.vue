@@ -1,5 +1,6 @@
 <template>
   <view class="my-works-page">
+    <safe-area></safe-area>
     <!-- navbar -->
     <view class="navbar">
       <view class="navbar-left">
@@ -29,64 +30,105 @@
 
 <script>
 import WorkCard from './components/WorkCard.vue'
+import { getModelRecords, getPrintRecords } from '@/api/operationRecords.js'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'MyWorks',
   components: {
-    WorkCard
+    WorkCard,
+    SafeArea
   },
   data() {
     return {
-      worksList: [
-        {
-          id: 1,
-          title: '小恐龙模型',
-          image: '/static/images/work/work1.jpg',
-          printTime: '2小时30分',
-          printDate: '2024-01-15'
-        },
-        {
-          id: 2,
-          title: '手机支架',
-          image: '/static/images/work/work2.jpg',
-          printTime: '1小时45分',
-          printDate: '2024-01-14'
-        },
-        {
-          id: 3,
-          title: '花瓶',
-          image: '/static/images/work/work3.jpg',
-          printTime: '3小时20分',
-          printDate: '2024-01-13'
-        },
-        {
-          id: 4,
-          title: '钥匙扣',
-          image: '/static/images/work/work4.jpg',
-          printTime: '45分钟',
-          printDate: '2024-01-12'
-        },
-        {
-          id: 5,
-          title: '玩具车',
-          image: '/static/images/work/work5.jpg',
-          printTime: '4小时10分',
-          printDate: '2024-01-11'
-        },
-        {
-          id: 6,
-          title: '笔筒',
-          image: '/static/images/work/work6.jpg',
-          printTime: '1小时15分',
-          printDate: '2024-01-10'
-        }
-      ]
+      worksList: [],
+      loading: false
     }
   },
+  mounted() {
+    this.loadWorks()
+  },
   methods: {
+    async loadWorks() {
+      this.loading = true
+      console.log('开始加载作品...')
+      try {
+        const modelRes = await getModelRecords(1, 10)
+        console.log('模型记录响应:', modelRes)
+        
+        const modelWorks = (modelRes.data?.records || []).map(record => ({
+          id: record.recordId,
+          title: record.resourceId || '模型生成',
+          image: '/static/images/work/default.jpg',
+          printTime: '-',
+          printDate: this.formatDate(record.operationTime),
+          type: 'model',
+          status: record.status
+        }))
+        
+        this.worksList = modelWorks
+        
+        try {
+          const printRes = await getPrintRecords(1, 10)
+          console.log('打印记录响应:', printRes)
+          
+          const printWorks = (printRes.data?.records || []).map(record => ({
+            id: record.recordId,
+            title: record.resourceId || '打印任务',
+            image: '/static/images/work/default.jpg',
+            printTime: '-',
+            printDate: this.formatDate(record.operationTime),
+            type: 'print',
+            status: record.status
+          }))
+          
+          this.worksList = [...this.worksList, ...printWorks]
+        } catch (printError) {
+          console.log('获取打印记录失败，忽略:', printError)
+        }
+        
+        console.log('作品列表:', this.worksList)
+        
+        if (this.worksList.length === 0) {
+          uni.showToast({
+            title: '暂无作品记录',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        console.error('加载作品失败:', error)
+        uni.showToast({
+          title: error.message || '加载失败',
+          icon: 'none'
+        })
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    formatDuration(duration) {
+      if (!duration) return '未知'
+      const hours = Math.floor(duration / 3600)
+      const minutes = Math.floor((duration % 3600) / 60)
+      if (hours > 0) {
+        return `${hours}小时${minutes}分`
+      }
+      return `${minutes}分钟`
+    },
+    
+    formatDate(dateStr) {
+      if (!dateStr) return '未知'
+      const date = new Date(dateStr)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+    
     handleBack() {
       uni.navigateBack()
     },
+    
     handleWorkClick(work) {
       uni.navigateTo({
         url: `/pages/explore/workDetail/workDetail?workId=${work.id}`

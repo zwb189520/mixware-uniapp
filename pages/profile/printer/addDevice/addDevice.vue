@@ -1,5 +1,6 @@
 <template>
   <view class="add-device-page">
+    <safe-area></safe-area>
     <!-- navbar -->
     <view class="navbar">
       <view class="navbar-left">
@@ -58,11 +59,13 @@
 
 <script>
 import WiFiSelectorModal from './components/WiFiSelectorModal.vue'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'AddDevice',
   components: {
-    WiFiSelectorModal
+    WiFiSelectorModal,
+    SafeArea
   },
   data() {
     return {

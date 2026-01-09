@@ -16,13 +16,42 @@
 </template>
 
 <script>
+import { getDeviceInfo } from '@/api/devices.js'
+
 export default {
   name: 'PrinterInfoSection',
+  props: {
+    deviceId: {
+      type: String,
+      default: ''
+    }
+  },
   data() {
     return {
       printerName: 'KD-3D Printer Pro',
       printerSN: 'KD2024010001',
       printerMAC: '00:1A:2B:3C:4D:5E'
+    }
+  },
+  async mounted() {
+    if (this.deviceId) {
+      await this.loadDeviceInfo()
+    }
+  },
+  methods: {
+    async loadDeviceInfo() {
+      try {
+        const res = await getDeviceInfo(this.deviceId)
+        if (res.data) {
+          const info = res.data
+          this.printerName = info.deviceName || 'KD-3D Printer Pro'
+          this.printerSN = info.snCode || 'KD2024010001'
+          this.printerMAC = info.deviceId || '00:1A:2B:3C:4D:5E'
+          this.$emit('device-info-loaded', info)
+        }
+      } catch (error) {
+        console.error('获取设备信息失败:', error)
+      }
     }
   }
 }

@@ -119,23 +119,10 @@ export default {
       } catch (error) {
         uni.hideLoading()
         console.error('绑定设备失败:', error)
-        
-        if (error.message && error.message.includes('已绑定其他用户')) {
-          uni.showModal({
-            title: '提示',
-            content: '设备已绑定其他用户，需要先删除设备才能重新绑定。是否删除该设备？',
-            success: async (res) => {
-              if (res.confirm) {
-                await this.handleDeleteDevice(deviceId)
-              }
-            }
-          })
-        } else {
-          uni.showToast({
-            title: error.message || '绑定失败',
-            icon: 'none'
-          })
-        }
+        uni.showToast({
+          title: error.message || '绑定失败',
+          icon: 'none'
+        })
       }
     },
     handleCancel() {

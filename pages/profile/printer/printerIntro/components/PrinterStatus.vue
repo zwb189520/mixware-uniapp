@@ -14,7 +14,7 @@ export default {
     status: {
       type: String,
       default: 'idle',
-      validator: (value) => ['idle', 'printing', 'completed', 'error'].includes(value)
+      validator: (value) => ['idle', 'printing', 'completed', 'error', 'offline'].includes(value)
     }
   },
   computed: {
@@ -23,7 +23,8 @@ export default {
         idle: '睡觉',
         printing: '工作中',
         completed: '饿了',
-        error: '生病了'
+        error: '生病了',
+        offline: '离线'
       }
       return statusMap[this.status]
     }
@@ -69,6 +70,10 @@ export default {
 
 .status-error {
   background: #e74c3c;
+}
+
+.status-offline {
+  background: #bdc3c7;
 }
 
 @keyframes pulse {

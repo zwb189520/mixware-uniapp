@@ -37,6 +37,10 @@
             <text class="stat-text">{{ modelInfo.collections }}</text>
           </view>
         </view>
+          <view class="author-info" @click="handleAuthorClick">
+          <image class="author-avatar" :src="modelInfo.authorAvatar" mode="aspectFill" @error="handleImageError"/>
+          <text class="author-name">{{ modelInfo.author }}</text>
+        </view>
       </view>
 
       <!-- 模型描述 -->
@@ -171,6 +175,13 @@ export default {
       uni.navigateTo({
         url: `/pages/explore/showcaseWorksDetail/showcaseWorksDetail?workId=${index}`
       })
+    },
+
+    handleAuthorClick() {
+      uni.showToast({
+        title: '查看作者主页',
+        icon: 'none'
+      })
     }
   }
 }
@@ -220,6 +231,29 @@ export default {
   display: flex;
   align-items: center;
   gap: 48rpx;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 24rpx;
+  padding: 16rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+}
+
+.author-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #e0e0e0;
+}
+
+.author-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
 }
 
 .stat-item {

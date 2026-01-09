@@ -1,5 +1,6 @@
 <template>
   <view class="navbar-container">
+    <safe-area></safe-area>
     <view class="navbar">
       <view class="navbar-left" @click="handleBackClick">
         <uni-icons type="left" size="24"></uni-icons>
@@ -15,15 +16,26 @@
 </template>
 
 <script>
+import SafeArea from '@/components/safe-area/safe-area.vue'
+
 export default {
   name: 'PrinterIntroNavbar',
+  components: {
+    SafeArea
+  },
+  props: {
+    deviceId: {
+      type: String,
+      default: ''
+    }
+  },
   methods: {
     handleBackClick() {
       uni.navigateBack()
     },
     handleMoreClick() {
         uni.navigateTo({
-          url: '/pages/profile/printer/printerMoreIntro/printerMoreIntro'
+          url: `/pages/profile/printer/printerMoreIntro/printerMoreIntro?deviceId=${this.deviceId}`
         })
       }
   }

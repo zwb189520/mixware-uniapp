@@ -1,5 +1,6 @@
 <template>
   <view class="third-party-binding-page">
+    <safe-area></safe-area>
     <view class="navbar">
       <view class="navbar-left" @click="handleBack">
         <uni-icons type="left" size="24"></uni-icons>
@@ -31,8 +32,13 @@
 </template>
 
 <script>
+import SafeArea from '@/components/safe-area/safe-area.vue'
+
 export default {
   name: 'ThirdPartyBinding',
+  components: {
+    SafeArea
+  },
   data() {
     return {
       googleBound: false

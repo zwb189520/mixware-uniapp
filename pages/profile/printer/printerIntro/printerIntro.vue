@@ -1,6 +1,6 @@
 <template>
   <view class="printer-intro-page">
-    <printer-intro-navbar />
+    <printer-intro-navbar :device-id="deviceId" />
     
     <view class="content-container">
       <printer-name-selector @printer-change="handlePrinterChange" />
@@ -77,6 +77,8 @@ export default {
         }
       } catch (error) {
         console.error('获取设备状态失败:', error)
+        this.printerStatus = 'offline'
+        this.showEncouragement = false
       }
     },
     handlePrinterChange(printer) {

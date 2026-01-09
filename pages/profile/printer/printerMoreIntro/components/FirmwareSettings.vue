@@ -21,10 +21,26 @@
 <script>
 export default {
   name: 'FirmwareSettings',
+  props: {
+    deviceInfo: {
+      type: Object,
+      default: null
+    }
+  },
   data() {
     return {
       firmwareVersion: 'v2.1.3',
       antiShakeEnabled: true
+    }
+  },
+  watch: {
+    deviceInfo: {
+      handler(newVal) {
+        if (newVal && newVal.firmwareVersion) {
+          this.firmwareVersion = newVal.firmwareVersion
+        }
+      },
+      immediate: true
     }
   },
   methods: {

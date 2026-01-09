@@ -95,21 +95,26 @@ export default {
         const data = res.data
         console.log('data.modelParam:', data.modelParam)
         
+        const fixImageUrl = (url) => {
+          if (!url) return ''
+          return url.replace('localhost:9000', '47.102.212.37:9000')
+        }
+        
         this.modelInfo = {
           id: String(id),
           name: data.name || '',
           description: data.description || '',
           category: data.category || '',
           copyright: data.copyright || 'CC BY 4.0',
-          images: data.previewUrl ? [data.previewUrl] : [],
+          images: data.previewUrl ? [fixImageUrl(data.previewUrl)] : [],
           likes: data.collectCount || 0,
           collections: data.collectCount || 0,
           downloads: data.downloadCount || 0,
           isLiked: data.isLiked || false,
           isCollected: data.isCollected || false,
           author: data.userId || '',
-          authorAvatar: data.previewUrl || '',
-          modelFile: data.downloadUrl || data.modelFile || data.modelUrl || ''
+          authorAvatar: fixImageUrl(data.previewUrl),
+          modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
         }
         
         let modelParam = {}
@@ -125,8 +130,8 @@ export default {
         this.printModels = [{
                 id: id,
                 name: data.name || '模型',
-                image: data.previewUrl || '',
-                modelFile: data.downloadUrl || data.modelFile || data.modelUrl || '',
+                image: fixImageUrl(data.previewUrl),
+                modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || ''),
                 size: modelParam.size || modelParam.modelSize || modelParam.dimensions || '未知',
                 printTime: modelParam.printTime || modelParam.printDuration || modelParam.estimatedTime || '未知'
               }]
@@ -168,14 +173,32 @@ export default {
       })
     },
 
-    handleLike() {
-      this.modelInfo.isLiked = !this.modelInfo.isLiked
-      this.modelInfo.isLiked ? this.modelInfo.likes++ : this.modelInfo.likes--
-      
-      uni.showToast({
-        title: this.modelInfo.isLiked ? '点赞成功' : '取消点赞',
-        icon: 'success'
-      })
+    async handleLike() {
+      try {
+        if (this.modelInfo.isLiked) {
+          await cancelFavorite(this.modelId)
+          this.modelInfo.isLiked = false
+          this.modelInfo.likes--
+          uni.showToast({
+            title: '已取消收藏',
+            icon: 'success'
+          })
+        } else {
+          await addFavorite(this.modelId)
+          this.modelInfo.isLiked = true
+          this.modelInfo.likes++
+          uni.showToast({
+            title: '收藏成功',
+            icon: 'success'
+          })
+        }
+      } catch (error) {
+        console.error('收藏操作失败:', error)
+        uni.showToast({
+          title: error.message || '操作失败',
+          icon: 'none'
+        })
+      }
     },
 
     async handleCollect() {

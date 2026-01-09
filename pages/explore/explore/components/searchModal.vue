@@ -1,15 +1,18 @@
 <template>
   <view v-if="visible" class="search-modal">
+    <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
     <view class="search-header">
       <uni-icons type="left" size="24" @click="handleBack"/>
       <view class="search-input-box">
         <uni-icons type="search" size="20" color="#999"/>
         <input 
+          ref="searchInput"
           class="search-input-active" 
           :placeholder="placeholder" 
           v-model="keyword"
           @input="handleInput"
           @confirm="handleSearch"
+          :focus="inputFocused"
         />
         <uni-icons type="camera" size="24" color="#999" @click="handleCamera"/>
       </view>
@@ -48,13 +51,23 @@ export default {
   },
   data() {
     return {
-      keyword: ''
+      keyword: '',
+      statusBarHeight: 0,
+      inputFocused: false
     }
+  },
+  mounted() {
+    const systemInfo = uni.getSystemInfoSync()
+    this.statusBarHeight = systemInfo.statusBarHeight
   },
   watch: {
     visible(newVal) {
-      if (!newVal) {
-        this.keyword = ''
+      if (newVal) {
+        this.$nextTick(() => {
+          this.inputFocused = true
+        })
+      } else {
+        this.inputFocused = false
       }
     }
   },

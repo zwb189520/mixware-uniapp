@@ -1,8 +1,5 @@
 <template>
   <scroll-view scroll-y class="page-scroll" :scroll-x="false" :show-scrollbar="false">
-    <!-- 安全区域 -->
-    <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
-    
     <!-- 顶部背景组件 -->
     <BackgroundHeader
       background-image="/static/images/explore-bg.png"
@@ -45,6 +42,7 @@
         :left-list="leftList"
         :right-list="rightList"
         :current-tab="currentTab"
+        :slide-direction="slideDirection"
         @card-click="handleModelClick"
         @like-click="toggleLike"
         @author-click="handleAuthorClick"
@@ -74,6 +72,7 @@ import SearchModal from './components/SearchModal.vue'
 import WaterfallLayout from './components/waterfallLayout.vue'
 import { getModelPage } from '@/api/models.js'
 import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
+import { getHotExamples } from '@/api/session.js'
 
 export default {
   components: {
@@ -88,6 +87,7 @@ export default {
       showSearch: false,
       keyword: '',
       currentTab: 'daily',
+      slideDirection: 'right',
       loading: false,
       hotTags: ['手办', '手机支架', '高达', '收纳', '解压', '盒子', '可动', '我的世界', '钥匙扣', '收纳盒', '伸缩剑', '解压玩具', '摆件', '面具', '海贼王', '纸巾盒', '钢铁侠', 'k2', '挂件', '航模', '马里奥'],
       dailyModels: [],
@@ -96,9 +96,8 @@ export default {
     }
   },
   onLoad() {
-    const systemInfo = uni.getSystemInfoSync()
-    this.statusBarHeight = systemInfo.statusBarHeight
     this.loadModels()
+    this.loadHotTags()
   },
   onShow() {
     if (!this.dailyModels.length || !this.hotModels.length || !this.categoryModels.length) {
@@ -120,6 +119,18 @@ export default {
     }
   },
   methods: {
+    async loadHotTags() {
+      try {
+        const res = await getHotExamples(20)
+        if (res.code === 0 || res.code === 1) {
+          if (res.data && res.data.length > 0) {
+            this.hotTags = res.data.map(item => item.title || item.describe || '').filter(tag => tag.trim())
+          }
+        }
+      } catch (error) {
+        console.error('加载热门标签失败:', error)
+      }
+    },
     async loadModels(params = {}) {
       this.loading = true
       try {
@@ -168,14 +179,19 @@ export default {
         return
       }
       
+      const fixImageUrl = (url) => {
+        if (!url) return '/static/images/logo.png'
+        return url.replace('localhost:9000', '47.102.212.37:9000')
+      }
+      
       // 将API数据转换为组件需要的格式 - 优化移动端显示
       const formattedModels = models.map(model => ({
         id: model.modelId,
         name: model.name || '未命名模型',
         desc: model.description || model.name || '暂无描述',
-        image: model.previewUrl || '/static/images/logo.png', // 移动端默认图片
+        image: fixImageUrl(model.previewUrl), // 移动端默认图片
         author: model.userId ? model.userId.substring(0, 8) : '匿名用户', // 移动端显示简短用户ID
-        authorAvatar: model.previewUrl || '/static/images/user-avatar.png', // 移动端默认头像
+        authorAvatar: fixImageUrl(model.previewUrl), // 移动端默认头像
         likes: model.collectCount || 0,
         isLiked: false,
         viewCount: model.viewCount || 0,
@@ -367,7 +383,11 @@ export default {
       return mockData
     },
     
-    switchTab(tab) { 
+    switchTab(tab) {
+      const tabs = ['daily', 'hot', 'category']
+      const currentIndex = tabs.indexOf(this.currentTab)
+      const newIndex = tabs.indexOf(tab)
+      this.slideDirection = newIndex > currentIndex ? 'left' : 'right'
       this.currentTab = tab;
       this.$nextTick(() => {
         uni.pageScrollTo({ scrollTop: 0, duration: 0 });
@@ -377,7 +397,7 @@ export default {
       this.searchModels(this.keyword)
       this.showSearch = false
     },
-    searchModels(keyword) {
+    async searchModels(keyword) {
       if (!keyword.trim()) {
         uni.showToast({
           title: '请输入搜索关键词',
@@ -387,27 +407,60 @@ export default {
       }
       
       this.loading = true
-      setTimeout(() => {
-        const results = this.getMockDataForTab(this.currentTab, 6).map(item => ({
-          ...item,
-          name: keyword + ' ' + item.name
-        }))
-        
-        if (this.currentTab === 'daily') {
-          this.dailyModels = results
-        } else if (this.currentTab === 'hot') {
-          this.hotModels = results
-        } else {
-          this.categoryModels = results
-        }
-        
-        uni.showToast({
-          title: `找到 ${results.length} 个相关结果`,
-          icon: 'success',
-          duration: 2000
+      try {
+        const res = await getModelPage({
+          current: 1,
+          size: 20,
+          name: keyword
         })
+        
+        if (res.code === 1 && res.data && res.data.records) {
+          const fixImageUrl = (url) => {
+            if (!url) return '/static/images/logo.png'
+            return url.replace('localhost:9000', '47.102.212.37:9000')
+          }
+          
+          const formattedModels = res.data.records.map(model => ({
+            id: model.modelId,
+            name: model.name || '未命名模型',
+            desc: model.description || model.name || '暂无描述',
+            image: fixImageUrl(model.previewUrl),
+            author: model.userId ? model.userId.substring(0, 8) : '匿名用户',
+            authorAvatar: fixImageUrl(model.previewUrl),
+            likes: model.collectCount || 0,
+            isLiked: false,
+            viewCount: model.viewCount || 0,
+            category: this.mapCategoryToTab(model.category)
+          }))
+          
+          if (this.currentTab === 'daily') {
+            this.dailyModels = formattedModels
+          } else if (this.currentTab === 'hot') {
+            this.hotModels = formattedModels
+          } else {
+            this.categoryModels = formattedModels
+          }
+          
+          uni.showToast({
+            title: `找到 ${formattedModels.length} 个相关结果`,
+            icon: 'success',
+            duration: 2000
+          })
+        } else {
+          uni.showToast({
+            title: '未找到相关结果',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        console.error('搜索失败:', error)
+        uni.showToast({
+          title: '搜索失败，请稍后重试',
+          icon: 'none'
+        })
+      } finally {
         this.loading = false
-      }, 300)
+      }
     },
     handleScan() { 
       console.log('扫码');

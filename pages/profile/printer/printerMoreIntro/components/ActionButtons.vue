@@ -10,27 +10,51 @@
 </template>
 
 <script>
+import { deleteDevice } from '@/api/devices.js'
+
 export default {
   name: 'ActionButtons',
+  props: {
+    deviceId: {
+      type: String,
+      default: ''
+    }
+  },
   methods: {
     handleReconfigure() {
         uni.navigateTo({
           url: '/pages/profile/printer/addDevice/addDevice'
         })
       },
-    handleUnbind() {
+    async handleUnbind() {
+      if (!this.deviceId) {
+        uni.showToast({
+          title: '设备ID不存在',
+          icon: 'none'
+        })
+        return
+      }
+      
       uni.showModal({
         title: '确认解除绑定',
         content: '解除绑定后将无法控制此打印机，确定要继续吗？',
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            uni.showToast({
-              title: '已解除绑定',
-              icon: 'success'
-            })
-            setTimeout(() => {
-              uni.navigateBack()
-            }, 1500)
+            try {
+              await deleteDevice(this.deviceId)
+              uni.showToast({
+                title: '已解除绑定',
+                icon: 'success'
+              })
+              setTimeout(() => {
+                uni.navigateBack()
+              }, 1500)
+            } catch (error) {
+              uni.showToast({
+                title: error.message || '解除绑定失败',
+                icon: 'none'
+              })
+            }
           }
         }
       })

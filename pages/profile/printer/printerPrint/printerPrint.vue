@@ -1,5 +1,6 @@
 <template>
   <view class="printer-print-page">
+    <safe-area></safe-area>
     <!-- 同款navbar -->
     <view class="navbar">
       <view class="navbar-left">
@@ -32,8 +33,13 @@
 </template>
 
 <script>
+import SafeArea from '@/components/safe-area/safe-area.vue'
+
 export default {
   name: 'PrinterPrint',
+  components: {
+    SafeArea
+  },
   data() {
     return {
       printerId: null

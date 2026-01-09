@@ -265,7 +265,7 @@ export function getDeviceInfo(deviceId) {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          if (res.data.code === 0) {
+          if (res.data.code === 0 || res.data.code === 1) {
             resolve(res.data)
           } else {
             reject(new Error(res.data.msg || '获取设备信息失败'))

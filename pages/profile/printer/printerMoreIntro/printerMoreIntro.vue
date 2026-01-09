@@ -3,13 +3,13 @@
     <printer-more-intro-navbar />
     
     <view class="content-container">
-      <printer-info-section />
+      <printer-info-section :device-id="deviceId" @device-info-loaded="handleDeviceInfoLoaded" />
       
-      <firmware-settings />
+      <firmware-settings :device-info="deviceInfo" />
       
       <calibration-section />
       
-      <action-buttons />
+      <action-buttons :device-id="deviceId" />
     </view>
   </view>
 </template>
@@ -29,6 +29,22 @@ export default {
     FirmwareSettings,
     CalibrationSection,
     ActionButtons
+  },
+  data() {
+    return {
+      deviceId: '',
+      deviceInfo: null
+    }
+  },
+  onLoad(options) {
+    if (options.deviceId) {
+      this.deviceId = options.deviceId
+    }
+  },
+  methods: {
+    handleDeviceInfoLoaded(info) {
+      this.deviceInfo = info
+    }
   }
 }
 </script>

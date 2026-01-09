@@ -1,5 +1,6 @@
 <template>
   <view class="reset-password-page">
+    <safe-area></safe-area>
     <view class="navbar">
       <view class="navbar-left" @click="handleBack">
         <uni-icons type="left" size="24"></uni-icons>
@@ -42,8 +43,13 @@
 </template>
 
 <script>
+import SafeArea from '@/components/safe-area/safe-area.vue'
+
 export default {
   name: 'ResetPassword',
+  components: {
+    SafeArea
+  },
   data() {
     return {
       email: '',

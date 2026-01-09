@@ -57,19 +57,20 @@ export default {
     updateIndicator() {
       this.$nextTick(() => {
         const query = uni.createSelectorQuery().in(this)
-        const index = this.tabs.findIndex(tab => tab.value === this.currentTab)
-        if (index !== -1) {
-          query.select('#tab-' + this.currentTab).boundingClientRect()
-          query.exec((res) => {
-            if (res && res[0]) {
-              const tabRect = res[0]
-              this.indicatorStyle = {
-                left: (tabRect.left + tabRect.width / 2 - 20) + 'px',
-                width: '40rpx'
-              }
+        query.select('.category-tabs').boundingClientRect()
+        query.select('#tab-' + this.currentTab).boundingClientRect()
+        query.exec((res) => {
+          if (res && res[0] && res[1]) {
+            const containerRect = res[0]
+            const tabRect = res[1]
+            const relativeLeft = tabRect.left - containerRect.left
+            const indicatorWidth = 40
+            this.indicatorStyle = {
+              left: (relativeLeft + tabRect.width / 2 - indicatorWidth / 2) + 'px',
+              width: indicatorWidth + 'px'
             }
-          })
-        }
+          }
+        })
       })
     }
   }

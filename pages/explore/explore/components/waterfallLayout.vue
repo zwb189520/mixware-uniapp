@@ -1,7 +1,7 @@
 <template>
   <view class="waterfall-container">
-    <view class="waterfall-box" :key="currentTab + '-box'">
-        <!-- 左列 -->
+    <view class="waterfall-box" :class="slideDirection" :key="currentTab + '-box'">
+      <!-- 左列 -->
         <view class="waterfall-col">
             <view 
               class="model-card" 
@@ -68,7 +68,11 @@ export default {
     },
     currentTab: {
       type: String,
-      required: true
+      default: 'daily'
+    },
+    slideDirection: {
+      type: String,
+      default: 'right'
     }
   },
   methods: {
@@ -114,6 +118,18 @@ export default {
   overflow: hidden;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .model-card:active {
