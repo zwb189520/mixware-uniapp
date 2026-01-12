@@ -1,6 +1,7 @@
 <template>
   <view class="profile-medals">
     <view class="medals-title">
+      <uni-icons type="medal" size="30"></uni-icons>
       <text>勋章墙</text>
     </view>
     <view class="medals-grid">
@@ -44,10 +45,16 @@ export default {
 }
 
 .medals-title {
+  display: flex;
+  align-items: center;
   font-size: 28rpx;
   font-weight: bold;
   color: #333;
   margin-bottom: 30rpx;
+}
+
+.medals-title text {
+  margin-left: 10rpx;
 }
 
 .medals-grid {
