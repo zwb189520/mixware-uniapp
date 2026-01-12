@@ -1,6 +1,8 @@
+import { API } from '../constants/index.js'
+
 // 缓存配置
 const CACHE_PREFIX = 'api_cache_'
-const DEFAULT_CACHE_TIME = 5 * 60 * 1000 // 默认缓存5分钟
+const DEFAULT_CACHE_TIME = API.DEFAULT_CACHE_TIME
 
 /**
  * 生成缓存key
@@ -139,7 +141,7 @@ const install = () => {
 // 注意：如果服务器使用8080端口，需要配置为 'http://47.102.212.37:8080/api'
 // export const BASE_URL = 'http://localhost/api'
 // export const BASE_URL = 'https://app.mixwarebot.cn/api'
-export const BASE_URL = 'http://app.mixwarebot.cn:8080/api'  // 默认80端口
+export const BASE_URL = API.BASE_URL
 // export const BASE_URL = 'http://47.102.212.37:8080/api'  // 使用8080端口
 
 /**
@@ -243,6 +245,44 @@ const isUserNotFound = (data) => {
 	return false
 }
 
+
+/**
+ * 延迟函数
+ * @param {Number} ms 延迟时间（毫秒）
+ * @returns {Promise}
+ */
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+/**
+ * 带重试的请求执行
+ * @param {Object} requestConfig 请求配置
+ * @param {Number} retryCount 当前重试次数
+ * @returns {Promise}
+ */
+const requestWithRetry = (requestConfig, retryCount = 0) => {
+	return new Promise((resolve, reject) => {
+		uni.request({
+			...requestConfig,
+			success: (res) => {
+				resolve(res)
+			},
+			fail: async (err) => {
+				if (retryCount < API.MAX_RETRY_COUNT) {
+					console.log(`请求失败，第${retryCount + 1}次重试，URL: ${requestConfig.url}`)
+					await delay(API.RETRY_DELAY * (retryCount + 1))
+					try {
+						const result = await requestWithRetry(requestConfig, retryCount + 1)
+						resolve(result)
+					} catch (retryErr) {
+						reject(retryErr)
+					}
+				} else {
+					reject(err)
+				}
+			}
+		})
+	})
+}
 
 /**
  * 统一的请求工具函数
@@ -349,30 +389,28 @@ export const request = (options = {}) => {
 		console.log('BASE_URL:', BASE_URL)
 		console.log('================')
 		
-		uni.request({
+		const requestConfig = {
 			url: requestUrl || url,
 			method: method || 'GET',
 			data: requestData,
 			header: headers,
-			timeout: options.timeout || 10000, // 默认10秒超时
-			sslVerify: options.sslVerify !== false, // 默认验证SSL证书
-			success: (res) => {
-				// 隐藏加载提示
+			timeout: options.timeout || API.TIMEOUT,
+			sslVerify: options.sslVerify !== false
+		}
+		
+		requestWithRetry(requestConfig)
+			.then((res) => {
 				if (options.showLoading) {
 					uni.hideLoading()
 				}
 
-				// 判断请求是否成功（状态码 200-299）
 				if (res.statusCode >= 200 && res.statusCode < 300) {
-					// GET请求且启用缓存时，缓存响应数据
 					if (method.toUpperCase() === 'GET' && cache) {
 						const cacheKey = generateCacheKey(url, data)
 						setCache(cacheKey, res.data, cacheTime)
 					}
 					
-					// 检查响应数据是否表示用户不存在
 					if (isUserNotFound(res.data)) {
-						// 用户不存在，立即清除缓存并显示未登录
 						handleLogout(true)
 						reject(res)
 						return
@@ -380,17 +418,13 @@ export const request = (options = {}) => {
 					
 					resolve(res.data)
 				} else {
-					// 检查是否是token失效
 					if (isTokenInvalid(res)) {
-						// 执行登出逻辑
 						handleLogout()
 						reject(res)
 						return
 					}
 					
-					// 检查错误响应是否表示用户不存在
 					if (isUserNotFound(res.data)) {
-						// 用户不存在，立即清除缓存并显示未登录
 						handleLogout(true)
 						reject(res)
 						return
@@ -403,14 +437,12 @@ export const request = (options = {}) => {
 					})
 					reject(res)
 				}
-			},
-			fail: (err) => {
-				// 隐藏加载提示
+			})
+			.catch((err) => {
 				if (options.showLoading) {
 					uni.hideLoading()
 				}
 
-				// 输出详细的错误信息
 				console.error('Request fail:', {
 					err,
 					url: requestUrl || url,
@@ -420,7 +452,6 @@ export const request = (options = {}) => {
 					statusCode: err.statusCode
 				})
 				
-				// 根据错误类型提供更具体的提示
 				let errorMessage = '网络错误，请稍后重试'
 				if (err.errMsg) {
 					if (err.errMsg.includes('timeout')) {
@@ -440,8 +471,7 @@ export const request = (options = {}) => {
 					duration: 3000
 				})
 				reject(err)
-			}
-		})
+			})
 	})
 }
 
