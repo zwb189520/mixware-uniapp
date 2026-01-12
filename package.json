@@ -2,6 +2,7 @@
   "dependencies": {
     "@dcloudio/uni-ui": "^1.5.11",
     "markdown-it": "^14.1.0",
+    "pinia": "^3.0.4",
     "three": "^0.182.0",
     "three-platformize": "^1.133.3"
   }
