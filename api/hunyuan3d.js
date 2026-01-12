@@ -11,3 +11,7 @@ export function getTaskStatus(taskId) {
 export function downloadModel(taskId) {
   return get(`/hunyuan3d/download/${taskId}`)
 }
+
+export function imageToModel(image, prompt) {
+  return post('/hunyuan3d/image-to-model', { image, prompt })
+}

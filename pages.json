@@ -51,7 +51,10 @@
 		{
 			"path": "pages/create/createDetail/chat/chat",
 			"style": {
-				"navigationStyle": "custom"
+				"navigationStyle": "custom",
+				"app-plus": {
+					"softinputMode": "adjustResize"
+				}
 			}
 		},
 		{

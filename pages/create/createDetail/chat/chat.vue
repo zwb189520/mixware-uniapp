@@ -1,536 +1,643 @@
 <template>
-  <view class="chat-page">
-    <safe-area />
-    <!-- 顶部导航栏 -->
-    <view class="navbar">
-      <view class="navbar-left" @click="handleBackClick">
-        <uni-icons type="left" size="24"></uni-icons>
-      </view>
-      <view class="navbar-title">
-        <text>AI助手</text>
-      </view>
-      <view class="navbar-right">
-        <uni-icons type="more-filled" size="24"></uni-icons>
-      </view>
-    </view>
-    
-    <!-- 聊天区域 -->
-    <scroll-view 
-      class="chat-container" 
-      scroll-y 
-      :scroll-top="scrollTop"
-      @scrolltoupper="handleScrollToTop"
-      @scrolltolower="handleScrollToBottom"
-    >
-      <view class="messages-area">
-        <view 
-          v-for="message in messages" 
-          :key="message.id" 
-          class="message" 
-          :class="message.isUser ? 'user' : 'ai'"
-        >
-          <!-- 头像 -->
-          <view class="avatar" :class="message.isUser ? 'user' : 'ai'">
-            <text>{{ message.isUser ? '我' : 'AI' }}</text>
-          </view>
-          
-          <!-- 消息内容 -->
-          <view class="message-content">
-            <view class="bubble">
-              <text v-if="!message.isTyping" class="message-text">{{ message.content }}</text>
-              <view v-else class="typing-indicator">
-                <view class="typing-dot"></view>
-                <view class="typing-dot"></view>
-                <view class="typing-dot"></view>
-              </view>
-            </view>
-            <view class="message-time">{{ formatTime(message.timestamp) }}</view>
-          </view>
-        </view>
-      </view>
-    </scroll-view>
-    
-    <!-- 输入区域 -->
-    <view class="input-area">
-      <button class="voice-btn" @click="handleVoiceInput">
-        <uni-icons type="mic" size="24" color="#666"></uni-icons>
-      </button>
-      
-      <view class="input-wrapper">
-        <input 
-          v-model="inputMessage"
-          class="message-input" 
-          placeholder="输入消息..."
-          maxlength="500"
-          confirm-type="send"
-          @confirm="handleSendMessage"
-        />
-      </view>
-      
-      <button 
-        class="send-btn" 
-        :class="{ 'disabled': !inputMessage.trim() || isWaitingForResponse }"
-        :disabled="!inputMessage.trim() || isWaitingForResponse"
-        @click="handleSendMessage"
-      >
-        发送
-      </button>
-    </view>
-  </view>
+	<view class="chat-page">
+		<safe-area />
+		<view class="navbar">
+			<view class="navbar-left" @tap="goBack">
+				<uni-icons type="left" size="24"></uni-icons>
+			</view>
+			<view class="navbar-title">
+				<text>AI 对话</text>
+			</view>
+			<view class="navbar-right"></view>
+		</view>
+
+		<!-- 消息区 -->
+		<scroll-view
+			class="message-list"
+			scroll-y
+			:scroll-with-animation="true"
+			:scroll-into-view="scrollIntoView"
+		>
+			<!-- 加载中提示 -->
+			<view v-if="loadingSession" class="loading-session">
+				<text class="loading-text">加载中...</text>
+			</view>
+			
+			<!-- 消息列表 -->
+			<view
+				v-for="(msg, index) in messages"
+				:key="msg.id"
+				:id="`msg-${msg.id}`"
+				class="message-row"
+				:class="msg.role === 'user' ? 'from-user' : 'from-ai'"
+			>
+				<view class="avatar">{{ msg.role === 'user' ? '我' : 'AI' }}</view>
+				<view class="bubble">
+					<!-- AI 消息用 mp-html 渲染 markdown/html；用户消息保持文本 -->
+					<mp-html
+						v-if="msg.role !== 'user'"
+						:content="msg.html || msg.content || (loading && index === messages.length - 1 ? '正在回复…' : '')"
+					/>
+					<text v-else class="bubble-text">
+						{{ msg.content || (loading && index === messages.length - 1 ? '正在回复…' : '') }}
+					</text>
+				</view>
+			</view>
+			
+			<!-- 示例问题卡片（只在没有历史消息时显示） -->
+			<view v-if="!loadingSession && examples.length > 0 && messages.length === 0" class="examples-section">
+				<view 
+					v-for="(example, idx) in examples" 
+					:key="idx"
+					class="example-card"
+					@tap="useExample(example)"
+				>
+					<text class="example-title">{{ example.title }}</text>
+					<text class="example-desc">{{ example.describe }}</text>
+				</view>
+			</view>
+			
+			<view :id="bottomAnchorId" class="bottom-anchor"></view>
+		</scroll-view>
+
+		<!-- 输入区 -->
+		<view class="input-bar">
+			<input
+				class="input"
+				type="text"
+				v-model="inputValue"
+				placeholder="请输入你的问题"
+				@confirm="sendMessage"
+				confirm-type="send"
+				:disabled="loading"
+				:adjust-position="false"
+			/>
+			<button
+				v-if="loading"
+				class="stop-btn"
+				@tap="stopStream"
+			>停止</button>
+			<button
+				v-else
+				class="send-btn"
+				:disabled="!inputValue.trim()"
+				@tap="sendMessage"
+			>发送</button>
+		</view>
+	</view>
 </template>
 
 <script>
-import { textToModel } from '@/api/hunyuan3d.js'
-import SafeArea from '@/components/safe-area/safe-area.vue'
+	import streamRequest from '@/api/streamRequest.js'
+	import { post } from '@/api/request.js'
+	import MarkdownIt from 'markdown-it'
+	import mpHtml from '@/components/mp-html/mp-html.vue'
+	import SafeArea from '@/components/safe-area/safe-area.vue'
 
-export default {
-  components: {
-    SafeArea
-  },
-  data() {
-    return {
-      messages: [],
-      inputMessage: '',
-      scrollTop: 0,
-      messageCount: 1,
-      isWaitingForResponse: false
-    }
-  },
-  created() {
-    this.init()
-  },
-  methods: {
-    init() {
-      // 初始化欢迎消息
-      this.initWelcomeMessage()
-      
-      // 每分钟更新时间
-      setInterval(() => this.updateAllMessageTimes(), 60000)
-    },
+	export default {
+		components: {
+			mpHtml,
+			SafeArea
+		},
+		data() {
+			return {
+				inputValue: '',
+				messages: [],
+				loading: false,
+				scrollIntoView: '',
+				bottomAnchorId: 'chat-bottom-anchor',
+				streamController: null,
+				sessionId: '',
+				partialBuffer: '',
+				sessionTitle: '',
+				sessionDescribe: '',
+				examples: [],
+				loadingSession: true,
+				md: null,
+				// 节流控制
+				lastRenderTime: 0,
+				renderThrottle: 100, // 100ms 节流间隔
+				pendingRender: false,
+				renderTimer: null
+			}
+		},
+		async onLoad() {
+			this.md = new MarkdownIt({
+				html: false,
+				linkify: true,
+				breaks: true
+			})
+			await this.fetchSession()
+			this.scrollToBottom()
+		},
+		onUnload() {
+			if (this.renderTimer) {
+				clearTimeout(this.renderTimer)
+				this.renderTimer = null
+			}
+		},
+		methods: {
+			// 从本地存储加载 session 信息
+			loadSessionFromStorage() {
+				try {
+					const storedSessionId = uni.getStorageSync('aiChatSessionId')
+					const storedSessionData = uni.getStorageSync('aiChatSessionData')
+					
+					if (storedSessionId && storedSessionData) {
+						this.sessionId = storedSessionId
+						this.sessionTitle = storedSessionData.title || ''
+						this.sessionDescribe = storedSessionData.describe || ''
+						this.examples = storedSessionData.examples || []
+						return true
+					}
+				} catch (e) {
+					console.warn('从本地存储加载 session 失败:', e)
+				}
+				return false
+			},
+			
+			// 保存 session 信息到本地存储
+			saveSessionToStorage(sessionId, sessionData) {
+				try {
+					uni.setStorageSync('aiChatSessionId', sessionId)
+					uni.setStorageSync('aiChatSessionData', {
+						title: sessionData.title || '',
+						describe: sessionData.describe || '',
+						examples: sessionData.examples || []
+					})
+				} catch (e) {
+					console.warn('保存 session 到本地存储失败:', e)
+				}
+			},
+			
+			// 加载历史会话
+			async loadHistory() {
+				if (!this.sessionId) {
+					this.messages = []
+					return
+				}
+				
+				try {
+					const res = await post('/chat/history', {
+						sessionId: this.sessionId
+					})
+					
+					// 处理响应数据，兼容不同的响应格式
+					const data = res.data || res
+					const historyList = data?.list || data?.history || data || []
+					
+					if (Array.isArray(historyList) && historyList.length > 0) {
+						// 将历史消息转换为消息格式
+						this.messages = historyList.map((item, index) => ({
+							id: item.id || `msg-${Date.now()}-${index}`,
+							role: item.role || item.type || 'assistant',
+							content: item.content || item.message || '',
+							html: this.md ? this.md.render(item.content || item.message || '') : (item.content || item.message || '')
+						}))
+					} else {
+						// 如果没有历史消息，显示空列表
+						this.messages = []
+					}
+				} catch (err) {
+					console.error('加载历史会话失败:', err)
+					// 加载失败时显示空列表
+					this.messages = []
+				}
+			},
+			
+			async fetchSession() {
+				this.loadingSession = true
+				
+				// 先尝试从本地存储加载
+				if (this.loadSessionFromStorage()) {
+					// 如果本地有 sessionId，加载历史会话
+					await this.loadHistory()
+					this.loadingSession = false
+					return
+				}
+				
+				// 如果本地没有，才请求接口
+				try {
+					const res = await post('/session')
+					// 处理响应数据，兼容不同的响应格式
+					const data = res.data || res
+					
+					if (data && data.sessionId) {
+						this.sessionId = data.sessionId
+						this.sessionTitle = data.title || ''
+						this.sessionDescribe = data.describe || ''
+						this.examples = data.examples || []
+						
+						// 保存到本地存储
+						this.saveSessionToStorage(this.sessionId, {
+							title: this.sessionTitle,
+							describe: this.sessionDescribe,
+							examples: this.examples
+						})
+						
+						// 加载历史会话（首次可能为空）
+						await this.loadHistory()
+					} else {
+						// 如果接口返回失败，显示空列表
+						this.messages = []
+					}
+				} catch (err) {
+					console.error('获取 session 失败:', err)
+					// 请求失败时显示空列表
+					this.messages = []
+				} finally {
+					this.loadingSession = false
+				}
+			},
+			goBack() {
+				if (getCurrentPages().length > 1) {
+					uni.navigateBack()
+				} else {
+					uni.switchTab({ url: '/pages/home/index' })
+				}
+			},
+			scrollToBottom() {
+				this.$nextTick(() => {
+					const anchor = `chat-bottom-anchor-${Date.now()}`
+					this.bottomAnchorId = anchor
+					this.scrollIntoView = anchor
+				})
+			},
+			// 节流渲染函数：避免频繁重渲染导致卡顿
+			throttledRender(aiMsg) {
+				const now = Date.now()
+				const timeSinceLastRender = now - this.lastRenderTime
+				
+				// 如果距离上次渲染时间超过节流间隔，立即渲染
+				if (timeSinceLastRender >= this.renderThrottle) {
+					this.lastRenderTime = now
+					// 更新 markdown 渲染
+					if (this.md && aiMsg) {
+						aiMsg.html = this.md.render(aiMsg.content || '')
+					}
+					this.$forceUpdate()
+					this.scrollToBottom()
+					this.pendingRender = false
+				} else {
+					// 否则，标记为待渲染，并设置延迟渲染
+					this.pendingRender = true
+					
+					// 清除之前的定时器
+					if (this.renderTimer) {
+						clearTimeout(this.renderTimer)
+					}
+					
+					// 设置新的定时器，在节流间隔后渲染
+					this.renderTimer = setTimeout(() => {
+						if (this.pendingRender && aiMsg) {
+							this.lastRenderTime = Date.now()
+							if (this.md) {
+								aiMsg.html = this.md.render(aiMsg.content || '')
+							}
+							this.$forceUpdate()
+							this.scrollToBottom()
+							this.pendingRender = false
+						}
+					}, this.renderThrottle - timeSinceLastRender)
+				}
+			},
+			async stopStream() {
+				// 停止流式请求
+				if (this.streamController && typeof this.streamController.abort === 'function') {
+					this.streamController.abort()
+				}
+				this.loading = false
+				
+				// 调用停止对话接口
+				if (this.sessionId) {
+					try {
+						await post('/chat/stop', {
+							sessionId: this.sessionId
+						})
+						console.log('对话已停止')
+					} catch (err) {
+						console.error('停止对话接口调用失败:', err)
+						// 即使接口调用失败，也不影响前端的停止操作
+					}
+				}
+			},
+			useExample(example) {
+				// 使用示例问题作为输入
+				if (example && example.describe) {
+					this.inputValue = example.describe
+					// 自动发送
+					this.sendMessage()
+				}
+			},
+			sendMessage() {
+				const content = (this.inputValue || '').trim()
+				if (!content || this.loading) return
 
-    initWelcomeMessage() {
-      const welcomeMessage = {
-        id: Date.now(),
-        type: 'text',
-        content: '你好！我是AI 3D模型生成助手。我可以帮你将文字描述转换成3D模型。\n\n你可以这样使用我：\n• 描述你想要生成的3D模型\n• 说明模型风格（如：写实、卡通、科幻等）\n• 指定颜色、形状等具体要求\n• 我会根据你的描述生成对应3D模型\n\n例如："帮我生成一个机器人模型，金属质感，未来风格"\n\n现在就开始创作吧！',
-        author: 'AI助手',
-        timestamp: new Date(),
-        isUser: false
-      }
-      
-      this.messages.push(welcomeMessage)
-      this.messageCount++
-      this.scrollToBottom()
-    },
+				const userMsg = {
+					id: `user-${Date.now()}`,
+					role: 'user',
+					content
+				}
+				this.messages.push(userMsg)
+				this.inputValue = ''
 
-    handleBackClick() {
-      uni.navigateBack({
-        delta: 1
-      })
-    },
+				const aiMsg = {
+					id: `ai-${Date.now()}`,
+					role: 'assistant',
+					content: '',
+					html: ''
+				}
+				this.messages.push(aiMsg)
+				this.loading = true
+				this.scrollToBottom()
 
-    handleSendMessage() {
-      const message = this.inputMessage.trim()
-      if (!message || this.isWaitingForResponse) return
+				const history = this.messages
+					.slice(0, this.messages.length - 1) // 不包含正在生成的最后一条 AI
+					.map(item => ({ role: item.role, content: item.content }))
 
-      // 添加用户消息
-      this.addMessage(message, 'user')
-      this.inputMessage = ''
-      this.isWaitingForResponse = true
-
-      // 模拟AI回复
-      setTimeout(() => {
-        this.simulateAIResponse(message)
-      }, 1000 + Math.random() * 2000)
-    },
-
-    addMessage(content, sender) {
-      const message = {
-        id: Date.now(),
-        type: 'text',
-        content: content,
-        author: sender === 'user' ? '我' : 'AI助手',
-        timestamp: new Date(),
-        isUser: sender === 'user'
-      }
-      
-      this.messages.push(message)
-      this.messageCount++
-      this.scrollToBottom()
-    },
-
-    async simulateAIResponse(userMessage) {
-      try {
-        uni.showLoading({
-          title: '生成3D模型中...'
-        })
-        
-        const res = await textToModel(userMessage)
-        
-        uni.hideLoading()
-        
-        if (res.data && res.data.taskId) {
-          const responseMessage = `3D模型生成中，任务ID: ${res.data.taskId}`
-          this.addMessageWithTypingEffect(responseMessage)
-          
-          setTimeout(() => {
-            uni.navigateTo({
-              url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${res.data.taskId}&name=生成的3D模型&url=${encodeURIComponent('/static/images/explore-bg.png')}`
-            })
-          }, 1500)
-        } else {
-          const errorMessage = '生成失败，请重试'
-          this.addMessageWithTypingEffect(errorMessage)
-        }
-      } catch (error) {
-        uni.hideLoading()
-        const errorMessage = error.message || '生成3D模型失败'
-        this.addMessageWithTypingEffect(errorMessage)
-      }
-    },
-
-    addMessageWithTypingEffect(message) {
-      // 先添加AI消息（显示打字效果）
-      const typingMessage = {
-        id: Date.now(),
-        type: 'text',
-        content: '',
-        author: 'AI助手',
-        timestamp: new Date(),
-        isUser: false,
-        isTyping: true
-      }
-      
-      this.messages.push(typingMessage)
-      this.messageCount++
-      this.scrollToBottom()
-      
-      // 模拟打字效果
-      let index = 0
-      const typingSpeed = 50
-      const messageId = typingMessage.id
-      
-      const typeInterval = setInterval(() => {
-        if (index < message.length) {
-          const currentMessage = this.messages.find(m => m.id === messageId)
-          if (currentMessage) {
-            currentMessage.content = message.substring(0, index + 1)
-          }
-          index++
-        } else {
-          clearInterval(typeInterval)
-          // 打字结束，更新消息状态
-          const currentMessage = this.messages.find(m => m.id === messageId)
-          if (currentMessage) {
-            currentMessage.isTyping = false
-          }
-          this.isWaitingForResponse = false
-        }
-      }, typingSpeed)
-      
-      this.scrollToBottom()
-    },
-
-    handleVoiceInput() {
-      // 语音输入功能
-      uni.showToast({
-        title: '语音输入功能开发中',
-        icon: 'none'
-      })
-    },
-
-    formatTime(date) {
-      const now = new Date()
-      const diff = now - date
-      const minutes = Math.floor(diff / 60000)
-      const hours = Math.floor(diff / 3600000)
-      const days = Math.floor(diff / 86400000)
-
-      if (minutes < 1) return '刚刚'
-      if (minutes < 60) return `${minutes}分钟前`
-      if (hours < 24) return `${hours}小时前`
-      if (days < 7) return `${days}天前`
-      
-      return date.toLocaleDateString('zh-CN', { 
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    },
-
-    updateMessageTime(messageId) {
-      // 消息时间更新逻辑
-      this.$forceUpdate()
-    },
-
-    updateAllMessageTimes() {
-      // 更新所有消息时间
-      this.messages.forEach(message => {
-        message.timestamp = message.timestamp
-      })
-      this.$forceUpdate()
-    },
-
-    scrollToBottom() {
-      this.scrollTop = Math.random()
-    },
-
-    handleScrollToTop() {
-      // 上拉刷新逻辑
-    },
-
-    handleScrollToBottom() {
-      // 下拉加载更多逻辑
-    }
-  }
-}
+				this.streamController = streamRequest({
+					url: '/chat',
+					method: 'POST',
+					data: {
+						question: content,
+						sessionId: this.sessionId,
+						history
+					},
+					onMessage: (chunk) => {
+						this.partialBuffer += chunk || ''
+						// 兼容 }{ 拼接的情况，先插入换行分隔
+						this.partialBuffer = this.partialBuffer.replace(/\}\s*\{/g, '}\n{')
+						const parts = this.partialBuffer.split('\n')
+						// 最后一段可能不完整，先留着
+						this.partialBuffer = parts.pop() || ''
+						
+						let hasNewContent = false
+						parts.forEach(line => {
+							const text = line.trim()
+							if (!text) return
+							let appended = false
+							try {
+								const obj = JSON.parse(text)
+								if (obj && obj.eventData && (obj.eventType === 1001 || obj.eventType === '1001' || obj.eventType === undefined)) {
+									aiMsg.content += obj.eventData
+									appended = true
+									hasNewContent = true
+								}
+							} catch (e) {
+								// 忽略解析失败，走兜底
+							}
+							if (!appended) {
+								aiMsg.content += text
+								hasNewContent = true
+							}
+						})
+						
+						// 只在有新内容时才触发节流渲染
+						if (hasNewContent) {
+							this.throttledRender(aiMsg)
+						}
+					},
+					onError: (err) => {
+						this.loading = false
+						uni.showToast({
+							title: err?.message || '对话失败，请稍后重试',
+							icon: 'none'
+						})
+					},
+					onComplete: () => {
+						// 清除节流定时器
+						if (this.renderTimer) {
+							clearTimeout(this.renderTimer)
+							this.renderTimer = null
+						}
+						
+						// 把剩余缓冲尝试消费
+						if (this.partialBuffer.trim()) {
+							try {
+								const obj = JSON.parse(this.partialBuffer.trim())
+								if (obj && obj.eventData) {
+									aiMsg.content += obj.eventData
+								} else {
+									aiMsg.content += this.partialBuffer
+								}
+							} catch (e) {
+								aiMsg.content += this.partialBuffer
+							}
+							this.partialBuffer = ''
+						}
+						
+						// 结束时立即最终渲染一次（确保完整显示）
+						if (this.md) {
+							aiMsg.html = this.md.render(aiMsg.content || '')
+						}
+						this.$forceUpdate()
+						this.scrollToBottom()
+						
+						this.loading = false
+						this.streamController = null
+						this.pendingRender = false
+					}
+				})
+			}
+		}
+	}
 </script>
 
 <style scoped>
 .chat-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f5f5f5;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	position: relative;
+	background: #f7f8fa;
+	overflow: hidden;
 }
 
-.safe-area-top {
-  background: #fff;
+.chat-page::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: #f7f8fa;
+	z-index: -1;
 }
 
 .navbar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  padding: 0 30rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-  position: relative;
-  z-index: 999;
+	display: flex;
+	align-items: center;
+	height: 88rpx;
+	padding: 0 30rpx;
+	background-color: #fff;
+	border-bottom: 1rpx solid #eee;
 }
 
 .navbar-left {
-  width: 60rpx;
-}
-
-.navbar-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+	width: 60rpx;
 }
 
 .navbar-right {
-  display: flex;
-  gap: 30rpx;
-  width: 60rpx;
-  justify-content: flex-end;
+	width: 60rpx;
 }
 
-.chat-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.navbar-title {
+	flex: 1;
+	text-align: center;
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #333;
 }
 
-.messages-area {
-  padding: 30rpx 0;
-  min-height: 100%;
+.message-list {
+	flex: 1;
+	padding: 12px 12px 80px;
+	box-sizing: border-box;
+	background: transparent;
+	overflow-y: auto;
 }
 
-.message {
-  display: flex;
-  margin-bottom: 40rpx;
-  padding: 0 30rpx;
+.message-row {
+	display: flex;
+	margin-bottom: 12px;
 }
 
-.message.user {
-  justify-content: flex-end;
-}
-
-.message.ai {
-  justify-content: flex-start;
+.message-row.from-user {
+	flex-direction: row-reverse;
 }
 
 .avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-  color: #666;
-  flex-shrink: 0;
+	width: 36px;
+	height: 36px;
+	border-radius: 18px;
+	background: #2a7fff;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 8px;
 }
 
-.message.user .avatar {
-  margin-left: 20rpx;
-  order: 2;
-}
-
-.message.ai .avatar {
-  margin-right: 20rpx;
-  order: 1;
-}
-
-.message-content {
-  display: flex;
-  flex-direction: column;
-  max-width: 70%;
-}
-
-.message.user .message-content {
-  align-items: flex-end;
-  order: 1;
-}
-
-.message.ai .message-content {
-  align-items: flex-start;
-  order: 2;
+.from-user .avatar {
+	background: #10b981;
 }
 
 .bubble {
-  padding: 24rpx 28rpx;
-  border-radius: 18rpx;
-  position: relative;
-  word-wrap: break-word;
-  word-break: break-all;
+	max-width: 75%;
+	padding: 10px 12px;
+	border-radius: 12px;
+	background: #ffffff;
+	font-size: 15px;
+	line-height: 1.5;
+	color: #222;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+	white-space: pre-wrap;
 }
 
-.message.user .bubble {
-  background: #95ec69;
-  border-top-right-radius: 4rpx;
+.from-user .bubble {
+	background: #10b981;
+	color: #fff;
 }
 
-.message.ai .bubble {
-  background: #ffffff;
-  border: 1rpx solid #e0e0e0;
-  border-top-left-radius: 4rpx;
+.bottom-anchor {
+	height: 1px;
 }
 
-.message-text {
-  font-size: 30rpx;
-  line-height: 1.4;
-  color: #333333;
+.input-bar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	padding: 10px 12px;
+	background: #ffffff;
+	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+	gap: 8px;
+	z-index: 2;
 }
 
-.typing-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
+.input {
+	flex: 1;
+	height: 40px;
+	padding: 0 12px;
+	border: 1px solid #e5e7eb;
+	border-radius: 20px;
+	background: #f8fafc;
+	font-size: 14px;
 }
 
-.typing-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: #999999;
-  animation: typing-bounce 1.4s infinite ease-in-out;
-}
-
-.typing-dot:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes typing-bounce {
-  0%, 80%, 100% {
-    transform: scale(0.8);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.message-time {
-  font-size: 20rpx;
-  color: #999999;
-  margin-top: 8rpx;
-  padding: 0 8rpx;
-}
-
-.input-area {
-  height: 100rpx;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  padding: 0 30rpx;
-  border-top: 1rpx solid #e0e0e0;
-  gap: 20rpx;
-}
-
-.voice-btn {
-  width: 60rpx;
-  height: 60rpx;
-  background: none;
-  border: none;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.voice-icon {
-  font-size: 40rpx;
-}
-
-.input-wrapper {
-  flex: 1;
-  height: 72rpx;
-  background: #f5f5f5;
-  border-radius: 36rpx;
-  padding: 0 30rpx;
-  display: flex;
-  align-items: center;
-}
-
-.message-input {
-  width: 100%;
-  height: 100%;
-  background: none;
-  border: none;
-  font-size: 30rpx;
-  color: #333333;
-}
-
-.message-input::placeholder {
-  color: #999999;
+.send-btn,
+.stop-btn {
+	min-width: 76px;
+	height: 40px;
+	padding: 0 12px;
+	border: none;
+	border-radius: 20px;
+	font-size: 14px;
 }
 
 .send-btn {
-  width: 110rpx;
-  height: 64rpx;
-  background: #2d8cf0;
-  color: #ffffff;
-  border: none;
-  border-radius: 32rpx;
-  font-size: 26rpx;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(45, 140, 240, 0.3);
-  transition: all 0.3s ease;
+	background: #2a7fff;
+	color: #fff;
 }
 
-.send-btn:not(:disabled) {
-  background: #2d8cf0;
-  color: #ffffff;
+.send-btn:disabled {
+	opacity: 0.6;
 }
 
-.send-btn:disabled,
-.send-btn.disabled {
-  background: #cccccc !important;
-  color: #999999 !important;
-  box-shadow: none !important;
+.stop-btn {
+	background: #f59e0b;
+	color: #fff;
+}
+
+.loading-session {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 20px;
+}
+
+.loading-text {
+	font-size: 14px;
+	color: #999;
+}
+
+.examples-section {
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.example-card {
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	transition: all 0.3s;
+}
+
+.example-card:active {
+	background: #f8fafc;
+	transform: scale(0.98);
+}
+
+.example-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #2a7fff;
+}
+
+.example-desc {
+	font-size: 14px;
+	color: #666;
+	line-height: 1.5;
 }
 </style>
+
