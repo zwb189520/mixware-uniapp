@@ -1,3 +1,96 @@
+// 缓存配置
+const CACHE_PREFIX = 'api_cache_'
+const DEFAULT_CACHE_TIME = 5 * 60 * 1000 // 默认缓存5分钟
+
+/**
+ * 生成缓存key
+ * @param {String} url 请求URL
+ * @param {Object} params 请求参数
+ * @returns {String} 缓存key
+ */
+const generateCacheKey = (url, params = {}) => {
+	const paramStr = Object.keys(params)
+		.sort()
+		.map(key => `${key}=${JSON.stringify(params[key])}`)
+		.join('&')
+	return `${CACHE_PREFIX}${url}_${paramStr}`
+}
+
+/**
+ * 获取缓存数据
+ * @param {String} key 缓存key
+ * @returns {Object|null} 缓存数据
+ */
+const getCache = (key) => {
+	try {
+		const cacheData = uni.getStorageSync(key)
+		if (!cacheData) return null
+		
+		const { data, timestamp, expireTime } = JSON.parse(cacheData)
+		const now = Date.now()
+		
+		if (now - timestamp > expireTime) {
+			uni.removeStorageSync(key)
+			return null
+		}
+		
+		return data
+	} catch (e) {
+		console.error('获取缓存失败:', e)
+		return null
+	}
+}
+
+/**
+ * 设置缓存数据
+ * @param {String} key 缓存key
+ * @param {Object} data 缓存数据
+ * @param {Number} expireTime 过期时间（毫秒）
+ */
+const setCache = (key, data, expireTime = DEFAULT_CACHE_TIME) => {
+	try {
+		const cacheData = {
+			data,
+			timestamp: Date.now(),
+			expireTime
+		}
+		uni.setStorageSync(key, JSON.stringify(cacheData))
+	} catch (e) {
+		console.error('设置缓存失败:', e)
+	}
+}
+
+/**
+ * 清除缓存
+ * @param {String} key 缓存key，不传则清除所有缓存
+ */
+const clearCache = (key) => {
+	try {
+		if (key) {
+			uni.removeStorageSync(key)
+		} else {
+			const storage = uni.getStorageInfoSync()
+			storage.keys.forEach(k => {
+				if (k.startsWith(CACHE_PREFIX)) {
+					uni.removeStorageSync(k)
+				}
+			})
+		}
+	} catch (e) {
+		console.error('清除缓存失败:', e)
+	}
+}
+
+/**
+ * 清除指定URL的缓存
+ * @param {String} url 请求URL
+ * @param {Object} params 请求参数
+ */
+const clearUrlCache = (url, params = {}) => {
+	const key = generateCacheKey(url, params)
+	clearCache(key)
+}
+
 // 检查URL是否为不需要token的接口
 const isNoTokenUrl = (url) => {
 	if (!url) return false
@@ -164,6 +257,25 @@ const isUserNotFound = (data) => {
  */
 export const request = (options = {}) => {
 	return new Promise((resolve, reject) => {
+		const {
+			url,
+			method = 'GET',
+			data = {},
+			cache = false,
+			cacheTime = DEFAULT_CACHE_TIME
+		} = options
+
+		// GET请求且启用缓存时，先检查缓存
+		if (method.toUpperCase() === 'GET' && cache) {
+			const cacheKey = generateCacheKey(url, data)
+			const cachedData = getCache(cacheKey)
+			if (cachedData) {
+				console.log('使用缓存数据:', url)
+				resolve(cachedData)
+				return
+			}
+		}
+
 		// 显示加载提示
 		if (options.showLoading) {
 			uni.showLoading({
@@ -173,23 +285,23 @@ export const request = (options = {}) => {
 		}
 
 		// 处理 URL
-		let url = options.url
-		if (url && !url.startsWith('http')) {
+		let requestUrl = url
+		if (requestUrl && !requestUrl.startsWith('http')) {
 			// 确保 BASE_URL 和 url 正确拼接
 			const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL
-			const requestPath = url.startsWith('/') ? url : '/' + url
-			url = baseUrl + requestPath
+			const requestPath = requestUrl.startsWith('/') ? requestUrl : '/' + requestUrl
+			requestUrl = baseUrl + requestPath
 		}
 		
 		// 验证 URL 格式
-		if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
-			console.error('无效的请求 URL:', url)
+		if (!requestUrl || (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://'))) {
+			console.error('无效的请求 URL:', requestUrl)
 			reject(new Error('无效的请求 URL'))
 			return
 		}
 
 		// 检查是否为不需要token的接口
-		const needToken = !isNoTokenUrl(url)
+		const needToken = !isNoTokenUrl(requestUrl)
 		
 		// 从本地存储获取 token（仅当需要token时）
 		let token = ''
@@ -213,9 +325,9 @@ export const request = (options = {}) => {
 		}
 		
 		// 根据 Content-Type 决定如何序列化请求体
-		let requestData = options.data || {}
+		let requestData = data
 		const contentType = (headers['Content-Type'] || '').toLowerCase()
-		if (options.method && options.method.toUpperCase() !== 'GET') {
+		if (method && method.toUpperCase() !== 'GET') {
 			if (contentType.includes('application/json')) {
 				// 统一使用 JSON 字符串，避免后端误解析为表单
 				requestData = typeof requestData === 'string'
@@ -229,17 +341,17 @@ export const request = (options = {}) => {
 		
 		// 调试：输出完整URL和配置信息
 		console.log('=== 请求信息 ===')
-		console.log('请求URL:', url || options.url)
-		console.log('请求方法:', options.method || 'GET')
+		console.log('请求URL:', requestUrl || url)
+		console.log('请求方法:', method || 'GET')
 		console.log('请求头:', headers)
-		console.log('请求原始数据(options.data):', options.data || {})
+		console.log('请求原始数据(options.data):', data || {})
 		console.log('请求实际发送数据(requestData):', requestData)
 		console.log('BASE_URL:', BASE_URL)
 		console.log('================')
 		
 		uni.request({
-			url: url || options.url,
-			method: options.method || 'GET',
+			url: requestUrl || url,
+			method: method || 'GET',
 			data: requestData,
 			header: headers,
 			timeout: options.timeout || 10000, // 默认10秒超时
@@ -252,6 +364,12 @@ export const request = (options = {}) => {
 
 				// 判断请求是否成功（状态码 200-299）
 				if (res.statusCode >= 200 && res.statusCode < 300) {
+					// GET请求且启用缓存时，缓存响应数据
+					if (method.toUpperCase() === 'GET' && cache) {
+						const cacheKey = generateCacheKey(url, data)
+						setCache(cacheKey, res.data, cacheTime)
+					}
+					
 					// 检查响应数据是否表示用户不存在
 					if (isUserNotFound(res.data)) {
 						// 用户不存在，立即清除缓存并显示未登录
@@ -295,8 +413,8 @@ export const request = (options = {}) => {
 				// 输出详细的错误信息
 				console.error('Request fail:', {
 					err,
-					url: url || options.url,
-					method: options.method || 'GET',
+					url: requestUrl || url,
+					method: method || 'GET',
 					errMsg: err.errMsg || err.message || '未知错误',
 					errorCode: err.errCode || err.code,
 					statusCode: err.statusCode
@@ -427,5 +545,7 @@ export default {
 	post,
 	put,
 	delete: del,
-	postForm
+	postForm,
+	clearCache,
+	clearUrlCache
 }

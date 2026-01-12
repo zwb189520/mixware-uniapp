@@ -29,11 +29,11 @@ export function logout() {
 }
 
 export function getUserInfo(userId) {
-  return get(`/users/${userId}`)
+  return get(`/users/${userId}`, {}, { cache: true, cacheTime: 10 * 60 * 1000 })
 }
 
 export function getCurrentUserInfo() {
-  return get('/users/me')
+  return get('/users/me', {}, { cache: true, cacheTime: 5 * 60 * 1000 })
 }
 
 export function resetPassword(resetPasswordDTO) {

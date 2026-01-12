@@ -39,7 +39,7 @@ export function getModelPage(params = {}) {
   if (keys.length > 0) {
     queryString = '?' + keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
   }
-  return get(`/models/page${queryString}`)
+  return get(`/models/page${queryString}`, {}, { cache: true, cacheTime: 5 * 60 * 1000 })
 }
 
 export function getMyModels(params = {}) {
@@ -48,7 +48,7 @@ export function getMyModels(params = {}) {
   if (keys.length > 0) {
     queryString = '?' + keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
   }
-  return get(`/models/my${queryString}`)
+  return get(`/models/my${queryString}`, {}, { cache: true, cacheTime: 3 * 60 * 1000 })
 }
 
 export function processModelData(modelData) {

@@ -87,6 +87,7 @@ import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import SearchModal from './components/SearchModal.vue'
 import WaterfallLayout from './components/waterfallLayout.vue'
+import VirtualWaterfallLayout from './components/virtualWaterfallLayout.vue'
 import { getModelPage } from '@/api/models.js'
 import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
 import { getHotExamples } from '@/api/session.js'
@@ -99,7 +100,8 @@ export default {
     SearchBar,
     CategoryTabs,
     SearchModal,
-    WaterfallLayout
+    WaterfallLayout,
+    VirtualWaterfallLayout
   },
   setup() {
     const exploreStore = useExploreStore()
