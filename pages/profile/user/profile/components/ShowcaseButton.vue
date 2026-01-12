@@ -24,7 +24,8 @@ export default {
 .showcase-button {
   background-color: #fff;
   padding: 30rpx;
-  margin: 20rpx 0;
+  margin: 20rpx;
+  border-radius: 16rpx;
 }
 
 .button-content {

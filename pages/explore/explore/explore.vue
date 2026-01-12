@@ -38,10 +38,27 @@
       </view>
       
       <WaterfallLayout
-        v-else
-        :left-list="leftList"
-        :right-list="rightList"
-        :current-tab="currentTab"
+        v-if="currentTab === 'daily'"
+        :left-list="dailyLeftList"
+        :right-list="dailyRightList"
+        :slide-direction="slideDirection"
+        @card-click="handleModelClick"
+        @like-click="toggleLike"
+        @author-click="handleAuthorClick"
+      />
+      <WaterfallLayout
+        v-if="currentTab === 'hot'"
+        :left-list="hotLeftList"
+        :right-list="hotRightList"
+        :slide-direction="slideDirection"
+        @card-click="handleModelClick"
+        @like-click="toggleLike"
+        @author-click="handleAuthorClick"
+      />
+      <WaterfallLayout
+        v-if="currentTab === 'category'"
+        :left-list="categoryLeftList"
+        :right-list="categoryRightList"
         :slide-direction="slideDirection"
         @card-click="handleModelClick"
         @like-click="toggleLike"
@@ -55,7 +72,7 @@
       :placeholder="'搜索你感兴趣的内容'"
       :keyword="keyword"
       :hot-tags="hotTags"
-      @close="showSearch = false"
+      @close="exploreStore.setShowSearch(false)"
       @search="handleSearch"
       @scan="handleScan"
       @camera="handleCamera"
@@ -73,6 +90,8 @@ import WaterfallLayout from './components/waterfallLayout.vue'
 import { getModelPage } from '@/api/models.js'
 import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
 import { getHotExamples } from '@/api/session.js'
+import { useExploreStore } from '@/stores/explore.js'
+import { storeToRefs } from 'pinia'
 
 export default {
   components: {
@@ -82,20 +101,50 @@ export default {
     SearchModal,
     WaterfallLayout
   },
+  setup() {
+    const exploreStore = useExploreStore()
+    const {
+      currentTab,
+      keyword,
+      showSearch,
+      hotTags,
+      dailyModels,
+      hotModels,
+      categoryModels,
+      loading,
+      dailyLeftList,
+      dailyRightList,
+      hotLeftList,
+      hotRightList,
+      categoryLeftList,
+      categoryRightList
+    } = storeToRefs(exploreStore)
+    
+    return {
+      exploreStore,
+      currentTab,
+      keyword,
+      showSearch,
+      hotTags,
+      dailyModels,
+      hotModels,
+      categoryModels,
+      loading,
+      dailyLeftList,
+      dailyRightList,
+      hotLeftList,
+      hotRightList,
+      categoryLeftList,
+      categoryRightList
+    }
+  },
   data() {
     return {
-      showSearch: false,
-      keyword: '',
-      currentTab: 'daily',
-      slideDirection: 'right',
-      loading: false,
-      hotTags: ['手办', '手机支架', '高达', '收纳', '解压', '盒子', '可动', '我的世界', '钥匙扣', '收纳盒', '伸缩剑', '解压玩具', '摆件', '面具', '海贼王', '纸巾盒', '钢铁侠', 'k2', '挂件', '航模', '马里奥'],
-      dailyModels: [],
-      hotModels: [],
-      categoryModels: []
+      slideDirection: 'right'
     }
   },
   onLoad() {
+    this.exploreStore.initFromStorage()
     this.loadModels()
     this.loadHotTags()
   },
@@ -104,27 +153,13 @@ export default {
       this.loadModels()
     }
   },
-  computed: {
-    leftList() {
-      let src = this.currentTab === 'daily'   ? this.dailyModels
-              : this.currentTab === 'hot'     ? this.hotModels
-              : this.categoryModels;
-      return src.filter((_, i) => i % 2 === 0);
-    },
-    rightList() {
-      let src = this.currentTab === 'daily'   ? this.dailyModels
-              : this.currentTab === 'hot'     ? this.hotModels
-              : this.categoryModels;
-      return src.filter((_, i) => i % 2 === 1);
-    }
-  },
   methods: {
     async loadHotTags() {
       try {
         const res = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
-            this.hotTags = res.data.map(item => item.title || item.describe || '').filter(tag => tag.trim())
+            this.exploreStore.setHotTags(res.data.map(item => item.title || item.describe || '').filter(tag => tag.trim()))
           }
         }
       } catch (error) {
@@ -132,7 +167,7 @@ export default {
       }
     },
     async loadModels(params = {}) {
-      this.loading = true
+      this.exploreStore.setLoading(true)
       try {
         console.log('开始调用API...')
         const res = await getModelPage({
@@ -153,7 +188,7 @@ export default {
         console.error('获取模型列表失败:', error)
         this.useMockData()
       } finally {
-        this.loading = false
+        this.exploreStore.setLoading(false)
       }
     },
     
@@ -229,6 +264,10 @@ export default {
       this.dailyModels = tabData.daily
       this.hotModels = tabData.hot
       this.categoryModels = tabData.category
+      
+      this.exploreStore.setDailyModels(this.dailyModels)
+      this.exploreStore.setHotModels(this.hotModels)
+      this.exploreStore.setCategoryModels(this.categoryModels)
     },
     
     useMockData() {
@@ -353,6 +392,10 @@ export default {
       this.dailyModels = generateModels('daily', 1, 30)
       this.hotModels = generateModels('hot', 31, 30)
       this.categoryModels = generateModels('category', 61, 30)
+      
+      this.exploreStore.setDailyModels(this.dailyModels)
+      this.exploreStore.setHotModels(this.hotModels)
+      this.exploreStore.setCategoryModels(this.categoryModels)
     },
     
     getMockDataForTab(tab, count) {
@@ -388,14 +431,14 @@ export default {
       const currentIndex = tabs.indexOf(this.currentTab)
       const newIndex = tabs.indexOf(tab)
       this.slideDirection = newIndex > currentIndex ? 'left' : 'right'
-      this.currentTab = tab;
+      this.exploreStore.setCurrentTab(tab)
       this.$nextTick(() => {
-        uni.pageScrollTo({ scrollTop: 0, duration: 0 });
-      });
+        uni.pageScrollTo({ scrollTop: 0, duration: 0 })
+      })
     },
     handleSearch() { 
       this.searchModels(this.keyword)
-      this.showSearch = false
+      this.exploreStore.setShowSearch(false)
     },
     async searchModels(keyword) {
       if (!keyword.trim()) {
@@ -406,7 +449,7 @@ export default {
         return
       }
       
-      this.loading = true
+      this.exploreStore.setLoading(true)
       try {
         const res = await getModelPage({
           current: 1,
@@ -435,10 +478,13 @@ export default {
           
           if (this.currentTab === 'daily') {
             this.dailyModels = formattedModels
+            this.exploreStore.setDailyModels(formattedModels)
           } else if (this.currentTab === 'hot') {
             this.hotModels = formattedModels
+            this.exploreStore.setHotModels(formattedModels)
           } else {
             this.categoryModels = formattedModels
+            this.exploreStore.setCategoryModels(formattedModels)
           }
           
           uni.showToast({
@@ -459,19 +505,19 @@ export default {
           icon: 'none'
         })
       } finally {
-        this.loading = false
+        this.exploreStore.setLoading(false)
       }
     },
     handleScan() { 
-      console.log('扫码');
+      console.log('扫码')
     },
     handleCamera() {
-      console.log('拍照');
+      console.log('拍照')
     },
     handleTagClick(tag) {
-      console.log('点击标签:', tag);
-      this.keyword = tag;
-      this.searchModels(tag);
+      console.log('点击标签:', tag)
+      this.exploreStore.setKeyword(tag)
+      this.searchModels(tag)
     },
     handleModelClick(item) { 
       console.log('点击模型:', item.name);

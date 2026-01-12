@@ -41,7 +41,8 @@ export default {
 .profile-medals {
   background-color: #fff;
   padding: 30rpx;
-  margin: 20rpx 0;
+  margin: 20rpx;
+  border-radius: 16rpx;
 }
 
 .medals-title {

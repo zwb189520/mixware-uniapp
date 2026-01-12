@@ -124,7 +124,8 @@ export default {
 .printer-partner {
   background-color: #fff;
   padding: 30rpx;
-  margin: 20rpx 0;
+  margin: 20rpx;
+  border-radius: 16rpx;
 }
 
 .section-title {

@@ -93,30 +93,47 @@
 	import MarkdownIt from 'markdown-it'
 	import mpHtml from '@/components/mp-html/mp-html.vue'
 	import SafeArea from '@/components/safe-area/safe-area.vue'
+	import { useChatStore } from '@/stores/chat.js'
+	import { storeToRefs } from 'pinia'
 
 	export default {
 		components: {
 			mpHtml,
 			SafeArea
 		},
+		setup() {
+			const chatStore = useChatStore()
+			const {
+				sessionId,
+				sessionTitle,
+				sessionDescribe,
+				examples,
+				messages,
+				loading,
+				inputValue
+			} = storeToRefs(chatStore)
+			
+			return {
+				chatStore,
+				sessionId,
+				sessionTitle,
+				sessionDescribe,
+				examples,
+				messages,
+				loading,
+				inputValue
+			}
+		},
 		data() {
 			return {
-				inputValue: '',
-				messages: [],
-				loading: false,
 				scrollIntoView: '',
 				bottomAnchorId: 'chat-bottom-anchor',
 				streamController: null,
-				sessionId: '',
 				partialBuffer: '',
-				sessionTitle: '',
-				sessionDescribe: '',
-				examples: [],
 				loadingSession: true,
 				md: null,
-				// 节流控制
 				lastRenderTime: 0,
-				renderThrottle: 100, // 100ms 节流间隔
+				renderThrottle: 100,
 				pendingRender: false,
 				renderTimer: null
 			}
@@ -127,6 +144,7 @@
 				linkify: true,
 				breaks: true
 			})
+			this.chatStore.initFromStorage()
 			await this.fetchSession()
 			this.scrollToBottom()
 		},
@@ -137,17 +155,14 @@
 			}
 		},
 		methods: {
-			// 从本地存储加载 session 信息
 			loadSessionFromStorage() {
 				try {
 					const storedSessionId = uni.getStorageSync('aiChatSessionId')
 					const storedSessionData = uni.getStorageSync('aiChatSessionData')
 					
 					if (storedSessionId && storedSessionData) {
-						this.sessionId = storedSessionId
-						this.sessionTitle = storedSessionData.title || ''
-						this.sessionDescribe = storedSessionData.describe || ''
-						this.examples = storedSessionData.examples || []
+						this.chatStore.setSessionId(storedSessionId)
+						this.chatStore.setSessionData(storedSessionData)
 						return true
 					}
 				} catch (e) {
@@ -156,7 +171,6 @@
 				return false
 			},
 			
-			// 保存 session 信息到本地存储
 			saveSessionToStorage(sessionId, sessionData) {
 				try {
 					uni.setStorageSync('aiChatSessionId', sessionId)
@@ -170,10 +184,9 @@
 				}
 			},
 			
-			// 加载历史会话
 			async loadHistory() {
 				if (!this.sessionId) {
-					this.messages = []
+					this.chatStore.setMessages([])
 					return
 				}
 				
@@ -182,69 +195,60 @@
 						sessionId: this.sessionId
 					})
 					
-					// 处理响应数据，兼容不同的响应格式
 					const data = res.data || res
 					const historyList = data?.list || data?.history || data || []
 					
 					if (Array.isArray(historyList) && historyList.length > 0) {
-						// 将历史消息转换为消息格式
-						this.messages = historyList.map((item, index) => ({
+						const messages = historyList.map((item, index) => ({
 							id: item.id || `msg-${Date.now()}-${index}`,
 							role: item.role || item.type || 'assistant',
 							content: item.content || item.message || '',
 							html: this.md ? this.md.render(item.content || item.message || '') : (item.content || item.message || '')
 						}))
+						this.chatStore.setMessages(messages)
 					} else {
-						// 如果没有历史消息，显示空列表
-						this.messages = []
+						this.chatStore.setMessages([])
 					}
 				} catch (err) {
 					console.error('加载历史会话失败:', err)
-					// 加载失败时显示空列表
-					this.messages = []
+					this.chatStore.setMessages([])
 				}
 			},
 			
 			async fetchSession() {
 				this.loadingSession = true
 				
-				// 先尝试从本地存储加载
 				if (this.loadSessionFromStorage()) {
-					// 如果本地有 sessionId，加载历史会话
 					await this.loadHistory()
 					this.loadingSession = false
 					return
 				}
 				
-				// 如果本地没有，才请求接口
 				try {
 					const res = await post('/session')
-					// 处理响应数据，兼容不同的响应格式
 					const data = res.data || res
 					
 					if (data && data.sessionId) {
-						this.sessionId = data.sessionId
-						this.sessionTitle = data.title || ''
-						this.sessionDescribe = data.describe || ''
-						this.examples = data.examples || []
-						
-						// 保存到本地存储
-						this.saveSessionToStorage(this.sessionId, {
-							title: this.sessionTitle,
-							describe: this.sessionDescribe,
-							examples: this.examples
+						this.chatStore.setSessionId(data.sessionId)
+						this.chatStore.setSessionData({
+							title: data.title || '',
+							describe: data.describe || '',
+							examples: data.examples || []
 						})
 						
-						// 加载历史会话（首次可能为空）
+						this.saveSessionToStorage(data.sessionId, {
+							title: data.title || '',
+							describe: data.describe || '',
+							examples: data.examples || []
+						})
+						
 						await this.loadHistory()
 					} else {
-						// 如果接口返回失败，显示空列表
-						this.messages = []
+						this.chatStore.setMessages([])
 					}
 				} catch (err) {
 					console.error('获取 session 失败:', err)
-					// 请求失败时显示空列表
-					this.messages = []
+					this.chatStore.setMessages([])
 				} finally {
 					this.loadingSession = false
 				}
@@ -302,13 +306,11 @@
 				}
 			},
 			async stopStream() {
-				// 停止流式请求
 				if (this.streamController && typeof this.streamController.abort === 'function') {
 					this.streamController.abort()
 				}
-				this.loading = false
+				this.chatStore.setLoading(false)
 				
-				// 调用停止对话接口
 				if (this.sessionId) {
 					try {
 						await post('/chat/stop', {
@@ -317,7 +319,6 @@
 						console.log('对话已停止')
 					} catch (err) {
 						console.error('停止对话接口调用失败:', err)
-						// 即使接口调用失败，也不影响前端的停止操作
 					}
 				}
 			},
@@ -338,8 +339,8 @@
 					role: 'user',
 					content
 				}
-				this.messages.push(userMsg)
-				this.inputValue = ''
+				this.chatStore.addMessage(userMsg)
+				this.chatStore.setInputValue('')
 
 				const aiMsg = {
 					id: `ai-${Date.now()}`,
@@ -347,12 +348,12 @@
 					content: '',
 					html: ''
 				}
-				this.messages.push(aiMsg)
-				this.loading = true
+				this.chatStore.addMessage(aiMsg)
+				this.chatStore.setLoading(true)
 				this.scrollToBottom()
 
 				const history = this.messages
-					.slice(0, this.messages.length - 1) // 不包含正在生成的最后一条 AI
+					.slice(0, this.messages.length - 1)
 					.map(item => ({ role: item.role, content: item.content }))
 
 				this.streamController = streamRequest({
@@ -365,10 +366,8 @@
 					},
 					onMessage: (chunk) => {
 						this.partialBuffer += chunk || ''
-						// 兼容 }{ 拼接的情况，先插入换行分隔
 						this.partialBuffer = this.partialBuffer.replace(/\}\s*\{/g, '}\n{')
 						const parts = this.partialBuffer.split('\n')
-						// 最后一段可能不完整，先留着
 						this.partialBuffer = parts.pop() || ''
 						
 						let hasNewContent = false
@@ -384,7 +383,6 @@
 									hasNewContent = true
 								}
 							} catch (e) {
-								// 忽略解析失败，走兜底
 							}
 							if (!appended) {
 								aiMsg.content += text
@@ -392,26 +390,23 @@
 							}
 						})
 						
-						// 只在有新内容时才触发节流渲染
 						if (hasNewContent) {
 							this.throttledRender(aiMsg)
 						}
 					},
 					onError: (err) => {
-						this.loading = false
+						this.chatStore.setLoading(false)
 						uni.showToast({
 							title: err?.message || '对话失败，请稍后重试',
 							icon: 'none'
 						})
 					},
 					onComplete: () => {
-						// 清除节流定时器
 						if (this.renderTimer) {
 							clearTimeout(this.renderTimer)
 							this.renderTimer = null
 						}
 						
-						// 把剩余缓冲尝试消费
 						if (this.partialBuffer.trim()) {
 							try {
 								const obj = JSON.parse(this.partialBuffer.trim())
@@ -426,14 +421,13 @@
 							this.partialBuffer = ''
 						}
 						
-						// 结束时立即最终渲染一次（确保完整显示）
 						if (this.md) {
 							aiMsg.html = this.md.render(aiMsg.content || '')
 						}
 						this.$forceUpdate()
 						this.scrollToBottom()
 						
-						this.loading = false
+						this.chatStore.setLoading(false)
 						this.streamController = null
 						this.pendingRender = false
 					}
