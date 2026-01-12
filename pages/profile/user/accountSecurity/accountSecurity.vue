@@ -1,35 +1,23 @@
 <template>
   <view class="account-security-page">
     <safe-area />
-    <view class="navbar">
-      <view class="navbar-left" @click="handleBack">
-        <uni-icons type="left" size="24"></uni-icons>
-      </view>
-      <view class="navbar-center">
-        <text class="navbar-title">账户与安全</text>
-      </view>
-      <view class="navbar-right"></view>
-    </view>
-    
+    <custom-navbar title="账户与安全" @back="handleBack" />
     <view class="security-list">
       <view class="security-item" @click="handleResetPassword">
         <text class="item-label">重置密码</text>
         <view class="item-value"></view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      
       <view class="security-item" @click="handleEmailBinding">
         <text class="item-label">邮箱绑定</text>
         <view class="item-value"></view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      
       <view class="security-item" @click="handleThirdPartyBinding">
         <text class="item-label">第三方账号绑定</text>
         <view class="item-value"></view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      
       <view class="security-item" @click="handleDeleteAccount">
         <text class="item-label">注销账号</text>
         <view class="item-value"></view>
@@ -41,11 +29,13 @@
 
 <script>
 import { deleteUser } from '@/api/users.js'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'AccountSecurity',
   components: {
+    CustomNavbar,
     SafeArea
   },
   methods: {
@@ -136,37 +126,6 @@ export default {
 
 .safe-area-top {
   background: #fff;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 32rpx;
-  background: #fff;
-}
-
-.navbar-left,
-.navbar-right {
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
 }
 
 .security-list {

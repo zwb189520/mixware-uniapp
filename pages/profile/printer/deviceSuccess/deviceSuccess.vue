@@ -1,19 +1,8 @@
 <template>
   <view class="device-success-page">
-    <safe-area></safe-area>
-    <!-- navbar -->
-    <view class="navbar">
-      <view class="navbar-left">
-        <uni-icons type="left" size="24" @click="handleBack"></uni-icons>
-      </view>
-      <view class="navbar-title">
-        <text>添加设备</text>
-      </view>
-    </view>
-    
-    <!-- 页面内容 -->
+    <safe-area />
+    <custom-navbar title="添加设备" @back="handleBack" />
     <view class="page-content">
-      <!-- 动态GIF动画 -->
       <view class="gif-section">
         <image 
           class="gift-gif" 
@@ -21,18 +10,12 @@
           mode="aspectFit"
         ></image>
       </view>
-      
-      <!-- 成功标题 -->
       <view class="success-title-section">
         <text class="success-title">设备绑定成功</text>
       </view>
-      
-      <!-- 副标题 -->
       <view class="subtitle-section">
         <text class="subtitle">开启3D打印初体验！</text>
       </view>
-      
-      <!-- 回到首页按钮 -->
       <view class="button-section">
         <button class="home-button" @click="handleGoHome">回到首页</button>
       </view>
@@ -41,11 +24,13 @@
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'DeviceSuccess',
   components: {
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -74,26 +59,6 @@ export default {
 .device-success-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  padding: 0 30rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-}
-
-.navbar-left {
-  width: 60rpx;
-}
-
-.navbar-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  color: #333;
 }
 
 .page-content {

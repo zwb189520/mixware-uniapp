@@ -1,17 +1,7 @@
 <template>
 	<view class="chat-page">
 		<safe-area />
-		<view class="navbar">
-			<view class="navbar-left" @tap="goBack">
-				<uni-icons type="left" size="24"></uni-icons>
-			</view>
-			<view class="navbar-title">
-				<text>AI 对话</text>
-			</view>
-			<view class="navbar-right"></view>
-		</view>
-
-		<!-- 消息区 -->
+		<custom-navbar title="AI 对话" @back="goBack" />
 		<scroll-view
 			class="message-list"
 			scroll-y
@@ -92,6 +82,7 @@
 	import { post } from '@/api/request.js'
 	import MarkdownIt from 'markdown-it'
 	import mpHtml from '@/components/mp-html/mp-html.vue'
+	import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 	import SafeArea from '@/components/safe-area/safe-area.vue'
 	import { useChatStore } from '@/stores/chat.js'
 	import { storeToRefs } from 'pinia'
@@ -99,6 +90,7 @@
 	export default {
 		components: {
 			mpHtml,
+			CustomNavbar,
 			SafeArea
 		},
 		setup() {
@@ -456,31 +448,6 @@
 	bottom: 0;
 	background: #f7f8fa;
 	z-index: -1;
-}
-
-.navbar {
-	display: flex;
-	align-items: center;
-	height: 88rpx;
-	padding: 0 30rpx;
-	background-color: #fff;
-	border-bottom: 1rpx solid #eee;
-}
-
-.navbar-left {
-	width: 60rpx;
-}
-
-.navbar-right {
-	width: 60rpx;
-}
-
-.navbar-title {
-	flex: 1;
-	text-align: center;
-	font-size: 32rpx;
-	font-weight: bold;
-	color: #333;
 }
 
 .message-list {

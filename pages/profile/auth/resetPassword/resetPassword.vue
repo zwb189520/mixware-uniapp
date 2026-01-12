@@ -1,22 +1,12 @@
 <template>
   <view class="reset-password-page">
-    <safe-area></safe-area>
-    <view class="navbar">
-      <view class="navbar-left" @click="handleBack">
-        <uni-icons type="left" size="24"></uni-icons>
-      </view>
-      <view class="navbar-center">
-        <text class="navbar-title">重置密码</text>
-      </view>
-      <view class="navbar-right"></view>
-    </view>
-    
+    <safe-area />
+    <custom-navbar title="重置密码" @back="handleBack" />
     <view class="content">
       <view class="form-item">
         <text class="form-label">邮箱</text>
         <input class="form-input" v-model="email" placeholder="请输入邮箱地址" />
       </view>
-      
       <view class="form-item">
         <text class="form-label">验证码</text>
         <view class="code-input-container">
@@ -26,28 +16,27 @@
           </button>
         </view>
       </view>
-      
       <view class="form-item">
         <text class="form-label">新密码</text>
         <input class="form-input" v-model="newPassword" type="password" placeholder="请输入新密码" />
       </view>
-      
       <view class="form-item">
         <text class="form-label">确认密码</text>
         <input class="form-input" v-model="confirmPassword" type="password" placeholder="请再次输入新密码" />
       </view>
-      
       <button class="submit-btn" @click="handleSubmit">确认重置</button>
     </view>
   </view>
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'ResetPassword',
   components: {
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -129,37 +118,6 @@ export default {
 .reset-password-page {
   min-height: 100vh;
   background: #f5f5f5;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 32rpx;
-  background: #fff;
-}
-
-.navbar-left,
-.navbar-right {
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
 }
 
 .content {

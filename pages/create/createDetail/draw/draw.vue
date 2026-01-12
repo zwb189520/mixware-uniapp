@@ -1,15 +1,7 @@
 <template>
   <view class="page-container">
     <safe-area />
-    <view class="navbar">
-      <view class="navbar-left" @click="handleBackClick">
-        <uni-icons type="left" size="24"></uni-icons>
-      </view>
-      <view class="navbar-title">
-        <text>画一画</text>
-      </view>
-      <view class="navbar-right"></view>
-    </view>
+    <custom-navbar title="画一画" @back="handleBackClick" />
     <view class="empty-page">
       <text>功能开发中</text>
     </view>
@@ -17,10 +9,12 @@
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   components: {
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -46,31 +40,6 @@ export default {
 
 .safe-area-top {
   background: #fff;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  padding: 0 30rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-}
-
-.navbar-left {
-  width: 60rpx;
-}
-
-.navbar-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-}
-
-.navbar-right {
-  width: 60rpx;
 }
 
 .empty-page {

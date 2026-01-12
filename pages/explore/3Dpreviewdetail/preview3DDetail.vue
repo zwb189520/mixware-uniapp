@@ -1,17 +1,8 @@
 <template>
   <view class="preview-page">
-    <!-- 顶部栏 -->
-    <view class="top-bar" :style="topBarStyle">
-      <view class="back" @tap="handleBack">
-        <uni-icons type="left" size="20" color="#fff"></uni-icons>
-      </view>
-      <text class="title">{{ modelName }}</text>
-      <view class="empty"></view>
-    </view>
-    
-    <!-- 3D 模型预览区域 -->
+    <safe-area />
+    <custom-navbar :title="modelName" @back="handleBack" />
     <view class="canvas-wrap">
-      <!-- 3D 预览画布 -->
       <view class="canvas-container">
         <Preview3D 
           v-if="modelUrl"
@@ -35,15 +26,10 @@
         </view>
       </view>
     </view>
-    
-    <!-- 模型尺寸显示 -->
     <view class="dimensions-bar">
       <text class="dimensions-text">{{ dimensionsText }}</text>
     </view>
-    
-    <!-- 底部设置区域 -->
     <view class="settings-section" :style="{ paddingBottom: safeAreaBottom + 'px' }">
-      <!-- 缩放设置 -->
       <view class="setting-item">
         <text class="setting-label">缩放 {{ scalePercent }}%</text>
         <slider 

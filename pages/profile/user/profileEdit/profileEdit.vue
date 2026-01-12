@@ -1,12 +1,11 @@
 <template>
   <view class="profile-edit-page">
     <safe-area />
-    <view class="navbar">
-      <uni-icons type="left" size="20" color="#333" @click="handleBack"></uni-icons>
-      <text class="navbar-title">个人资料</text>
-      <text class="navbar-save" @click="handleSave">保存</text>
-    </view>
-    
+    <custom-navbar title="个人资料" @back="handleBack">
+      <template #right>
+        <text class="navbar-save" @click="handleSave">保存</text>
+      </template>
+    </custom-navbar>
     <view class="profile-form">
       <view class="form-item" @click="handleAvatarEdit">
         <text class="form-label">头像</text>
@@ -16,7 +15,6 @@
         </view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      
       <view class="form-item" @click="handleNicknameEdit">
         <text class="form-label">昵称</text>
         <view class="form-value">
@@ -24,7 +22,6 @@
         </view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      
       <view class="form-item" @click="handleRegionEdit">
         <text class="form-label">地区</text>
         <view class="form-value">
@@ -32,7 +29,6 @@
         </view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      
       <view class="form-item" @click="handleGenderEdit">
         <text class="form-label">性别</text>
         <view class="form-value">
@@ -47,11 +43,13 @@
 <script>
 import { updateUserInfo } from '@/api/users.js'
 import { BASE_URL } from '@/api/request.js'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'ProfileEdit',
   components: {
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -237,22 +235,6 @@ export default {
 
 .safe-area-top {
   background: #fff;
-}
-
-.navbar {
-  height: 88rpx;
-  background-color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 30rpx;
-  border-bottom: 2rpx solid #eee;
-}
-
-.navbar-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
 }
 
 .navbar-save {

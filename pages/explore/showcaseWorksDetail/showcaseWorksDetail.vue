@@ -1,27 +1,17 @@
 <template>
   <view class="page-container">
-    <!-- 作品详情导航栏组件 -->
-    <WorkDetailNavbar
-      :title="workTitle"
-      @back-click="handleBack"
-    />
-
-    <!-- 页面内容 -->
+    <safe-area />
+    <custom-navbar :title="workTitle" @back="handleBack" />
     <scroll-view scroll-y class="content-scroll">
-      <!-- 用户信息 -->
       <UserInfo
         :user-name="userName"
         :user-avatar="userAvatar"
       />
-
-      <!-- 作品信息组件 -->
       <WorkInfo
         :model-image="modelImage"
         :description="description"
         :work-info="workInfo"
       />
-
-      <!-- 评论组件 -->
       <CommentSection
         :comments="comments"
         @like-click="handleCommentLike"
@@ -32,14 +22,14 @@
 </template>
 
 <script>
-import WorkDetailNavbar from './components/WorkDetailNavbar.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import UserInfo from './components/UserInfo.vue'
 import WorkInfo from './components/WorkInfo.vue'
 import CommentSection from './components/CommentSection.vue'
 
 export default {
   components: {
-    WorkDetailNavbar,
+    CustomNavbar,
     UserInfo,
     WorkInfo,
     CommentSection

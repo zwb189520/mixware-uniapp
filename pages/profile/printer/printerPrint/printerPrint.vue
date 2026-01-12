@@ -1,31 +1,16 @@
 <template>
   <view class="printer-print-page">
-    <safe-area></safe-area>
-    <!-- 同款navbar -->
-    <view class="navbar">
-      <view class="navbar-left">
-        <uni-icons type="left" size="24" @click="handleBack"></uni-icons>
-      </view>
-      <view class="navbar-title">
-        <text>打印机打印</text>
-      </view>
-    </view>
-    
-    <!-- 页面内容 -->
+    <safe-area />
+    <custom-navbar title="打印机打印" @back="handleBack" />
     <view class="page-content">
-      <!-- 操作提示 -->
       <view class="instruction-section">
         <text class="instruction-title">请按照提示操作</text>
         <text class="instruction-text">开机状态下，长按电源键7秒，直到指示灯橙灯闪烁即可</text>
       </view>
-      
-      <!-- 演示图 -->
       <view class="demo-image-section">
         <image class="demo-image" src="/static/images/printer/printer-demo.png" mode="aspectFit"></image>
       </view>
     </view>
-    
-    <!-- 我已准备好的按钮 -->
     <view class="button-section">
       <button class="ready-button" @click="handleReady">我已准备好</button>
     </view>
@@ -33,11 +18,13 @@
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'PrinterPrint',
   components: {
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -65,31 +52,6 @@ export default {
 .printer-print-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-}
-
-.navbar {
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  padding: 0 30rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-}
-
-.navbar-left {
-  width: 60rpx;
-}
-
-.navbar-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  color: #333;
 }
 
 .page-content {

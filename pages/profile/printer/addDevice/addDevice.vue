@@ -1,30 +1,15 @@
 <template>
   <view class="add-device-page">
-    <safe-area></safe-area>
-    <!-- navbar -->
-    <view class="navbar">
-      <view class="navbar-left">
-        <uni-icons type="left" size="24" @click="handleBack"></uni-icons>
-      </view>
-      <view class="navbar-title">
-        <text>添加设备</text>
-      </view>
-    </view>
-    
-    <!-- 页面内容 -->
+    <safe-area />
+    <custom-navbar title="添加设备" @back="handleBack" />
     <view class="page-content">
-      <!-- WiFi连接标题 -->
       <view class="wifi-title-section">
         <text class="wifi-title">连接WiFi</text>
       </view>
-      
-      <!-- WiFi选择区域 -->
       <view class="wifi-select-section" @click="handleSelectWiFi">
         <text class="select-label">{{ selectedWiFi || '请选择WiFi' }}</text>
         <text class="select-action">选择</text>
       </view>
-      
-      <!-- 密码输入框 -->
       <view class="password-section">
         <input 
           class="password-input" 
@@ -36,19 +21,13 @@
           <uni-icons :type="showPassword ? 'eye' : 'eye-slash'" size="20" color="#999"></uni-icons>
         </view>
       </view>
-      
-      <!-- 提示文字 -->
       <view class="tips-section">
         <text class="tips-text">请确保连接的家庭WiFi网络为2.4G网络</text>
       </view>
-      
-      <!-- 下一步按钮 -->
       <view class="button-section">
         <button class="next-button" @click="handleNext">下一步</button>
       </view>
     </view>
-    
-    <!-- WiFi选择弹框 -->
     <WiFiSelectorModal 
       :visible="showWiFiList" 
       @close="handleWiFiListClose"
@@ -58,12 +37,14 @@
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import WiFiSelectorModal from './components/WiFiSelectorModal.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'AddDevice',
   components: {
+    CustomNavbar,
     WiFiSelectorModal,
     SafeArea
   },
@@ -121,26 +102,6 @@ export default {
 .add-device-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  padding: 0 30rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-}
-
-.navbar-left {
-  width: 60rpx;
-}
-
-.navbar-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  color: #333;
 }
 
 .page-content {

@@ -1,15 +1,8 @@
 <template>
   <view class="page-container">
     <safe-area />
-    <!-- 导航栏 -->
-    <TransformNavbar
-      :model-name="modelName"
-      @back-click="handleBack"
-    />
-
-    <!-- 页面内容 -->
+    <custom-navbar :title="modelName" @back="handleBack" />
     <scroll-view scroll-y class="content-scroll">
-      <!-- 3D模型预览 -->
       <ModelPreview
         :model-url="modelUrl"
         :scale="currentScale"
@@ -18,29 +11,20 @@
         @model-load="handleModelLoad"
         @model-error="handleModelError"
       />
-
-      <!-- 控制面板 -->
       <view class="control-panel">
-        <!-- 大小控制 -->
         <SizeControl
           :scale="currentScale"
           @scale-change="handleScaleChange"
         />
-
-        <!-- 旋转控制 -->
         <RotationControl
           :rotation="currentRotation"
           @rotation-change="handleRotationChange"
         />
-
-        <!-- 颜色标记 -->
         <ColorMark
           :colors="colorMarks"
           @color-add="handleColorAdd"
           @color-remove="handleColorRemove"
         />
-
-        <!-- 涂色指导 -->
         <PaintingGuide
           :marks="paintingMarks"
           @mark-add="handlePaintingMarkAdd"
@@ -48,8 +32,6 @@
         />
       </view>
     </scroll-view>
-
-    <!-- 底部生成按钮 -->
     <GenerateButton
       :scale="currentScale"
       :rotation="currentRotation"
@@ -61,7 +43,7 @@
 </template>
 
 <script>
-import TransformNavbar from './components/TransformNavbar.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import ModelPreview from './components/ModelPreview.vue'
 import SizeControl from './components/SizeControl.vue'
 import RotationControl from './components/RotationControl.vue'
@@ -72,7 +54,7 @@ import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   components: {
-    TransformNavbar,
+    CustomNavbar,
     ModelPreview,
     SizeControl,
     RotationControl,

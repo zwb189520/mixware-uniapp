@@ -1,16 +1,7 @@
 <template>
   <view class="message-settings-page">
     <safe-area />
-    <view class="navbar">
-      <view class="navbar-left" @click="handleBack">
-        <uni-icons type="left" size="24"></uni-icons>
-      </view>
-      <view class="navbar-center">
-        <text class="navbar-title">消息设置</text>
-      </view>
-      <view class="navbar-right"></view>
-    </view>
-
+    <custom-navbar title="消息设置" @back="handleBack" />
     <view class="content">
       <view class="section-title">系统通知</view>
       <view class="setting-box" @click="goToSystemSettings">
@@ -44,11 +35,13 @@
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'MessageSettings',
   components: {
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -89,37 +82,6 @@ export default {
 
 .safe-area-top {
   background: #fff;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 32rpx;
-  background: #fff;
-}
-
-.navbar-left,
-.navbar-right {
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
 }
 
 .content {

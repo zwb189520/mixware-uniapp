@@ -1,16 +1,8 @@
 <template>
   <view class="page-container">
     <safe-area />
-    <!-- 模型导航栏组件 -->
-    <ModelNavbar
-      :model-name="modelInfo.name || '模型详情'"
-      @back-click="handleBack"
-      @more-click="handleMore"
-    />
-
-    <!-- 页面内容 -->
+    <custom-navbar :title="modelInfo.name || '模型详情'" @back="handleBack" />
     <scroll-view scroll-y class="content-scroll">
-      <!-- 3D模型简介组件 -->
       <ModelInfo
         :model-info="modelInfo"
         :print-models="printModels"
@@ -21,8 +13,6 @@
         @share-click="handleShare"
       />
     </scroll-view>
-
-    <!-- 底部工具栏组件 -->
     <BottomToolbar
       :model-info="modelInfo"
       @like-click="handleLike"
@@ -33,7 +23,7 @@
 </template>
 
 <script>
-import ModelNavbar from './components/ModelNavbar.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import ModelInfo from './components/ModelInfo.vue'
 import BottomToolbar from './components/BottomToolbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
@@ -42,7 +32,7 @@ import { getModelDetail } from '@/api/models.js'
 
 export default {
   components: {
-    ModelNavbar,
+    CustomNavbar,
     ModelInfo,
     BottomToolbar,
     SafeArea

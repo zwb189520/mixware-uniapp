@@ -1,51 +1,35 @@
 <template>
   <view class="mixware-agreement-page">
-    <view class="navbar">
-      <view class="navbar-left" @click="handleBack">
-        <uni-icons type="left" size="24"></uni-icons>
-      </view>
-      <view class="navbar-center">
-        <text class="navbar-title">mixware用户协议</text>
-      </view>
-      <view class="navbar-right"></view>
-    </view>
-    
+    <custom-navbar title="mixware用户协议" @back="handleBack" />
     <view class="content">
       <view class="agreement-section">
         <text class="section-title">1. mixware服务说明</text>
         <text class="section-content">mixware是一款专业的3D打印管理应用，为用户提供模型浏览、创建、打印管理等全方位服务。本协议是您与mixware之间关于使用本服务的法律协议。</text>
       </view>
-      
       <view class="agreement-section">
         <text class="section-title">2. 账号管理</text>
         <text class="section-content">用户在mixware注册的账号归用户所有，但mixware保留对账号的管理权。用户不得转让、出售或出借账号。如发现账号被盗用，应立即通知mixware。</text>
       </view>
-      
       <view class="agreement-section">
         <text class="section-title">3. 3D模型版权</text>
         <text class="section-content">mixware平台上的3D模型版权归原作者所有。用户可以浏览、下载和使用模型，但不得用于商业用途或侵犯原作者权益。用户上传的模型应确保拥有合法版权。</text>
       </view>
-      
       <view class="agreement-section">
         <text class="section-title">4. 打印机设备管理</text>
         <text class="section-content">用户可以通过mixware管理连接的3D打印机设备。用户应确保设备使用符合当地法律法规，不得用于打印违禁物品。mixware不对因设备使用不当造成的损失承担责任。</text>
       </view>
-      
       <view class="agreement-section">
         <text class="section-title">5. 服务费用</text>
         <text class="section-content">mixware的基础服务免费提供，但某些高级功能可能需要付费。付费服务的价格和条款以mixware官方公布为准。用户购买付费服务后，不支持退款。</text>
       </view>
-      
       <view class="agreement-section">
         <text class="section-title">6. 用户行为规范</text>
         <text class="section-content">用户在使用mixware服务时，应遵守以下规范：不得发布违法、有害、色情、暴力内容；不得侵犯他人知识产权；不得干扰或破坏服务正常运行；不得利用服务进行诈骗或其他违法活动。</text>
       </view>
-      
       <view class="agreement-section">
         <text class="section-title">7. 知识产权</text>
         <text class="section-content">mixware平台上的所有内容，包括但不限于软件、设计、文字、图片、视频等，均受知识产权法保护。未经mixware书面许可，用户不得复制、传播、修改或用于商业目的。</text>
       </view>
-      
       <view class="agreement-section">
         <text class="section-title">8. 免责条款</text>
         <text class="section-content">mixware不对以下情况承担责任：因用户操作不当导致的打印失败；因设备故障或网络问题导致的服务中断；第三方内容或服务的质量问题；不可抗力事件。</text>
@@ -70,8 +54,13 @@
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
+
 export default {
   name: 'LoginMixwareAgreement',
+  components: {
+    CustomNavbar
+  },
   methods: {
     handleBack() {
       uni.navigateBack()
@@ -84,37 +73,6 @@ export default {
 .mixware-agreement-page {
   min-height: 100vh;
   background: #f5f5f5;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 32rpx;
-  background: #fff;
-}
-
-.navbar-left,
-.navbar-right {
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
 }
 
 .content {

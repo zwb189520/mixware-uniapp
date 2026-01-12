@@ -1,22 +1,23 @@
 <template>
   <view class="page">
     <safe-area />
-    <PhotographyNavbar
-      @back-click="handleBack"
-      @more-click="handleMore"
-    />
+    <custom-navbar title="拍一拍" @back="handleBack">
+      <template #right>
+        <uni-icons type="more-filled" size="24" @click="handleMore"></uni-icons>
+      </template>
+    </custom-navbar>
     <main-view @upload-success="handleUploadSuccess" />
   </view>
 </template>
 
 <script>
-import PhotographyNavbar from './components/PhotographyNavbar.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import MainView from './components/MainView.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   components: {
-    PhotographyNavbar,
+    CustomNavbar,
     MainView,
     SafeArea
   },

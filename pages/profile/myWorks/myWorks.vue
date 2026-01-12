@@ -1,18 +1,7 @@
 <template>
   <view class="my-works-page">
-    <safe-area></safe-area>
-    <!-- navbar -->
-    <view class="navbar">
-      <view class="navbar-left">
-        <uni-icons type="left" size="24" @click="handleBack"></uni-icons>
-      </view>
-      <view class="navbar-title">
-        <text>我的作品</text>
-      </view>
-      <view class="navbar-right"></view>
-    </view>
-    
-    <!-- 作品列表 -->
+    <safe-area />
+    <custom-navbar title="我的作品" @back="handleBack" />
     <view class="works-container">
       <view class="works-grid">
         <view 
@@ -30,13 +19,15 @@
 
 <script>
 import WorkCard from './components/WorkCard.vue'
-import { getModelRecords, getPrintRecords } from '@/api/operationRecords.js'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
+import { getModelRecords, getPrintRecords } from '@/api/operationRecords.js'
 
 export default {
   name: 'MyWorks',
   components: {
     WorkCard,
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -180,30 +171,6 @@ export default {
 .my-works-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  padding: 0 30rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-}
-
-.navbar-left {
-  width: 60rpx;
-}
-
-.navbar-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  color: #333;
-}
-
-.navbar-right {
-  width: 60rpx;
 }
 
 .works-container {

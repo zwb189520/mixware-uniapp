@@ -1,21 +1,13 @@
 <template>
   <view class="page-container">
-    <!-- 工作详情导航栏组件 -->
-    <WorkDetailNavbar
-      :work-id="workId"
-      @back-click="handleBack"
-    />
-
-    <!-- 页面内容 -->
+    <safe-area />
+    <custom-navbar title="工作详情" @back="handleBack" />
     <scroll-view scroll-y class="content-scroll">
-      <!-- 模型展示组件 -->
       <ModelDisplay
         :model-name="modelName"
         :model-image="modelImage"
         :scale="modelScale"
       />
-
-      <!-- 剩余时间组件 -->
       <PrintProgress
         :model-name="modelName"
         :estimated-time="estimatedTime"
@@ -23,21 +15,15 @@
         @pause-click="handlePause"
         @cancel-click="handleCancel"
       />
-
-      <!-- 打印机组件 -->
       <PrinterStatus
         :printer-name="printerName"
         :printer-status="printerStatus"
         :printer-image="printerImage"
       />
-
-      <!-- 喷头组件 -->
       <NozzleStatus
         :current-temp="currentTemp"
         :target-temp="targetTemp"
       />
-
-      <!-- 返回首页按钮 -->
       <ReturnHomeButton
         @return-home="handleReturnHome"
       />
@@ -46,7 +32,7 @@
 </template>
 
 <script>
-import WorkDetailNavbar from './components/WorkDetailNavbar.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import ModelDisplay from './components/ModelDisplay.vue'
 import PrintProgress from './components/PrintProgress.vue'
 import PrinterStatus from './components/PrinterStatus.vue'
@@ -55,7 +41,7 @@ import ReturnHomeButton from './components/ReturnHomeButton.vue'
 
 export default {
   components: {
-    WorkDetailNavbar,
+    CustomNavbar,
     ModelDisplay,
     PrintProgress,
     PrinterStatus,

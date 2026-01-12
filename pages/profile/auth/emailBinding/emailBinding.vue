@@ -1,22 +1,12 @@
 <template>
   <view class="email-binding-page">
-    <safe-area></safe-area>
-    <view class="navbar">
-      <view class="navbar-left" @click="handleBack">
-        <uni-icons type="left" size="24"></uni-icons>
-      </view>
-      <view class="navbar-center">
-        <text class="navbar-title">邮箱绑定</text>
-      </view>
-      <view class="navbar-right"></view>
-    </view>
-    
+    <safe-area />
+    <custom-navbar title="邮箱绑定" @back="handleBack" />
     <view class="content">
       <view class="form-item">
         <text class="form-label">邮箱</text>
         <input class="form-input" v-model="email" placeholder="请输入邮箱地址" />
       </view>
-      
       <view class="form-item">
         <text class="form-label">验证码</text>
         <view class="code-input-container">
@@ -26,18 +16,19 @@
           </button>
         </view>
       </view>
-      
       <button class="submit-btn" @click="handleSubmit">确认绑定</button>
     </view>
   </view>
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'EmailBinding',
   components: {
+    CustomNavbar,
     SafeArea
   },
   data() {
@@ -109,37 +100,6 @@ export default {
 .email-binding-page {
   min-height: 100vh;
   background: #f5f5f5;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 32rpx;
-  background: #fff;
-}
-
-.navbar-left,
-.navbar-right {
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
 }
 
 .content {

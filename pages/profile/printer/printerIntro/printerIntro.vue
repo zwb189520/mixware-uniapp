@@ -1,19 +1,15 @@
 <template>
   <view class="printer-intro-page">
-    <printer-intro-navbar :device-id="deviceId" />
-    
+    <safe-area />
+    <custom-navbar title="打印机" @back="handleBack" />
     <view class="content-container">
       <printer-name-selector @printer-change="handlePrinterChange" />
-      
       <printer-status :status="printerStatus" />
-      
       <printer-image />
-      
       <printer-progress 
         :progress="progress" 
         :estimated-time="estimatedTime"
       />
-      
       <view v-if="showEncouragement" class="encouragement-text">
         <text>你的创造正在诞生，快去打印机旁看看吧！</text>
       </view>
@@ -22,7 +18,7 @@
 </template>
 
 <script>
-import PrinterIntroNavbar from './components/PrinterIntroNavbar.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import PrinterNameSelector from './components/PrinterNameSelector.vue'
 import PrinterStatus from './components/PrinterStatus.vue'
 import PrinterImage from './components/PrinterImage.vue'
@@ -33,7 +29,7 @@ import { getDefaultDevice } from '@/api/devices.js'
 export default {
   name: 'PrinterIntro',
   components: {
-    PrinterIntroNavbar,
+    CustomNavbar,
     PrinterNameSelector,
     PrinterStatus,
     PrinterImage,
@@ -53,6 +49,9 @@ export default {
     await this.loadDeviceStatus()
   },
   methods: {
+    handleBack() {
+      uni.navigateBack()
+    },
     async loadDefaultDevice() {
       try {
         const res = await getDefaultDevice()

@@ -1,20 +1,20 @@
 <template>
   <view class="settings-page">
     <safe-area />
-    <settings-navbar />
+    <custom-navbar title="设置" />
     <settings-menu />
   </view>
 </template>
 
 <script>
-import SettingsNavbar from '../components/settingsNavbar.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SettingsMenu from '../components/settingsMenu.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
   name: 'Settings',
   components: {
-    SettingsNavbar,
+    CustomNavbar,
     SettingsMenu,
     SafeArea
   }
