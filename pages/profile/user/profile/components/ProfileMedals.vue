@@ -22,10 +22,14 @@ export default {
   data() {
     return {
       medals: [
-        { id: 1, name: '新手勋章', icon: '/static/medal-newbie.png' },
-        { id: 2, name: '创作者', icon: '/static/medal-creator.png' },
-        { id: 3, name: '活跃用户', icon: '/static/medal-active.png' },
-        { id: 4, name: '人气王', icon: '/static/medal-popular.png' }
+        { id: 1, name: '新手勋章', icon: '/static/images/logo.png' },
+        { id: 2, name: '创作者', icon: '/static/images/logo.png' },
+        { id: 3, name: '活跃用户', icon: '/static/images/logo.png' },
+        { id: 4, name: '人气王', icon: '/static/images/logo.png' },
+        { id: 5, name: '模型大师', icon: '/static/images/logo.png' },
+        { id: 6, name: '打印达人', icon: '/static/images/logo.png' },
+        { id: 7, name: '社区贡献', icon: '/static/images/logo.png' },
+        { id: 8, name: '先锋用户', icon: '/static/images/logo.png' }
       ]
     }
   }

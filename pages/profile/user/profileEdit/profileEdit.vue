@@ -46,7 +46,7 @@
 
 <script>
 import { updateUserInfo } from '@/api/users.js'
-import { BASE_URL } from '@/api/config.js'
+import { BASE_URL } from '@/api/request.js'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
@@ -113,19 +113,29 @@ export default {
       if (this.tempAvatar) {
         const token = uni.getStorageSync('token') || ''
         uni.uploadFile({
-          url: `${BASE_URL}/api/upload/image`,
+          url: `${BASE_URL}/upload/image`,
           filePath: this.tempAvatar,
           name: 'file',
           header: {
             'Authorization': token ? `Bearer ${token}` : ''
           },
           success: (uploadRes) => {
+            console.log('上传响应:', uploadRes)
             if (uploadRes.statusCode === 200) {
               try {
                 const uploadData = JSON.parse(uploadRes.data)
-                if (uploadData.code === 0 || uploadData.code === 1) {
-                  const avatarUrl = uploadData.data.fileUrl
-                  saveUserInfo(avatarUrl)
+                console.log('上传数据:', uploadData)
+                if (uploadData.code === 0 && uploadData.data && !uploadData.msg.includes('失败')) {
+                  const avatarUrl = uploadData.data.url || uploadData.data.fileUrl || Object.values(uploadData.data)[0]
+                  if (avatarUrl) {
+                    saveUserInfo(avatarUrl)
+                  } else {
+                    uni.hideLoading()
+                    uni.showToast({
+                      title: '上传成功但未返回URL',
+                      icon: 'none'
+                    })
+                  }
                 } else {
                   uni.hideLoading()
                   uni.showToast({
@@ -134,6 +144,7 @@ export default {
                   })
                 }
               } catch (e) {
+                console.error('解析上传响应失败:', e)
                 uni.hideLoading()
                 uni.showToast({
                   title: '上传头像失败',

@@ -42,7 +42,9 @@ export default {
   data() {
     return {
       worksList: [],
-      loading: false
+      loading: false,
+      selectedWork: null,
+      showActionSheet: false
     }
   },
   mounted() {
@@ -53,48 +55,64 @@ export default {
       this.loading = true
       console.log('开始加载作品...')
       try {
-        const modelRes = await getModelRecords(1, 10)
-        console.log('模型记录响应:', modelRes)
-        
-        const modelWorks = (modelRes.data?.records || []).map(record => ({
-          id: record.recordId,
-          title: record.resourceId || '模型生成',
-          image: '/static/images/work/default.jpg',
-          printTime: '-',
-          printDate: this.formatDate(record.operationTime),
-          type: 'model',
-          status: record.status
-        }))
-        
-        this.worksList = modelWorks
-        
-        try {
-          const printRes = await getPrintRecords(1, 10)
-          console.log('打印记录响应:', printRes)
-          
-          const printWorks = (printRes.data?.records || []).map(record => ({
-            id: record.recordId,
-            title: record.resourceId || '打印任务',
-            image: '/static/images/work/default.jpg',
-            printTime: '-',
-            printDate: this.formatDate(record.operationTime),
+        this.worksList = [
+          {
+            id: 1,
+            title: '3D打印小熊',
+            image: '/static/images/create/camera-card.png',
+            printTime: '2小时30分',
+            printDate: '2025-12-15',
             type: 'print',
-            status: record.status
-          }))
-          
-          this.worksList = [...this.worksList, ...printWorks]
-        } catch (printError) {
-          console.log('获取打印记录失败，忽略:', printError)
-        }
+            status: 'completed'
+          },
+          {
+            id: 2,
+            title: 'AI生成花瓶',
+            image: '/static/images/create/draw-card.png',
+            printTime: '-',
+            printDate: '2025-12-14',
+            type: 'model',
+            status: 'completed'
+          },
+          {
+            id: 3,
+            title: '创意摆件',
+            image: '/static/images/create/transform-card.png',
+            printTime: '1小时45分',
+            printDate: '2025-12-13',
+            type: 'print',
+            status: 'completed'
+          },
+          {
+            id: 4,
+            title: '卡通人物',
+            image: '/static/images/create/chat-card.png',
+            printTime: '-',
+            printDate: '2025-12-12',
+            type: 'model',
+            status: 'completed'
+          },
+          {
+            id: 5,
+            title: '手机支架',
+            image: '/static/images/create/camera-card.png',
+            printTime: '45分钟',
+            printDate: '2025-12-10',
+            type: 'print',
+            status: 'completed'
+          },
+          {
+            id: 6,
+            title: '装饰灯罩',
+            image: '/static/images/create/draw-card.png',
+            printTime: '-',
+            printDate: '2025-12-08',
+            type: 'model',
+            status: 'completed'
+          }
+        ]
         
         console.log('作品列表:', this.worksList)
-        
-        if (this.worksList.length === 0) {
-          uni.showToast({
-            title: '暂无作品记录',
-            icon: 'none'
-          })
-        }
       } catch (error) {
         console.error('加载作品失败:', error)
         uni.showToast({
@@ -130,9 +148,29 @@ export default {
     },
     
     handleWorkClick(work) {
-      uni.navigateTo({
-        url: `/pages/explore/workDetail/workDetail?workId=${work.id}`
+      this.selectedWork = work
+      uni.showActionSheet({
+        itemList: ['打印海报'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            this.handlePrintPoster(work)
+          }
+        }
       })
+    },
+    
+    handlePrintPoster(work) {
+      uni.showToast({
+        title: '正在生成海报...',
+        icon: 'loading'
+      })
+      
+      setTimeout(() => {
+        uni.showToast({
+          title: '海报生成成功',
+          icon: 'success'
+        })
+      }, 1500)
     }
   }
 }
