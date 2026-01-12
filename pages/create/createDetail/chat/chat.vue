@@ -306,6 +306,8 @@ export default {
   padding: 0 30rpx;
   background-color: #fff;
   border-bottom: 1rpx solid #eee;
+  position: relative;
+  z-index: 999;
 }
 
 .navbar-left {
@@ -520,13 +522,15 @@ export default {
   transition: all 0.3s ease;
 }
 
-.send-btn.disabled {
-  background: #cccccc;
-  color: #999999;
+.send-btn:not(:disabled) {
+  background: #2d8cf0;
+  color: #ffffff;
 }
 
-.send-btn:disabled {
-  background: #cccccc;
-  color: #999999;
+.send-btn:disabled,
+.send-btn.disabled {
+  background: #cccccc !important;
+  color: #999999 !important;
+  box-shadow: none !important;
 }
 </style>

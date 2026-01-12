@@ -252,10 +252,20 @@ export default {
     },
 
     handlePrint() {
-      // 进入3D模型基础浏览
       const modelId = this.modelInfo.id || this.modelId || ''
       const modelName = this.modelInfo.name || '3D模型'
       const modelUrl = this.modelInfo.modelFile || this.modelInfo.images[0] || ''
+      
+      const ext = modelUrl.split('.').pop().toLowerCase()
+      if (ext === 'gcode') {
+        uni.showModal({
+          title: '格式不支持',
+          content: '当前暂不支持 GCode 格式的模型预览，请使用 GLB、GLTF、OBJ 或 STL 格式的模型',
+          showCancel: false
+        })
+        return
+      }
+      
       uni.navigateTo({
         url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelName)}&url=${encodeURIComponent(modelUrl)}`
       })

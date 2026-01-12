@@ -124,15 +124,25 @@ export default {
     
     console.log('解析后的页面参数:', { id: this.modelId, name: this.modelName, url: this.modelUrl, modelType: this.modelType })
     
-    // 初始化状态栏高度
+    const ext = this.modelUrl.split('.').pop().toLowerCase()
+    if (ext === 'gcode') {
+      uni.showModal({
+        title: '格式不支持',
+        content: '当前暂不支持 GCode 格式的模型预览，请使用 GLB、GLTF、OBJ 或 STL 格式的模型',
+        showCancel: false,
+        success: () => {
+          uni.navigateBack()
+        }
+      })
+      return
+    }
+    
     this.initStatusBarHeight()
     
-    // 获取系统信息，设置安全区域
     const systemInfo = uni.getSystemInfoSync()
     const safeAreaBottom = systemInfo.safeAreaInsets ? systemInfo.safeAreaInsets.bottom : 0
     this.safeAreaBottom = safeAreaBottom
     
-    // 如果有模型URL，直接加载；否则尝试通过API获取
     if (this.modelUrl) {
       this.loading = true
     } else if (this.modelId) {
