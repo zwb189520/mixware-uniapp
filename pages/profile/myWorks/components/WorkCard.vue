@@ -1,6 +1,11 @@
 <template>
   <view class="work-card">
-    <image class="work-image" :src="work.image" mode="aspectFill"></image>
+    <image 
+      class="work-image" 
+      :src="work.image" 
+      mode="aspectFill"
+      lazy-load
+    ></image>
     <view class="work-info">
       <text class="work-title">{{ work.title }}</text>
       <view class="work-meta">

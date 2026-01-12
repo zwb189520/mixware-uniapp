@@ -1,7 +1,7 @@
 <template>
   <view class="profile-user-info" @click="handleLogin">
     <view class="user-avatar">
-      <image v-if="isLoggedIn && userInfo.avatar" :src="userInfo.avatar" mode="aspectFill" />
+      <image v-if="isLoggedIn && userInfo.avatar" :src="userInfo.avatar" mode="aspectFill" lazy-load />
       <uni-icons v-else type="person" size="50" color="#999"></uni-icons>
     </view>
     <view class="user-details">

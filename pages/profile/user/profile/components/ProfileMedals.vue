@@ -10,7 +10,7 @@
         :key="medal.id" 
         class="medal-item"
       >
-        <image :src="medal.icon" mode="aspectFit" />
+        <image :src="medal.icon" mode="aspectFit" lazy-load />
         <text class="medal-name">{{ medal.name }}</text>
       </view>
     </view>

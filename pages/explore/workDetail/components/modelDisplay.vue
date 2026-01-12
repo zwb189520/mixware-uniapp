@@ -5,6 +5,7 @@
         class="model-image" 
         :src="modelImage" 
         mode="aspectFit"
+        lazy-load
         @error="handleImageError"
       />
       <view class="model-info">

@@ -7,6 +7,7 @@
           class="model-image" 
           :src="modelImage" 
           mode="aspectFill"
+          lazy-load
           @click="handleImageClick"
           @error="handleImageError"
         />

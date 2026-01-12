@@ -9,7 +9,13 @@
               :key="item.id" 
               @click="handleCardClick(item)"
             >
-              <image class="card-img" :src="item.image" mode="widthFix" @error="handleImageError"/>
+              <image 
+                class="card-img" 
+                :src="item.image" 
+                mode="widthFix" 
+                lazy-load
+                @error="handleImageError"
+              />
               <view class="card-info">
                 <text class="card-desc">{{ item.desc }}</text>
                 <view class="card-footer">
@@ -34,7 +40,13 @@
               :key="item.id" 
               @click="handleCardClick(item)"
             >
-              <image class="card-img" :src="item.image" mode="widthFix" @error="handleImageError"/>
+              <image 
+                class="card-img" 
+                :src="item.image" 
+                mode="widthFix" 
+                lazy-load
+                @error="handleImageError"
+              />
               <view class="card-info">
                 <text class="card-desc">{{ item.desc }}</text>
                 <view class="card-footer">

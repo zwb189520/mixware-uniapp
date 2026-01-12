@@ -16,6 +16,7 @@
             class="carousel-image" 
             :src="image" 
             mode="aspectFit"
+            lazy-load
             @click="handleImageClick(index)"
             @error="handleImageError"
           />
@@ -38,7 +39,7 @@
           </view>
         </view>
           <view class="author-info" @click="handleAuthorClick">
-          <image class="author-avatar" :src="modelInfo.authorAvatar" mode="aspectFill" @error="handleImageError"/>
+          <image class="author-avatar" :src="modelInfo.authorAvatar" mode="aspectFill" lazy-load @error="handleImageError"/>
           <text class="author-name">{{ modelInfo.author }}</text>
         </view>
       </view>
@@ -74,6 +75,7 @@
               class="print-image" 
               :src="model.image" 
               mode="aspectFit"
+              lazy-load
               @error="handleImageError"
             />
             <view class="print-details">
@@ -99,6 +101,7 @@
               class="showcase-image" 
               :src="work.image" 
               mode="aspectFill"
+              lazy-load
               @error="handleImageError"
             />
             <view class="showcase-overlay">
