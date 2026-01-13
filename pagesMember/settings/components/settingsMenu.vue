@@ -81,7 +81,7 @@ export default {
             // 返回profile页面
             setTimeout(() => {
               uni.switchTab({
-                url: '/pages/profile/profile/profile'
+                url: '/pages/profile/profile'
               })
             }, 1000)
           }

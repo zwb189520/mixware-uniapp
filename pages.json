@@ -70,7 +70,7 @@
 			}
 		},
 		{
-			"path": "pages/profile/profile/profile",
+			"path": "pages/profile/profile",
 			"style": {
 				"navigationStyle": "custom"
 			}
@@ -227,7 +227,7 @@
 		}
 	],
 	"preloadRule": {
-		"pages/profile/profile/profile": {
+		"pages/profile/profile": {
 			"network": "all",
 			"packages": ["pagesMember/auth", "pagesMember/printer", "pagesMember/message", "pagesMember/settings"]
 		},
@@ -261,7 +261,7 @@
 				"text": "创建"
 			},
 			{
-				"pagePath": "pages/profile/profile/profile",
+				"pagePath": "pages/profile/profile",
 				"iconPath": "static/tabs/tab-profile.png",
 				"selectedIconPath": "static/tabs/tab-profile-active.png",
 				"text": "我的"

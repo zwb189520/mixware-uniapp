@@ -96,7 +96,7 @@ export default {
                     
                     setTimeout(() => {
                       uni.reLaunch({
-                        url: '/pages/profile/profile/profile'
+                        url: '/pages/profile/profile'
                       })
                     }, 1500)
                   }).catch((error) => {
