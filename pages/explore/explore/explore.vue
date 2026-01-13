@@ -106,7 +106,7 @@ import VirtualWaterfallLayout from './components/virtualWaterfallLayout.vue'
 import { getModelPage } from '@/api/models.js'
 import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
 import { getHotExamples } from '@/api/session.js'
-import { useExploreStore } from '@/stores/explore.js'
+import { useExploreStore } from '@/stores/index.js'
 import { storeToRefs } from 'pinia'
 
 export default {

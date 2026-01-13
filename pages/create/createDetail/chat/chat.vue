@@ -84,7 +84,7 @@
 	import mpHtml from '@/components/mp-html/mp-html.vue'
 	import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 	import SafeArea from '@/components/safe-area/safe-area.vue'
-	import { useChatStore } from '@/stores/chat.js'
+	import { useChatStore } from '@/stores/index.js'
 	import { storeToRefs } from 'pinia'
 
 	export default {
