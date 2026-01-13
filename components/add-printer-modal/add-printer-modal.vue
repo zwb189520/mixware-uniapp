@@ -10,25 +10,18 @@
           <text>加载中...</text>
         </view>
         <view v-else-if="deviceList.length === 0" class="empty">
-          <text>暂无可用设备</text>
+          <text>未扫描到蓝牙设备</text>
         </view>
         <view v-else>
-          <view v-for="device in deviceList" :key="device.deviceId" class="printer-item">
+          <view v-for="device in deviceList" :key="device.id || device.deviceId" class="printer-item">
             <view class="printer-main" @tap="handleSelectPrinter(device.deviceId)">
               <image class="printer-icon" src="/static/img/printer-icon.png" mode="aspectFit" />
               <view class="printer-info">
-                <text class="printer-name">{{ device.deviceName || '未命名设备' }}</text>
-                <text class="printer-model">{{ device.deviceModel || '未知型号' }}</text>
+                <text class="printer-name">{{ device.deviceName || device.name || '未命名设备' }}</text>
+                <text class="printer-model">{{ device.deviceId || '未知设备' }}</text>
               </view>
             </view>
-            <view class="printer-actions">
-              <view class="bind-btn" @tap="handleBindDevice(device.deviceId)">
-                <uni-icons type="link" size="18" color="#007aff"></uni-icons>
-              </view>
-              <view class="delete-btn" @tap="handleDeleteDevice(device.deviceId)">
-                <uni-icons type="trash" size="18" color="#ff4d4f"></uni-icons>
-              </view>
-            </view>
+
           </view>
         </view>
       </view>
@@ -41,7 +34,9 @@
 </template>
 
 <script>
-import { getDeviceList, deleteDevice, bindDevice } from '@/api/devices.js'
+import { deleteDevice, bindDevice } from '@/api/devices.js'
+import { initBluetooth, startBluetoothScan, stopBluetoothScan, getBluetoothDevices } from '@/utils/bluetooth.js'
+import { checkAllPermissions } from '@/utils/permission.js'
 
 export default {
   name: 'AddPrinterModal',
@@ -54,13 +49,18 @@ export default {
   data() {
     return {
       deviceList: [],
-      loading: false
+      loading: false,
+      bluetoothDevices: [],
+      scanType: 'bluetooth', // 默认蓝牙扫描，不要API设备
+      scanTimer: null
     }
   },
   watch: {
     visible(newVal) {
       if (newVal) {
         this.loadDeviceList()
+      } else {
+        this.stopBluetoothScan()
       }
     }
   },
@@ -68,66 +68,97 @@ export default {
     async loadDeviceList() {
       this.loading = true
       try {
-        const res = await getDeviceList()
-        const currentUserId = uni.getStorageSync('userId') || ''
-        console.log('当前用户ID:', currentUserId)
-        console.log('设备列表完整响应:', res)
-        console.log('设备列表数据:', res.data)
-        console.log('设备列表记录:', res.data?.records)
-        if (res.data && res.data.records) {
-          this.deviceList = res.data.records
-          console.log('最终设备列表:', this.deviceList)
-          this.deviceList.forEach((device, index) => {
-            console.log(`设备${index}:`, {
-              deviceId: device.deviceId,
-              deviceName: device.deviceName,
-              deviceModel: device.deviceModel,
-              userId: device.userId,
-              deviceStatus: device.deviceStatus
-            })
-          })
-        }
+        // 只使用蓝牙扫描，不要API设备
+        await this.scanBluetoothDevices()
       } catch (error) {
-        console.error('获取设备列表失败:', error)
+        console.error('扫描设备失败:', error)
       } finally {
         this.loading = false
       }
     },
-    handleSelectPrinter(printerId) {
-      console.log('选择的设备ID:', printerId)
-      const selectedDevice = this.deviceList.find(d => d.deviceId === printerId)
-      console.log('选择的设备详情:', selectedDevice)
-      this.$emit('select-printer', printerId)
-    },
-    async handleBindDevice(deviceId) {
+    
+
+    
+    async scanBluetoothDevices() {
+      console.log('扫描蓝牙设备...')
+      
       try {
+        const hasPermission = await checkAllPermissions()
+        if (!hasPermission) {
+          console.log('权限不足，无法扫描')
+          return
+        }
+        
+        await initBluetooth()
+        await startBluetoothScan()
+        
         uni.showLoading({
-          title: '绑定中...'
+          title: '扫描中...'
         })
         
-        await bindDevice({
-          deviceId: deviceId
-        })
+        this.scanTimer = setTimeout(async () => {
+          const devices = await getBluetoothDevices()
+          console.log('蓝牙扫描结果:', devices)
+          
+          uni.hideLoading()
+          
+          this.bluetoothDevices = devices.map(device => ({
+            id: device.deviceId,
+            name: device.displayName,
+            deviceId: device.deviceId,
+            deviceName: device.displayName,
+            rssi: device.RSSI,
+            isBluetooth: true
+          }))
+          
+          this.deviceList = this.bluetoothDevices
+          await stopBluetoothScan()
+          
+          if (this.bluetoothDevices.length === 0) {
+            uni.showToast({
+              title: '未扫描到任何蓝牙设备',
+              icon: 'none'
+            })
+          }
+        }, 10000) // 10秒扫描时间
         
-        uni.hideLoading()
-        uni.showToast({
-          title: '绑定成功',
-          icon: 'success'
-        })
-        
-        await this.loadDeviceList()
       } catch (error) {
         uni.hideLoading()
-        console.error('绑定设备失败:', error)
+        console.error('蓝牙扫描失败:', error)
         uni.showToast({
-          title: error.message || '绑定失败',
+          title: '蓝牙扫描失败: ' + error.message,
           icon: 'none'
         })
       }
     },
+    
+    stopBluetoothScan() {
+      try {
+        if (this.scanTimer) {
+          clearTimeout(this.scanTimer)
+          this.scanTimer = null
+        }
+        uni.hideLoading()
+        stopBluetoothScan()
+        console.log('蓝牙扫描已停止')
+      } catch (error) {
+        console.log('停止扫描失败:', error)
+      }
+    },
+    
+
+    handleSelectPrinter(printerId) {
+      this.$emit('select-printer', printerId)
+    },
+    async handleBindDevice(deviceId) {
+      // 蓝牙设备直接选择，不需要绑定
+      this.$emit('select-printer', deviceId)
+    },
     handleCancel() {
+      this.stopBluetoothScan()
       this.$emit('cancel')
-    }
+    },
+
   }
 }
 </script>
@@ -163,8 +194,19 @@ export default {
 }
 
 .modal-header {
+  position: relative;
   text-align: center;
   margin-bottom: 40rpx;
+}
+
+.scan-type-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 10rpx 20rpx;
+  background-color: #f0f0f0;
+  border-radius: 20rpx;
 }
 
 .modal-title {
@@ -182,6 +224,19 @@ export default {
   text-align: center;
   padding: 60rpx 0;
   color: #999;
+  font-size: 28rpx;
+}
+
+.add-device-hint {
+  margin-top: 20rpx;
+  padding: 20rpx 40rpx;
+  background-color: #007aff;
+  border-radius: 50rpx;
+  display: inline-block;
+}
+
+.hint-text {
+  color: white;
   font-size: 28rpx;
 }
 

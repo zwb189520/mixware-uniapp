@@ -98,12 +98,12 @@ export default {
     async checkPrinterStatus() {
       try {
         const res = await getDefaultDevice()
-        if (res.data && res.data.deviceId) {
+        if (res.data && (res.data.deviceId || res.data.id)) {
           this.isBound = true
           this.printerInfo = {
-            name: res.data.deviceName || '我的3D打印机',
-            model: res.data.deviceModel || '未知型号',
-            isOnline: res.data.deviceStatus === 1
+            name: res.data.deviceName || res.data.name || '我的3D打印机',
+            model: res.data.deviceModel || res.data.model || '未知型号',
+            isOnline: res.data.deviceStatus === 1 || res.data.status === 1
           }
         } else {
           this.isBound = false

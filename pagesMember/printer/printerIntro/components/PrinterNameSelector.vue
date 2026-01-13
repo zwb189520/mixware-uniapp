@@ -40,18 +40,26 @@ export default {
   methods: {
     async loadDevices() {
       try {
+        console.log('扫描可用设备...')
         const res = await getDeviceList()
-        if (res.data && res.data.records) {
-          this.printers = res.data.records.map(device => ({
-            id: device.deviceId,
-            name: device.deviceName || device.deviceId
-          }))
-          if (this.printers.length > 0) {
-            this.currentPrinter = this.printers[0]
-          }
+        const data = res?.data ?? res ?? []
+        console.log('扫描到的设备:', data)
+        
+        this.printers = Array.isArray(data) ? data
+          .filter(device => {
+            const deviceName = device.deviceName || device.name || ''
+            return deviceName && deviceName.startsWith('WG')
+          })
+          .map(device => ({
+            id: device.id || device.deviceId,
+            name: device.deviceName || device.name || device.deviceId || '未命名设备'
+          })) : []
+          
+        if (this.printers.length > 0) {
+          this.currentPrinter = this.printers[0]
         }
       } catch (error) {
-        console.error('获取设备列表失败:', error)
+        console.error('扫描设备失败:', error)
       }
     },
     toggleDropdown() {
