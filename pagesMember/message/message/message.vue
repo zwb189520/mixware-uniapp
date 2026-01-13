@@ -43,7 +43,7 @@ export default {
     },
     handleSettings() {
       uni.navigateTo({
-        url: '/pages/profile/message/messageSettings/messageSettings'
+        url: '/pagesMember/message/messageSettings/messageSettings'
       })
     }
   }

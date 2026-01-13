@@ -41,7 +41,7 @@ export default {
     },
     handleReady() {
       uni.navigateTo({
-        url: `/pages/profile/printer/addDevice/addDevice?printerId=${this.printerId}`
+        url: `/pagesMember/printer/addDevice/addDevice?printerId=${this.printerId}`
       })
     }
   }

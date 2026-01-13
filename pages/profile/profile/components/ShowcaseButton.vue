@@ -13,7 +13,7 @@ export default {
   methods: {
     handleShowcaseClick() {
         uni.navigateTo({
-          url: '/pages/profile/myWorks/myWorks'
+          url: '/pagesMember/myWorks/myWorks'
         })
       }
   }

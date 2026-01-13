@@ -1,14 +1,14 @@
 <template>
   <view class="settings-page">
     <safe-area />
-    <custom-navbar title="设置" />
+    <custom-navbar title="设置" @back="handleBack" />
     <settings-menu />
   </view>
 </template>
 
 <script>
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import SettingsMenu from '../components/settingsMenu.vue'
+import SettingsMenu from './components/settingsMenu.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export default {
@@ -17,6 +17,11 @@ export default {
     CustomNavbar,
     SettingsMenu,
     SafeArea
+  },
+  methods: {
+    handleBack() {
+      uni.navigateBack()
+    }
   }
 }
 </script>

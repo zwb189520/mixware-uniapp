@@ -63,7 +63,7 @@ export default {
     },
     handlePrinterIntro() {
         uni.navigateTo({
-          url: '/pages/profile/printer/printerIntro/printerIntro'
+          url: '/pagesMember/printer/printerIntro/printerIntro'
         })
       },
       async onSelectPrinter(printerId) {

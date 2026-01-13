@@ -23,7 +23,7 @@ export default {
   methods: {
     handleReconfigure() {
         uni.navigateTo({
-          url: '/pages/profile/printer/addDevice/addDevice'
+          url: '/pagesMember/printer/addDevice/addDevice'
         })
       },
     async handleUnbind() {

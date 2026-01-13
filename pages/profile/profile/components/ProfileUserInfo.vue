@@ -27,11 +27,11 @@ export default {
     handleLogin() {
         if (!this.isLoggedIn) {
           uni.navigateTo({
-            url: '/pages/profile/auth/login/login'
+            url: '/pagesMember/auth/login/login'
           })
         } else {
           uni.navigateTo({
-            url: '/pages/profile/user/profileEdit/profileEdit'
+            url: '/pages/profile/profileEdit/profileEdit'
           })
         }
       },

@@ -37,22 +37,22 @@ export default {
             const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
             if (!isLoggedIn) {
               uni.navigateTo({
-                url: '/pages/profile/auth/login/login'
+                url: '/pagesMember/auth/login/login'
               })
             } else {
               uni.navigateTo({
-                url: '/pages/profile/user/profileEdit/profileEdit'
+                url: '/pages/profile/profileEdit/profileEdit'
               })
             }
           } else if (item.id === 2) {
             const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
             if (!isLoggedIn) {
               uni.navigateTo({
-                url: '/pages/profile/auth/login/login'
+                url: '/pagesMember/auth/login/login'
               })
             } else {
               uni.navigateTo({
-                url: '/pages/profile/user/accountSecurity/accountSecurity'
+                url: '/pages/profile/accountSecurity/accountSecurity'
               })
             }
           }
@@ -81,7 +81,7 @@ export default {
             // 返回profile页面
             setTimeout(() => {
               uni.switchTab({
-                url: '/pages/profile/user/profile/profile'
+                url: '/pages/profile/profile/profile'
               })
             }, 1000)
           }

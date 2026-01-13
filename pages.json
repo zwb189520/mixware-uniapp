@@ -70,120 +70,157 @@
 			}
 		},
 		{
-			"path": "pages/profile/user/profile/profile",
+			"path": "pages/profile/profile/profile",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/profile/settings/settings/settings",
+			"path": "pages/profile/accountSecurity/accountSecurity",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/profile/message/message/message",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/message/messageSettings/messageSettings",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/printer/printerIntro/printerIntro",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/printer/printerMoreIntro/printerMoreIntro",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/auth/login/login",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/auth/loginUserAgreement/loginUserAgreement",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/auth/loginPrivacy/loginPrivacy",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/auth/loginMixwareAgreement/loginMixwareAgreement",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/user/accountSecurity/accountSecurity",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/auth/resetPassword/resetPassword",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/auth/emailBinding/emailBinding",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/user/thirdPartyBinding/thirdPartyBinding",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/user/profileEdit/profileEdit",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/printer/printerPrint/printerPrint",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/printer/addDevice/addDevice",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/printer/deviceSuccess/deviceSuccess",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/myWorks/myWorks",
+			"path": "pages/profile/profileEdit/profileEdit",
 			"style": {
 				"navigationStyle": "custom"
 			}
 		}
 	],
+	"subPackages": [
+		{
+			"root": "pagesMember/auth",
+			"pages": [
+				{
+					"path": "login/login",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "loginUserAgreement/loginUserAgreement",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "loginPrivacy/loginPrivacy",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "loginMixwareAgreement/loginMixwareAgreement",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "resetPassword/resetPassword",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "emailBinding/emailBinding",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "thirdPartyBinding/thirdPartyBinding",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/printer",
+			"pages": [
+				{
+					"path": "printerIntro/printerIntro",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "printerMoreIntro/printerMoreIntro",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "printerPrint/printerPrint",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "addDevice/addDevice",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "deviceSuccess/deviceSuccess",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/settings",
+			"pages": [
+				{
+					"path": "settings",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/message",
+			"pages": [
+				{
+					"path": "message/message",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "messageSettings/messageSettings",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/myWorks",
+			"pages": [
+				{
+					"path": "myWorks",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		}
+	],
+	"preloadRule": {
+		"pages/profile/profile/profile": {
+			"network": "all",
+			"packages": ["pagesMember/auth", "pagesMember/printer", "pagesMember/message", "pagesMember/settings"]
+		},
+		"pages/create/create/create": {
+			"network": "all",
+			"packages": ["pagesMember/myWorks"]
+		}
+	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
@@ -209,7 +246,7 @@
 				"text": "创建"
 			},
 			{
-				"pagePath": "pages/profile/user/profile/profile",
+				"pagePath": "pages/profile/profile/profile",
 				"iconPath": "static/tabs/tab-profile.png",
 				"selectedIconPath": "static/tabs/tab-profile-active.png",
 				"text": "我的"

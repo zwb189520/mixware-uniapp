@@ -38,12 +38,12 @@ export default {
   methods: {
     handleSettings() {
       uni.navigateTo({
-        url: '/pages/profile/settings/settings/settings'
+        url: '/pagesMember/settings/settings'
       })
     },
     handleNotification() {
       uni.navigateTo({
-        url: '/pages/profile/message/message/message'
+        url: '/pagesMember/message/message/message'
       })
     }
   }

@@ -45,19 +45,19 @@ export default {
     
     handleResetPassword() {
       uni.navigateTo({
-        url: '/pages/profile/auth/resetPassword/resetPassword'
+        url: '/pagesMember/auth/resetPassword/resetPassword'
       })
     },
     
     handleEmailBinding() {
       uni.navigateTo({
-        url: '/pages/profile/auth/emailBinding/emailBinding'
+        url: '/pagesMember/auth/emailBinding/emailBinding'
       })
     },
     
     handleThirdPartyBinding() {
       uni.navigateTo({
-        url: '/pages/profile/user/thirdPartyBinding/thirdPartyBinding'
+        url: '/pagesMember/auth/thirdPartyBinding/thirdPartyBinding'
       })
     },
     
@@ -96,7 +96,7 @@ export default {
                     
                     setTimeout(() => {
                       uni.reLaunch({
-                        url: '/pages/profile/user/profile/profile'
+                        url: '/pages/profile/profile/profile'
                       })
                     }, 1500)
                   }).catch((error) => {

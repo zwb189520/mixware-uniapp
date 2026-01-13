@@ -91,7 +91,7 @@ export default {
       }
       
       uni.navigateTo({
-        url: `/pages/profile/printer/deviceSuccess/deviceSuccess?printerId=${this.printerId}`
+        url: `/pagesMember/printer/deviceSuccess/deviceSuccess?printerId=${this.printerId}`
       })
     }
   }
