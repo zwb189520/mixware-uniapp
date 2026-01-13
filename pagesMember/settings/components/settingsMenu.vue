@@ -41,7 +41,7 @@ export default {
               })
             } else {
               uni.navigateTo({
-                url: '/pages/profile/profileEdit/profileEdit'
+                url: '/pagesMember/profileEdit/profileEdit'
               })
             }
           } else if (item.id === 2) {
@@ -52,7 +52,7 @@ export default {
               })
             } else {
               uni.navigateTo({
-                url: '/pages/profile/accountSecurity/accountSecurity'
+                url: '/pagesMember/accountSecurity/accountSecurity'
               })
             }
           }

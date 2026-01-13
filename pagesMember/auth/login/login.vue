@@ -338,19 +338,19 @@ export default {
     
     handleUserAgreement() {
       uni.navigateTo({
-        url: '/pagesMember/auth/loginUserAgreement/loginUserAgreement'
+        url: '/pagesMember/agreements/loginUserAgreement/loginUserAgreement'
       })
     },
     
     handlePrivacy() {
       uni.navigateTo({
-        url: '/pagesMember/auth/loginPrivacy/loginPrivacy'
+        url: '/pagesMember/agreements/loginPrivacy/loginPrivacy'
       })
     },
     
     handleMixwareAgreement() {
       uni.navigateTo({
-        url: '/pagesMember/auth/loginMixwareAgreement/loginMixwareAgreement'
+        url: '/pagesMember/agreements/loginMixwareAgreement/loginMixwareAgreement'
       })
     },
     

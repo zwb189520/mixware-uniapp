@@ -31,7 +31,7 @@ export default {
           })
         } else {
           uni.navigateTo({
-            url: '/pages/profile/profileEdit/profileEdit'
+            url: '/pagesMember/profileEdit/profileEdit'
           })
         }
       },

@@ -74,18 +74,6 @@
 			"style": {
 				"navigationStyle": "custom"
 			}
-		},
-		{
-			"path": "pages/profile/accountSecurity/accountSecurity",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/profileEdit/profileEdit",
-			"style": {
-				"navigationStyle": "custom"
-			}
 		}
 	],
 	"subPackages": [
@@ -94,24 +82,6 @@
 			"pages": [
 				{
 					"path": "login/login",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "loginUserAgreement/loginUserAgreement",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "loginPrivacy/loginPrivacy",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
-					"path": "loginMixwareAgreement/loginMixwareAgreement",
 					"style": {
 						"navigationStyle": "custom"
 					}
@@ -130,6 +100,29 @@
 				},
 				{
 					"path": "thirdPartyBinding/thirdPartyBinding",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/agreements",
+			"pages": [
+				{
+					"path": "loginUserAgreement/loginUserAgreement",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "loginPrivacy/loginPrivacy",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "loginMixwareAgreement/loginMixwareAgreement",
 					"style": {
 						"navigationStyle": "custom"
 					}
@@ -176,6 +169,28 @@
 			"pages": [
 				{
 					"path": "settings",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/accountSecurity",
+			"pages": [
+				{
+					"path": "accountSecurity",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/profileEdit",
+			"pages": [
+				{
+					"path": "profileEdit",
 					"style": {
 						"navigationStyle": "custom"
 					}
