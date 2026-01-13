@@ -50,17 +50,6 @@ export default {
 }
 </script>
 
-<script>
-export default {
-  name: 'LoginUserAgreement',
-  methods: {
-    handleBack() {
-      uni.navigateBack()
-    }
-  }
-}
-</script>
-
 <style scoped>
 .agreement-page {
   min-height: 100vh;

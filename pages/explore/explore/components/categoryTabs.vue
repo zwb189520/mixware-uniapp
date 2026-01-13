@@ -108,7 +108,7 @@ export default {
   transition: all .3s ease;
 }
 .tab-item.active .tab-text {
-  color: #333;
+  color: #07C160;
   font-weight: 500;
   transform: scale(1.05);
 }

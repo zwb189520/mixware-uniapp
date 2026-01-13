@@ -41,11 +41,10 @@ export default {
 
 <style scoped>
 .search-bar {
-  margin-top: 20rpx;
-  margin-bottom: 10rpx;
+  margin: 20rpx 20rpx 10rpx;
   background: #f5f5f5;
   border-radius: 50rpx;
-  padding: 20rpx 25rpx;
+  padding: 12rpx;
   display: flex;
   align-items: center;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,.1);
@@ -53,7 +52,6 @@ export default {
 .search-left {
   display: flex;
   align-items: center;
-  margin-left: 30rpx;
 }
 .divider {
   width: 2rpx;

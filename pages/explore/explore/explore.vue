@@ -1,70 +1,85 @@
 <template>
-  <scroll-view scroll-y class="page-scroll" :scroll-x="false" :show-scrollbar="false">
-    <!-- 顶部背景组件 -->
-    <BackgroundHeader
-      background-image="/static/images/explore-bg.png"
-      logo-image="/static/images/logo.png"
-      welcome-text="欢迎来到Mixware"
-    />
+  <view class="page-container">
+    <!-- 下拉刷新区域 -->
+    <scroll-view 
+      scroll-y 
+      class="content-scroll" 
+      :show-scrollbar="false"
+      refresher-enabled
+      :refresher-triggered="refreshing"
+      refresher-default-text="下拉刷新"
+      refresher-pulling-text="下拉刷新"
+      refresher-refreshing-text="正在刷新..."
+      refresher-complete-text="刷新完成"
+      refresher-complete-delay="1000"
+      @refresherrefresh="onRefresh"
+    >
+      <!-- 顶部背景组件 -->
+      <BackgroundHeader
+        background-image="/static/images/explore-bg.png"
+        logo-image="/static/images/logo.png"
+        welcome-text="欢迎来到Mixware"
+      />
 
-    <!-- 白色圆角盖：从搜索框开始向下 -->
-    <view class="main-card">
-      <!-- 吸顶容器 -->
-      <view class="sticky-bar">
-        <!-- 搜索栏组件 -->
-        <SearchBar
-          placeholder="搜索模型"
-          :keyword="keyword"
-          @search-click="showSearch = true"
-          @scan-click="handleScan"
+      <!-- 白色圆角盖：从搜索框开始向下 -->
+      <view class="main-card">
+        <!-- 吸顶容器 -->
+        <view class="sticky-bar">
+          <!-- 搜索栏组件 -->
+          <SearchBar
+            placeholder="搜索模型"
+            :keyword="keyword"
+            @search-click="showSearch = true"
+            @scan-click="handleScan"
+          />
+
+          <!-- 分类标签组件 -->
+          <CategoryTabs
+            :tabs="[
+              { label: '每日推荐', value: 'daily' },
+              { label: '热门创作', value: 'hot' },
+              { label: '其他类目', value: 'category' }
+            ]"
+            :current-tab="currentTab"
+            @tab-change="switchTab"
+          />
+        </view>
+
+        <!-- 瀑布流布局组件 -->
+        <view v-if="loading" class="loading-container">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">加载中...</text>
+        </view>
+        
+        <WaterfallLayout
+          v-if="currentTab === 'daily'"
+          :left-list="dailyLeftList"
+          :right-list="dailyRightList"
+          :slide-direction="slideDirection"
+          @card-click="handleModelClick"
+          @like-click="toggleLike"
+          @author-click="handleAuthorClick"
         />
-
-        <!-- 分类标签组件 -->
-        <CategoryTabs
-          :tabs="[
-            { label: '每日推荐', value: 'daily' },
-            { label: '热门创作', value: 'hot' },
-            { label: '其他类目', value: 'category' }
-          ]"
-          :current-tab="currentTab"
-          @tab-change="switchTab"
+        <WaterfallLayout
+          v-if="currentTab === 'hot'"
+          :left-list="hotLeftList"
+          :right-list="hotRightList"
+          :slide-direction="slideDirection"
+          @card-click="handleModelClick"
+          @like-click="toggleLike"
+          @author-click="handleAuthorClick"
+        />
+        <WaterfallLayout
+          v-if="currentTab === 'category'"
+          :left-list="categoryLeftList"
+          :right-list="categoryRightList"
+          :slide-direction="slideDirection"
+          @card-click="handleModelClick"
+          @like-click="toggleLike"
+          @author-click="handleAuthorClick"
         />
       </view>
-
-      <!-- 瀑布流布局组件 -->
-      <view v-if="loading" class="loading-container">
-        <view class="loading-spinner"></view>
-        <text class="loading-text">加载中...</text>
-      </view>
-      
-      <WaterfallLayout
-        v-if="currentTab === 'daily'"
-        :left-list="dailyLeftList"
-        :right-list="dailyRightList"
-        :slide-direction="slideDirection"
-        @card-click="handleModelClick"
-        @like-click="toggleLike"
-        @author-click="handleAuthorClick"
-      />
-      <WaterfallLayout
-        v-if="currentTab === 'hot'"
-        :left-list="hotLeftList"
-        :right-list="hotRightList"
-        :slide-direction="slideDirection"
-        @card-click="handleModelClick"
-        @like-click="toggleLike"
-        @author-click="handleAuthorClick"
-      />
-      <WaterfallLayout
-        v-if="currentTab === 'category'"
-        :left-list="categoryLeftList"
-        :right-list="categoryRightList"
-        :slide-direction="slideDirection"
-        @card-click="handleModelClick"
-        @like-click="toggleLike"
-        @author-click="handleAuthorClick"
-      />
-    </view>
+    </scroll-view>
 
     <!-- 搜索弹层组件 -->
     <SearchModal
@@ -78,7 +93,7 @@
       @camera="handleCamera"
       @tag-click="handleTagClick"
     />
-  </scroll-view>
+  </view>
 </template>
 
 <script>
@@ -142,7 +157,8 @@ export default {
   },
   data() {
     return {
-      slideDirection: 'right'
+      slideDirection: 'right',
+      refreshing: false
     }
   },
   onLoad() {
@@ -156,6 +172,13 @@ export default {
     }
   },
   methods: {
+    async onRefresh() {
+      this.refreshing = true
+      await this.loadModels()
+      setTimeout(() => {
+        this.refreshing = false
+      }, 800)
+    },
     async loadHotTags() {
       try {
         const res = await getHotExamples(20)
@@ -563,16 +586,13 @@ export default {
 
 <style scoped>
 /* 页面级样式 */
-.page-scroll {
+.page-container {
   height: 100vh;
   background: #f5f5f5;
 }
 
-.page-scroll::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  color: transparent;
-  display: none;
+.content-scroll {
+  height: 100vh;
 }
 
 .main-card {

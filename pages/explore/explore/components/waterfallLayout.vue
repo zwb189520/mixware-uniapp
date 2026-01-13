@@ -156,19 +156,19 @@ export default {
 }
 
 .card-info {
-  padding: 20rpx;
+  padding: 12rpx;
 }
 
 .card-desc {
   font-size: 24rpx;
   color: #666666;
-  line-height: 1.5;
-  margin-bottom: 20rpx;
+  line-height: 1.3;
+  margin-bottom: 12rpx;
   display: block;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
-  line-clamp: 2;
+  line-clamp: 1;
   overflow: hidden;
 }
 
