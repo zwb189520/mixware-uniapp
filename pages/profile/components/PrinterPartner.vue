@@ -67,29 +67,11 @@ export default {
         })
       },
       async onSelectPrinter(printerId) {
-        try {
-          uni.showLoading({
-            title: '设置中...'
-          })
-          
-          await setDefaultDevice(printerId)
-          
-          uni.hideLoading()
-          uni.showToast({
-            title: '设置成功',
-            icon: 'success'
-          })
-          
-          this.showAddPrinter = false
-          await this.checkPrinterStatus()
-        } catch (error) {
-          uni.hideLoading()
-          console.error('设置默认设备失败:', error)
-          uni.showToast({
-            title: error.message || '设置失败',
-            icon: 'none'
-          })
-        }
+        // 跳转到配网页面
+        uni.navigateTo({
+          url: `/pagesMember/printer/addDevice/addDevice?deviceId=${printerId}`
+        })
+        this.showAddPrinter = false
       },
     onCancelAddPrinter() {
       this.showAddPrinter = false

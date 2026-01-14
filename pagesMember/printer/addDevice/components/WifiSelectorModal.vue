@@ -28,8 +28,7 @@
           @tap="handleSelectWiFi(wifi)"
         >
           <view class="wifi-info">
-            <text class="wifi-name">{{ wifi.name }}</text>
-            <text class="wifi-signal">{{ wifi.signal }}</text>
+            <text class="wifi-name">{{ wifi.ssid }}</text>
           </view>
           <uni-icons type="wifi" size="20" color="#999"></uni-icons>
         </view>
@@ -45,16 +44,10 @@ export default {
     visible: {
       type: Boolean,
       default: false
-    }
-  },
-  data() {
-    return {
-      wifiList: [
-        { name: 'TP-LINK_2.4G', signal: '强' },
-        { name: 'HomeWiFi', signal: '中' },
-        { name: 'Office_2.4G', signal: '强' },
-        { name: 'GuestNetwork', signal: '弱' }
-      ]
+    },
+    wifiList: {
+      type: Array,
+      default: () => []
     }
   },
   methods: {
@@ -62,14 +55,10 @@ export default {
       this.$emit('close')
     },
     handleRefresh() {
-      uni.showToast({
-        title: '正在刷新WiFi列表',
-        icon: 'none'
-      })
-      // 这里可以实现实际的WiFi扫描功能
+      this.$emit('refresh')
     },
     handleSelectWiFi(wifi) {
-      this.$emit('select', wifi.name)
+      this.$emit('select', wifi.ssid)
     }
   }
 }
