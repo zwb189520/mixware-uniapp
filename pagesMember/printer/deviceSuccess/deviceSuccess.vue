@@ -39,17 +39,26 @@ export default {
     }
   },
   onLoad(options) {
-    this.printerId = options.printerId || 1
+    this.printerId = options.printerId || null
   },
   methods: {
     handleBack() {
       uni.navigateBack()
     },
     handleGoHome() {
-      // 回到首页（探索页面）
-      uni.switchTab({
-        url: '/pages/explore/explore/explore'
-      })
+      // 如果有打印机ID，表示是通过蓝牙配网添加的设备，可以跳转到设备管理页面
+      // 否则，表示是WiFi连接模式，直接跳转到首页
+      if (this.printerId) {
+        // 跳转到设备详情或设备列表页面
+        uni.switchTab({
+          url: '/pages/profile/profile'
+        })
+      } else {
+        // 回到首页（探索页面）
+        uni.switchTab({
+          url: '/pages/explore/explore/explore'
+        })
+      }
     }
   }
 }
