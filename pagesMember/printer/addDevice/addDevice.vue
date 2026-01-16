@@ -319,7 +319,7 @@ export default {
           const resultPromise = subscribeToConfigResult(this.bluetoothDeviceId)
           
           // 发送服务器IP - 严格按照你的格式
-          const serverUrl = 'http://app.mixwarebot.cn/api/iot/auth'
+          const serverUrl = `http://app.mixwarebot.cn/api/iot/auth?deviceId=${this.bluetoothDeviceId}`
           console.log('2. 准备发送服务器URL:', serverUrl)
           console.log('发送格式: #url#-r||' + serverUrl + '#end')
           

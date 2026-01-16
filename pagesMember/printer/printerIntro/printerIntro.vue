@@ -24,7 +24,7 @@ import PrinterStatus from './components/PrinterStatus.vue'
 import PrinterImage from './components/PrinterImage.vue'
 import PrinterProgress from './components/PrinterProgress.vue'
 import { getDeviceStatus } from '@/api/iot.js'
-import { getDefaultDevice } from '@/api/devices.js'
+import { getDefaultDevice, getDeviceList, setDefaultDevice } from '@/api/devices.js'
 
 export default {
   name: 'PrinterIntro',
@@ -57,6 +57,13 @@ export default {
         const res = await getDefaultDevice()
         if (res.data && res.data.deviceId) {
           this.deviceId = res.data.deviceId
+        } else {
+          const listRes = await getDeviceList()
+          if (listRes.data && listRes.data.records && listRes.data.records.length > 0) {
+            const firstDevice = listRes.data.records[0]
+            this.deviceId = firstDevice.deviceId
+            await setDefaultDevice(firstDevice.deviceId)
+          }
         }
       } catch (error) {
         console.error('获取默认设备失败:', error)
@@ -67,17 +74,31 @@ export default {
       
       try {
         const res = await getDeviceStatus(this.deviceId)
+        console.log('设备状态数据:', res.data)
         if (res.data) {
           const status = res.data
           const printProgress = status.virtualSdcard?.progress || 0
+          const printState = status.printStats?.state || ''
           this.progress = Math.round(printProgress)
-          this.printerStatus = this.progress > 0 && this.progress < 100 ? 'printing' : 'idle'
+          
+          if (printState === 'Printing' || (this.progress > 0 && this.progress < 100)) {
+            this.printerStatus = 'printing'
+          } else if (printState === 'Pausing' || printState === 'Aborting') {
+            this.printerStatus = 'paused'
+          } else {
+            this.printerStatus = 'idle'
+          }
           this.showEncouragement = this.printerStatus === 'printing'
         }
       } catch (error) {
         console.error('获取设备状态失败:', error)
         this.printerStatus = 'offline'
         this.showEncouragement = false
+        uni.showToast({
+          title: '设备连接失败，请检查网络',
+          icon: 'none',
+          duration: 2000
+        })
       }
     },
     handlePrinterChange(printer) {

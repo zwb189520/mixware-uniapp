@@ -21,7 +21,8 @@
       >
         <view class="intro-content">
           <view class="printer-icon">
-            <uni-icons type="color" size="30" color="#007aff"></uni-icons>
+            <image v-if="printer.deviceImage || printer.image" :src="printer.deviceImage || printer.image" mode="aspectFill" class="printer-img"></image>
+            <uni-icons v-else type="color" size="30" color="#007aff"></uni-icons>
           </view>
           <view class="printer-details">
             <view class="printer-name">{{ printer.deviceName || printer.name || '我的3D打印机' }}</view>
@@ -159,6 +160,12 @@ export default {
   align-items: center;
   justify-content: center;
   margin-right: 20rpx;
+  overflow: hidden;
+}
+
+.printer-img {
+  width: 100%;
+  height: 100%;
 }
 
 .printer-details {

@@ -26,6 +26,7 @@
 <script>
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
+import { bindDevice } from '@/api/devices.js'
 
 export default {
   name: 'DeviceSuccess',
@@ -40,8 +41,21 @@ export default {
   },
   onLoad(options) {
     this.printerId = options.printerId || null
+    if (this.printerId) {
+      this.bindPrinter()
+    }
   },
   methods: {
+    async bindPrinter() {
+      try {
+        const res = await bindDevice({
+          deviceId: this.printerId
+        })
+        console.log('设备绑定结果:', res)
+      } catch (error) {
+        console.error('设备绑定失败:', error)
+      }
+    },
     handleBack() {
       uni.navigateBack()
     },

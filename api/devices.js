@@ -24,8 +24,8 @@ export function createDevice(deviceCreateDTO) {
   return post('/devices/create', deviceCreateDTO)
 }
 
-export function bindDevice(bindRequest) {
-  return post('/devices/bind', bindRequest)
+export function bindDevice(bindRequest, options = {}) {
+  return post('/devices/bind', bindRequest, options)
 }
 
 export function getDevicesPage(params) {

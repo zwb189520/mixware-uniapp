@@ -400,6 +400,11 @@ export const request = (options = {}) => {
 		
 		requestWithRetry(requestConfig)
 			.then((res) => {
+				console.log('=== 响应信息 ===')
+				console.log('响应状态码:', res.statusCode)
+				console.log('响应数据:', res.data)
+				console.log('================')
+				
 				if (options.showLoading) {
 					uni.hideLoading()
 				}

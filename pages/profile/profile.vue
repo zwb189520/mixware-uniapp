@@ -8,7 +8,7 @@
     <profile-user-info />
     <profile-medals />
     <showcase-button />
-    <printer-partner />
+    <printer-partner ref="printerPartner" />
   </view>
 </template>
 
@@ -34,6 +34,16 @@ export default {
   onLoad() {
     const systemInfo = uni.getSystemInfoSync()
     this.statusBarHeight = systemInfo.statusBarHeight
+  },
+  onShow() {
+    this.$nextTick(() => {
+      const comp = this.$refs.printerPartner
+      if (comp) {
+        comp.checkPrinterStatus().then(() => {
+          console.log('[Profile] 设备列表:', comp.printerList, 'isBound=', comp.isBound)
+        })
+      }
+    })
   },
   methods: {
     handleSettings() {
