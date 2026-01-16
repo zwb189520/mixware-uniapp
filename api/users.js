@@ -50,15 +50,15 @@ export function sendVerificationCodeWithHandler(email) {
 
 export function loginWithPassword(email, password) {
   return post('/users/login', { email, password }).then(res => {
-    const { token, userId, username, nickname, avatar } = res.data
+    const { token, userId, username, avatarUrl } = res.data
     if (token) uni.setStorageSync('token', token)
     if (userId) uni.setStorageSync('userId', userId)
     if (username) uni.setStorageSync('username', username)
     
-    let avatarUrl = avatar || '/static/default-avatar.png'
-    if (avatarUrl.startsWith('blob:')) avatarUrl = '/static/default-avatar.png'
+    let finalAvatarUrl = avatarUrl || '/static/default-avatar.png'
+    if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/default-avatar.png'
     
-    const userInfo = { userId, username, nickname: nickname || username, avatar: avatarUrl }
+    const userInfo = { userId, username, nickname: username, avatar: finalAvatarUrl }
     uni.setStorageSync('userInfo', userInfo)
     uni.setStorageSync('isLoggedIn', true)
     uni.$emit('userLogin', userInfo)
