@@ -1,5 +1,7 @@
 <template>
   <view class="login-page">
+    <safe-area />
+    <custom-navbar title="登录" @back="handleBack" />
     <view class="login-container">
       <view class="login-header">
         <image class="logo" src="/static/images/logo.png" mode="aspectFit" />
@@ -84,10 +86,16 @@
 </template>
 
 <script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 import { sendVerificationCodeWithHandler, loginWithPassword, registerWithHandler, thirdPartyLoginWithHandler } from '@/api/users.js'
 
 export default {
   name: 'Login',
+  components: {
+    CustomNavbar,
+    SafeArea
+  },
   data() {
     return {
       loginType: 'login',
@@ -113,6 +121,10 @@ export default {
   },
   
   methods: {
+    handleBack() {
+      uni.navigateBack()
+    },
+    
     switchLoginType(type) {
       this.loginType = type
     },

@@ -37,17 +37,24 @@ export default {
 .custom-navbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   height: 88rpx;
   padding: 0 32rpx;
   background: #fff;
   border-bottom: 1rpx solid #e0e0e0;
   z-index: 100;
+  position: relative;
 }
 
 .navbar-left {
   width: 60rpx;
   display: flex;
   align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 32rpx;
+  top: 0;
+  bottom: 0;
 }
 
 .navbar-center {
@@ -55,13 +62,13 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100%;
 }
 
 .navbar-title {
   font-size: 32rpx;
   color: #333;
   font-weight: 600;
-  text-align: center;
   max-width: 400rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -74,6 +81,10 @@ export default {
   align-items: center;
   justify-content: flex-end;
   gap: 30rpx;
+  position: absolute;
+  right: 32rpx;
+  top: 0;
+  bottom: 0;
 }
 
 .navbar-left:active {

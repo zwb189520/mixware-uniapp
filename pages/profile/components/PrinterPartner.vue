@@ -12,19 +12,26 @@
       </view>
     </view>
     
-    <view v-else class="intro-entry" @click="handlePrinterIntro">
-      <view class="intro-content">
-        <view class="printer-icon">
-          <uni-icons type="color" size="30" color="#007aff"></uni-icons>
-        </view>
-        <view class="printer-details">
-          <view class="printer-name">{{ printerInfo.name }}</view>
-          <view class="printer-model">{{ printerInfo.model }}</view>
-          <view class="printer-status" :class="{ 'online': printerInfo.isOnline, 'offline': !printerInfo.isOnline }">
-            {{ printerInfo.isOnline ? '在线' : '离线' }}
+    <view v-else>
+      <view 
+        v-for="(printer, index) in printerList" 
+        :key="printer.id || printer.deviceId || index"
+        class="intro-entry" 
+        @click="handlePrinterIntro(printer)"
+      >
+        <view class="intro-content">
+          <view class="printer-icon">
+            <uni-icons type="color" size="30" color="#007aff"></uni-icons>
           </view>
+          <view class="printer-details">
+            <view class="printer-name">{{ printer.deviceName || printer.name || '我的3D打印机' }}</view>
+            <view class="printer-model">{{ printer.deviceModel || printer.model || '未知型号' }}</view>
+            <view class="printer-status" :class="{ 'online': printer.deviceStatus === 1 || printer.status === 1, 'offline': printer.deviceStatus !== 1 && printer.status !== 1 }">
+              {{ printer.deviceStatus === 1 || printer.status === 1 ? '在线' : '离线' }}
+            </view>
+          </view>
+          <uni-icons type="right" size="16" color="#999"></uni-icons>
         </view>
-        <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
     </view>
     
@@ -39,7 +46,7 @@
 
 <script>
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
-import { getDefaultDevice, setDefaultDevice } from '@/api/devices.js'
+import { getDeviceList, setDefaultDevice } from '@/api/devices.js'
 
 export default {
   name: 'PrinterPartner',
@@ -49,11 +56,7 @@ export default {
   data() {
     return {
       isBound: false,
-      printerInfo: {
-        name: '',
-        model: '',
-        isOnline: false
-      },
+      printerList: [],
       showAddPrinter: false
     }
   },
@@ -61,9 +64,9 @@ export default {
     handleFindPartner() {
       this.showAddPrinter = true
     },
-    handlePrinterIntro() {
+    handlePrinterIntro(printer) {
         uni.navigateTo({
-          url: '/pagesMember/printer/printerIntro/printerIntro'
+          url: `/pagesMember/printer/printerIntro/printerIntro?deviceId=${printer.id || printer.deviceId}`
         })
       },
       async onSelectPrinter(printerId) {
@@ -79,24 +82,25 @@ export default {
     },
     async checkPrinterStatus() {
       try {
-        const res = await getDefaultDevice()
-        if (res.data && (res.data.deviceId || res.data.id)) {
+        const res = await getDeviceList()
+        if (res.data && res.data.records && res.data.records.length > 0) {
           this.isBound = true
-          this.printerInfo = {
-            name: res.data.deviceName || res.data.name || '我的3D打印机',
-            model: res.data.deviceModel || res.data.model || '未知型号',
-            isOnline: res.data.deviceStatus === 1 || res.data.status === 1
-          }
+          this.printerList = res.data.records
         } else {
           this.isBound = false
+          this.printerList = []
         }
       } catch (error) {
-        console.error('获取设备信息失败:', error)
+        console.error('获取设备列表失败:', error)
         this.isBound = false
+        this.printerList = []
       }
     }
   },
   mounted() {
+    this.checkPrinterStatus()
+  },
+  onShow() {
     this.checkPrinterStatus()
   }
 }
