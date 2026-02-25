@@ -1,0 +1,100 @@
+<template>
+  <view class="privacy-page">
+    <custom-navbar :title="texts.title" @back="handleBack" />
+    <view class="content">
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section1Title }}</text>
+        <text class="section-content">{{ texts.section1Content }}</text>
+      </view>
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section2Title }}</text>
+        <text class="section-content">{{ texts.section2Content }}</text>
+      </view>
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section3Title }}</text>
+        <text class="section-content">{{ texts.section3Content }}</text>
+      </view>
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section4Title }}</text>
+        <text class="section-content">{{ texts.section4Content }}</text>
+      </view>
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section5Title }}</text>
+        <text class="section-content">{{ texts.section5Content }}</text>
+      </view>
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section6Title }}</text>
+        <text class="section-content">{{ texts.section6Content }}</text>
+      </view>
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section7Title }}</text>
+        <text class="section-content">{{ texts.section7Content }}</text>
+      </view>
+      <view class="privacy-section">
+        <text class="section-title">{{ texts.section8Title }}</text>
+        <text class="section-content">{{ texts.section8Content }}</text>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
+import { useLanguageStore } from '@/stores'
+
+export default {
+  name: 'LoginPrivacy',
+  components: {
+    CustomNavbar
+  },
+  computed: {
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.loginPrivacy
+    }
+  },
+  mounted() {
+    this.languageStore.loadLanguage()
+  },
+  methods: {
+    handleBack() {
+      uni.navigateBack()
+    }
+  }
+}
+</script>
+
+<style scoped>
+.privacy-page {
+  min-height: 100vh;
+  background: #FFF9F5;
+}
+
+.content {
+  padding: 30rpx;
+}
+
+.privacy-section {
+  background: #fff;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.section-content {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.8;
+}
+</style>

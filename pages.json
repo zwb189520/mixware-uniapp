@@ -1,0 +1,346 @@
+{
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+		}
+	},
+	"pages": [
+		{
+			"path": "pages/explore/explore/explore",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/explore/search/search",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/explore/modelDetail/modelDetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/explore/3Dpreviewdetail/preview3DDetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/explore/workDetail/workDetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/explore/showcaseWorksDetail/showcaseWorksDetail",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/explore/commentList/commentList",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/explore/createPost/createPost",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/create/create/create",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/create/createDetail/photography/photography",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/create/createDetail/chat/chat",
+			"style": {
+				"navigationStyle": "custom",
+				"app-plus": {
+					"softinputMode": "adjustResize"
+				}
+			}
+		},
+		{
+			"path": "pages/create/createDetail/aiChat/aiChat",
+			"style": {
+				"navigationStyle": "custom",
+				"app-plus": {
+					"softinputMode": "adjustResize"
+				}
+			}
+		},
+		{
+			"path": "pages/create/createDetail/transform/transform",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/create/createDetail/draw/draw",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/create/createDetail/draw1/draw1",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"subPackages": [
+		{
+			"root": "pagesMember/auth",
+			"pages": [
+				{
+					"path": "login/login",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "resetPassword/resetPassword",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "emailBinding/emailBinding",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "thirdPartyBinding/thirdPartyBinding",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/agreements",
+			"pages": [
+				{
+					"path": "loginUserAgreement/loginUserAgreement",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "loginPrivacy/loginPrivacy",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "loginMixwareAgreement/loginMixwareAgreement",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/printer",
+			"pages": [
+				{
+					"path": "printerIntro/printerIntro",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "printerMoreIntro/printerMoreIntro",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "printerPrint/printerPrint",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "addDevice/addDevice",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "deviceSuccess/deviceSuccess",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "deviceManager/deviceManager",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/user",
+			"pages": [
+				{
+					"path": "profileEdit/profileEdit",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "accountSecurity/accountSecurity",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "settings/settings",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "followList/followList",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/content",
+			"pages": [
+				{
+					"path": "myWorks/myWorks",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "myLikes/myLikes",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "myFavorites/myFavorites",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "myPrintConfigs/myPrintConfigs",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/message",
+			"pages": [
+				{
+					"path": "message/message",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "messageSettings/messageSettings",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMember/medalDetail",
+			"pages": [
+				{
+					"path": "medalDetail",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		}
+	],
+	"preloadRule": {
+		"pages/profile/profile": {
+			"network": "all",
+			"packages": ["pagesMember/auth", "pagesMember/printer", "pagesMember/message", "pagesMember/user"]
+		},
+		"pages/create/create/create": {
+			"network": "all",
+			"packages": ["pagesMember/content"]
+		}
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#FF5A00",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/explore/explore/explore",
+				"iconPath": "static/tabs/tab-explore.png",
+				"selectedIconPath": "static/tabs/tab-explore-active.png",
+				"text": "Explore"
+			},
+			{
+				"pagePath": "pages/create/create/create",
+				"iconPath": "static/tabs/tab-create.png",
+				"selectedIconPath": "static/tabs/tab-create-active.png",
+				"text": "Create"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"iconPath": "static/tabs/tab-profile.png",
+				"selectedIconPath": "static/tabs/tab-profile-active.png",
+				"text": "Profile"
+			}
+		]
+	},
+	"uniIdRouter": {},
+	"condition" : { 
+		"current": 0, 
+		"list": [
+			{
+				"name": "", 
+				"path": "", 
+				"query": "" 
+			}
+		]
+	}
+}
