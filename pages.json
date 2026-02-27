@@ -58,6 +58,12 @@
 			}
 		},
 		{
+			"path": "pages/explore/sliceProcessing/sliceProcessing",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/create/create/create",
 			"style": {
 				"navigationStyle": "custom"
