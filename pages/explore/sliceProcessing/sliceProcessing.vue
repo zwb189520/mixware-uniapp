@@ -74,6 +74,7 @@
 
 <script>
 import { useLanguageStore } from '@/stores'
+import { getModelDetail } from '@/api/models.js'
 
 export default {
   data() {
@@ -81,6 +82,7 @@ export default {
       modelId: '',
       modelName: '',
       modelImage: '',
+      modelImages: [], // 添加模型图片数组
       progress: 0,
       isProcessing: true,
       steps: [
@@ -110,9 +112,14 @@ export default {
     }
   },
   onLoad(options) {
+    console.log('sliceProcessing onLoad options:', options)
     this.modelId = options.modelId || ''
     this.modelName = options.modelName || ''
-    this.modelImage = options.modelImage || '/static/images/3Dprinter.png'
+    this.modelImage = options.modelImage || ''
+    console.log('初始modelImage:', this.modelImage)
+    
+    // 加载模型详情获取图片
+    this.loadModelImages()
     
     // 开始模拟进度
     this.startProgress()
@@ -125,44 +132,83 @@ export default {
   methods: {
     startProgress() {
       let currentStep = 0
+      // 初始时只显示第一个步骤
+      this.steps[0].active = true
+      
       this.timer = setInterval(() => {
-        // 更新进度
-        if (this.progress < 100) {
-          this.progress += Math.random() * 5
-          if (this.progress > 100) this.progress = 100
-        }
-        
-        // 更新步骤状态
-        const stepProgress = this.progress / 25
-        this.steps.forEach((step, index) => {
-          if (stepProgress > index) {
-            step.completed = true
-            step.active = false
-          } else if (stepProgress > index - 0.5 && stepProgress <= index + 1) {
-            step.active = true
-          }
-        })
-        
-        // 更新当前状态
-        if (this.progress >= 100) {
-          this.currentStatus = '模型处理完成，准备打印'
-          this.isProcessing = false
-          clearInterval(this.timer)
+        // 一步一步完成每个步骤
+        if (currentStep < this.steps.length) {
+          // 完成当前步骤
+          this.steps[currentStep].completed = true
+          this.steps[currentStep].active = false
           
-          // 延迟后跳转到workDetail
-          // setTimeout(() => {
-          //   uni.redirectTo({
-          //     url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}`
-          //   })
-          // }, 1500)
+          // 更新进度（每完成一个步骤增加25%）
+          this.progress = (currentStep + 1) * 25
+          
+          currentStep++
+          
+          // 如果还有下一个步骤，激活它
+          if (currentStep < this.steps.length) {
+            this.steps[currentStep].active = true
+          } else {
+            // 所有步骤完成
+            this.progress = 100
+            this.currentStatus = '模型处理完成，准备打印'
+            this.isProcessing = false
+            clearInterval(this.timer)
+            
+            // 延迟后跳转到workDetail
+            // setTimeout(() => {
+            //   uni.redirectTo({
+            //     url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}`
+            //   })
+            // }, 1500)
+          }
         }
-      }, 500)
+      }, 2000) // 每2秒完成一个步骤
     },
     handleBack() {
       uni.navigateBack()
     },
     handleImageError() {
-      this.modelImage = '/static/images/3Dprinter.png'
+      console.log('图片加载失败，当前modelImage:', this.modelImage)
+      this.modelImage = ''
+      console.log('设置为空图片')
+    },
+    
+    async loadModelImages() {
+      try {
+        console.log('加载模型图片，modelId:', this.modelId)
+        const res = await getModelDetail(this.modelId)
+        console.log('getModelDetail响应:', res)
+        
+        // 检查响应状态
+        if (!res || (res.code !== 0 && res.code !== 1)) {
+          throw new Error(res?.msg || '获取详情失败')
+        }
+        
+        const data = res.data || {}
+        console.log('模型详情数据:', data)
+        
+        // 使用与modelDetail.vue完全相同的fixImageUrl函数
+        const fixImageUrl = (url) => {
+          if (!url) return ''
+          return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
+        }
+        
+        // 将previewUrl放入images数组中，与modelDetail.vue保持一致
+        const images = data.previewUrl ? [fixImageUrl(data.previewUrl)] : []
+        
+        if (images.length > 0) {
+          this.modelImage = images[0]
+          console.log('设置的新modelImage:', this.modelImage)
+        } else {
+          console.log('模型没有有效的图片数据')
+          this.modelImage = '' // 显示空
+        }
+      } catch (error) {
+        console.error('加载模型图片失败:', error)
+      }
     },
     goToPrintRecords() {
       uni.navigateTo({
@@ -305,18 +351,20 @@ export default {
 }
 
 .step-text {
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #666;
   transition: color 0.3s;
+  font-weight: 400;
 }
 
 .step-item.completed .step-text {
   color: #333;
+  font-weight: 400;
 }
 
 .step-item.active .step-text {
   color: #2a7fff;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .current-status {
@@ -337,9 +385,9 @@ export default {
 }
 
 .status-text {
-  font-size: 32rpx;
+  font-size: 30rpx;
   color: #333;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .tips-section {

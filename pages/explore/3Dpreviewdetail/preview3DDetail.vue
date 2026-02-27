@@ -443,9 +443,16 @@ export default {
       //     icon: 'none'
       //   })
       // }
-      // 跳转到切片处理页面
+      // 跳转到切片处理页面，使用previewUrl而不是modelUrl
+      let imageUrl = this.modelUrl
+      
+      // 如果有模型详情且有previewUrl，使用previewUrl
+      if (this.modelInfo && this.modelInfo.previewUrl) {
+        imageUrl = this.modelInfo.previewUrl
+      }
+      
       uni.navigateTo({
-        url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelUrl)}`
+        url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}`
       })
     }
   }
