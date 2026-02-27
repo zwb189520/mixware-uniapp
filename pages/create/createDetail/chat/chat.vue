@@ -310,12 +310,18 @@ export default {
 
 .send-btn,
 .stop-btn {
-	min-width: 76px;
+	width: 68px;
 	height: 40px;
-	padding: 0 12px;
-	border: none;
+	line-height: 40px;
+	padding: 0;
 	border-radius: 20px;
 	font-size: 14px;
+	margin: 0;
+}
+
+.send-btn::after,
+.stop-btn::after {
+	border: none;
 }
 
 .send-btn {
