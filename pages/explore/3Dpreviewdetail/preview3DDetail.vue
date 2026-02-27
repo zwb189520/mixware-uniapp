@@ -185,7 +185,7 @@ export default {
       // 延迟显示Preview3D，确保容器有尺寸
       setTimeout(() => {
         this.showPreview = true
-      }, 100)
+      }, 1000)
     } else if (this.modelId) {
       this.loadModelDetail()
     }
@@ -271,7 +271,7 @@ export default {
           // 延迟显示Preview3D，确保容器有尺寸
           setTimeout(() => {
             this.showPreview = true
-          }, 100)
+          }, 1000)
         }
       } catch (error) {
         console.error('获取模型详情失败:', error instanceof Error ? error.message : (error ? JSON.stringify(error) : '未知错误'))
