@@ -121,6 +121,8 @@ export default {
         } else {
           console.log('成功获取到', wifiList.length, '个WiFi')
           this.scanStatus = 'success'
+          // 自动弹出WiFi列表
+          this.showWiFiList = true
         }
       } catch (error) {
         console.log('获取WiFi列表失败:', error)

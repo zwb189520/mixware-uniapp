@@ -7,12 +7,12 @@
       
       <view class="modal-body">
         <view v-if="loading" class="loading">
-          <text>{{ texts.loading || '加载中...' }}</text>
-        </view>
-        <view v-else-if="deviceList.length === 0" class="empty">
-          <text>{{ texts.noDevices || '未扫描到蓝牙设备' }}</text>
-        </view>
-        <view v-else>
+        <text>{{ texts.loading || '加载中...' }}</text>
+      </view>
+      <view v-else-if="deviceList.length === 0" class="empty">
+        <text>{{ texts.scanning || '正在扫描设备...' }}</text>
+      </view>
+      <view v-else>
           <view v-for="device in deviceList" :key="device.id || device.deviceId" class="printer-item">
             <view class="printer-main" @tap="handleSelectPrinter(device.deviceId)">
               <image class="printer-icon" src="/static/images/3Dprinter.png" mode="aspectFit" />
