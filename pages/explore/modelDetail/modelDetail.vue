@@ -37,16 +37,7 @@
         <view class="basic-info-section">
           <view class="model-header">
             <text class="model-name">{{ modelInfo.name }}</text>
-            <view class="model-stats">
-              <view class="stat-item" :class="{ 'liked': modelInfo.isLiked }" @click="handleLike">
-                <image class="stat-icon" :src="modelInfo.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" mode="aspectFit"/>
-                <text class="stat-text">{{ modelInfo.likes }}</text>
-              </view>
-              <view class="stat-item collected" :class="{ 'active': modelInfo.isCollected }" @click="handleCollect">
-                <image class="stat-icon" :src="modelInfo.isCollected ? '/static/images/icon/star_active.png' : '/static/images/icon/star.png'" mode="aspectFit"/>
-                <text class="stat-text">{{ modelInfo.collections }}</text>
-              </view>
-            </view>
+
             <view class="author-info" @click="handleAuthorClick">
               <image class="author-avatar" :src="fixBlobUrl(modelInfo.authorAvatar)" mode="aspectFill" lazy-load @error="handleImageError"/>
               <text class="author-name">{{ modelInfo.author }}</text>
@@ -99,9 +90,6 @@
           <view class="showcase-section">
             <view class="section-header">
               <text class="section-title">{{ texts.showcase }}</text>
-              <view class="create-post-btn" @click="handleCreatePost">
-                <text class="create-post-text">{{ texts.createPost }}</text>
-              </view>
             </view>
             <view class="showcase-waterfall">
               <WaterfallLayout
@@ -785,12 +773,7 @@ export default {
 }
 
 .model-stats {
-  display: flex;
-  align-items: center;
-  gap: 40rpx;
-  padding: 16rpx 0;
-  border-top: 2rpx solid rgba(0,0,0,0.05);
-  border-bottom: 2rpx solid rgba(0,0,0,0.05);
+  display: none;
 }
 
 .author-info {
@@ -798,9 +781,7 @@ export default {
   align-items: center;
   gap: 16rpx;
   margin-top: 20rpx;
-  padding: 20rpx;
-  background: linear-gradient(135deg, rgba(255, 90, 0, 0.1) 0%, rgba(255, 140, 0, 0.1) 100%);
-  border-radius: 16rpx;
+  padding: 10rpx;
   transition: all 0.3s;
 }
 
@@ -809,8 +790,8 @@ export default {
 }
 
 .author-avatar {
-  width: 72rpx;
-  height: 72rpx;
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
   border: 3rpx solid #fff;
@@ -818,7 +799,7 @@ export default {
 }
 
 .author-name {
-  font-size: 30rpx;
+  font-size: 24rpx;
   color: #1a1a2e;
   font-weight: 600;
 }
@@ -961,14 +942,7 @@ export default {
 }
 
 .create-post-btn {
-  padding: 12rpx 32rpx;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
-  border-radius: 28rpx;
-  box-shadow: 0 6rpx 16rpx rgba(255, 90, 0, 0.4);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
+  display: none;
 }
 
 .create-post-btn::before {
