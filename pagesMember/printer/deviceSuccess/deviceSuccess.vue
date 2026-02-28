@@ -93,6 +93,26 @@ export default {
             })
           }
           
+          // 先获取设备MQTT授权信息（状态接口依赖MQTT连接）
+          let deviceAuth = null
+          try {
+            console.log('开始获取设备MQTT授权信息...')
+            deviceAuth = await getDeviceAuth(this.printerId)
+            console.log('设备授权信息获取完成:', deviceAuth)
+            
+            if (deviceAuth.code === 1 || deviceAuth.code === 200) {
+              console.log('设备授权信息获取成功')
+              if (deviceAuth.data) {
+                uni.setStorageSync('deviceMqttConfig', deviceAuth.data)
+                console.log('MQTT配置已存储:', deviceAuth.data)
+              }
+            } else {
+              console.warn('获取设备授权信息失败:', deviceAuth.msg)
+            }
+          } catch (authError) {
+            console.error('获取设备授权信息出错:', authError)
+          }
+          
           try {
             console.log('开始获取设备状态...')
             deviceStatus = await getDeviceStatus(this.printerId)
@@ -113,27 +133,6 @@ export default {
               title: '设备状态获取异常，但绑定成功',
               icon: 'none'
             })
-          }
-          
-          // 获取设备MQTT授权信息
-          let deviceAuth = null
-          try {
-            console.log('开始获取设备MQTT授权信息...')
-            deviceAuth = await getDeviceAuth(this.printerId)
-            console.log('设备授权信息获取完成:', deviceAuth)
-            
-            if (deviceAuth.code === 1 || deviceAuth.code === 200) {
-              console.log('设备授权信息获取成功')
-              // 存储MQTT连接信息
-              if (deviceAuth.data) {
-                uni.setStorageSync('deviceMqttConfig', deviceAuth.data)
-                console.log('MQTT配置已存储:', deviceAuth.data)
-              }
-            } else {
-              console.warn('获取设备授权信息失败:', deviceAuth.msg)
-            }
-          } catch (authError) {
-            console.error('获取设备授权信息出错:', authError)
           }
           
           console.log('准备存储设备信息到本地缓存...')
