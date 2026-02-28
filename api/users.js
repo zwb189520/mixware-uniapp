@@ -1,4 +1,5 @@
 import { put, post, get, del } from './request'
+import { useLanguageStore } from '@/stores/index.js'
 
 export function updateUserInfo(userInfoDTO) {
   return put('/users/updateUserInfo', userInfoDTO)
@@ -93,7 +94,15 @@ export function changePassword(changePasswordDTO) {
 }
 
 export function sendVerificationCodeWithHandler(email) {
-  return post('/users/sendVerificationCode', { email })
+  const languageStore = useLanguageStore()
+  const texts = languageStore.texts.login || {}
+  
+  return post('/users/sendVerificationCode', { email }).then(res => {
+    if (res.code !== 1 && res.code !== 200) {
+      throw new Error(res.msg || texts.sendCodeFailed || '发送验证码失败')
+    }
+    return res
+  })
 }
 
 export function loginWithPassword(email, password) {
@@ -119,7 +128,20 @@ export function loginWithPassword(email, password) {
 }
 
 export function registerWithHandler(registerData) {
+  const languageStore = useLanguageStore()
+  const texts = languageStore.texts.login || {}
+  
+  const errorCodeMap = {
+    100209: texts.emailExists || '邮箱已存在',
+    100210: texts.codeError || '验证码错误',
+    100211: texts.codeExpired || '验证码已过期'
+  }
+  
   return post('/users/register', registerData).then(res => {
+    if (res.code !== 1 && res.code !== 200) {
+      const errorMsg = errorCodeMap[res.code] || res.msg || texts.registerFailed || '注册失败'
+      throw new Error(errorMsg)
+    }
     const { token, userId, username, avatarUrl } = res.data
     if (token) uni.setStorageSync('token', token)
     if (userId) uni.setStorageSync('userId', userId)

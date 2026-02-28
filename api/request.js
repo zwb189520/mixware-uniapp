@@ -101,6 +101,7 @@ const isNoTokenUrl = (url) => {
 		'/users/login', 
 		'/users/register', 
 		'/users/signup',
+		'/users/sendVerificationCode',
 		'/models/page',
 		'/models/list',
 		'/session/hot',
