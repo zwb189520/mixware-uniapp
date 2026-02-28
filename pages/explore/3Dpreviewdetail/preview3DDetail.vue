@@ -90,6 +90,16 @@
       <!-- 底部空白区域 -->
       <view :style="{ height: (safeAreaBottom + 40) + 'px' }"></view>
     </view>
+    
+    <!-- 旋转控制面板 -->
+    <RotationPanel
+      ref="rotationPanel"
+      :visible="showRotationPanel"
+      @close="onRotationPanelClose"
+      @rotationChange="onRotationChange"
+      @rotationChanging="onRotationChanging"
+      @reset="onRotationReset"
+    />
   </view>
 </template>
 
@@ -98,11 +108,13 @@ import { sendPrintCommand } from '@/api/iot.js'
 import { getModelDetail } from '@/api/models.js'
 import { getDefaultDevice } from '@/api/devices.js'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
+import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores'
 
 export default {
   components: {
-    Preview3D
+    Preview3D,
+    RotationPanel
   },
   data() {
     return {
@@ -127,7 +139,15 @@ export default {
       showPreview: false,
       // 模型选中状态
       isModelSelected: true,
-      selectedModel: null
+      selectedModel: null,
+      // 旋转面板显示状态
+      showRotationPanel: false,
+      // 模型旋转角度
+      modelRotation: {
+        x: 0,
+        y: 0,
+        z: 0
+      }
     }
   },
   computed: {
@@ -369,15 +389,12 @@ export default {
         this.selectedModel = this.modelInfo
         // 设置模型为绿色
         this.setModelColor(0x00ff00)
-        // uni.showToast({
-        //   title: '模型已选中',
-        //   icon: 'none',
-        //   duration: 1000
-        // })
       } else {
         this.selectedModel = null
         // 设置模型为灰色
         this.setModelColor(0x808080)
+        // 取消选中时关闭旋转面板
+        this.showRotationPanel = false
         // uni.showToast({
         //   title: '取消选中',
         //   icon: 'none',
@@ -485,6 +502,12 @@ export default {
       this.scalePercent = 100
       this.modelScale = 1
       
+      // 重置旋转
+      this.modelRotation = { x: 0, y: 0, z: 0 }
+      if (this.$refs.rotationPanel) {
+        this.$refs.rotationPanel.setRotation(0, 0, 0)
+      }
+      
       if (this.$refs.preview3d) {
         // 调用组件的重置方法
         if (typeof this.$refs.preview3d.resetModel === 'function') {
@@ -528,7 +551,66 @@ export default {
     // 旋转
     handleRotate() {
       console.log('旋转按钮被点击')
-      // TODO: 实现旋转功能
+      if (!this.isModelSelected) {
+        uni.showToast({
+          title: '请先选中模型',
+          icon: 'none'
+        })
+        return
+      }
+      this.showRotationPanel = true
+    },
+    
+    // 旋转面板关闭
+    onRotationPanelClose() {
+      this.showRotationPanel = false
+    },
+    
+    // 旋转角度变化中（实时）
+    onRotationChanging({ x, y, z }) {
+      this.modelRotation = { x, y, z }
+      this.applyModelRotation()
+    },
+    
+    // 旋转角度变化完成
+    onRotationChange({ x, y, z }) {
+      this.modelRotation = { x, y, z }
+      this.applyModelRotation()
+    },
+    
+    // 重置旋转
+    onRotationReset() {
+      this.modelRotation = { x: 0, y: 0, z: 0 }
+      this.$refs.rotationPanel.setRotation(0, 0, 0)
+      this.applyModelRotation()
+    },
+    
+    // 应用模型旋转
+    applyModelRotation() {
+      const { x, y, z } = this.modelRotation
+      
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'setModelRotation',
+          args: [x, y, z],
+          isReturn: false
+        })
+      }
+      // #endif
+      
+      // #ifndef APP
+      if (this.$refs.preview3d) {
+        const preview3d = this.$refs.preview3d
+        if (preview3d.group) {
+          const radX = (x * Math.PI) / 180
+          const radY = (y * Math.PI) / 180
+          const radZ = (z * Math.PI) / 180
+          preview3d.group.rotation.set(radX, radY, radZ)
+          preview3d.group.updateMatrixWorld(true)
+        }
+      }
+      // #endif
     },
     
     // 复制
