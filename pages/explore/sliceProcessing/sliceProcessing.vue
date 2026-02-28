@@ -85,13 +85,8 @@ export default {
       modelImages: [], // 添加模型图片数组
       progress: 0,
       isProcessing: true,
-      steps: [
-        { text: '待打印任务已生成', completed: false, active: true },
-        { text: '打印时间已分析完成', completed: false, active: false },
-        { text: '模型消耗克数已分析完成', completed: false, active: false },
-        { text: '模型尺寸已分析完成', completed: false, active: false }
-      ],
-      currentStatus: '分析完成，请等待模型处理',
+      steps: [],
+      currentStatus: '',
       timer: null
     }
   },
@@ -100,15 +95,7 @@ export default {
       return useLanguageStore()
     },
     texts() {
-      return {
-        slicePreview: '模型打印预览',
-        processingTips: '模型处理需要一定时间，可在',
-        myPrintRecords: '我的-打印记录',
-        view: '查看',
-        autoPrintAfterProcess: '处理完成后会直接打印',
-        cancelProcessing: '取消处理',
-        ...this.languageStore.texts.explore
-      }
+      return this.languageStore.texts.explore
     }
   },
   onLoad(options) {
@@ -117,6 +104,10 @@ export default {
     this.modelName = options.modelName || ''
     this.modelImage = options.modelImage || ''
     console.log('初始modelImage:', this.modelImage)
+    
+    // 加载语言和初始化文本
+    this.languageStore.loadLanguage()
+    this.initializeTexts()
     
     // 加载模型详情获取图片
     this.loadModelImages()
@@ -130,6 +121,18 @@ export default {
     }
   },
   methods: {
+    initializeTexts() {
+      // 初始化步骤文本
+      this.steps = [
+        { text: this.texts.pendingTaskGenerated || '待打印任务已生成', completed: false, active: true },
+        { text: this.texts.printTimeAnalyzed || '打印时间已分析完成', completed: false, active: false },
+        { text: this.texts.modelConsumptionAnalyzed || '模型消耗克数已分析完成', completed: false, active: false },
+        { text: this.texts.modelDimensionsAnalyzed || '模型尺寸已分析完成', completed: false, active: false }
+      ]
+      
+      // 初始化当前状态文本
+      this.currentStatus = this.texts.analysisComplete || '分析完成，请等待模型处理'
+    },
     startProgress() {
       let currentStep = 0
       // 初始时只显示第一个步骤
@@ -153,7 +156,7 @@ export default {
           } else {
             // 所有步骤完成
             this.progress = 100
-            this.currentStatus = '模型处理完成，准备打印'
+            this.currentStatus = this.texts.processingComplete || '模型处理完成，准备打印'
             this.isProcessing = false
             clearInterval(this.timer)
             
@@ -217,8 +220,8 @@ export default {
     },
     handleCancel() {
       uni.showModal({
-        title: '确认取消',
-        content: '取消后将停止模型处理，是否确认？',
+        title: this.texts.confirmCancel || '确认取消',
+        content: this.texts.cancelContent || '取消后将停止模型处理，是否确认？',
         success: (res) => {
           if (res.confirm) {
             if (this.timer) {
