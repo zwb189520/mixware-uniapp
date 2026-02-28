@@ -496,7 +496,8 @@ export const useLanguageStore = defineStore('language', {
           unbindContent: '确定要解绑这台打印机吗？',
           unbindSuccess: '解绑成功',
           unbindFailed: '解绑失败',
-          deviceManager: '设备管理'
+          deviceManager: '设备管理',
+          emptyHint: '快去打印吧'
         },
         addDevice: {
           title: '添加设备',
@@ -723,7 +724,8 @@ export const useLanguageStore = defineStore('language', {
           unknown: '未知',
           printPoster: '打印海报',
           generatingPoster: '正在生成海报...',
-          posterGenerated: '海报生成成功'
+          posterGenerated: '海报生成成功',
+          emptyHint: '快去打印吧'
         },
         loginUserAgreement: {
           title: '用户协议',
@@ -1312,7 +1314,8 @@ export const useLanguageStore = defineStore('language', {
           unbindContent: 'Are you sure you want to unbind this printer?',
           unbindSuccess: 'Unbind Successful',
           unbindFailed: 'Unbind Failed',
-          deviceManager: 'Device Manager'
+          deviceManager: 'Device Manager',
+          emptyHint: 'Go print now'
         },
         medalDetail: {
           medalsWall: 'Medals Wall',
@@ -1376,7 +1379,8 @@ export const useLanguageStore = defineStore('language', {
           deleteSuccess: 'Delete successful',
           deleteFailed: 'Delete failed',
           cancel: 'Cancel',
-          confirm: 'Confirm'
+          confirm: 'Confirm',
+          emptyHint: 'Go print now'
         },
         profileEdit: {
           title: 'Profile',

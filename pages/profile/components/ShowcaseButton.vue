@@ -4,7 +4,7 @@
       <image src="/static/images/icon/my-works.png" mode="aspectFit" class="button-icon"></image>
       <view class="text-wrapper">
         <text class="button-text">{{ myWorksText }}</text>
-        <text v-if="worksCount === 0" class="hint-text">快去打印吧</text>
+        <text v-if="worksCount === 0" class="hint-text">{{ texts.emptyHint || '快去打印吧' }}</text>
       </view>
     </view>
   </view>

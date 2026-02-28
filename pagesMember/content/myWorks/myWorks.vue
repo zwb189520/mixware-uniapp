@@ -16,7 +16,7 @@
       <view v-else-if="!loading" class="empty-state">
         <image class="empty-icon" src="/static/images/empty-box.png" mode="aspectFit" />
         <text class="empty-text">{{ texts.noWorks || '暂无作品' }}</text>
-        <text class="empty-hint">快去打印吧</text>
+        <text class="empty-hint">{{ texts.emptyHint || '快去打印吧' }}</text>
       </view>
     </view>
     
