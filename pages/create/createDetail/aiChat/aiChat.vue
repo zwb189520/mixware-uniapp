@@ -14,10 +14,7 @@
 		:scroll-with-animation="true"
 		:scroll-into-view="scrollIntoView"
 		>
-			<view v-if="loadingSession" class="loading-session">
-				<text class="loading-text">{{ texts.loading }}</text>
-			</view>
-			
+	
 			<view
 				v-for="(msg, index) in messages"
 				:key="msg.id"
@@ -134,7 +131,7 @@
 				bottomAnchorId: 'chat-bottom-anchor',
 				streamController: null,
 				partialBuffer: '',
-				loadingSession: true,
+				loadingSession: false,
 				md: null,
 			lastRenderTime: 0,
 			renderThrottle: 50,
@@ -156,7 +153,7 @@
 			this.chatStore.initFromStorage()
 			this.languageStore.loadLanguage()
 			
-			this.loadingSession = true
+			// this.loadingSession = false
 			this.loadHotExamples()
 			if (options && options.sessionId) {
 				this.chatStore.setSessionId(options.sessionId)
@@ -168,13 +165,9 @@
 						await this.loadHistory()
 					} else {
 						console.error('设置当前会话失败:', res.msg)
-						uni.showToast({ title: '会话切换失败', icon: 'none' })
 					}
 				} catch (error) {
 					console.error('设置当前会话失败:', error)
-					uni.showToast({ title: '会话切换失败', icon: 'none' })
-				} finally {
-					this.loadingSession = false
 				}
 			} else {
 				await this.fetchSession()
@@ -247,11 +240,8 @@
 			},
 			
 			async fetchSession() {
-				this.loadingSession = true
-				
 				if (this.loadSessionFromStorage()) {
 					await this.loadHistory()
-					this.loadingSession = false
 					return
 				}
 				
@@ -280,8 +270,6 @@
 				} catch (err) {
 					console.error(this.texts.fetchSessionFailed, err)
 					this.chatStore.setMessages([])
-				} finally {
-					this.loadingSession = false
 				}
 			},
 			goBack() {
@@ -455,10 +443,6 @@
 					},
 					onError: (err) => {
 						this.chatStore.setLoading(false)
-						uni.showToast({
-							title: err?.message || this.texts.chatFailed,
-							icon: 'none'
-						})
 					},
 					onComplete: () => {
 						if (this.renderTimer) {
@@ -753,17 +737,7 @@
 	color: #fff;
 }
 
-.loading-session {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 20px;
-}
 
-.loading-text {
-	font-size: 14px;
-	color: #999;
-}
 
 .examples-section {
 	padding: 12px;

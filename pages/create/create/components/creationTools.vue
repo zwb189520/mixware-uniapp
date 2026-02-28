@@ -140,9 +140,7 @@ export default {
         })
       } else if (tool.id === 'aiChat') {
         try {
-          uni.showLoading({ title: '创建会话中...' })
           const res = await createSession()
-          uni.hideLoading()
           if ((res.code === 1 || res.code === 0) && res.data && res.data.sessionId) {
             uni.navigateTo({
               url: `/pages/create/createDetail/aiChat/aiChat?sessionId=${res.data.sessionId}`,
@@ -151,13 +149,10 @@ export default {
               }
             })
           } else {
-            uni.showToast({ title: '创建会话失败', icon: 'none' })
             this.isNavigating = false
           }
         } catch (error) {
-          uni.hideLoading()
           console.error('创建会话失败:', error)
-          uni.showToast({ title: '创建会话失败', icon: 'none' })
           this.isNavigating = false
         }
       } else if (tool.id === 'draw') {

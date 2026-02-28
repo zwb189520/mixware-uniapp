@@ -1,11 +1,7 @@
 <template>
   <view class="page">
     <safe-area />
-    <custom-navbar :title="texts.photography" @back="handleBack">
-      <template #right>
-        <uni-icons type="more-filled" size="24" @click="handleMore"></uni-icons>
-      </template>
-    </custom-navbar>
+    <custom-navbar :title="texts.photography" @back="handleBack" />
     
     <view class="main-view-container">
       <view class="main-view-header">

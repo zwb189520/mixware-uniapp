@@ -1,11 +1,7 @@
 <template>
   <view class="chat-page">
     <safe-area />
-    <custom-navbar :title="texts.chat" @back="handleBack">
-      <template #right>
-        <uni-icons type="more-filled" size="24" @click="handleMore"></uni-icons>
-      </template>
-    </custom-navbar>
+    <custom-navbar :title="texts.chat" @back="handleBack" />
     
     <scroll-view class="message-list" scroll-y :scroll-with-animation="true" :scroll-into-view="scrollIntoView">
       <view
