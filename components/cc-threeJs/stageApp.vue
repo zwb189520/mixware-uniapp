@@ -482,6 +482,41 @@
 				// 重新居中和缩放（1代表100%大小）
 				this.centerAndScale(1)
 			},
+			// 设置模型颜色
+			setModelColor(color) {
+				console.log('renderjs: 设置模型颜色:', color)
+				const { group } = instance
+				if (!group) {
+					console.log('renderjs: group不存在')
+					return
+				}
+				
+				let found = false
+				group.traverse((child) => {
+					if (child.isMesh && child.material) {
+						found = true
+						console.log('renderjs: 找到mesh:', child.name || 'unnamed')
+						// 修改材质颜色
+						if (Array.isArray(child.material)) {
+							child.material.forEach(mat => {
+								if (mat.color) {
+									mat.color.setHex(color)
+									mat.needsUpdate = true
+								}
+							})
+						} else {
+							if (child.material.color) {
+								child.material.color.setHex(color)
+								child.material.needsUpdate = true
+							}
+						}
+					}
+				})
+				
+				if (!found) {
+					console.log('renderjs: 未找到任何mesh')
+				}
+			},
 			createPlatformCube(boundingBox = null) {
 				const { scene, group } = instance
 				

@@ -4,6 +4,30 @@
     <custom-navbar class="fixed-top" :title="modelName" @back="handleBack" />
     <view class="canvas-wrap">
       <view class="canvas-container">
+        <!-- 左侧工具按钮栏 -->
+        <view class="left-toolbar">
+          <view class="toolbar-btn" @tap="handleCenter">
+            <uni-icons type="location-filled" size="20" color="#fff"></uni-icons>
+            <text class="toolbar-text">居中</text>
+          </view>
+          <view class="toolbar-btn" @tap="handleRotate">
+            <uni-icons type="reload" size="20" color="#fff"></uni-icons>
+            <text class="toolbar-text">旋转</text>
+          </view>
+          <view class="toolbar-btn" @tap="handleCopy">
+            <uni-icons type="plus" size="20" color="#fff"></uni-icons>
+            <text class="toolbar-text">复制</text>
+          </view>
+          <view class="toolbar-btn" @tap="handleFit">
+            <uni-icons type="eye" size="20" color="#fff"></uni-icons>
+            <text class="toolbar-text">适配</text>
+          </view>
+          <view class="toolbar-btn" @tap="handleDelete">
+            <uni-icons type="trash" size="20" color="#fff"></uni-icons>
+            <text class="toolbar-text">删除</text>
+          </view>
+        </view>
+        
         <Preview3D 
           v-if="showPreview && modelUrl"
           ref="preview3d"
@@ -17,7 +41,13 @@
           @loaded="onModelLoaded"
           @error="onModelLoadError"
           @dimensions="onModelDimensions"
+          @click="onModelClick"
         ></Preview3D>
+        
+        <!-- 选中状态指示器 -->
+        <!-- <view v-if="isModelSelected" class="selection-indicator">
+          <text class="selection-text">已选中</text>
+        </view> -->
         <view v-if="!modelUrl" class="empty-state">
           <text class="empty-text">{{ texts.noModel }}</text>
         </view>
@@ -30,13 +60,14 @@
       <text class="dimensions-text">{{ dimensionsText }}</text>
     </view>
     <view class="settings-section">
-      <view class="setting-item">
+      <view class="setting-item" :class="{ 'disabled': !isModelSelected }">
         <text class="setting-label">{{ texts.scale }} {{ scalePercent }}%</text>
         <slider 
           :value="scalePercent" 
           :min="10" 
           :max="100" 
           :step="1" 
+          :disabled="!isModelSelected"
           @change="onScaleChange"
           @changing="onScaleChanging"
           activeColor="#2a7fff"
@@ -93,7 +124,10 @@ export default {
       modelScale: 1,
       scalePercent: 100,
       modelInfo: {},
-      showPreview: false
+      showPreview: false,
+      // 模型选中状态
+      isModelSelected: true,
+      selectedModel: null
     }
   },
   computed: {
@@ -111,7 +145,7 @@ export default {
       }
     },
     dimensionsText() {
-      if (this.dimensions && this.dimensions.x && this.dimensions.y && this.dimensions.z) {
+      if (this.isModelSelected && this.dimensions && this.dimensions.x && this.dimensions.y && this.dimensions.z) {
         const factor = this.scalePercent / 100
         const x = (this.dimensions.x * factor).toFixed(1)
         const y = (this.dimensions.y * factor).toFixed(1)
@@ -292,6 +326,13 @@ export default {
       this.loading = false
       console.log('=== 模型加载完成 ===')
       
+      // 初始状态设置为绿色（选中）
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.setModelColor(0x00ff00)
+        }, 100)
+      })
+      
       this.$nextTick(() => {
         this.applyModelScale()
         
@@ -318,6 +359,94 @@ export default {
         y: Math.round(dimensions.y * 10) / 10,
         z: Math.round(dimensions.z * 10) / 10
       }
+    },
+    
+    // 模型点击事件
+    onModelClick(event) {
+      console.log('模型被点击:', event)
+      this.isModelSelected = !this.isModelSelected
+      if (this.isModelSelected) {
+        this.selectedModel = this.modelInfo
+        // 设置模型为绿色
+        this.setModelColor(0x00ff00)
+        // uni.showToast({
+        //   title: '模型已选中',
+        //   icon: 'none',
+        //   duration: 1000
+        // })
+      } else {
+        this.selectedModel = null
+        // 设置模型为灰色
+        this.setModelColor(0x808080)
+        // uni.showToast({
+        //   title: '取消选中',
+        //   icon: 'none',
+        //   duration: 1000
+        // })
+      }
+    },
+    
+    // 设置模型颜色
+    async setModelColor(color) {
+      console.log('设置模型颜色:', color)
+      
+      // #ifdef APP
+      // APP端通过call方法调用renderjs中的方法
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        const stageApp = this.$refs.preview3d.$refs.stageApp
+        try {
+          await stageApp.call({
+            key: 'setModelColor',
+            args: [color],
+            isReturn: false
+          })
+        } catch (err) {
+          console.error('调用setModelColor失败:', err)
+        }
+      }
+      // #endif
+      
+      // #ifndef APP
+      // H5和小程序端直接操作
+      if (this.$refs.preview3d) {
+        const preview3d = this.$refs.preview3d
+        // 尝试获取group
+        if (preview3d.group) {
+          this._doSetColor(preview3d.group, color)
+        }
+        // 尝试获取scene
+        if (preview3d.scene) {
+          this._doSetColor(preview3d.scene, color)
+        }
+      }
+      // #endif
+    },
+    
+    // 实际设置颜色的辅助方法
+    _doSetColor(target, color) {
+      if (!target) return
+      let found = false
+      target.traverse((child) => {
+        if (child.isMesh && child.material) {
+          found = true
+          console.log('找到mesh:', child.name || 'unnamed')
+          // 确保材质可以修改颜色
+          if (Array.isArray(child.material)) {
+            child.material.forEach(mat => {
+              if (mat.color) {
+                mat.color.setHex(color)
+                mat.needsUpdate = true
+              }
+            })
+          } else {
+            if (child.material.color) {
+              child.material.color.setHex(color)
+              child.material.needsUpdate = true
+            }
+          }
+        }
+      })
+      return found
     },
     getModelTypeFromUrl(url) {
       // 从URL获取模型类型
@@ -388,6 +517,36 @@ export default {
       } catch (error) {
         console.warn('缩放应用失败:', error)
       }
+    },
+    
+    // 居中
+    handleCenter() {
+      console.log('居中按钮被点击')
+      // TODO: 实现居中功能
+    },
+    
+    // 旋转
+    handleRotate() {
+      console.log('旋转按钮被点击')
+      // TODO: 实现旋转功能
+    },
+    
+    // 复制
+    handleCopy() {
+      console.log('复制按钮被点击')
+      // TODO: 实现复制功能
+    },
+    
+    // 适配
+    handleFit() {
+      console.log('适配按钮被点击')
+      // TODO: 实现适配功能
+    },
+    
+    // 删除
+    handleDelete() {
+      console.log('删除按钮被点击')
+      // TODO: 实现删除功能
     },
     async handlePrint() {
       if (!uni.getStorageSync('isLoggedIn')) {
@@ -512,6 +671,60 @@ export default {
 	flex: 1;
 	position: relative;
 	background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+}
+
+.left-toolbar {
+  position: absolute;
+  left: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  z-index: 100;
+}
+
+.toolbar-btn {
+  width: 80rpx;
+  height: 80rpx;
+  background-color: rgba(51, 51, 51, 0.9);
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.toolbar-btn:active {
+  opacity: 0.8;
+}
+
+
+
+.toolbar-text {
+  font-size: 20rpx;
+  color: #fff;
+}
+
+.selection-indicator {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  background-color: rgba(42, 127, 255, 0.9);
+  padding: 10rpx 20rpx;
+  border-radius: 8rpx;
+  z-index: 100;
+}
+
+.selection-text {
+  font-size: 24rpx;
+  color: #fff;
+}
+
+.setting-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .empty-state {
