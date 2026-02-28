@@ -13,6 +13,7 @@
 
 <script>
 import CreationTools from '@/pages/create/create/components/creationTools.vue'
+import { useLanguageStore } from '@/stores'
 
 export default {
   components: {
@@ -26,6 +27,11 @@ export default {
   onLoad() {
     const systemInfo = uni.getSystemInfoSync()
     this.statusBarHeight = systemInfo.statusBarHeight
+  },
+  onShow() {
+    // 页面显示时更新TabBar语言
+    const languageStore = useLanguageStore()
+    languageStore.updateTabBar()
   }
 }
 </script>

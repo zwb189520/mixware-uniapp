@@ -1699,18 +1699,39 @@ export const useLanguageStore = defineStore('language', {
         if (stored === 'en' || stored === 'zh') {
           this.language = stored
         }
+        // 加载语言后更新TabBar
+        this.updateTabBar()
       } catch (e) {
         this.language = 'zh'
       }
     },
     
     updateTabBar() {
+      const texts = this.texts
+      try {
+        uni.setTabBarItem({
+          index: 0,
+          text: texts.tabBar.explore
+        })
+        uni.setTabBarItem({
+          index: 1,
+          text: texts.tabBar.create
+        })
+        uni.setTabBarItem({
+          index: 2,
+          text: texts.tabBar.profile
+        })
+      } catch (e) {
+        console.warn('更新TabBar文本失败:', e)
+      }
     },
     
     setLanguage(lang) {
       this.language = lang
       try {
         uni.setStorageSync('appLanguage', lang)
+        // 更新TabBar文本
+        this.updateTabBar()
       } catch (err) {
         console.warn('保存语言设置失败:', err)
       }

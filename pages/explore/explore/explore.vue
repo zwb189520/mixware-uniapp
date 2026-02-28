@@ -280,6 +280,10 @@ export default {
       this.loadModels()
     })
   },
+  onShow() {
+    // 页面显示时更新TabBar语言
+    this.languageStore.updateTabBar()
+  },
   onUnload() {
     uni.$off('postDeleted')
   },
