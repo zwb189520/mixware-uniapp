@@ -8,23 +8,23 @@
         <view class="left-toolbar">
           <view class="toolbar-btn" @tap="handleCenter">
             <uni-icons type="location-filled" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">居中</text>
+            <text class="toolbar-text">{{ texts.center || '居中' }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleRotate">
             <uni-icons type="reload" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">旋转</text>
+            <text class="toolbar-text">{{ texts.rotate || '旋转' }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleCopy">
             <uni-icons type="plus" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">复制</text>
+            <text class="toolbar-text">{{ texts.copy || '复制' }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleFit">
             <uni-icons type="eye" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">适配</text>
+            <text class="toolbar-text">{{ texts.fit || '适配' }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleDelete">
             <uni-icons type="trash" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">删除</text>
+            <text class="toolbar-text">{{ texts.delete || '删除' }}</text>
           </view>
         </view>
         
@@ -395,11 +395,10 @@ export default {
         this.setModelColor(0x808080)
         // 取消选中时关闭旋转面板
         this.showRotationPanel = false
-        // uni.showToast({
-        //   title: '取消选中',
-        //   icon: 'none',
-        //   duration: 1000
-        // })
+        // 禁用模型拖拽
+        if (this.$refs.preview3d && typeof this.$refs.preview3d.disableModelDrag === 'function') {
+          this.$refs.preview3d.disableModelDrag()
+        }
       }
     },
     
@@ -553,7 +552,7 @@ export default {
       console.log('旋转按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
-          title: '请先选中模型',
+          title: this.texts.pleaseSelectModel || '请先选中模型',
           icon: 'none'
         })
         return

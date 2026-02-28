@@ -1,8 +1,8 @@
 <template>
   <view class="rotation-panel" v-if="visible">
     <view class="panel-header">
-      <text class="reset-btn" @tap="handleReset">重置</text>
-      <text class="panel-title">旋转</text>
+      <text class="reset-btn" @tap="handleReset">{{ texts.reset || '重置' }}</text>
+      <text class="panel-title">{{ texts.rotate || '旋转' }}</text>
       <text class="close-btn" @tap="handleClose">×</text>
     </view>
     
@@ -60,12 +60,22 @@
 </template>
 
 <script>
+import { useLanguageStore } from '@/stores'
+
 export default {
   name: 'RotationPanel',
   props: {
     visible: {
       type: Boolean,
       default: false
+    }
+  },
+  computed: {
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore?.texts?.explore || {}
     }
   },
   data() {
@@ -87,6 +97,9 @@ export default {
         this.$emit('open')
       }
     }
+  },
+  mounted() {
+    this.languageStore.loadLanguage()
   },
   methods: {
     onRulerTouchStart(axis, e) {
