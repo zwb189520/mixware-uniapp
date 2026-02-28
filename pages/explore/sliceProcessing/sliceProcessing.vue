@@ -40,14 +40,7 @@
           </view>
         </view>
         
-        <!-- 当前状态 -->
-        <view class="current-status">
-          <view class="status-icon-wrapper">
-            <view v-if="isProcessing" class="loading-circle"></view>
-            <text v-else class="check-icon">✓</text>
-          </view>
-          <text class="status-text">{{ currentStatus }}</text>
-        </view>
+
       </view>
       
       <!-- 提示信息 -->
@@ -84,7 +77,7 @@ export default {
       modelImage: '',
       modelImages: [], // 添加模型图片数组
       progress: 0,
-      isProcessing: true,
+      isProcessing: false,
       steps: [],
       currentStatus: '',
       timer: null
@@ -127,7 +120,8 @@ export default {
         { text: this.texts.pendingTaskGenerated || '待打印任务已生成', completed: false, active: true },
         { text: this.texts.printTimeAnalyzed || '打印时间已分析完成', completed: false, active: false },
         { text: this.texts.modelConsumptionAnalyzed || '模型消耗克数已分析完成', completed: false, active: false },
-        { text: this.texts.modelDimensionsAnalyzed || '模型尺寸已分析完成', completed: false, active: false }
+        { text: this.texts.modelDimensionsAnalyzed || '模型尺寸已分析完成', completed: false, active: false },
+        { text: this.texts.processingComplete || '模型处理完成，准备打印', completed: false, active: false }
       ]
       
       // 初始化当前状态文本
@@ -145,8 +139,8 @@ export default {
           this.steps[currentStep].completed = true
           this.steps[currentStep].active = false
           
-          // 更新进度（每完成一个步骤增加25%）
-          this.progress = (currentStep + 1) * 25
+          // 更新进度（每完成一个步骤增加20%）
+          this.progress = (currentStep + 1) * 20
           
           currentStep++
           
@@ -156,8 +150,6 @@ export default {
           } else {
             // 所有步骤完成
             this.progress = 100
-            this.currentStatus = this.texts.processingComplete || '模型处理完成，准备打印'
-            this.isProcessing = false
             clearInterval(this.timer)
             
             // 延迟后跳转到workDetail
@@ -238,7 +230,7 @@ export default {
 
 <style scoped>
 .page-container {
-  min-height: 100vh;
+  height: 100vh;
   background-color: #f5f5f5;
   display: flex;
   flex-direction: column;
@@ -246,17 +238,18 @@ export default {
 
 .content-scroll {
   flex: 1;
+  overflow-y: auto;
 }
 
 .model-image-section {
   display: flex;
   justify-content: center;
-  margin: 20rpx 30rpx 40rpx 30rpx;
+  margin: 15rpx 30rpx 25rpx 30rpx;
 }
 
 .model-image {
-  width: 400rpx;
-  height: 400rpx;
+  width: 600rpx;
+  height: 600rpx;
   border-radius: 20rpx;
   background-color: #fff;
 }
@@ -264,7 +257,7 @@ export default {
 .progress-section {
   display: flex;
   align-items: center;
-  margin: 0 30rpx 40rpx 30rpx;
+  margin: 0 30rpx 25rpx 30rpx;
 }
 
 .progress-bar {
@@ -292,26 +285,27 @@ export default {
 .status-box {
   background-color: #fff;
   border-radius: 20rpx;
-  padding: 30rpx;
-  margin: 0 20rpx 30rpx 20rpx;
+  padding: 25rpx;
+  margin: 0 20rpx 20rpx 20rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .steps-section {
-  margin-bottom: 20rpx;
+  margin-bottom: 15rpx;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .step-item {
   display: flex;
   align-items: center;
-  margin-bottom: 24rpx;
-  width: auto;
+  margin-bottom: 18rpx;
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .step-item:last-child {
@@ -368,14 +362,14 @@ export default {
 .step-item.active .step-text {
   color: #2a7fff;
   font-weight: 400;
+  font-size: 32rpx;
 }
 
 .current-status {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding-top: 20rpx;
-  border-top: 1rpx solid #f0f0f0;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .status-icon-wrapper {
@@ -384,7 +378,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16rpx;
+  margin-right: 20rpx;
 }
 
 .status-text {
@@ -395,7 +389,7 @@ export default {
 
 .tips-section {
   text-align: center;
-  padding: 20rpx 0;
+  padding: 15rpx 0;
 }
 
 .tips-text {
@@ -412,6 +406,7 @@ export default {
   background-color: #fff;
   padding: 30rpx;
   border-top: 1rpx solid #eee;
+  flex-shrink: 0;
 }
 
 .print-hint {
