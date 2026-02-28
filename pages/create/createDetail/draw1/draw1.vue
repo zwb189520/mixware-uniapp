@@ -8,16 +8,18 @@
           <uni-icons type="left" size="24" color="#333"></uni-icons>
         </view>
         <!-- 标题/输入框 -->
-        <input 
-          class="title-input" 
-          v-model="modelName" 
-          :focus="isFocus"
-          @blur="isFocus = false"
-          placeholder="为模型取名" 
-          placeholder-style="color: #999;"
-        />
-        <view class="edit-icon-view" @click="handleIconClick">
-          <image src="/static/images/edit.png" mode="aspectFit" class="edit-icon"></image>
+        <view class="input-wrapper">
+          <input 
+            class="title-input" 
+            v-model="modelName" 
+            :focus="isFocus"
+            @blur="isFocus = false"
+            :placeholder="texts.placeholder || '为模型取名'" 
+            placeholder-style="color: #999;"
+          />
+          <view class="edit-icon-view" @click="handleIconClick">
+            <image src="/static/images/edit.png" mode="aspectFit" class="edit-icon"></image>
+          </view>
         </view>
       </view>
 
@@ -25,8 +27,8 @@
       <view class="nav-right">
         <!-- 绘画模式按钮 -->
         <template v-if="!is3DView">
-          <view class="btn-save" @click="handleSave">保存编辑</view>
-          <view class="btn-next" @click="handleNext">下一步</view>
+          <view class="btn-save" @click="handleSave">{{ texts.saveEdit || '保存编辑' }}</view>
+          <view class="btn-next" @click="handleNext">{{ texts.nextStep || '下一步' }}</view>
         </template>
         
         <!-- 3D预览模式按钮 -->
@@ -34,9 +36,9 @@
           <view class="icon-btn" @click="handleSnapshot">
             <uni-icons type="camera" size="24" color="#555"></uni-icons>
           </view>
-          <view class="btn-white" @click="handleShare">分享模型</view>
-          <view class="btn-white" @click="handleSave">保存编辑</view>
-          <view class="btn-blue" @click="handlePrint">去打印</view>
+          <view class="btn-white" @click="handleShare">{{ texts.shareModel || '分享模型' }}</view>
+          <view class="btn-white" @click="handleSave">{{ texts.saveEdit || '保存编辑' }}</view>
+          <view class="btn-blue" @click="handlePrint">{{ texts.goPrint || '去打印' }}</view>
         </template>
       </view>
     </view>
@@ -63,6 +65,7 @@
 
 <script>
 import { uploadModelFile } from '@/api/upload.js'
+import { useLanguageStore } from '@/stores'
 
 export default {
   data() {
@@ -89,8 +92,17 @@ export default {
       }
     }
   },
+  computed: {
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.create.draw1 || {}
+    }
+  },
   onLoad() {
-
+    this.languageStore.loadLanguage()
+    
     const systemInfo = uni.getSystemInfoSync();
     if(systemInfo.uniPlatform){
       console.log('当前是运行环境是：'+systemInfo.uniPlatform)
@@ -344,15 +356,15 @@ export default {
                       console.log('分享成功');
                   }, (e) => {
                       console.log('分享失败: ' + JSON.stringify(e));
-                      uni.showToast({ title: '分享失败', icon: 'none' });
+                      uni.showToast({ title: this.texts.shareFailed || '分享失败', icon: 'none' });
                   });
               } catch (e) {
                   console.error("保存或分享失败", e);
-                  uni.showToast({ title: '保存失败', icon: 'none' });
+                  uni.showToast({ title: this.texts.saveFailed || '保存失败', icon: 'none' });
               }
           } else {
              // iOS 或其他平台暂未实现 Native 写入
-             uni.showToast({ title: '当前平台暂不支持分享STL', icon: 'none' });
+             uni.showToast({ title: this.texts.notSupportShareSTL || '当前平台暂不支持分享STL', icon: 'none' });
           }
       }, (e) => {
           console.error("Resolve _doc failed", e);
@@ -361,10 +373,10 @@ export default {
     },
     showSaveModal(){
       uni.showModal({
-        title: '提示',
-        content: '您有未保存的操作，确定要退出吗？',
-        cancelText: '不保存',
-        confirmText: '保存',
+        title: '',
+        content: this.texts.exitConfirm || '您有未保存的操作，确定要退出吗？',
+        cancelText: this.texts.dontSave || '不保存',
+        confirmText: this.texts.save || '保存',
         success: (res) => {
           if (res.confirm) {
             // 用户点击保存
@@ -399,7 +411,7 @@ export default {
         console.log('保存编辑')
         // TODO: 调用保存逻辑
         uni.showToast({
-          title: '保存成功',
+          title: this.texts.saveSuccess || '保存成功',
           icon: 'success', // 或者 'none' (不显示图标)
           duration: 2000   // 持续时间，默认1500ms
         });
@@ -562,7 +574,7 @@ export default {
             
             writer.onerror = (e) => {
               console.log('写入失败', e);
-              uni.showToast({ title: '保存文件失败', icon: 'none' });
+              uni.showToast({ title: this.texts.saveFileFailed || '保存文件失败', icon: 'none' });
             };
             
             // 写入内容
@@ -590,7 +602,7 @@ export default {
     },
     async uploadAndNavigateToPrint(stlContent) {
       this.isPrinting = false;
-      uni.showLoading({ title: '上传模型中...' });
+      uni.showLoading({ title: this.languageStore.texts.create.generating3D || '上传模型中...' });
       
       try {
         const systemInfo = uni.getSystemInfoSync();
@@ -784,6 +796,8 @@ export default {
   display: flex;
   align-items: center;
   padding-left: 20px;
+  flex: 1;
+  min-width: 0;
 }
 
 .nav-right {
@@ -809,15 +823,23 @@ export default {
   margin-right: 4px;
 }
 
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
 .title-input {
   font-size: 18px;
   font-weight: 500;
   color: #555;
-  margin-right: 4px;
-  width: 100px; /* 根据需要调整宽度 */
+  margin: 0;
+  padding: 0;
   background: transparent;
   height: 32px;
   line-height: 32px;
+  width: auto;
+  display: inline-block;
 }
 
 .edit-icon-view {
@@ -825,6 +847,8 @@ export default {
   align-items: center;
   height: 32px;
   line-height: 32px;
+  flex-shrink: 0;
+  margin-left: 0;
 }
 
 .edit-icon {
