@@ -56,6 +56,15 @@
 		</scroll-view>
 
 		<view class="input-bar">
+			<view 
+				class="voice-btn"
+				:class="{ recording: isRecording }"
+				@touchstart="startRecord"
+				@touchend="stopRecord"
+				@touchcancel="cancelRecord"
+			>
+				<uni-icons :type="isRecording ? 'mic-filled' : 'mic'" size="22" :color="isRecording ? '#FF5A00' : '#666'"></uni-icons>
+			</view>
 			<input
 				class="input"
 				type="text"
@@ -83,6 +92,7 @@
 
 <script>
 	import { chatStream, stopChat } from '@/api/chat.js'
+	import { audioOffline } from '@/api/audio.js'
 	import { post, get } from '@/api/request.js'
 	import { getSessionMessages, setCurrentSession, getHotExamples, getSessionDetail } from '@/api/session.js'
 	import { asyncTextToImg, queryTextToImgTask } from '@/api/text2img.js'
@@ -136,7 +146,9 @@
 			lastRenderTime: 0,
 			renderThrottle: 50,
 			pendingRender: false,
-			renderTimer: null
+			renderTimer: null,
+				isRecording: false,
+				recorderManager: null
 			}
 		},
 		computed: {
@@ -565,6 +577,54 @@
 					console.error('保存图片失败:', error)
 					uni.showToast({ title: '保存失败', icon: 'none' })
 				}
+			},
+			initRecorder() {
+				if (!this.recorderManager) {
+					this.recorderManager = uni.getRecorderManager()
+					this.recorderManager.onStop(async (res) => {
+						if (res.duration < 500) {
+							uni.showToast({ title: '录音时间太短', icon: 'none' })
+							return
+						}
+						uni.showLoading({ title: '识别中...' })
+						try {
+							const result = await audioOffline(res.tempFilePath)
+							uni.hideLoading()
+							if (result.code === 1 || result.code === 0) {
+								this.inputValue = result.data || ''
+								if (this.inputValue.trim()) {
+									this.sendMessage()
+								}
+							} else {
+								uni.showToast({ title: result.msg || '识别失败', icon: 'none' })
+							}
+						} catch (err) {
+							uni.hideLoading()
+							console.error('语音识别失败:', err)
+							uni.showToast({ title: '识别失败', icon: 'none' })
+						}
+					})
+				}
+			},
+			startRecord() {
+				this.initRecorder()
+				this.recorderManager.start({
+					format: 'mp3',
+					duration: 60000
+				})
+				this.isRecording = true
+			},
+			stopRecord() {
+				if (this.isRecording) {
+					this.recorderManager.stop()
+					this.isRecording = false
+				}
+			},
+			cancelRecord() {
+				if (this.isRecording) {
+					this.recorderManager.stop()
+					this.isRecording = false
+				}
 			}
 		}
 	}
@@ -686,6 +746,20 @@
 	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
 	gap: 8px;
 	z-index: 2;
+}
+
+.voice-btn {
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: #f5f5f5;
+}
+
+.voice-btn.recording {
+	background: #fff0e6;
 }
 
 .input {
