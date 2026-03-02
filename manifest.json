@@ -19,7 +19,8 @@
             "Barcode" : {},
             "Bluetooth" : {},
             "Camera" : {},
-            "FaceID" : {}
+            "FaceID" : {},
+            "OAuth" : {}
         },
         "distribute" : {
             "android" : {
@@ -49,7 +50,11 @@
             "ios" : {
                 "dSYMs" : false
             },
-            "sdkConfigs" : {},
+            "sdkConfigs" : {
+                "oauth" : {
+                    "apple" : {}
+                }
+            },
             "icons" : {
                 "android" : {
                     "hdpi" : "static/images/Default avatar.png",

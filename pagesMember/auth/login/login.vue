@@ -109,6 +109,10 @@
             <text class="google-icon">G</text>
             <text class="third-party-text">{{ texts.googleLogin }}</text>
           </view>
+          <view class="third-party-btn apple-btn" @click="handleAppleLogin">
+            <text class="apple-icon"></text>
+            <text class="third-party-text">{{ texts.appleLogin || 'Apple登录' }}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -120,6 +124,7 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores'
 import { sendVerificationCodeWithHandler, loginWithPassword, registerWithHandler, thirdPartyLoginWithHandler, loginByCodeWithHandler } from '@/api/users.js'
+import { getGoogleOAuthConfig, googleCallback, appleCallback, getAppleConfig } from '@/api/auth.js'
 
 export default {
   name: 'Login',
@@ -146,6 +151,36 @@ export default {
   mounted() {
     this.languageStore.loadLanguage()
     this.initializeTestUser()
+    this.handleOAuthCallback()
+  },
+  
+  async handleOAuthCallback() {
+    // #ifdef H5
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    const state = urlParams.get('state')
+    const error = urlParams.get('error')
+    
+    if (error) {
+      uni.showToast({ title: '授权失败', icon: 'none' })
+      return
+    }
+    
+    if (code && state) {
+      uni.showLoading({ title: '登录中...' })
+      try {
+        if (state.startsWith('google_')) {
+          const result = await googleCallback(code, state)
+          this.handleOAuthResult(result)
+        }
+        // 清理URL参数
+        window.history.replaceState({}, document.title, window.location.pathname)
+      } catch (err) {
+        uni.hideLoading()
+        uni.showToast({ title: '登录失败', icon: 'none' })
+      }
+    }
+    // #endif
   },
   
   beforeDestroy() {
@@ -462,32 +497,181 @@ export default {
       })
       
       try {
-        // 模拟Google登录，实际项目中需要集成Google SDK
-        const googleCode = 'mock_google_code_' + Date.now()
+        // #ifdef H5
+        const config = await getGoogleOAuthConfig()
+        if (config.code === 1 || config.code === 0) {
+          const { clientId, redirectUri } = config.data
+          const state = 'google_' + Date.now()
+          uni.setStorageSync('oauth_state', state)
+          const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=profile email&state=${state}`
+          window.location.href = authUrl
+        }
+        // #endif
         
-        await thirdPartyLoginWithHandler('google', googleCode, {
-          nickname: 'Google用户',
-          email: 'google@example.com',
-          avatarUrl: ''
-        })
-        
-        uni.hideLoading()
-        
-        uni.showToast({
-          title: this.texts.loginSuccess,
-          icon: 'success'
-        })
-        
-        // 延迟返回上一页
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 500)
+        // #ifdef APP-PLUS
+        const config = await getGoogleOAuthConfig()
+        if (config.code === 1 || config.code === 0) {
+          const { clientId, redirectUri } = config.data
+          plus.oauth.getServices(services => {
+            const google = services.find(s => s.id === 'google')
+            if (google) {
+              google.authorize(async (e) => {
+                const result = await googleCallback(e.code, '')
+                this.handleOAuthResult(result)
+              }, (err) => {
+                uni.hideLoading()
+                uni.showToast({ title: '授权失败', icon: 'none' })
+              })
+            } else {
+              uni.hideLoading()
+              uni.showToast({ title: '暂不支持Google登录', icon: 'none' })
+            }
+          })
+        }
+        // #endif
       } catch (error) {
         uni.hideLoading()
         uni.showToast({
           title: error.message || this.texts.googleLoginFailed,
           icon: 'none'
         })
+      }
+    },
+    
+    async handleAppleLogin() {
+      uni.showLoading({
+        title: '正在登录...'
+      })
+      
+      try {
+        // #ifdef H5
+        if (typeof AppleID === 'undefined') {
+          uni.hideLoading()
+          uni.showToast({ title: 'Apple登录暂不可用', icon: 'none' })
+          return
+        }
+        try {
+          const config = await getAppleConfig()
+          if (config.code !== 1 && config.code !== 0) {
+            uni.hideLoading()
+            uni.showToast({ title: '配置获取失败', icon: 'none' })
+            return
+          }
+          AppleID.auth.init({
+            clientId: config.data.clientId,
+            scope: 'name email',
+            redirectURI: config.data.redirectUri,
+            usePopup: true
+          })
+          const response = await AppleID.auth.signIn()
+          
+          const auth = response.authorization
+          const userData = response.user || {}
+          
+          if (userData.name) {
+            const fullName = `${userData.name.firstName || ''} ${userData.name.lastName || ''}`.trim()
+            uni.setStorageSync('apple_user_name', fullName)
+          }
+          if (userData.email) {
+            uni.setStorageSync('apple_user_email', userData.email)
+          }
+          
+          const result = await appleCallback({
+            code: auth.code,
+            id_token: auth.id_token,
+            user: auth.user,
+            email: userData.email || uni.getStorageSync('apple_user_email') || '',
+            name: uni.getStorageSync('apple_user_name') || ''
+          })
+          this.handleOAuthResult(result)
+        } catch (err) {
+          uni.hideLoading()
+          if (err.error === 'user_cancelled_authorize') {
+            uni.showToast({ title: '用户取消授权', icon: 'none' })
+          } else {
+            uni.showToast({ title: '授权失败', icon: 'none' })
+          }
+        }
+        // #endif
+        
+        // #ifdef APP-PLUS
+        // 使用 uni.login 官方API
+        uni.login({
+          provider: 'apple',
+          success: (loginRes) => {
+            // 获取用户信息
+            uni.getUserInfo({
+              provider: 'apple',
+              success: async (info) => {
+                const auth = info.authResult || {}
+                const userInfo = info.userInfo || {}
+                
+                // 提取数据
+                const code = auth.code || auth.authorizationCode
+                const identityToken = auth.identityToken || auth.id_token
+                const user = auth.user || userInfo.openId
+                const fullName = userInfo.fullName || (userInfo.name ? `${userInfo.name.firstName || ''} ${userInfo.name.lastName || ''}`.trim() : '')
+                const email = userInfo.email
+                
+                // 首次登录保存用户信息
+                if (fullName) {
+                  uni.setStorageSync('apple_user_name', fullName)
+                }
+                if (email) {
+                  uni.setStorageSync('apple_user_email', email)
+                }
+                
+                try {
+                  const result = await appleCallback({
+                    code,
+                    id_token: identityToken,
+                    user,
+                    email: email || uni.getStorageSync('apple_user_email') || '',
+                    name: uni.getStorageSync('apple_user_name') || fullName || ''
+                  })
+                  this.handleOAuthResult(result)
+                } catch (err) {
+                  uni.hideLoading()
+                  uni.showToast({ title: '登录失败', icon: 'none' })
+                }
+              },
+              fail: () => {
+                uni.hideLoading()
+                uni.showToast({ title: '获取用户信息失败', icon: 'none' })
+              }
+            })
+          },
+          fail: (err) => {
+            uni.hideLoading()
+            if (err.code === 1000) {
+              uni.showToast({ title: '用户取消授权', icon: 'none' })
+            } else {
+              uni.showToast({ title: '授权失败', icon: 'none' })
+            }
+          }
+        })
+        // #endif
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({
+          title: error.message || 'Apple登录失败',
+          icon: 'none'
+        })
+      }
+    },
+    
+    handleOAuthResult(result) {
+      uni.hideLoading()
+      if (result.code === 1 || result.code === 0) {
+        const { token, userId, username, avatarUrl } = result.data
+        uni.setStorageSync('token', token)
+        uni.setStorageSync('userInfo', { userId, username, avatarUrl })
+        uni.showToast({ title: this.texts.loginSuccess, icon: 'success' })
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 500)
+      } else {
+        uni.showToast({ title: result.msg || '登录失败', icon: 'none' })
       }
     }
   }
@@ -730,11 +914,12 @@ export default {
 .third-party-buttons {
   display: flex;
   justify-content: center;
+  gap: 20rpx;
 }
 
 .third-party-btn {
   flex: 1;
-  max-width: 400rpx;
+  max-width: 300rpx;
   height: 80rpx;
   background-color: #fff;
   border: 2rpx solid #eee;
@@ -749,6 +934,15 @@ export default {
   border-color: #ddd;
 }
 
+.apple-btn {
+  border-color: #ddd;
+  background-color: #000;
+}
+
+.apple-btn .third-party-text {
+  color: #fff;
+}
+
 .google-icon {
   width: 40rpx;
   height: 40rpx;
@@ -760,6 +954,15 @@ export default {
   color: #fff;
   font-size: 24rpx;
   font-weight: bold;
+}
+
+.apple-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%23fff' d='M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .third-party-text {
