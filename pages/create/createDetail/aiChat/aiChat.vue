@@ -82,7 +82,7 @@
 </template>
 
 <script>
-	import streamRequest from '@/api/streamRequest.js'
+	import { chatStream, stopChat } from '@/api/chat.js'
 	import { post, get } from '@/api/request.js'
 	import { getSessionMessages, setCurrentSession, getHotExamples, getSessionDetail } from '@/api/session.js'
 	import { asyncTextToImg, queryTextToImgTask } from '@/api/text2img.js'
@@ -354,9 +354,7 @@
 				
 				if (this.sessionId) {
 					try {
-						await post('/chat/stop', {
-							sessionId: this.sessionId
-						})
+						await stopChat(this.sessionId)
 						console.log(this.texts.chatStopped)
 					} catch (err) {
 						console.error(this.texts.stopChatFailed, err)
@@ -403,14 +401,7 @@
 					.slice(0, this.messages.length - 1)
 					.map(item => ({ role: item.role, content: item.content }))
 
-				this.streamController = streamRequest({
-					url: '/chat',
-					method: 'POST',
-					data: {
-						question: content,
-						sessionId: this.sessionId,
-						history
-					},
+				this.streamController = chatStream(content, this.sessionId, {
 					onMessage: (chunk) => {
 						this.partialBuffer += chunk || ''
 						this.partialBuffer = this.partialBuffer.replace(/\}\s*\{/g, '}\n{')
