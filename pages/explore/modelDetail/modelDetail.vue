@@ -115,6 +115,10 @@
             <image class="toolbar-icon" :src="modelInfo.isCollected ? '/static/images/icon/star_active.png' : '/static/images/icon/star.png'" mode="aspectFit"/>
             <text class="toolbar-text">{{ modelInfo.collections }}</text>
           </view>
+          <view class="toolbar-item delete-item" @click="handleDelete">
+            <uni-icons class="delete-icon" type="trash" size="24" color="#666"></uni-icons>
+            <text class="toolbar-text">删除</text>
+          </view>
         </view>
         <view class="toolbar-right">
           <view class="toolbar-item primary" @click="handlePrint">
@@ -131,7 +135,7 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import { addFavorite, cancelFavorite, getFavoriteModels } from '@/api/userFavorite.js'
-import { getModelDetail } from '@/api/models.js'
+import { getModelDetail, deleteModel } from '@/api/models.js'
 import { toggleLike, checkLikeStatus, getPostList } from '@/api/community.js'
 import { useLanguageStore } from '@/stores'
 
@@ -592,6 +596,40 @@ export default {
       uni.showToast({
         title: '查看作者主页',
         icon: 'none'
+      })
+    },
+    
+    async handleDelete() {
+      if (!this.modelId) {
+        uni.showToast({ title: '模型ID不存在', icon: 'none' })
+        return
+      }
+      
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除这个模型吗？删除后无法恢复。',
+        confirmColor: '#FF0000',
+        success: async (res) => {
+          if (res.confirm) {
+            uni.showLoading({ title: '删除中...' })
+            try {
+              const deleteRes = await deleteModel(this.modelId)
+              if (deleteRes.code === 1 || deleteRes.code === 200) {
+                uni.hideLoading()
+                uni.showToast({ title: '删除成功', icon: 'success' })
+                // 返回上一页
+                setTimeout(() => {
+                  uni.navigateBack()
+                }, 1500)
+              } else {
+                throw new Error(deleteRes.msg || '删除失败')
+              }
+            } catch (error) {
+              uni.hideLoading()
+              uni.showToast({ title: error.message || '删除失败', icon: 'none' })
+            }
+          }
+        }
       })
     },
 
@@ -1140,7 +1178,22 @@ export default {
 }
 
 .toolbar-item.collected.active .toolbar-text {
-  color: #FFD700;
+  color: #FF5A00;
+}
+
+.delete-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-icon {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loading-container {

@@ -773,6 +773,7 @@ export const uploadFile = (url, filePath, options = {}) => {
 			name: name,
 			formData: formData,
 			header: headers,
+			timeout: 30000, // 30秒超时
 			success: (res) => {
 				if (options.showLoading) {
 					uni.hideLoading()
@@ -783,17 +784,32 @@ export const uploadFile = (url, filePath, options = {}) => {
 					if (res.statusCode >= 200 && res.statusCode < 300) {
 						resolve(data)
 					} else {
-						reject(data)
+						console.error('上传失败，状态码:', res.statusCode, '响应:', data)
+						reject({
+							code: res.statusCode,
+							msg: data?.msg || data?.message || `上传失败，状态码: ${res.statusCode}`,
+							data: data
+						})
 					}
 				} catch (e) {
-					reject(res)
+					console.error('上传响应解析失败:', e, '原始响应:', res.data)
+					reject({
+						code: -1,
+						msg: '上传响应格式错误',
+						data: res.data
+					})
 				}
 			},
 			fail: (err) => {
 				if (options.showLoading) {
 					uni.hideLoading()
 				}
-				reject(err)
+				console.error('上传请求失败:', err)
+				reject({
+					code: err.errCode || -1,
+					msg: err.errMsg || '上传请求失败',
+					error: err
+				})
 			}
 		})
 	})

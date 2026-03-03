@@ -25,15 +25,15 @@ export function updateModel(modelId, updateData) {
 }
 
 export function deleteModel(modelId) {
-  return del(`/models/delete/${modelId}`)
+  return del(`/models/${modelId}`)
 }
 
 export function getModelPage(params = {}) {
-  return get('/models/page', params, { cache: true, cacheTime: 5 * 60 * 1000 })
+  return get('/models/page', params)
 }
 
 export function getMyModels(params = {}) {
-  return get('/models/my', params, { cache: true, cacheTime: 3 * 60 * 1000 })
+  return get('/models/my', params)
 }
 
 export function processModelData(modelData) {

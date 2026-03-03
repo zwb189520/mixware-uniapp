@@ -100,7 +100,7 @@ export default {
       this.stopStatusPolling()
       this.statusTimer = setInterval(() => {
         this.loadDeviceStatus()
-      }, 60000)
+      }, 30000)
     },
     stopStatusPolling() {
       if (this.statusTimer) {

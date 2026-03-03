@@ -22,6 +22,13 @@
           :keyword="keyword"
           @search-click="handleSearchClick"
         />
+        
+        <!-- 操作按钮 -->
+        <view class="action-btns">
+          <view class="action-btn upload-btn" @tap="uploadModel">
+            <text>↑上传模型</text>
+          </view>
+        </view>
 
         <!-- 滑动标签 -->
         <view class="tabs-wrapper">
@@ -181,7 +188,8 @@
 import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
-import { getModelPage } from '@/api/models.js'
+import { getModelPage, addModel, deleteModel } from '@/api/models.js'
+import { uploadModelFile, uploadImages } from '@/api/upload.js'
 import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
 import { toggleLike, checkLikeStatus } from '@/api/community.js'
 import { getHotExamples } from '@/api/session.js'
@@ -385,9 +393,10 @@ export default {
     async loadModels(params = {}) {
       this.exploreStore.setLoading(true)
       try {
+        // 查询所有模型，不限制用户
         const res = await getModelPage({
           current: params.current || 1,
-          size: params.size || 30
+          size: params.size || 100
         })
         
         if (res.code === 1 && res.data && res.data.records) {
@@ -407,10 +416,10 @@ export default {
       const categoryMap = {
         '日用居家': 'daily',
         '玩具手办': 'hot', 
-        '时尚穿戴': 'category',
-        '数码电器': 'category',
-        '建筑模型': 'category',
-        '艺术创意': 'category'
+        '亲子互动': 'category',
+        '学习探索': 'category',
+        '其他': 'category',
+        '高速打印': 'category'
       }
       
       return categoryMap[apiCategory] || 'daily'
@@ -435,7 +444,7 @@ export default {
       const formattedModels = models.map(model => ({
         id: model.modelId,
         name: model.name || '未命名模型',
-        desc: model.description || model.name || '暂无描述',
+        desc: model.name || model.description || '暂无描述',
         image: fixImageUrl(model.previewUrl),
         author: model.username || model.nickname || model.userName || '',
         authorAvatar: model.authorAvatar ? fixImageUrl(model.authorAvatar) : '/static/images/Default avatar.png',
@@ -446,9 +455,9 @@ export default {
       }))
       
       const tabData = {
-        daily: formattedModels.filter(m => m.category === 'daily').slice(0, 10),
-        hot: formattedModels.filter(m => m.category === 'hot' || m.viewCount > 1000).slice(0, 10),
-        category: formattedModels.filter(m => m.category !== 'daily' && m.category !== 'hot').slice(0, 10)
+        daily: formattedModels.filter(m => m.category === 'daily'),
+        hot: formattedModels.filter(m => m.category === 'hot' || m.viewCount > 1000),
+        category: formattedModels.filter(m => m.category !== 'daily' && m.category !== 'hot')
       }
       
       this.dailyModels = tabData.daily
@@ -697,6 +706,127 @@ export default {
     
     toggleTabsModal() {
       this.showTabsModal = !this.showTabsModal
+    },
+    
+    async uploadModel() {
+      // 步骤提示
+      uni.showModal({
+        title: '上传步骤',
+        content: '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传',
+        success: async (modalRes) => {
+          if (modalRes.confirm) {
+            // 选择预览图片
+            uni.chooseImage({
+              count: 1,
+              success: async (imgRes) => {
+                const imgPath = imgRes.tempFilePaths[0]
+                
+                uni.showToast({ title: '已选择图片', icon: 'none', duration: 1000 })
+                
+                // 选择STL文件
+                uni.chooseFile({
+                  count: 1,
+                  type: 'all',
+                  success: async (res) => {
+                    const stlFile = res.tempFiles[0]
+                    const stlPath = stlFile.path
+                    const stlName = stlFile.name || 'model.stl'
+                    
+                    uni.showToast({ title: '已选择STL文件', icon: 'none', duration: 1000 })
+                    
+                    // 选择分类
+                    const categories = ['日用居家', '玩具手办', '亲子互动', '学习探索', '其他', '高速打印']
+                    uni.showActionSheet({
+                      itemList: categories,
+                      success: async (sheetRes) => {
+                        const selectedCategory = categories[sheetRes.tapIndex]
+                        
+                        uni.showToast({ title: '已选择分类', icon: 'none', duration: 1000 })
+                        
+                        // 输入模型名称
+                        uni.showModal({
+                          title: '模型名称',
+                          content: '',
+                          placeholderText: stlName.replace('.stl', '').replace('.STL', ''),
+                          editable: true,
+                          success: async (inputRes) => {
+                            if (inputRes.confirm) {
+                              const finalName = inputRes.content || stlName.replace('.stl', '').replace('.STL', '')
+                              
+                              uni.showLoading({ title: '上传中...' })
+                              try {
+                                // 上传图片
+                                console.log('开始上传图片:', imgPath)
+                                let imgUploadRes
+                                try {
+                                  imgUploadRes = await uploadImages([imgPath])
+                                  console.log('图片上传结果:', imgUploadRes)
+                                } catch (uploadError) {
+                                  console.error('图片上传异常:', uploadError)
+                                  throw new Error(`图片上传异常: ${uploadError.message}`)
+                                }
+                                
+                                // 检查上传结果格式
+                                if (!imgUploadRes || imgUploadRes.length === 0) {
+                                  throw new Error('图片上传失败: 没有返回数据')
+                                }
+                                
+                                const imgResult = imgUploadRes[0]
+                                console.log('图片上传详细结果:', imgResult)
+                                
+                                if (!imgResult || (imgResult.code !== 1 && imgResult.code !== 200)) {
+                                  throw new Error(`图片上传失败: ${imgResult?.msg || imgResult?.message || '未知错误'}`)
+                                }
+                                
+                                // 上传STL文件
+                                console.log('开始上传STL文件:', stlPath)
+                                const stlUploadRes = await uploadModelFile(stlPath)
+                                console.log('STL上传结果:', stlUploadRes)
+                                
+                                if (stlUploadRes.code !== 1 && stlUploadRes.code !== 200) {
+                                  throw new Error(`STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`)
+                                }
+                                
+                                // 获取用户信息
+                                const userInfo = uni.getStorageSync('userInfo')
+                                const userId = userInfo?.userId || userInfo?.id || ''
+                                
+                                // 添加模型记录
+                                const previewUrl = imgUploadRes[0].data.files ? imgUploadRes[0].data.files[0].fileUrl : imgUploadRes[0].data
+                                const downloadUrl = stlUploadRes.data.fileUrl || stlUploadRes.data
+                                
+                                console.log('提取的previewUrl:', previewUrl)
+                                console.log('提取的downloadUrl:', downloadUrl)
+                                
+                                await addModel({
+                                  name: finalName,
+                                  category: selectedCategory,
+                                  previewUrl: previewUrl,
+                                  downloadUrl: downloadUrl,
+                                  description: finalName,
+                                  userId: userId,
+                                  editableStatus: 'editable'
+                                })
+                                
+                                uni.hideLoading()
+                                uni.showToast({ title: '上传成功', icon: 'success' })
+                                this.loadModels()
+                              } catch (error) {
+                                uni.hideLoading()
+                                uni.showToast({ title: error.message || '上传失败', icon: 'none' })
+                              }
+                            }
+                          }
+                        })
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          }
+        }
+      })
     }
   }
 }
@@ -900,6 +1030,32 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 8rpx;
+}
+
+.action-btns {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  padding: 20rpx 32rpx;
+  background: #FFF9F5;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
+}
+
+.action-btn text {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+.upload-btn {
+  background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
 }
 
 .tabs-expanded {

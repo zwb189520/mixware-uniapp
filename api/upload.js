@@ -10,8 +10,8 @@ export function uploadModelFile(filePath, options = {}) {
 export function uploadImages(files, options = {}) {
   return Promise.all(
     files.map(file => 
-      uploadFile('/api/upload/images', file, {
-        name: 'file',
+      uploadFile('/upload/images', file, {
+        name: 'files',  // 服务器要求字段名是 'files'
         ...options
       })
     )
