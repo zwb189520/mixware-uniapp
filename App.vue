@@ -5,9 +5,9 @@
 	export default {
 		onLaunch: function() {
 			console.log('App Launch')
-			// 初始化语言设置
+			// 初始化语言设置（不更新TabBar，等页面显示时再更新）
 			const languageStore = useLanguageStore()
-			languageStore.loadLanguage()
+			languageStore.loadLanguage(false)
 			
 			// 请求必要权限
 			this.requestAppPermissions()

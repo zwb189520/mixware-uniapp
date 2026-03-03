@@ -1725,14 +1725,16 @@ export const useLanguageStore = defineStore('language', {
   },
   
   actions: {
-    loadLanguage() {
+    loadLanguage(updateTabBar = true) {
       try {
         const stored = uni.getStorageSync('appLanguage')
         if (stored === 'en' || stored === 'zh') {
           this.language = stored
         }
-        // 加载语言后更新TabBar
-        this.updateTabBar()
+        // 加载语言后更新TabBar（可选）
+        if (updateTabBar) {
+          this.updateTabBar()
+        }
       } catch (e) {
         this.language = 'zh'
       }
@@ -1740,6 +1742,13 @@ export const useLanguageStore = defineStore('language', {
     
     updateTabBar() {
       const texts = this.texts
+      // 只在 TabBar 页面更新
+      const pages = getCurrentPages()
+      const currentPage = pages[pages.length - 1]
+      const tabBarPages = ['pages/explore/explore/explore', 'pages/create/create/create', 'pagesMember/profile/profile']
+      if (!currentPage || !tabBarPages.includes(currentPage.route)) {
+        return
+      }
       try {
         uni.setTabBarItem({
           index: 0,
