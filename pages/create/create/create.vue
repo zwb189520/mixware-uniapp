@@ -1,5 +1,5 @@
 <template>
-  <scroll-view scroll-y class="page" :scroll-x="false" :show-scrollbar="false">
+  <view class="page">
     <!-- 安全区域 -->
     <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
     
@@ -33,7 +33,7 @@
         </view>
       </view>
     </view>
-  </scroll-view>
+  </view>
 </template>
 
 <script>
@@ -165,12 +165,13 @@ export default {
 }
 .content {
   padding: 40rpx;
-  min-height: calc(100vh - var(--status-bar-height));
+  height: calc(100vh - v-bind(statusBarHeight + 'px'));
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding-top: 100rpx;
+  padding-top: 60rpx;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .creation-tools {
