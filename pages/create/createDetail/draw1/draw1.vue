@@ -143,6 +143,15 @@ export default {
     }
    
   },
+  onBackPress() {
+    console.log('onBackPress触发, platform:', this.platform);
+    if(this.platform && this.platform != 'web'){
+      console.log('调用goBack');
+      this.goBack();
+      return true;
+    }
+    return false;
+  },
   onShow() {
     // 返回页面时恢复横屏
     if(this.platform && this.platform != 'web'){
@@ -270,22 +279,18 @@ export default {
       }
     },
     goBack() {
-      if(this.isLoadDown3dView == false && this.modelName.trim() == ''){
-        //如果3d模型页面没有加载完成 则直接返回上一页
-        uni.navigateBack();
-      }else if(this.isLoadDown3dView == false && this.modelName.trim() !== ''){
-        this.showSaveModal()
+      console.log('goBack调用, is3DView:', this.is3DView);
+      if(this.is3DView == true){
+        this.is3DView = false;
+        this.sendMessage('switchMobileView',{'tab':'2d'});
       }else{
-        if(this.is3DView == true){
-          this.is3DView = false;
-          // 如果页面已经点击下一步 发送请求切换成2d页面
-          this.sendMessage('switchMobileView',{'tab':'2d'});
-        }else{
-          // 发送请求获取草图数据，判断是否需要保存
-          this.sendMessage('getSketchData');
+        if (this.webviewContext) {
+          this.webviewContext.loadURL('about:blank');
+          this.webviewContext.close();
+          this.webviewContext = null;
         }
+        uni.reLaunch({ url: '/pages/create/create/create' });
       }
-      
     },
     saveImageToPhotosAlbum(base64) {
       // #ifdef APP-PLUS
