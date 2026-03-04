@@ -9,6 +9,10 @@ export function getPostList(params = {}) {
   return get('/community/posts', params)
 }
 
+export function getLikedPosts(params = {}) {
+  return get('/community/posts/liked', params)
+}
+
 export function createPost(postData) {
   return post('/community/posts', postData)
 }

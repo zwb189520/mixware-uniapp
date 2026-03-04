@@ -2,6 +2,22 @@
   <view class="my-works-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
+    <view class="tab-bar">
+      <view 
+        class="tab-item" 
+        :class="{ active: activeTab === 'works' }"
+        @click="switchTab('works')"
+      >
+        <text class="tab-text">我的作品</text>
+      </view>
+      <view 
+        class="tab-item" 
+        :class="{ active: activeTab === 'likes' }"
+        @click="switchTab('likes')"
+      >
+        <text class="tab-text">我的点赞</text>
+      </view>
+    </view>
     <view class="works-container">
       <view v-if="worksList.length > 0" class="works-grid">
         <view 
@@ -15,8 +31,8 @@
       </view>
       <view v-else-if="!loading" class="empty-state">
         <image class="empty-icon" src="/static/images/empty-box.png" mode="aspectFit" />
-        <text class="empty-text">{{ texts.noWorks || '暂无作品' }}</text>
-        <text class="empty-hint">{{ texts.emptyHint || '快去打印吧' }}</text>
+        <text class="empty-text">{{ activeTab === 'works' ? (texts.noWorks || '暂无作品') : '暂无点赞' }}</text>
+        <text class="empty-hint">{{ activeTab === 'works' ? (texts.emptyHint || '快去打印吧') : '快去点赞吧' }}</text>
       </view>
     </view>
     
@@ -39,7 +55,7 @@ import SafeArea from '@/components/safe-area/safe-area.vue'
 import CustomActionSheet from './components/CustomActionSheet.vue'
 import { getModelRecords, getPrintRecords } from '@/api/operationRecords.js'
 import { deleteModel } from '@/api/models.js'
-import { getPostList } from '@/api/community.js'
+import { getPostList, getLikedPosts } from '@/api/community.js'
 import { useLanguageStore } from '@/stores'
 
 export default {
@@ -58,7 +74,8 @@ export default {
       showActionSheet: false,
       showCustomActionSheet: false,
       actionSheetItems: [],
-      cancelText: '取消'
+      cancelText: '取消',
+      activeTab: 'works'
     }
   },
   computed: {
@@ -71,8 +88,55 @@ export default {
   },
   onShow() {
     this.languageStore.loadLanguage()
-    this.loadWorks()
+    // 检查是否需要刷新
+    if (uni.getStorageSync('needRefreshWorks')) {
+      uni.removeStorageSync('needRefreshWorks')
+    }
+    this.loadData()
   },
+  methods: {
+    switchTab(tab) {
+      if (this.activeTab === tab) return
+      this.activeTab = tab
+      this.loadData()
+    },
+    async loadData() {
+      if (this.activeTab === 'works') {
+        await this.loadWorks()
+      } else {
+        await this.loadLikedPosts()
+      }
+    },
+    async loadLikedPosts() {
+      this.loading = true
+      try {
+        const res = await getLikedPosts({
+          current: 1,
+          size: 100
+        })
+        
+        if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
+          this.worksList = res.data.records.map(post => ({
+            id: post.postId,
+            title: post.title,
+            image: post.imageUrls && post.imageUrls.length > 0 ? post.imageUrls[0] : 'https://picsum.photos/400/400?random=' + post.postId,
+            printTime: '-',
+            printDate: post.createdAt && typeof post.createdAt === 'string' ? post.createdAt.split('T')[0] : '',
+            type: 'model',
+            status: 'completed',
+            isPost: true,
+            isLiked: true
+          }))
+        } else {
+          this.worksList = []
+        }
+      } catch (error) {
+        console.error('加载点赞列表失败:', error)
+        this.worksList = []
+      } finally {
+        this.loading = false
+      }
+    },
   
   watch: {
     'languageStore.language': {
@@ -91,7 +155,6 @@ export default {
       deep: true
     }
   },
-  methods: {
     async loadWorks() {
       this.loading = true
       try {
@@ -100,16 +163,16 @@ export default {
           const res = await getPostList({
             userId: userInfo.userId,
             current: 1,
-            size: 50
+            size: 100
           })
           
-          if (res.code === 0 && res.data && res.data.records) {
+          if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
             let apiPosts = res.data.records.map(post => ({
               id: post.postId,
               title: post.title,
               image: post.imageUrls && post.imageUrls.length > 0 ? post.imageUrls[0] : 'https://picsum.photos/400/400?random=' + post.postId,
               printTime: '-',
-              printDate: post.createdAt ? post.createdAt.split('T')[0] : '',
+              printDate: post.createdAt && typeof post.createdAt === 'string' ? post.createdAt.split('T')[0] : '',
               type: 'model',
               status: 'completed',
               isPost: true
@@ -125,7 +188,7 @@ export default {
                   title: newlyCreatedPost.title,
                   image: newlyCreatedPost.image,
                   printTime: '-',
-                  printDate: newlyCreatedPost.createdAt ? newlyCreatedPost.createdAt.split('T')[0] : '',
+                  printDate: newlyCreatedPost.createdAt && typeof newlyCreatedPost.createdAt === 'string' ? newlyCreatedPost.createdAt.split('T')[0] : '',
                   type: 'model',
                   status: 'completed',
                   isPost: true
@@ -157,7 +220,7 @@ export default {
     handleWorkClick(work) {
       if (work.isPost) {
         uni.navigateTo({
-          url: `/pages/explore/showcaseWorksDetail/showcaseWorksDetail?id=${work.id}`
+          url: `/pages/explore/showcaseWorksDetail/showcaseWorksDetail?id=${work.id}&title=${encodeURIComponent(work.title || '')}&image=${encodeURIComponent(work.image || '')}`
         })
         return
       }
@@ -295,6 +358,43 @@ export default {
   font-size: 28rpx;
   color: #FF6B35;
   margin-top: 20rpx;
+  font-weight: bold;
+}
+
+.tab-bar {
+  display: flex;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 88rpx;
+  position: relative;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background-color: #FF6B35;
+  border-radius: 2rpx;
+}
+
+.tab-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.tab-item.active .tab-text {
+  color: #FF6B35;
   font-weight: bold;
 }
 </style>

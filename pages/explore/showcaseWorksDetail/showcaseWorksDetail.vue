@@ -205,7 +205,7 @@ export default {
     }
   },
   onLoad(options) {
-    this.postId = options.postId || options.workId || ''
+    this.postId = options.postId || options.workId || options.id || ''
     this.workTitle = options.title ? decodeURIComponent(options.title) : '作品详情'
     this.modelImage = options.image ? decodeURIComponent(options.image) : ''
     
@@ -254,9 +254,9 @@ export default {
           // 过滤imageUrls中的无效路径（blob和file://）
           if (postData.imageUrls && Array.isArray(postData.imageUrls)) {
             const validImageUrls = postData.imageUrls.filter(imgUrl => 
-              !(imgUrl && (imgUrl.startsWith('blob:') || imgUrl.startsWith('file://')))
+              imgUrl && !(imgUrl.startsWith('blob:') || imgUrl.startsWith('file://'))
             );
-            postData.imageUrls = validImageUrls;
+            postData.imageUrls = validImageUrls.length > 0 ? validImageUrls : postData.imageUrls;
           } else {
             postData.imageUrls = [];
           }
@@ -313,63 +313,20 @@ export default {
           
           this.checkUserInteractions()
         } else {
-          // 接口返回失败，尝试从本地查找
-          this.loadLocalPostDetail()
+          uni.showToast({
+            title: '帖子不存在',
+            icon: 'none'
+          })
         }
       } catch (e) {
         console.error('加载帖子详情失败:', e)
-        this.loadLocalPostDetail()
+        uni.showToast({
+          title: '加载失败',
+          icon: 'none'
+        })
       } finally {
         this.loading = false
       }
-    },
-
-    loadLocalPostDetail() {
-      console.log('尝试从本地存储加载帖子:', this.postId)
-      // 先从全局本地帖子列表找
-      let allLocalPosts = uni.getStorageSync('local_all_posts') || []
-      let post = allLocalPosts.find(p => String(p.id) === String(this.postId))
-      
-      if (!post) {
-        // 如果没找到，可能在某个模型的本地列表中（虽然全局应该有，但作为保险）
-        // 这里简化处理，只查 newlyCreatedPost
-        const newlyCreated = uni.getStorageSync('newlyCreatedPost')
-        if (newlyCreated && String(newlyCreated.id) === String(this.postId)) {
-          post = newlyCreated
-        }
-      }
-      
-      if (post) {
-        console.log('找到本地帖子数据:', post)
-        this.postDetail = {
-          postId: post.id,
-          userId: 'local_user',
-          username: post.userName || '用户',
-          avatarUrl: post.userAvatar || '/static/images/Default avatar.png',
-          title: post.info || post.title || '作品详情',
-          content: post.content || '',
-          imageUrls: Array.isArray(post.image) ? post.image : [post.image],
-          likeCount: post.likes || 0,
-          commentCount: 0,
-          shareCount: 0,
-          viewCount: 0,
-          isLiked: post.isLiked || false,
-          isFollowing: false,
-        createdAt: post.time === '刚刚' ? new Date().getTime() : post.time,
-        topics: post.topics || [],
-        modelId: post.modelId || '',
-        modelName: post.modelName || ''
-      }
-        
-        this.userName = this.postDetail.username
-        this.userAvatar = this.postDetail.avatarUrl
-        // 过滤掉正文中的 #话题# 文本
-        this.description = (this.postDetail.content || '').replace(/#[^#\s]+#/g, '').trim()
-        this.workTitle = this.postDetail.title
-        this.modelImage = this.postDetail.imageUrls[0]
-        return true
-      }
-      return false
     },
 
     async checkUserInteractions() {

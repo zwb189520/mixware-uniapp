@@ -281,26 +281,6 @@ export default {
         if (res.code === 0 || res.code === 1) {
           uni.showToast({ title: this.texts.publishSuccess, icon: 'success' })
           
-          // 设置临时存储，让模型详情页能立即看到新帖子
-          const userInfo = uni.getStorageSync('userInfo')
-          const newlyCreatedPost = {
-            id: res.data || Date.now(),
-            modelId: this.postForm.modelId,
-            userId: userInfo?.userId || '',
-            userName: userInfo?.username || userInfo?.nickname || '我',
-            userAvatar: userInfo?.avatarUrl || '/static/images/Default avatar.png',
-            title: this.postForm.title,
-            content: this.postForm.content,
-            image: uploadedImageUrls[0] || '',
-            imageUrls: uploadedImageUrls,
-            topics: this.postForm.topics,
-            likeCount: 0,
-            isLiked: false,
-            createdAt: new Date().toISOString(),
-            isPost: true
-          }
-          uni.setStorageSync('newlyCreatedPost', newlyCreatedPost)
-          
           setTimeout(() => {
             // 返回到模型详情页
             uni.navigateBack()

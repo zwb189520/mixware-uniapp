@@ -90,6 +90,10 @@
           <view class="showcase-section">
             <view class="section-header">
               <text class="section-title">{{ texts.showcase }}</text>
+              <view class="create-post-btn" @click="handleCreatePost">
+                <uni-icons type="plus" size="14" color="#fff"></uni-icons>
+                <text class="btn-text">发布</text>
+              </view>
             </view>
             <view class="showcase-waterfall">
               <WaterfallLayout
@@ -229,10 +233,10 @@ export default {
     async loadShowcaseWorks() {
       if (!this.modelId) return
       try {
+        // 后端按modelId查询有bug，先查询所有帖子再过滤
         const res = await getPostList({
-          modelId: this.modelId,
           current: 1,
-          size: 20
+          size: 100
         })
         
         if (res.code === 0 || res.code === 1) {
@@ -980,7 +984,21 @@ export default {
 }
 
 .create-post-btn {
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 10rpx 20rpx;
+  background: linear-gradient(135deg, #FF9500, #FF5A00);
+  border-radius: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.create-post-btn .btn-text {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 500;
 }
 
 .create-post-btn::before {
