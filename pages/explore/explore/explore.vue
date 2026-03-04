@@ -839,7 +839,7 @@ export default {
 }
 
 .content-scroll {
-  height: 100vh;
+  height: 100%;
 }
 
 .header {
@@ -912,6 +912,13 @@ export default {
   z-index: 1;
   box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.08);
   transition: all 0.3s ease;
+  height: calc(100vh - 290rpx);
+  display: flex;
+  flex-direction: column;
+}
+
+.main-card.is-sticky {
+  height: calc(100vh - 30rpx);
 }
 
 .main-card.is-sticky {
@@ -1151,12 +1158,8 @@ export default {
   }
 
   .swiper {
-  height: calc(100vh - 320rpx);
-  transition: all 0.3s ease;
-}
-
-.swiper.is-sticky {
-  height: 100vh;
+  flex: 1;
+  height: auto;
 }
 
 @keyframes spin {
