@@ -81,7 +81,14 @@
           :style="{ height: refreshHeight + 'px', opacity: refreshOpacity }"
         >
           <view class="refresh-content">
-            <view class="refresh-spinner" :class="{ 'rotating': refreshing }"></view>
+            <!-- 步骤1: 下拉中 -->
+            <view v-if="refreshStep === 1" class="refresh-arrow" :class="{ 'rotate': pullDistance > 40 }"></view>
+            <!-- 步骤2: 松开刷新 -->
+            <view v-else-if="refreshStep === 2" class="refresh-arrow rotate"></view>
+            <!-- 步骤3: 刷新中 -->
+            <view v-else-if="refreshStep === 3" class="refresh-spinner rotating"></view>
+            <!-- 步骤4: 刷新成功 -->
+            <view v-else-if="refreshStep === 4" class="refresh-success">✓</view>
             <text class="refresh-text">{{ refreshingText }}</text>
           </view>
         </view>
@@ -269,6 +276,8 @@ export default {
       refreshingText: '',
       refreshHeight: 0,
       refreshOpacity: 0,
+      refreshStep: 1,
+      pullDistance: 0,
       startY: 0,
       isPulling: false,
       startX: 0,
@@ -297,36 +306,58 @@ export default {
   },
   methods: {
     onTouchStart(e) {
+      if (this.refreshing) return
       this.startY = e.touches[0].clientY
       this.startX = e.touches[0].clientX
       this.isPulling = false
       this.isHorizontalSwipe = false
     },
     onTouchMove(e) {
+      if (this.refreshing) return
       const currentY = e.touches[0].clientY
       const currentX = e.touches[0].clientX
       const diffY = currentY - this.startY
-      const diffX = Math.abs(currentX - this.startX)
+      const diffX = currentX - this.startX
+      const absDiffX = Math.abs(diffX)
+      const absDiffY = Math.abs(diffY)
+      this.pullDistance = diffY
       
-      if (!this.isHorizontalSwipe && diffX > 10) {
-        this.isHorizontalSwipe = true
+      // 还没确定方向时，判断主方向
+      if (!this.isHorizontalSwipe && !this.isPulling) {
+        if (absDiffX > absDiffY && absDiffX > 10) {
+          // 横向为主
+          this.isHorizontalSwipe = true
+          return
+        } else if (absDiffY > absDiffX && absDiffY > 10) {
+          // 纵向为主
+          this.isPulling = true
+        }
       }
       
       if (this.isHorizontalSwipe) {
         return
       }
       
-      if (diffY > 0 && diffY < 200) {
-        this.isPulling = true
+      if (diffY > 0 && this.isPulling) {
         this.isSticky = false
-        this.refreshHeight = Math.min(diffY * 15.5, 100)
-        this.refreshOpacity = Math.min(diffY / 1, 1)
+        this.refreshHeight = Math.min(diffY, 100)
+        this.refreshOpacity = Math.min(diffY / 80, 1)
         
-        if (this.refreshHeight > 1) {
+        if (diffY > 40) {
+          this.refreshStep = 2
           this.refreshingText = this.texts.releaseToRefresh
         } else {
+          this.refreshStep = 1
           this.refreshingText = this.texts.pullToRefresh
         }
+      }
+      
+      if (diffY < 0 && this.isPulling) {
+        this.refreshHeight = 0
+        this.refreshOpacity = 0
+        this.refreshStep = 1
+        this.refreshingText = ''
+        this.isPulling = false
       } else if (diffY < -5 && !this.isPulling) {
         this.isSticky = true
       }
@@ -350,8 +381,9 @@ export default {
         return
       }
       
-      if (this.refreshHeight > 1) {
+      if (this.refreshHeight > 40) {
         this.refreshing = true
+        this.refreshStep = 3
         this.isSticky = false
         this.refreshingText = this.texts.refreshing
         this.refreshHeight = 80
@@ -360,21 +392,22 @@ export default {
         this.refreshHeight = 0
         this.refreshOpacity = 0
         this.refreshingText = ''
+        this.refreshStep = 1
       }
       this.isPulling = false
     },
     async onRefresh() {
-      this.refreshing = true
-      await this.loadModels()
+      this.refreshStep = 3
+      await this.loadModels({ current: 1, size: 100 })
+      this.refreshStep = 4
+      this.refreshingText = this.texts.refreshComplete
       setTimeout(() => {
-        this.refreshing = false
         this.refreshHeight = 0
         this.refreshOpacity = 0
-        this.refreshingText = this.texts.refreshComplete
-        setTimeout(() => {
-          this.refreshingText = ''
-        }, 500)
-      }, 300)
+        this.refreshing = false
+        this.refreshStep = 1
+        this.refreshingText = ''
+      }, 800)
     },
     loadMore() {
     },
@@ -945,7 +978,6 @@ export default {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .refresh-content {
@@ -968,6 +1000,33 @@ export default {
 
 .refresh-spinner.rotating {
   animation: spin 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.refresh-arrow {
+  width: 0;
+  height: 0;
+  border-left: 16rpx solid transparent;
+  border-right: 16rpx solid transparent;
+  border-bottom: 24rpx solid #FF5A00;
+  margin-bottom: 12rpx;
+  transition: transform 0.2s;
+}
+
+.refresh-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+.refresh-success {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #FF5A00;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-bottom: 12rpx;
 }
 
 .refresh-text {

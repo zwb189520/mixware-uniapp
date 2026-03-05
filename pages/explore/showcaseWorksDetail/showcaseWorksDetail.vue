@@ -246,7 +246,7 @@ export default {
       this.loading = true
       
       try {
-        const res = await getPostDetail(this.postId)
+        const res = await getPostDetail(String(this.postId))
         
         if (res.code === 0 || res.code === 1) {
           const postData = res.data
