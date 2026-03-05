@@ -57,9 +57,10 @@ export default {
 <style scoped>
 .model-display-container {
   background: #fff;
-  margin: 16rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .model-display {
@@ -72,8 +73,8 @@ export default {
 .model-image {
   width: 200rpx;
   height: 200rpx;
-  background: #FFF9F5;
-  border-radius: 12rpx;
+  background: #f5f5f5;
+  border-radius: 16rpx;
 }
 
 .model-info {

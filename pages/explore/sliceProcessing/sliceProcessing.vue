@@ -68,6 +68,9 @@
 <script>
 import { useLanguageStore } from '@/stores'
 import { getModelDetail } from '@/api/models.js'
+import { submitSliceTask, getSliceStatus } from '@/api/sliceService.js'
+import { sendPrintCommand } from '@/api/iot.js'
+import { getDefaultDevice, getDeviceList } from '@/api/devices.js'
 
 export default {
   data() {
@@ -76,11 +79,14 @@ export default {
       modelName: '',
       modelImage: '',
       modelImages: [], // 添加模型图片数组
+      modelUrl: '', // 模型文件URL
       progress: 0,
       isProcessing: false,
       steps: [],
       currentStatus: '',
-      timer: null
+      timer: null,
+      taskId: '',
+      gcodeUrl: ''
     }
   },
   computed: {
@@ -91,7 +97,7 @@ export default {
       return this.languageStore.texts.explore
     }
   },
-  onLoad(options) {
+  async onLoad(options) {
     console.log('sliceProcessing onLoad options:', options)
     this.modelId = options.modelId || ''
     this.modelName = options.modelName || ''
@@ -102,11 +108,8 @@ export default {
     this.languageStore.loadLanguage()
     this.initializeTexts()
     
-    // 加载模型详情获取图片
-    this.loadModelImages()
-    
-    // 开始模拟进度
-    this.startProgress()
+    // 加载模型详情获取图片和模型URL，完成后开始切片
+    await this.loadModelImages()
   },
   onUnload() {
     if (this.timer) {
@@ -127,40 +130,80 @@ export default {
       // 初始化当前状态文本
       this.currentStatus = this.texts.analysisComplete || '分析完成，请等待模型处理'
     },
-    startProgress() {
-      let currentStep = 0
-      // 初始时只显示第一个步骤
-      this.steps[0].active = true
+    async startSliceTask() {
+      if (!this.modelUrl) {
+        uni.showToast({ title: '模型文件不存在', icon: 'none' })
+        return
+      }
       
-      this.timer = setInterval(() => {
-        // 一步一步完成每个步骤
-        if (currentStep < this.steps.length) {
-          // 完成当前步骤
-          this.steps[currentStep].completed = true
-          this.steps[currentStep].active = false
-          
-          // 更新进度（每完成一个步骤增加20%）
-          this.progress = (currentStep + 1) * 20
-          
-          currentStep++
-          
-          // 如果还有下一个步骤，激活它
-          if (currentStep < this.steps.length) {
-            this.steps[currentStep].active = true
-          } else {
-            // 所有步骤完成
-            this.progress = 100
-            clearInterval(this.timer)
-            
-            // 延迟后跳转到workDetail
-            // setTimeout(() => {
-            //   uni.redirectTo({
-            //     url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}`
-            //   })
-            // }, 1500)
+      try {
+        // 先发送打印命令给后端，让后端处理切片和打印
+        await this.sendPrintCommandAfterSlice()
+      } catch (error) {
+        console.error('打印任务失败:', error)
+        uni.showToast({ title: error.message || '打印失败', icon: 'none' })
+      }
+    },
+    
+    async pollSliceStatus(taskId) {
+      this.timer = setInterval(async () => {
+        try {
+          const res = await getSliceStatus(taskId)
+          if (res.code !== 1 && res.code !== 0) {
+            console.error('查询切片状态失败:', res.msg)
+            return
           }
+          
+          const data = res.data
+          const status = data?.status
+          const progress = data?.progress || 0
+          
+          // 根据状态更新步骤
+          if (status === 'RUNNING' || status === 'PENDING') {
+            this.progress = 20 + progress * 0.7 // 20-90%
+            if (progress > 25 && !this.steps[1].completed) {
+              this.steps[1].completed = true
+              this.steps[1].active = false
+              this.steps[2].active = true
+            }
+            if (progress > 50 && !this.steps[2].completed) {
+              this.steps[2].completed = true
+              this.steps[2].active = false
+              this.steps[3].active = true
+            }
+            if (progress > 75 && !this.steps[3].completed) {
+              this.steps[3].completed = true
+              this.steps[3].active = false
+              this.steps[4].active = true
+            }
+          } else if (status === 'COMPLETED') {
+            // 切片完成
+            console.log('切片完成，准备发送打印命令')
+            clearInterval(this.timer)
+            this.progress = 100
+            this.steps[1].completed = true
+            this.steps[2].completed = true
+            this.steps[3].completed = true
+            this.steps[4].completed = true
+            this.steps[4].active = false
+            
+            // 保存gcodeUrl
+            this.gcodeUrl = data?.gcodeUrl
+            
+            // 切片完成，发送打印命令
+            try {
+              await this.sendPrintCommandAfterSlice()
+            } catch (err) {
+              console.error('sendPrintCommandAfterSlice 执行失败:', err)
+            }
+          } else if (status === 'FAILED') {
+            clearInterval(this.timer)
+            uni.showToast({ title: data?.errorMessage || '切片失败', icon: 'none' })
+          }
+        } catch (error) {
+          console.error('轮询切片状态失败:', error)
         }
-      }, 2000) // 每2秒完成一个步骤
+      }, 2000) // 每2秒查询一次
     },
     handleBack() {
       uni.navigateBack()
@@ -201,10 +244,68 @@ export default {
           console.log('模型没有有效的图片数据')
           this.modelImage = '' // 显示空
         }
+        
+        // 获取模型文件URL
+        this.modelUrl = data.downloadUrl || data.modelFile || data.modelUrl || ''
+        console.log('设置的modelUrl:', this.modelUrl)
+        
+        // 获取到模型URL后开始切片任务
+        if (this.modelUrl) {
+          this.startSliceTask()
+        } else {
+          uni.showToast({ title: '模型文件不存在', icon: 'none' })
+        }
       } catch (error) {
         console.error('加载模型图片失败:', error)
+        uni.showToast({ title: '加载模型信息失败', icon: 'none' })
       }
     },
+    async sendPrintCommandAfterSlice() {
+      console.log('开始发送打印命令')
+      try {
+        uni.showLoading({ title: '正在发送打印指令...' })
+        
+        // 获取设备ID
+        let deviceId = ''
+        const deviceRes = await getDefaultDevice()
+        if (deviceRes.data?.deviceId) {
+          deviceId = deviceRes.data.deviceId
+        } else {
+          const listRes = await getDeviceList()
+          const devices = listRes.data?.records || listRes.data || []
+          if (devices.length > 0) {
+            deviceId = devices[0].deviceId
+          }
+        }
+        
+        if (!deviceId) {
+          uni.hideLoading()
+          uni.showToast({ title: '请先添加设备', icon: 'none' })
+          return
+        }
+        
+        // 发送打印命令
+        const res = await sendPrintCommand(deviceId, this.modelId, 'P')
+        uni.hideLoading()
+        
+        if (res.code === 1 || res.code === 0) {
+          uni.showToast({ title: '打印指令已发送', icon: 'success' })
+          // 跳转到workDetail
+          setTimeout(() => {
+            uni.redirectTo({
+              url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}`
+            })
+          }, 1500)
+        } else {
+          uni.showToast({ title: res.msg || '发送失败', icon: 'none' })
+        }
+      } catch (error) {
+        uni.hideLoading()
+        console.error('发送打印命令失败:', error)
+        uni.showToast({ title: '发送打印指令失败', icon: 'none' })
+      }
+    },
+    
     goToPrintRecords() {
       uni.navigateTo({
         url: '/pagesMember/printRecords/printRecords'

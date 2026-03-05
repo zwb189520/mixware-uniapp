@@ -111,6 +111,13 @@ export default {
   },
   mounted() {
     this.languageStore.loadLanguage()
+    console.log('PrintProgress mounted:', {
+      modelName: this.modelName,
+      estimatedTime: this.estimatedTime,
+      progress: this.progress,
+      isPrinting: this.isPrinting,
+      isPaused: this.isPaused
+    })
   },
   methods: {
     handlePauseClick() {
@@ -135,9 +142,10 @@ export default {
 <style scoped>
 .print-progress-container {
   background: #fff;
-  margin: 16rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .print-progress-section {
@@ -157,9 +165,9 @@ export default {
 }
 
 .model-name {
-  font-size: 26rpx;
-  color: #FF5A00;
-  font-weight: 500;
+  font-size: 28rpx;
+  color: #2a7fff;
+  font-weight: 600;
 }
 
 .time-section {
@@ -195,7 +203,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: #FF5A00;
+  background: linear-gradient(90deg, #2a7fff, #4a9fff);
   border-radius: 5rpx;
   transition: width 0.3s ease;
 }

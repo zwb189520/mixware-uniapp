@@ -74,9 +74,10 @@ export default {
 <style scoped>
 .printer-status-container {
   background: #fff;
-  margin: 16rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .printer-status-section {

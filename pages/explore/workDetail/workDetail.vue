@@ -72,7 +72,8 @@ export default {
     ModelDisplay,
     PrintProgress,
     PrinterStatus,
-    NozzleStatus
+    NozzleStatus,
+    SliceSettingsModal
   },
   data() {
     return {
@@ -112,16 +113,25 @@ export default {
     this.deviceId = options.deviceId || ''
     
     this.languageStore.loadLanguage()
-    this.useMockData()
+    
+    // 判断是否自动开始打印
+    const shouldAutoStart = this.workId || options.autoStart === 'true'
+    
+    // 如果没有传入数据，使用模拟数据
+    if (!this.modelName) {
+      this.useMockData()
+    }
     
     // 如果有设备ID，开始轮询设备状态
     if (this.deviceId) {
       this.startStatusPolling()
     }
     
-    // 如果没有打印任务，不自动启动模拟
-    if (this.workId || options.autoStart === 'true') {
+    // 自动开始打印
+    console.log('shouldAutoStart:', shouldAutoStart, 'workId:', this.workId, 'autoStart:', options.autoStart)
+    if (shouldAutoStart) {
       this.isPrinting = true
+      console.log('开始打印模拟，isPrinting:', this.isPrinting)
       this.startPrintSimulation()
     }
   },
@@ -149,6 +159,15 @@ export default {
     },
 
     startPrintSimulation() {
+      // 初始化打印参数
+      if (!this.estimatedTime) {
+        this.estimatedTime = 120
+      }
+      if (!this.currentProgress) {
+        this.currentProgress = 0
+      }
+      this.printerStatus = this.texts.busy
+      
       this.printInterval = setInterval(() => {
         // 如果暂停或完成，不继续增加进度
         if (this.isPaused || this.currentProgress >= 100) {
@@ -418,7 +437,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #FFF9F5;
+  background: #f5f5f5;
 }
 
 .content-scroll {
@@ -434,23 +453,23 @@ export default {
 
 .slice-btn {
   width: 80%;
-  height: 100rpx;
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
-  border-radius: 50rpx;
+  height: 88rpx;
+  background: linear-gradient(90deg, #2a7fff, #4a9fff);
+  border-radius: 44rpx;
   color: #fff;
-  font-size: 32rpx;
-  font-weight: 700;
+  font-size: 30rpx;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  box-shadow: 0 12rpx 32rpx rgba(255, 107, 53, 0.3);
+  gap: 12rpx;
+  box-shadow: 0 8rpx 24rpx rgba(42, 127, 255, 0.3);
   border: none;
 }
 
 .slice-btn:active {
-  transform: scale(0.96);
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.2);
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 .btn-icon {
@@ -458,29 +477,23 @@ export default {
 }
 
 .return-home-button {
+  margin: 30rpx;
+  height: 88rpx;
   background: #fff;
-  margin: 16rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  width: calc(100% - 32rpx);
-  height: 80rpx;
-  background: #1296db;
-  border-radius: 40rpx;
+  border-radius: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
-  transition: all 0.3s ease;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
 }
 
 .return-home-button:active {
   opacity: 0.8;
-  transform: scale(0.98);
 }
 
 .return-home-text {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: #333;
 }
 </style>
