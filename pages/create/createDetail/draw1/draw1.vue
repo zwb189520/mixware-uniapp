@@ -71,7 +71,8 @@ export default {
   data() {
     return {
       // 替换为您部署的实际地址，本地调试可用局域网 IP
-      url: 'http://192.168.0.43:8081/?token=uniapp_user_123',
+      // url: 'http://192.168.0.43:8081/?token=uniapp_user_123',
+      url: 'http://app.mixwarebot.cn/?token=uniapp_user_123',
       statusBarHeight: 0,
       postNumber: 0,
       webviewContext: null, // 这里将存储手动创建的 Webview 对象

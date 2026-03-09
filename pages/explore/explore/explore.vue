@@ -24,11 +24,11 @@
         />
         
         <!-- 操作按钮 -->
-        <view class="action-btns">
+        <!-- <view class="action-btns">
           <view class="action-btn upload-btn" @tap="uploadModel">
             <text>↑上传模型</text>
           </view>
-        </view>
+        </view> -->
 
         <!-- 滑动标签 -->
         <view class="tabs-wrapper">

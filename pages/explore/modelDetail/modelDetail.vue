@@ -119,10 +119,10 @@
             <image class="toolbar-icon" :src="modelInfo.isCollected ? '/static/images/icon/star_active.png' : '/static/images/icon/star.png'" mode="aspectFit"/>
             <text class="toolbar-text">{{ modelInfo.collections }}</text>
           </view>
-          <view class="toolbar-item delete-item" @click="handleDelete">
+          <!-- <view class="toolbar-item delete-item" @click="handleDelete">
             <uni-icons class="delete-icon" type="trash" size="24" color="#666"></uni-icons>
             <text class="toolbar-text">删除</text>
-          </view>
+          </view> -->
         </view>
         <view class="toolbar-right">
           <view class="toolbar-item primary" @click="handlePrint">

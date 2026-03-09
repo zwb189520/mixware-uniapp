@@ -86,7 +86,9 @@ export default {
       currentStatus: '',
       timer: null,
       taskId: '',
-      gcodeUrl: ''
+      gcodeUrl: '',
+      realTaskCompleted: false, // 真实任务是否完成
+      fakeProgressCompleted: false // 假进度是否完成
     }
   },
   computed: {
@@ -136,12 +138,91 @@ export default {
         return
       }
       
+      // 提交真实的切片任务到后端
       try {
-        // 先发送打印命令给后端，让后端处理切片和打印
-        await this.sendPrintCommandAfterSlice()
-      } catch (error) {
-        console.error('打印任务失败:', error)
-        uni.showToast({ title: error.message || '打印失败', icon: 'none' })
+        const submitRes = await submitSliceTask({
+          modelFileUrl: this.modelUrl,
+          layerHeight: 0.2,
+          infillDensity: 20,
+          printTemperature: 200,
+          bedTemperature: 60,
+          printSpeed: 50,
+          printerConfig: 'fdmprinter.json'
+        })
+        
+        if (submitRes.code === 1 || submitRes.code === 0) {
+          const taskId = submitRes.data?.taskId
+          if (taskId) {
+            this.taskId = taskId
+            // 轮询真实任务状态
+            this.pollRealTaskStatus(taskId)
+          }
+        }
+      } catch (err) {
+        console.error('提交切片任务失败:', err)
+      }
+      
+      // 模拟切片进度
+      this.steps[0].completed = true
+      this.steps[0].active = false
+      this.steps[1].active = true
+      this.progress = 0
+      
+      // 模拟步骤进度
+      this.timer = setInterval(() => {
+        if (this.progress >= 100) {
+          clearInterval(this.timer)
+          this.fakeProgressCompleted = true
+          this.steps[4].active = false
+          this.checkBothCompleted()
+          return
+        }
+        
+        this.progress += 1
+        
+        if (this.progress >= 40 && !this.steps[1].completed) {
+          this.steps[1].completed = true
+          this.steps[1].active = false
+          this.steps[2].active = true
+        }
+        if (this.progress >= 60 && !this.steps[2].completed) {
+          this.steps[2].completed = true
+          this.steps[2].active = false
+          this.steps[3].active = true
+        }
+        if (this.progress >= 80 && !this.steps[3].completed) {
+          this.steps[3].completed = true
+          this.steps[3].active = false
+          this.steps[4].active = true
+        }
+      }, 100)
+    },
+    
+    async pollRealTaskStatus(taskId) {
+      const pollTimer = setInterval(async () => {
+        try {
+          const res = await getSliceStatus(taskId)
+          if (res.code === 1 || res.code === 0) {
+            const data = res.data
+            if (data?.status === 'COMPLETED') {
+              clearInterval(pollTimer)
+              this.realTaskCompleted = true
+              this.gcodeUrl = data?.gcodeUrl || ''
+              this.checkBothCompleted()
+            } else if (data?.status === 'FAILED') {
+              clearInterval(pollTimer)
+              uni.showToast({ title: data?.errorMessage || '切片失败', icon: 'none' })
+            }
+          }
+        } catch (error) {
+          console.error('轮询真实任务状态失败:', error)
+        }
+      }, 2000)
+    },
+    
+    checkBothCompleted() {
+      if (this.realTaskCompleted && this.fakeProgressCompleted) {
+        this.sendPrintCommandAfterSlice()
       }
     },
     
