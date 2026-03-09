@@ -107,6 +107,14 @@ export default {
     },
     async handleToolClick(tool) {
       if (this.isNavigating) return
+      
+      // 检查登录状态
+      const isLoggedIn = uni.getStorageSync('isLoggedIn')
+      if (!isLoggedIn) {
+        uni.navigateTo({ url: '/pagesMember/auth/login/login' })
+        return
+      }
+      
       this.isNavigating = true
       
       const navigate = (url) => {
