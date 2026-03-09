@@ -8,23 +8,23 @@
         <view class="left-toolbar">
           <view class="toolbar-btn" @tap="handleCenter">
             <uni-icons type="location-filled" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">{{ texts.center || '居中' }}</text>
+            <text class="toolbar-text">居中</text>
           </view>
           <view class="toolbar-btn" @tap="handleRotate">
             <uni-icons type="reload" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">{{ texts.rotate || '旋转' }}</text>
+            <text class="toolbar-text">旋转</text>
           </view>
           <view class="toolbar-btn" @tap="handleCopy">
             <uni-icons type="plus" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">{{ texts.copy || '复制' }}</text>
+            <text class="toolbar-text">复制</text>
           </view>
           <view class="toolbar-btn" @tap="handleFit">
             <uni-icons type="eye" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">{{ texts.fit || '适配' }}</text>
+            <text class="toolbar-text">适配</text>
           </view>
           <view class="toolbar-btn" @tap="handleDelete">
             <uni-icons type="trash" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">{{ texts.delete || '删除' }}</text>
+            <text class="toolbar-text">删除</text>
           </view>
         </view>
         
@@ -90,31 +90,19 @@
       <!-- 底部空白区域 -->
       <view :style="{ height: (safeAreaBottom + 40) + 'px' }"></view>
     </view>
-    
-    <!-- 旋转控制面板 -->
-    <RotationPanel
-      ref="rotationPanel"
-      :visible="showRotationPanel"
-      @close="onRotationPanelClose"
-      @rotationChange="onRotationChange"
-      @rotationChanging="onRotationChanging"
-      @reset="onRotationReset"
-    />
   </view>
 </template>
 
 <script>
 import { sendPrintCommand } from '@/api/iot.js'
 import { getModelDetail } from '@/api/models.js'
-import { getDefaultDevice, getDeviceList } from '@/api/devices.js'
+import { getDefaultDevice } from '@/api/devices.js'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
-import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores'
 
 export default {
   components: {
-    Preview3D,
-    RotationPanel
+    Preview3D
   },
   data() {
     return {
@@ -139,15 +127,7 @@ export default {
       showPreview: false,
       // 模型选中状态
       isModelSelected: true,
-      selectedModel: null,
-      // 旋转面板显示状态
-      showRotationPanel: false,
-      // 模型旋转角度
-      modelRotation: {
-        x: 0,
-        y: 0,
-        z: 0
-      }
+      selectedModel: null
     }
   },
   computed: {
@@ -389,16 +369,20 @@ export default {
         this.selectedModel = this.modelInfo
         // 设置模型为绿色
         this.setModelColor(0x00ff00)
+        // uni.showToast({
+        //   title: '模型已选中',
+        //   icon: 'none',
+        //   duration: 1000
+        // })
       } else {
         this.selectedModel = null
         // 设置模型为灰色
         this.setModelColor(0x808080)
-        // 取消选中时关闭旋转面板
-        this.showRotationPanel = false
-        // 禁用模型拖拽
-        if (this.$refs.preview3d && typeof this.$refs.preview3d.disableModelDrag === 'function') {
-          this.$refs.preview3d.disableModelDrag()
-        }
+        // uni.showToast({
+        //   title: '取消选中',
+        //   icon: 'none',
+        //   duration: 1000
+        // })
       }
     },
     
@@ -501,12 +485,6 @@ export default {
       this.scalePercent = 100
       this.modelScale = 1
       
-      // 重置旋转
-      this.modelRotation = { x: 0, y: 0, z: 0 }
-      if (this.$refs.rotationPanel) {
-        this.$refs.rotationPanel.setRotation(0, 0, 0)
-      }
-      
       if (this.$refs.preview3d) {
         // 调用组件的重置方法
         if (typeof this.$refs.preview3d.resetModel === 'function') {
@@ -550,66 +528,7 @@ export default {
     // 旋转
     handleRotate() {
       console.log('旋转按钮被点击')
-      if (!this.isModelSelected) {
-        uni.showToast({
-          title: this.texts.pleaseSelectModel || '请先选中模型',
-          icon: 'none'
-        })
-        return
-      }
-      this.showRotationPanel = true
-    },
-    
-    // 旋转面板关闭
-    onRotationPanelClose() {
-      this.showRotationPanel = false
-    },
-    
-    // 旋转角度变化中（实时）
-    onRotationChanging({ x, y, z }) {
-      this.modelRotation = { x, y, z }
-      this.applyModelRotation()
-    },
-    
-    // 旋转角度变化完成
-    onRotationChange({ x, y, z }) {
-      this.modelRotation = { x, y, z }
-      this.applyModelRotation()
-    },
-    
-    // 重置旋转
-    onRotationReset() {
-      this.modelRotation = { x: 0, y: 0, z: 0 }
-      this.$refs.rotationPanel.setRotation(0, 0, 0)
-      this.applyModelRotation()
-    },
-    
-    // 应用模型旋转
-    applyModelRotation() {
-      const { x, y, z } = this.modelRotation
-      
-      // #ifdef APP
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
-          key: 'setModelRotation',
-          args: [x, y, z],
-          isReturn: false
-        })
-      }
-      // #endif
-      
-      // #ifndef APP
-      if (this.$refs.preview3d) {
-        const preview3d = this.$refs.preview3d
-        if (preview3d.group) {
-          const radX = (x * Math.PI) / 180
-          const radY = (y * Math.PI) / 180
-          const radZ = (z * Math.PI) / 180
-          preview3d.group.rotation.set(radX, radY, radZ)
-          preview3d.group.updateMatrixWorld(true)
-        }
-      }
-      // #endif
+      // TODO: 实现旋转功能
     },
     
     // 复制
@@ -634,9 +553,65 @@ export default {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
-      // 先跳转到切片处理页面
+      // try {
+      //   uni.showLoading({
+      //     title: this.texts.gettingDeviceInfo
+      //   })
+        
+      //   const deviceRes = await getDefaultDevice()
+      //   console.log('默认设备响应:', deviceRes)
+      //   console.log('默认设备数据:', deviceRes.data)
+        
+      //   const deviceId = deviceRes.data?.deviceId || deviceRes.data?.data?.deviceId
+      //   console.log('解析后的设备ID:', deviceId)
+        
+      //   if (!deviceId) {
+      //     uni.hideLoading()
+      //     uni.showToast({
+      //       title: this.texts.addDeviceFirst,
+      //       icon: 'none'
+      //     })
+      //     return
+      //   }
+        
+      //   uni.showLoading({
+      //     title: this.texts.sendingPrintCommand
+      //   })
+        
+      //   console.log('设备ID:', deviceId)
+      //   console.log('发送打印命令:', { deviceId, modelId: this.modelId })
+      //   const res = await sendPrintCommand(deviceId, this.modelId, 'P')
+      //   console.log('打印命令返回:', res)
+        
+      //   uni.hideLoading()
+      //   uni.showToast({
+      //     title: this.texts.printCommandSent,
+      //     icon: 'success'
+      //   })
+        
+      //   setTimeout(() => {
+      //     uni.navigateTo({
+      //       url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelUrl)}&modelUrl=${encodeURIComponent(this.modelUrl)}&scale=${this.scalePercent}&deviceId=${deviceId}`
+      //     })
+      //   }, 1500)
+      // } catch (error) {
+      //   uni.hideLoading()
+      //   console.error('打印命令失败:', error)
+      //   uni.showToast({
+      //     title: error.message || this.texts.sendPrintCommandFailed,
+      //     icon: 'none'
+      //   })
+      // }
+      // 跳转到切片处理页面，使用previewUrl而不是modelUrl
+      let imageUrl = this.modelUrl
+      
+      // 如果有模型详情且有previewUrl，使用previewUrl
+      if (this.modelInfo && this.modelInfo.previewUrl) {
+        imageUrl = this.modelInfo.previewUrl
+      }
+      
       uni.navigateTo({
-        url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelUrl)}`
+        url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}`
       })
     }
   }

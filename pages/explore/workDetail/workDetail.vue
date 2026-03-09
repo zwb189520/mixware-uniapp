@@ -116,6 +116,10 @@ export default {
     } catch (e) {
       this.modelImage = options.modelImage || ''
     }
+    // 如果图片为空，使用默认图片
+    if (!this.modelImage) {
+      this.modelImage = '/static/images/logo.png'
+    }
     try {
       this.modelUrl = options.modelUrl ? decodeURIComponent(options.modelUrl) : 'http://app.mixwarebot.cn/static/models/demo.stl'
     } catch (e) {

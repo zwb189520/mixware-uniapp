@@ -517,23 +517,6 @@
 					console.log('renderjs: 未找到任何mesh')
 				}
 			},
-			// 设置模型旋转角度（角度制）
-			setModelRotation(x, y, z) {
-				console.log('renderjs: 设置模型旋转:', x, y, z)
-				const { group } = instance
-				if (!group) {
-					console.log('renderjs: group不存在')
-					return
-				}
-				
-				const radX = (x * Math.PI) / 180
-				const radY = (y * Math.PI) / 180
-				const radZ = (z * Math.PI) / 180
-				
-				group.rotation.set(radX, radY, radZ)
-				group.updateMatrixWorld(true)
-				console.log('renderjs: 模型旋转已设置')
-			},
 			createPlatformCube(boundingBox = null) {
 				const { scene, group } = instance
 				

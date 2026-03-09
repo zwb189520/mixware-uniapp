@@ -330,8 +330,8 @@ export default {
           this.modelImage = images[0]
           console.log('设置的新modelImage:', this.modelImage)
         } else {
-          console.log('模型没有有效的图片数据')
-          this.modelImage = '' // 显示空
+          console.log('模型没有有效的图片数据，使用默认图片')
+          this.modelImage = '/static/images/logo.png' // 使用默认图片
         }
         
         // 获取模型文件URL
