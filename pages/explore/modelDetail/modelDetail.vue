@@ -90,10 +90,10 @@
           <view class="showcase-section">
             <view class="section-header">
               <text class="section-title">{{ texts.showcase }}</text>
-              <view class="create-post-btn" @click="handleCreatePost">
+              <!-- <view class="create-post-btn" @click="handleCreatePost">
                 <uni-icons type="plus" size="14" color="#fff"></uni-icons>
                 <text class="btn-text">发布</text>
-              </view>
+              </view> -->
             </view>
             <view class="showcase-waterfall">
               <WaterfallLayout
