@@ -106,9 +106,21 @@ export default {
   },
   onLoad(options) {
     this.workId = options.workId || ''
-    this.modelName = options.modelName ? decodeURIComponent(options.modelName) : ''
-    this.modelImage = options.modelImage ? decodeURIComponent(options.modelImage) : ''
-    this.modelUrl = options.modelUrl ? decodeURIComponent(options.modelUrl) : 'http://app.mixwarebot.cn/static/models/demo.stl' // 默认演示模型
+    try {
+      this.modelName = options.modelName ? decodeURIComponent(options.modelName) : ''
+    } catch (e) {
+      this.modelName = options.modelName || ''
+    }
+    try {
+      this.modelImage = options.modelImage ? decodeURIComponent(options.modelImage) : ''
+    } catch (e) {
+      this.modelImage = options.modelImage || ''
+    }
+    try {
+      this.modelUrl = options.modelUrl ? decodeURIComponent(options.modelUrl) : 'http://app.mixwarebot.cn/static/models/demo.stl'
+    } catch (e) {
+      this.modelUrl = options.modelUrl || 'http://app.mixwarebot.cn/static/models/demo.stl'
+    }
     this.modelScale = parseInt(options.scale) || 100
     this.deviceId = options.deviceId || ''
     

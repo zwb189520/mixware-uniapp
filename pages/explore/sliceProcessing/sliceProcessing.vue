@@ -102,8 +102,16 @@ export default {
   async onLoad(options) {
     console.log('sliceProcessing onLoad options:', options)
     this.modelId = options.modelId || ''
-    this.modelName = options.modelName || ''
-    this.modelImage = options.modelImage || ''
+    try {
+      this.modelName = options.modelName ? decodeURIComponent(options.modelName) : ''
+    } catch (e) {
+      this.modelName = options.modelName || ''
+    }
+    try {
+      this.modelImage = options.modelImage ? decodeURIComponent(options.modelImage) : ''
+    } catch (e) {
+      this.modelImage = options.modelImage || ''
+    }
     console.log('初始modelImage:', this.modelImage)
     
     // 加载语言和初始化文本
