@@ -27,6 +27,15 @@
             <text class="toolbar-text">删除</text>
           </view>
         </view>
+
+        <!-- 旋转面板 -->
+        <RotationPanel
+          :visible="showRotationPanel"
+          @close="showRotationPanel = false"
+          @reset="onRotationReset"
+          @rotationChanging="onRotationChanging"
+          @rotationChange="onRotationChange"
+        />
         
         <Preview3D 
           v-if="showPreview && modelUrl"
@@ -38,10 +47,13 @@
           :autoRotateSpeed="1.6"
           :disableRaycaster="false"
           :enablePan="true"
+          :enableModelDrag="isModelSelected"
           @loaded="onModelLoaded"
           @error="onModelLoadError"
           @dimensions="onModelDimensions"
           @click="onModelClick"
+          @boundaryCheck="onBoundaryCheck"
+          @scaleUpdate="onScaleUpdate"
         ></Preview3D>
         
         <!-- 选中状态指示器 -->
@@ -98,11 +110,13 @@ import { sendPrintCommand } from '@/api/iot.js'
 import { getModelDetail } from '@/api/models.js'
 import { getDefaultDevice } from '@/api/devices.js'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
+import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores'
 
 export default {
   components: {
-    Preview3D
+    Preview3D,
+    RotationPanel
   },
   data() {
     return {
@@ -127,7 +141,13 @@ export default {
       showPreview: false,
       // 模型选中状态
       isModelSelected: true,
-      selectedModel: null
+      selectedModel: null,
+      // 边界检测状态
+      isOutOfBounds: false,
+      boundaryMessage: '',
+      // 旋转面板
+      showRotationPanel: false,
+      currentRotation: { x: 0, y: 0, z: 0 }
     }
   },
   computed: {
@@ -332,17 +352,6 @@ export default {
           this.setModelColor(0x00ff00)
         }, 100)
       })
-      
-      this.$nextTick(() => {
-        this.applyModelScale()
-        
-        // 延迟检查尺寸，如果还是0则手动触发一次centerAndScale
-        setTimeout(() => {
-          if (this.dimensions.x === 0) {
-            this.applyModelScale()
-          }
-        }, 500)
-      })
     },
     onModelLoadError(error) {
       this.loading = false
@@ -364,25 +373,71 @@ export default {
     // 模型点击事件
     onModelClick(event) {
       console.log('模型被点击:', event)
+      
+      if (event.isSame === false) {
+        // 点击了不同模型：renderjs 已经处理了颜色和包围框
+        // 这里只需保持 isModelSelected = true
+        this.isModelSelected = true
+        this.selectedModel = this.modelInfo
+        this.isOutOfBounds = false
+        return
+      }
+      
+      // 点击同一个模型：切换选中/取消选中
       this.isModelSelected = !this.isModelSelected
       if (this.isModelSelected) {
         this.selectedModel = this.modelInfo
-        // 设置模型为绿色
-        this.setModelColor(0x00ff00)
-        // uni.showToast({
-        //   title: '模型已选中',
-        //   icon: 'none',
-        //   duration: 1000
-        // })
+        if (this.isOutOfBounds) {
+          this.setModelColor(0xff0000)
+        } else {
+          this.setModelColor(0x00ff00)
+        }
+        this.$nextTick(() => {
+          if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+            this.$refs.preview3d.$refs.stageApp.call({
+              key: 'updateBoundingBox',
+              args: [],
+              isReturn: false
+            })
+          }
+        })
       } else {
         this.selectedModel = null
-        // 设置模型为灰色
-        this.setModelColor(0x808080)
-        // uni.showToast({
-        //   title: '取消选中',
-        //   icon: 'none',
-        //   duration: 1000
-        // })
+        if (this.isOutOfBounds) {
+          this.setModelColor(0xff0000)
+        } else {
+          this.setModelColor(0x808080)
+        }
+        this.$nextTick(() => {
+          if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+            this.$refs.preview3d.$refs.stageApp.call({
+              key: 'updateBoundingBox',
+              args: [],
+              isReturn: false
+            })
+          }
+        })
+      }
+    },
+    
+    // 边界检测事件
+    onBoundaryCheck(data) {
+      console.log('边界检测:', data)
+      this.isOutOfBounds = data.isOutOfBounds
+      
+      if (data.isOutOfBounds) {
+        this.boundaryMessage = '模型边缘超出边界，请调整'
+      } else {
+        this.boundaryMessage = ''
+      }
+    },
+    
+    // 缩放更新事件
+    onScaleUpdate(data) {
+      console.log('缩放更新:', data)
+      if (data.scalePercent) {
+        this.scalePercent = data.scalePercent
+        this.modelScale = data.scalePercent / 100
       }
     },
     
@@ -472,9 +527,21 @@ export default {
     },
     // 应用模型缩放
     applyModelScale() {
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'scaleModelInPlace',
+          args: [this.modelScale],
+          isReturn: false
+        })
+      }
+      // #endif
+      
+      // #ifndef APP
       if (this.$refs.preview3d && typeof this.$refs.preview3d.centerAndScale === 'function') {
         this.$refs.preview3d.centerAndScale(this.modelScale)
       }
+      // #endif
     },
     
     // 重置模型位置和缩放
@@ -490,11 +557,6 @@ export default {
         if (typeof this.$refs.preview3d.resetModel === 'function') {
           try {
             this.$refs.preview3d.resetModel()
-            
-            // 额外确保尺寸更新
-            this.$nextTick(() => {
-              this.applyModelScale()
-            })
 
             uni.showToast({
               title: this.texts.resetSuccess || '重置成功',
@@ -522,33 +584,192 @@ export default {
     // 居中
     handleCenter() {
       console.log('居中按钮被点击')
-      // TODO: 实现居中功能
+      if (!this.isModelSelected) {
+        uni.showToast({
+          title: '请先选中模型',
+          icon: 'none',
+          duration: 1500
+        })
+        return
+      }
+      
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'centerModel',
+          args: [],
+          isReturn: false
+        })
+        uni.showToast({
+          title: '模型已居中',
+          icon: 'success',
+          duration: 1000
+        })
+      }
+      // #endif
     },
     
     // 旋转
     handleRotate() {
       console.log('旋转按钮被点击')
-      // TODO: 实现旋转功能
+      if (!this.isModelSelected) {
+        uni.showToast({
+          title: '请先选中模型',
+          icon: 'none',
+          duration: 1500
+        })
+        return
+      }
+      // 打开旋转面板
+      this.showRotationPanel = true
+    },
+    
+    // 旋转面板：旋转变化中（实时预览）
+    onRotationChanging(data) {
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'setModelRotation',
+          args: [data.x, data.y, data.z],
+          isReturn: false
+        })
+      }
+      // #endif
+    },
+    
+    // 旋转面板：旋转确认
+    onRotationChange(data) {
+      this.currentRotation = { x: data.x, y: data.y, z: data.z }
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'setModelRotation',
+          args: [data.x, data.y, data.z],
+          isReturn: false
+        })
+      }
+      // #endif
+    },
+    
+    // 旋转面板：重置旋转
+    onRotationReset() {
+      this.currentRotation = { x: 0, y: 0, z: 0 }
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'setModelRotation',
+          args: [0, 0, 0],
+          isReturn: false
+        })
+      }
+      // #endif
     },
     
     // 复制
     handleCopy() {
       console.log('复制按钮被点击')
-      // TODO: 实现复制功能
+      if (!this.isModelSelected) {
+        uni.showToast({
+          title: '请先选中模型',
+          icon: 'none',
+          duration: 1500
+        })
+        return
+      }
+      
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'copyModel',
+          args: [],
+          isReturn: false
+        })
+        uni.showToast({
+          title: '复制成功',
+          icon: 'success',
+          duration: 1000
+        })
+      }
+      // #endif
     },
     
     // 适配
     handleFit() {
       console.log('适配按钮被点击')
-      // TODO: 实现适配功能
+      if (!this.isModelSelected) {
+        uni.showToast({
+          title: '请先选中模型',
+          icon: 'none',
+          duration: 1500
+        })
+        return
+      }
+      
+      // #ifdef APP
+      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        this.$refs.preview3d.$refs.stageApp.call({
+          key: 'fitModel',
+          args: [],
+          isReturn: false
+        })
+        uni.showToast({
+          title: '模型已自动适配',
+          icon: 'success',
+          duration: 1000
+        })
+      }
+      // #endif
     },
     
     // 删除
     handleDelete() {
       console.log('删除按钮被点击')
-      // TODO: 实现删除功能
+      if (!this.isModelSelected) {
+        uni.showToast({
+          title: '请先选中模型',
+          icon: 'none',
+          duration: 1500
+        })
+        return
+      }
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除当前模型吗？',
+        success: (res) => {
+          if (res.confirm) {
+            // #ifdef APP
+            if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+              this.$refs.preview3d.$refs.stageApp.call({
+                key: 'deleteModel',
+                args: [],
+                isReturn: false
+              })
+            }
+            // #endif
+            // 重置选中状态
+            this.isModelSelected = false
+            this.selectedModel = null
+            this.isOutOfBounds = false
+            uni.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 1000
+            })
+          }
+        }
+      })
     },
     async handlePrint() {
+      // 检查是否超出边界
+      if (this.isOutOfBounds) {
+        uni.showToast({
+          title: this.boundaryMessage || '模型边缘超出边界，请调整',
+          icon: 'none',
+          duration: 2000
+        })
+        return
+      }
+      
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -671,6 +892,10 @@ export default {
 	flex: 1;
 	position: relative;
 	background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+	/* APP 端：画布区域不参与页面滚动，触摸交给 3D 跟手拖动/旋转/缩放 */
+	touch-action: none;
+	-webkit-user-select: none;
+	user-select: none;
 }
 
 .left-toolbar {
@@ -818,6 +1043,20 @@ export default {
 	opacity: 0.8;
 }
 
+.boundary-warning {
+	background-color: rgba(255, 59, 48, 0.1);
+	border: 1rpx solid rgba(255, 59, 48, 0.3);
+	border-radius: 8rpx;
+	padding: 16rpx 24rpx;
+	margin-bottom: 16rpx;
+}
+
+.warning-text {
+	font-size: 24rpx;
+	color: #ff3b30;
+	text-align: center;
+}
+
 .next-btn {
 	width: 100%;
 	height: 88rpx;
@@ -832,6 +1071,11 @@ export default {
 	justify-content: center;
 }
 
+.next-btn.disabled {
+	background-color: #666;
+	opacity: 0.5;
+}
+
 .next-btn-text {
 	color: #ffffff;
 	font-weight: 600;
@@ -839,5 +1083,9 @@ export default {
 
 .next-btn:active {
 	opacity: 0.8;
+}
+
+.next-btn.disabled:active {
+	opacity: 0.5;
 }
 </style>

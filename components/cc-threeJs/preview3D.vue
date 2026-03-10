@@ -2,7 +2,7 @@
 	<div class="w-full h-full relative">
 		<!-- #ifdef APP -->
 		<!-- app建议自己写逻辑，因为是renderjs的方式，调用方法很麻烦，自己写逻辑可以在template中直接调用renderjs中的方法 -->
-		<StageApp ref="stageApp" v-bind="$props" @loaded="loaded" :playOptions="playOptions" @dimensions="onModelDimensions" @loadProgress="onLoadProgress"></StageApp>
+		<StageApp ref="stageApp" v-bind="$props" @loaded="loaded" :playOptions="playOptions" @dimensions="onModelDimensions" @loadProgress="onLoadProgress" @modelClick="onModelClick" @boundaryCheck="onBoundaryCheck" @scaleUpdate="onScaleUpdate"></StageApp>
 		<!-- #endif -->
 
 		<!-- #ifndef APP -->
@@ -87,6 +87,11 @@
 			enablePan: {
 				type: Boolean,
 				default: false
+			},
+			// 是否允许单指拖动模型（选中时移动模型位置）
+			enableModelDrag: {
+				type: Boolean,
+				default: false
 			}
 		},
 
@@ -124,6 +129,24 @@
 			}
 		},
 		methods: {
+			// 接收 StageApp 的 modelClick 事件（APP端）
+			onModelClick(data) {
+				console.log('Preview3D.onModelClick 收到事件, data:', data)
+				// 向上传递给 preview3DDetail
+				this.$emit('click', data)
+			},
+			// 接收 StageApp 的边界检测事件（APP端）
+			onBoundaryCheck(data) {
+				console.log('Preview3D.onBoundaryCheck 收到事件, data:', data)
+				// 向上传递给 preview3DDetail
+				this.$emit('boundaryCheck', data)
+			},
+			// 接收 StageApp 的缩放更新事件（APP端）
+			onScaleUpdate(data) {
+				console.log('Preview3D.onScaleUpdate 收到事件, data:', data)
+				// 向上传递给 preview3DDetail
+				this.$emit('scaleUpdate', data)
+			},
 			// 统一暴露给外部的交互方法，支持全平台
 			// 居中并缩放模型
 			centerAndScale(scaleRatio = 1) {

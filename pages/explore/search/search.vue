@@ -49,7 +49,7 @@
       </view>
 
       <!-- 热门搜索 -->
-      <view v-if="hotTags.length" class="hot-search-section">
+      <!-- <view v-if="hotTags.length" class="hot-search-section">
         <view class="section-header">
           <text class="section-title">{{ texts.hotSearch || '热门搜索' }}</text>
         </view>
@@ -63,7 +63,7 @@
             {{ tag }}
           </text>
         </view>
-      </view>
+      </view> -->
     </scroll-view>
 
     <!-- 搜索结果 -->

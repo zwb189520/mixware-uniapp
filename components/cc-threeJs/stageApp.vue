@@ -1,7 +1,7 @@
 <template>
-	<view class="w-full h-full relative" :prop="$props" :callParam="callParam" :change:callParam="three.callSelfMethod"
-		:change:prop="three.init">
-		<div id='container' class="w-full h-full" @click="three.handleClick">
+	<view class="w-full h-full relative stage-app-touch" :prop="$props" :callParam="callParam" :change:callParam="three.callSelfMethod"
+		:change:prop="three.init" @click.stop="">
+		<div id='container' class="w-full h-full container-touch" @click="three.handleClick">
 		</div>
 		<!-- 自己写逻辑可以这样调用方法比较方便。 -->
 		<!-- <button @click="three.xxx"></button> -->
@@ -68,6 +68,11 @@
 			enablePan: {
 				type: Boolean,
 				default: false
+			},
+			// 是否允许单指拖动模型（选中时移动模型位置，与 enablePan 不同：此为移动模型本身）
+			enableModelDrag: {
+				type: Boolean,
+				default: false
 			}
 		},
 		data() {
@@ -118,6 +123,18 @@
 			},
 			loaded() {
 				this.$emit('loaded')
+			},
+			onModelClick(data) {
+				console.log('StageApp.onModelClick 被调用, data:', data)
+				this.$emit('modelClick', data)
+			},
+			onBoundaryCheck(data) {
+				console.log('StageApp.onBoundaryCheck 被调用, data:', data)
+				this.$emit('boundaryCheck', data)
+			},
+			onScaleUpdate(data) {
+				console.log('StageApp.onScaleUpdate 被调用, data:', data)
+				this.$emit('scaleUpdate', data)
 			},
 			onLoadProgress(progressInfo) {
 				this.$emit('loadProgress', progressInfo)
@@ -222,7 +239,115 @@
 					console.log('等待初始化完毕')
 					return
 				}
-				events.onEvent(evt)
+				
+				// 如果刚刚发生了拖动，不触发点击（避免拖动结束时误触发选中）
+				if (instance.dragState && instance.dragState.isDragging) {
+					console.log('拖动中，忽略点击')
+					return
+				}
+				
+				const { camera, group, renderer } = instance
+				if (!camera || !renderer) {
+					console.log('没有相机或渲染器，不触发点击')
+					return
+				}
+				
+				// 获取所有模型 group（包括复制出来的）
+				const allGroups = (instance.modelGroups || [group]).filter(g => g && g.children.length > 0)
+				if (allGroups.length === 0) {
+					console.log('没有模型，不触发点击')
+					return
+				}
+				
+				const raycaster = new THREE.Raycaster()
+				const mouse = new THREE.Vector2()
+				const rect = renderer.domElement.getBoundingClientRect()
+				
+				let clientX, clientY
+				if (evt.touches && evt.touches.length > 0) {
+					clientX = evt.touches[0].clientX
+					clientY = evt.touches[0].clientY
+				} else if (evt.changedTouches && evt.changedTouches.length > 0) {
+					clientX = evt.changedTouches[0].clientX
+					clientY = evt.changedTouches[0].clientY
+				} else {
+					clientX = evt.clientX
+					clientY = evt.clientY
+				}
+				
+				mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1
+				mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1
+				
+				// 收集所有可见 Mesh 并记录所属 group
+				const meshes = []
+				const meshToGroup = new Map()
+				allGroups.forEach(g => {
+					g.traverse(child => {
+						if (child.isMesh && child.visible) {
+							meshes.push(child)
+							meshToGroup.set(child, g)
+						}
+					})
+				})
+				
+				console.log('可检测的 Mesh 数量:', meshes.length)
+				
+				if (meshes.length === 0) {
+					console.log('没有可检测的 Mesh')
+					return
+				}
+				
+				raycaster.setFromCamera(mouse, camera)
+				const intersects = raycaster.intersectObjects(meshes, false)
+				
+				console.log('点击位置 NDC:', mouse.x.toFixed(2), mouse.y.toFixed(2), '命中数量:', intersects.length)
+				
+				if (intersects.length > 0) {
+					// 找到命中的 group
+					const hitMesh = intersects[0].object
+					const hitGroup = meshToGroup.get(hitMesh)
+					const hitGroupIndex = allGroups.indexOf(hitGroup)
+					console.log('命中模型，group 索引:', hitGroupIndex)
+					
+					const prevGroup = instance.selectedGroup
+					
+					if (prevGroup === hitGroup) {
+						// 点击同一个模型：切换选中/取消选中
+						this.$ownerInstance.callMethod('onModelClick', { hitModel: true, groupIndex: hitGroupIndex, isSame: true })
+					} else {
+						// 点击不同模型：把上一个变灰，新模型变绿
+						if (prevGroup) {
+							// 上一个模型变灰
+							prevGroup.traverse(child => {
+								if (child.isMesh && child.material) {
+									const mats = Array.isArray(child.material) ? child.material : [child.material]
+									mats.forEach(m => { if (m.color) m.color.setHex(0x808080) })
+								}
+							})
+						}
+						// 移除旧包围框
+						if (instance.bboxHelper) {
+							instance.scene.remove(instance.bboxHelper)
+							if (instance.bboxHelper.material) instance.bboxHelper.material.dispose()
+							instance.bboxHelper = null
+						}
+						// 切换到新 group
+						instance.selectedGroup = hitGroup
+						// 新模型变绿
+						hitGroup.traverse(child => {
+							if (child.isMesh && child.material) {
+								const mats = Array.isArray(child.material) ? child.material : [child.material]
+								mats.forEach(m => { if (m.color) m.color.setHex(0x00ff00) })
+							}
+						})
+						// 显示新包围框
+						this.updateBoundingBox()
+						// 通知父组件切换了选中目标（保持 isModelSelected = true）
+						this.$ownerInstance.callMethod('onModelClick', { hitModel: true, groupIndex: hitGroupIndex, isSame: false })
+					}
+				} else {
+					console.log('未命中模型，不通知父组件')
+				}
 			},
 			// 貌似不需要销毁，会自动销毁相关变量
 			// 退出页面requestAnimationFrame不会在执行了
@@ -341,19 +466,22 @@
 			// 居中并对齐底部到网格，同时处理缩放和边界限制
 			centerAndScale(scaleRatio = 1) {
 				const {
-					group,
 					camera,
 					scene,
 					controls
 				} = instance
+				
+				// 操作选中的 group
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup) return
 
 				// 1. 重置变换以便重新计算
-				group.position.set(0, 0, 0)
-				group.scale.set(1, 1, 1)
-				group.updateMatrixWorld(true)
+				targetGroup.position.set(0, 0, 0)
+				targetGroup.scale.set(1, 1, 1)
+				targetGroup.updateMatrixWorld(true)
 
 				// 2. 计算原始包围盒
-				let boundingBox = new THREE.Box3().setFromObject(group)
+				let boundingBox = new THREE.Box3().setFromObject(targetGroup)
 				const size = new THREE.Vector3()
 				boundingBox.getSize(size)
 				
@@ -376,24 +504,24 @@
 				
 				// 4. 应用最终缩放 (用户缩放 * 自动适配缩放)
 				const finalScale = scaleRatio * autoScale
-				group.scale.set(finalScale, finalScale, finalScale)
-				group.updateMatrixWorld(true)
+				// 保存 autoScale 供 scaleModelInPlace 使用
+				instance.autoScale = autoScale
+				targetGroup.scale.set(finalScale, finalScale, finalScale)
+				targetGroup.updateMatrixWorld(true)
 
 				// 5. 重新计算缩放后的包围盒和中心
-				const scaledBox = new THREE.Box3().setFromObject(group)
+				const scaledBox = new THREE.Box3().setFromObject(targetGroup)
 				const scaledSize = new THREE.Vector3()
 				const scaledCenter = new THREE.Vector3()
 				scaledBox.getSize(scaledSize)
 				scaledBox.getCenter(scaledCenter)
 
-				// 6. 核心对齐逻辑：
-				// X, Y 居中 (0, 0)
-				// Z 轴底部对齐网格 (Z=0)
-				group.position.x = -scaledCenter.x
-				group.position.y = -scaledCenter.y
-				group.position.z = -scaledCenter.z + (scaledSize.z / 2)
+				// 6. 核心对齐逻辑：X, Y 居中，Z 轴底部对齐网格
+				targetGroup.position.x = -scaledCenter.x
+				targetGroup.position.y = -scaledCenter.y
+				targetGroup.position.z = -scaledCenter.z + (scaledSize.z / 2)
 
-				// 7. 更新观察中心：盯着正方体中心 (0, 0, 50)
+				// 7. 更新观察中心
 				if (controls) {
 					controls.target.set(0, 0, 50)
 					camera.lookAt(controls.target)
@@ -402,9 +530,9 @@
 
 				// 8. 检测是否超过边界（100mm限制）
 				const isOutOfBounds = scaledSize.x > 100 || scaledSize.y > 100 || scaledSize.z > 100
-				const bboxColor = isOutOfBounds ? 0xff0000 : 0x00aaff // 超过边界变红，否则蓝色
+				const bboxColor = isOutOfBounds ? 0xff0000 : 0x00aaff
 
-				// 9. 绘制 100mm³ 的辅助框（logo只创建一次，后续调用不重复创建）
+				// 9. 绘制 100mm³ 的辅助框
 				this.createPlatformCube(new THREE.Box3(
 					new THREE.Vector3(-50, -50, 0),
 					new THREE.Vector3(50, 50, 100)
@@ -417,29 +545,32 @@
 					z: Math.round(Math.abs(scaledSize.z) * 10) / 10
 				}
 				
-				// 立即更新辅助框显示（反映当前模型尺寸和颜色）
+				// 检查是否选中模型
+				const isSelected = this.props.enableModelDrag
+				
+				// 更新辅助框显示
 				if (instance.bboxHelper) {
 					scene.remove(instance.bboxHelper)
-					// 清理材质
 					if (instance.bboxHelper.material) {
 						instance.bboxHelper.material.dispose()
 					}
 					instance.bboxHelper = null
 				}
-				// 创建新的辅助框，反映缩放后的模型尺寸
-				// 需要在下一帧更新，确保模型位置已更新
-				group.updateMatrixWorld(true)
-				const finalScaledBox = new THREE.Box3().setFromObject(group)
-				instance.bboxHelper = new THREE.Box3Helper(finalScaledBox, bboxColor)
-				if (instance.bboxHelper.material) {
-					// 启用深度测试，确保辅助框不会透过模型
-					instance.bboxHelper.material.depthTest = true
-					instance.bboxHelper.material.depthWrite = false
-					instance.bboxHelper.material.transparent = true
-					instance.bboxHelper.material.opacity = 0.8
+				
+				// 只有选中时才显示包围框
+				if (isSelected) {
+					targetGroup.updateMatrixWorld(true)
+					const finalScaledBox = new THREE.Box3().setFromObject(targetGroup)
+					instance.bboxHelper = new THREE.Box3Helper(finalScaledBox, bboxColor)
+					if (instance.bboxHelper.material) {
+						instance.bboxHelper.material.depthTest = true
+						instance.bboxHelper.material.depthWrite = false
+						instance.bboxHelper.material.transparent = true
+						instance.bboxHelper.material.opacity = 0.8
+					}
+					instance.bboxHelper.renderOrder = 999
+					scene.add(instance.bboxHelper)
 				}
-				instance.bboxHelper.renderOrder = 999
-				scene.add(instance.bboxHelper)
 
 				return dimensions
 			},
@@ -454,11 +585,12 @@
 				}
 			},
 			resetModel() {
-				const { controls, camera, group } = instance
-				if (group) {
+				const { controls, camera } = instance
+				const targetGroup = instance.selectedGroup || instance.group
+				if (targetGroup) {
 					// 重置模型旋转
-					group.rotation.set(0, 0, 0)
-					group.updateMatrixWorld(true)
+					targetGroup.rotation.set(0, 0, 0)
+					targetGroup.updateMatrixWorld(true)
 				}
 				if (camera && controls) {
 					// 停止自动旋转
@@ -467,36 +599,64 @@
 					// 确保 Up 向量正确 (Z轴向上)
 					camera.up.set(0, 0, 1)
 					
-					// 恢复到初始视角：正对着模型
-					// 初始位置是 (0, -220, 50)，目标点是 (0, 0, 50)
-					camera.position.set(0, -220, 50)
+					// 恢复到初始视角：前左上方略带俯视，模型朝向屏幕右下
+					camera.position.set(-120, -180, 100)
 					controls.target.set(0, 0, 50)
 					
 					// 更新控制器和相机
 					camera.lookAt(controls.target)
 					controls.update()
-					
-					// 重置控制器的内部状态（如缩放限制等）
-					// controls.reset() // 不再调用 controls.reset()，改为手动设置，避免状态同步问题
 				}
 				// 重新居中和缩放（1代表100%大小）
 				this.centerAndScale(1)
 			},
-			// 设置模型颜色
+			// 原地缩放模型（不改变 XY 中心位置，保持底部贴地）
+			scaleModelInPlace(userScale) {
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup) return
+				
+				const autoScale = instance.autoScale || 1
+				const finalScale = autoScale * userScale
+				
+				// 缩放前记录模型包围盒的 XY 中心
+				targetGroup.updateMatrixWorld(true)
+				const boxBefore = new THREE.Box3().setFromObject(targetGroup)
+				const centerXBefore = (boxBefore.min.x + boxBefore.max.x) / 2
+				const centerYBefore = (boxBefore.min.y + boxBefore.max.y) / 2
+				const minZBefore = boxBefore.min.z
+				
+				// 应用缩放（Three.js 以 group.position 为缩放中心）
+				targetGroup.scale.set(finalScale, finalScale, finalScale)
+				targetGroup.updateMatrixWorld(true)
+				
+				// 缩放后重新计算包围盒
+				const boxAfter = new THREE.Box3().setFromObject(targetGroup)
+				const centerXAfter = (boxAfter.min.x + boxAfter.max.x) / 2
+				const centerYAfter = (boxAfter.min.y + boxAfter.max.y) / 2
+				const minZAfter = boxAfter.min.z
+				
+				// 补偿 XY：让模型中心保持在原来位置
+				targetGroup.position.x += centerXBefore - centerXAfter
+				targetGroup.position.y += centerYBefore - centerYAfter
+				// 补偿 Z：保持底部贴地
+				targetGroup.position.z += minZBefore - minZAfter
+				
+				// 更新包围框
+				this.updateBoundingBox()
+			},
+			// 设置模型颜色（操作选中的 group）
 			setModelColor(color) {
 				console.log('renderjs: 设置模型颜色:', color)
-				const { group } = instance
-				if (!group) {
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup) {
 					console.log('renderjs: group不存在')
 					return
 				}
 				
 				let found = false
-				group.traverse((child) => {
+				targetGroup.traverse((child) => {
 					if (child.isMesh && child.material) {
 						found = true
-						console.log('renderjs: 找到mesh:', child.name || 'unnamed')
-						// 修改材质颜色
 						if (Array.isArray(child.material)) {
 							child.material.forEach(mat => {
 								if (mat.color) {
@@ -516,6 +676,272 @@
 				if (!found) {
 					console.log('renderjs: 未找到任何mesh')
 				}
+			},
+			// 将模型移动到平台中心 (0, 0)
+			centerModel() {
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup) return
+				
+				targetGroup.updateMatrixWorld(true)
+				const box = new THREE.Box3().setFromObject(targetGroup)
+				const center = new THREE.Vector3()
+				box.getCenter(center)
+				
+				targetGroup.position.x = targetGroup.position.x - center.x
+				targetGroup.position.y = targetGroup.position.y - center.y
+				
+				this.updateBoundingBox()
+			},
+			// 设置模型旋转角度（单位：度）—— 绕模型自身中心原地旋转
+			setModelRotation(x, y, z) {
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup) return
+				
+				targetGroup.updateMatrixWorld(true)
+				const boxBefore = new THREE.Box3().setFromObject(targetGroup)
+				const centerBefore = new THREE.Vector3()
+				boxBefore.getCenter(centerBefore)
+				
+				targetGroup.rotation.x = (x * Math.PI) / 180
+				targetGroup.rotation.y = (y * Math.PI) / 180
+				targetGroup.rotation.z = (z * Math.PI) / 180
+				targetGroup.updateMatrixWorld(true)
+				
+				const boxAfter = new THREE.Box3().setFromObject(targetGroup)
+				const centerAfter = new THREE.Vector3()
+				boxAfter.getCenter(centerAfter)
+				
+				targetGroup.position.x += centerBefore.x - centerAfter.x
+				targetGroup.position.y += centerBefore.y - centerAfter.y
+				
+				targetGroup.updateMatrixWorld(true)
+				const boxFinal = new THREE.Box3().setFromObject(targetGroup)
+				targetGroup.position.z += -boxFinal.min.z
+				
+				this.updateBoundingBox()
+			},
+			// 复制模型（克隆到旁边，独立 group，可分别选中）
+			copyModel() {
+				const { scene } = instance
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup || targetGroup.children.length === 0) return
+				
+				// 计算当前 group 的包围盒
+				targetGroup.updateMatrixWorld(true)
+				const box = new THREE.Box3().setFromObject(targetGroup)
+				const size = new THREE.Vector3()
+				box.getSize(size)
+				
+				// 创建独立新 group
+				const newGroup = new THREE.Group()
+				newGroup.position.copy(targetGroup.position)
+				newGroup.rotation.copy(targetGroup.rotation)
+				newGroup.scale.copy(targetGroup.scale)
+				
+				// 深克隆所有子对象，独立材质
+				targetGroup.children.forEach(child => {
+					const clone = child.clone(true)
+					clone.traverse(obj => {
+						if (obj.isMesh && obj.material) {
+							if (Array.isArray(obj.material)) {
+								obj.material = obj.material.map(m => m.clone())
+							} else {
+								obj.material = obj.material.clone()
+							}
+						}
+					})
+					newGroup.add(clone)
+				})
+				
+				// 偏移到旁边（X 轴方向，间距 10mm）
+				newGroup.position.x += size.x + 10
+				
+				scene.add(newGroup)
+				
+				// 加入多模型管理列表
+				if (!instance.modelGroups) instance.modelGroups = [instance.group]
+				instance.modelGroups.push(newGroup)
+				
+				// 新克隆的模型默认为未选中（灰色）
+				newGroup.traverse(obj => {
+					if (obj.isMesh && obj.material) {
+						const mats = Array.isArray(obj.material) ? obj.material : [obj.material]
+						mats.forEach(m => { if (m.color) m.color.setHex(0x808080) })
+					}
+				})
+				
+				console.log('复制模型完成，当前模型数量:', instance.modelGroups.length)
+			},
+			// 删除模型
+			deleteModel() {
+				const { scene } = instance
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup) return
+				
+				// 移除 group 中的所有子对象并释放内存
+				while (targetGroup.children.length > 0) {
+					const child = targetGroup.children[0]
+					if (child.geometry) child.geometry.dispose()
+					if (child.material) {
+						if (Array.isArray(child.material)) {
+							child.material.forEach(m => m.dispose())
+						} else {
+							child.material.dispose()
+						}
+					}
+					targetGroup.remove(child)
+				}
+				
+				// 从场景中移除 group
+				scene.remove(targetGroup)
+				
+				// 从 modelGroups 中移除
+				if (instance.modelGroups) {
+					const idx = instance.modelGroups.indexOf(targetGroup)
+					if (idx !== -1) instance.modelGroups.splice(idx, 1)
+				}
+				
+				// 移除包围框
+				if (instance.bboxHelper) {
+					scene.remove(instance.bboxHelper)
+					if (instance.bboxHelper.material) instance.bboxHelper.material.dispose()
+					instance.bboxHelper = null
+				}
+				
+				// 切换 selectedGroup 到剩余的第一个模型，没有则为 null
+				const remaining = instance.modelGroups || []
+				instance.selectedGroup = remaining.length > 0 ? remaining[0] : null
+				
+				// 如果还有模型，把它变绿色并显示包围框
+				if (instance.selectedGroup) {
+					instance.selectedGroup.traverse(child => {
+						if (child.isMesh && child.material) {
+							const mats = Array.isArray(child.material) ? child.material : [child.material]
+							mats.forEach(m => { if (m.color) m.color.setHex(0x00ff00) })
+						}
+					})
+					this.updateBoundingBox()
+				}
+			},
+			// 旋转模型 90 度（绕 Z 轴）
+			rotateModel() {
+				const { group } = instance
+				if (!group) return
+				
+				// 绕 Z 轴旋转 90 度
+				group.rotation.z += Math.PI / 2
+				group.updateMatrixWorld(true)
+				
+				// 更新包围框
+				this.updateBoundingBox()
+			},
+			// 自动适配模型到平台大小（缩放到刚好适合 100mm³）
+			fitModel() {
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup) return
+				
+				// 重置缩放
+				targetGroup.scale.set(1, 1, 1)
+				targetGroup.updateMatrixWorld(true)
+				
+				// 计算原始包围盒
+				const box = new THREE.Box3().setFromObject(targetGroup)
+				const size = new THREE.Vector3()
+				box.getSize(size)
+				
+				// 计算需要的缩放比例（适配到 95mm，留 5mm 边距）
+				const maxDim = Math.max(size.x, size.y, size.z)
+				const targetSize = 95
+				const scale = targetSize / maxDim
+				
+				// 应用缩放
+				targetGroup.scale.set(scale, scale, scale)
+				targetGroup.updateMatrixWorld(true)
+				
+				// 居中模型
+				this.centerModel()
+				
+				// 通知父组件更新缩放百分比
+				const scalePercent = Math.round(scale * 100)
+				this.$ownerInstance.callMethod('onScaleUpdate', { scalePercent })
+			},
+			// 更新包围框位置和颜色（拖动模型时调用）
+			updateBoundingBox() {
+				const { scene } = instance
+				const targetGroup = instance.selectedGroup || instance.group
+				if (!targetGroup || !scene) return
+				
+				// 检查是否选中模型
+				const isSelected = this.props.enableModelDrag
+				
+				// 更新模型的世界矩阵
+				targetGroup.updateMatrixWorld(true)
+				
+				// 计算当前模型的包围盒
+				const currentBox = new THREE.Box3().setFromObject(targetGroup)
+				const size = new THREE.Vector3()
+				currentBox.getSize(size)
+				
+				// 检测是否超出 100mm³ 边界
+				const isOutOfBounds = size.x > 100 || size.y > 100 || size.z > 100
+				
+				// 检测模型中心是否在平台范围内
+				const center = new THREE.Vector3()
+				currentBox.getCenter(center)
+				const min = currentBox.min
+				const max = currentBox.max
+				
+				const isOutsidePlatform = 
+					min.x < -50 || max.x > 50 ||
+					min.y < -50 || max.y > 50 ||
+					min.z < 0 || max.z > 100
+				
+				const finalIsOutOfBounds = isOutOfBounds || isOutsidePlatform
+				const finalColor = finalIsOutOfBounds ? 0xff0000 : 0x00aaff
+				
+				// 更新模型颜色
+				if (finalIsOutOfBounds) {
+					this.setModelColor(0xff0000)
+				} else {
+					this.setModelColor(isSelected ? 0x00ff00 : 0x808080)
+				}
+				
+				// 移除旧的包围框
+				if (instance.bboxHelper) {
+					scene.remove(instance.bboxHelper)
+					if (instance.bboxHelper.material) {
+						instance.bboxHelper.material.dispose()
+					}
+					instance.bboxHelper = null
+				}
+				
+				// 只有选中时才显示包围框
+				if (isSelected) {
+					instance.bboxHelper = new THREE.Box3Helper(currentBox, finalColor)
+					if (instance.bboxHelper.material) {
+						instance.bboxHelper.material.depthTest = true
+						instance.bboxHelper.material.depthWrite = false
+						instance.bboxHelper.material.transparent = true
+						instance.bboxHelper.material.opacity = 0.8
+					}
+					instance.bboxHelper.renderOrder = 999
+					scene.add(instance.bboxHelper)
+				}
+				
+				// 通知父组件边界状态
+				this.$ownerInstance.callMethod('onBoundaryCheck', {
+					isOutOfBounds: finalIsOutOfBounds,
+					size: {
+						x: Math.round(size.x * 10) / 10,
+						y: Math.round(size.y * 10) / 10,
+						z: Math.round(size.z * 10) / 10
+					},
+					position: {
+						x: Math.round(center.x * 10) / 10,
+						y: Math.round(center.y * 10) / 10,
+						z: Math.round(center.z * 10) / 10
+					}
+				})
 			},
 			createPlatformCube(boundingBox = null) {
 				const { scene, group } = instance
@@ -1629,10 +2055,11 @@
 				const {
 					controls
 				} = instance
-				// 检查 controls 是否存在，避免在初始化时出错
 				if (controls) {
-				controls.autoRotate = props.autoRotate;
-				controls.autoRotateSpeed = props.autoRotateSpeed
+					controls.autoRotate = props.autoRotate
+					controls.autoRotateSpeed = props.autoRotateSpeed
+					// 始终允许旋转视角（触摸模型拖动，触摸空白处旋转视角）
+					controls.enableRotate = true
 				}
 			},
 
@@ -1695,14 +2122,15 @@
 			},
 			init(props) {
 				if (this.isInit) {
+					const prevUrl = this.props.modelurl
+					this.props = props // 保证触摸回调里 enableModelDrag 等是最新
 					// 播放动画
 					if (!!props.playOptions?.animationName) {
 						this.playAnimation(props.playOptions)
 						return
 					}
 					// 切换模型
-					if (props.modelurl && props.modelurl !== this.props.modelurl) {
-						this.props = props
+					if (props.modelurl && props.modelurl !== prevUrl) {
 						this.loadModel()
 					}
 					this.update()
@@ -1745,12 +2173,16 @@
 				// 使用设备像素比，但限制最大值以避免线条模糊
 				const pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
 				renderer.setPixelRatio(pixelRatio)
+				// APP 端：让 canvas 接收触摸，跟手拖动/旋转/缩放
+				renderer.domElement.style.touchAction = 'none'
+				renderer.domElement.style.userSelect = 'none'
+				renderer.domElement.style.webkitUserSelect = 'none'
 				container.appendChild(renderer.domElement)
 
 				const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000);
 				camera.up.set(0, 0, 1) // 设置 Z 轴向上
-				camera.position.z = 50 // Z轴位置设置为50
-				camera.position.y = -220 // Y轴位置设置为-220
+				// 初始视角：前左上方略带俯视，模型朝向屏幕右下
+				camera.position.set(-120, -180, 100)
 				const scene = new THREE.Scene()
 				// 微信开发工具canvas层级显示有问题，真机没问题
 				// scene.background = new THREE.Color('#f2f2f2')
@@ -1780,11 +2212,13 @@
 				controls.update()
 				
 				controls.enablePan = this.props.enablePan !== undefined ? this.props.enablePan : false // 根据props控制平移
+				controls.screenSpacePanning = true // 平移在屏幕空间，APP 上跟手更自然
 				controls.enableDamping = true //惯性
 				controls.dampingFactor = 0.05 // 阻尼系数，控制惯性效果
-				controls.enableRotate = true // 启用旋转
+				// 始终允许旋转视角（触摸模型时拖动模型，触摸空白处旋转视角）
+				controls.enableRotate = true
 				controls.rotateSpeed = 1.0 // 旋转速度
-				controls.enableZoom = true // 启用缩放
+				controls.enableZoom = true // 启用缩放（双指 pinch）
 				controls.zoomSpeed = 1.0 // 缩放速度
 				// 限制缩放范围（透视相机使用 minDistance 和 maxDistance）
 				// 计算相机到目标点的初始距离（目标点是正方体中心）
@@ -1810,6 +2244,13 @@
 					renderer,
 					controls,
 				})
+				
+				// 初始化多模型管理
+				instance.modelGroups = [group]
+				instance.selectedGroup = group
+
+				// 单指拖动模型：选中时用平面射线交点移动 group
+				this.setupModelDragListeners()
 
 				const render = () => {
 					controls.update()
@@ -1827,6 +2268,125 @@
 				this.loadModel()
 				this.onClick()
 
+			},
+			// 选中模型时单指拖动：用「像素位移→世界位移」增量移动，跟手
+			setupModelDragListeners() {
+				const el = instance.renderer && instance.renderer.domElement
+				if (!el) return
+				const { camera, group, renderer } = instance
+				const DRAG_THRESHOLD_PX = 8
+				const dragState = {
+					isDragging: false,
+					startX: 0,
+					startY: 0,
+					lastX: 0,
+					lastY: 0
+				}
+				instance.dragState = dragState
+
+				// 根据透视相机和画布尺寸，把像素位移换算成世界位移（在模型所在平面）
+				const pixelToWorldScale = () => {
+					const rect = renderer.domElement.getBoundingClientRect()
+					const h = rect.height
+					const w = rect.width
+					if (h <= 0 || w <= 0) return 0
+					const d = camera.position.distanceTo(group.position)
+					const fovRad = (camera.fov * Math.PI) / 180
+					// 屏幕高度对应世界高度 ≈ 2 * d * tan(fov/2)
+					const worldPerPixel = (2 * d * Math.tan(fovRad / 2)) / h
+					return worldPerPixel
+				}
+
+				const onTouchStart = (e) => {
+					if (!this.props.enableModelDrag || e.touches.length !== 1) return
+					
+					// 射线检测：判断触摸点是否命中模型
+					const allGroups = (instance.modelGroups || [group]).filter(g => g && g.children.length > 0)
+					if (allGroups.length === 0) return
+					
+					const touch = e.touches[0]
+					const rect = renderer.domElement.getBoundingClientRect()
+					const mouse = new THREE.Vector2(
+						((touch.clientX - rect.left) / rect.width) * 2 - 1,
+						-((touch.clientY - rect.top) / rect.height) * 2 + 1
+					)
+					const raycaster = new THREE.Raycaster()
+					raycaster.setFromCamera(mouse, camera)
+					
+					const meshes = []
+					allGroups.forEach(g => g.traverse(child => {
+						if (child.isMesh && child.visible) meshes.push(child)
+					}))
+					
+					const intersects = raycaster.intersectObjects(meshes, false)
+					
+					if (intersects.length === 0) {
+						// 未命中模型，不启用拖动，让 OrbitControls 处理旋转
+						dragState.hitModel = false
+						return
+					}
+					
+					// 命中模型，启用拖动，禁用 OrbitControls 旋转
+					dragState.hitModel = true
+					dragState.isDragging = false
+					dragState.startX = touch.clientX
+					dragState.startY = touch.clientY
+					dragState.lastX = dragState.startX
+					dragState.lastY = dragState.startY
+					// 命中模型时立即禁用旋转，防止视角转动
+					if (instance.controls) instance.controls.enableRotate = false
+				}
+
+				const onTouchMove = (e) => {
+					if (!this.props.enableModelDrag || e.touches.length !== 1) return
+					// 未命中模型，不拦截事件，让 OrbitControls 旋转视角
+					if (!dragState.hitModel) return
+					
+					const x = e.touches[0].clientX
+					const y = e.touches[0].clientY
+					const dx = x - dragState.startX
+					const dy = y - dragState.startY
+					const dist = Math.sqrt(dx * dx + dy * dy)
+					if (!dragState.isDragging && dist > DRAG_THRESHOLD_PX) {
+						dragState.isDragging = true
+						dragState.lastX = dragState.startX
+						dragState.lastY = dragState.startY
+					}
+					if (dragState.isDragging) {
+						const deltaPxX = x - dragState.lastX
+						const deltaPxY = y - dragState.lastY
+						dragState.lastX = x
+						dragState.lastY = y
+						const scale = pixelToWorldScale()
+						
+						// 移动选中的 group，如果没有选中则移动主 group
+						const targetGroup = instance.selectedGroup || group
+						targetGroup.position.x += deltaPxX * scale
+						targetGroup.position.y -= deltaPxY * scale
+						
+						// 更新包围框位置和颜色
+						this.updateBoundingBox()
+						
+						e.preventDefault()
+						e.stopPropagation()
+					}
+				}
+
+				const onTouchEnd = (e) => {
+					if (e.touches.length === 0) {
+						dragState.isDragging = false
+						dragState.hitModel = false
+						// 拖动结束，恢复旋转视角
+						if (instance.controls) instance.controls.enableRotate = true
+						// 拖动结束后最后更新一次包围框
+						this.updateBoundingBox()
+					}
+				}
+
+				el.addEventListener('touchstart', onTouchStart, { capture: true, passive: true })
+				el.addEventListener('touchmove', onTouchMove, { capture: true, passive: false })
+				el.addEventListener('touchend', onTouchEnd, { capture: true, passive: false })
+				el.addEventListener('touchcancel', onTouchEnd, { capture: true, passive: false })
 			},
 		},
 	}
@@ -1846,6 +2406,14 @@
 
 	.relative {
 		position: relative;
+	}
+
+	/* APP 端：整块 3D 区域可跟手拖动，不触发页面滚动 */
+	.stage-app-touch,
+	.container-touch {
+		touch-action: none;
+		-webkit-user-select: none;
+		user-select: none;
 	}
 
 	.fixed {
