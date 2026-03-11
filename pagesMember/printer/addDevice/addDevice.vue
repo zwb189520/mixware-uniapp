@@ -10,8 +10,9 @@
         <text class="select-label">{{ selectedWiFi || '请选择WiFi' }}</text>
         <text class="select-action">{{ 
           scanStatus === 'scanning' ? '扫描中...' : 
+          scanStatus === 'stopped' ? '已停止，点击重新扫描' :
           scanStatus === 'failed' ? '获取失败，点击重试' : 
-          wifiList.length > 0 ? '选择' : '无WiFi'
+          wifiList.length > 0 ? '选择' : '无WiFi，点击重试'
         }}</text>
       </view>
       <view v-if="isScanning && scanStatus === 'scanning'" class="stop-scan-section" @click="stopScan">
@@ -40,6 +41,7 @@
       :wifiList="wifiList"
       @close="handleWiFiListClose"
       @select="handleWiFiSelected"
+      @refresh="handleWiFiRefresh"
     />
   </view>
 </template>
@@ -67,7 +69,7 @@ export default {
       wifiList: [],
       isConnecting: false,
       isScanning: true,
-      scanStatus: 'scanning' // scanning, failed, success
+      scanStatus: 'scanning' // scanning, stopped, failed, success
     }
   },
   async onLoad(options) {
@@ -79,13 +81,80 @@ export default {
       await this.loadPhoneWiFiList()
     }
   },
+  onUnload() {
+    // 页面卸载时断开蓝牙连接
+    this._closeBluetooth()
+  },
   methods: {
+    // 断开蓝牙连接（统一方法）
+    _closeBluetooth() {
+      if (this.bluetoothDeviceId) {
+        console.log('断开蓝牙连接:', this.bluetoothDeviceId)
+        uni.closeBLEConnection({
+          deviceId: this.bluetoothDeviceId,
+          success: () => {
+            console.log('蓝牙连接已断开')
+            this.bluetoothDeviceId = '' // 清空ID，防止重复断开
+          },
+          fail: (err) => {
+            if (err.code !== 10004) { // 10004=no connection，已断开可忽略
+              console.log('断开蓝牙连接失败:', err)
+            }
+          }
+        })
+      }
+    },
+
+    // 根据模式重新扫描WiFi
+    reloadWiFiList() {
+      if (this.bluetoothDeviceId) {
+        this.loadWiFiList()
+      } else {
+        this.loadPhoneWiFiList()
+      }
+    },
+
     async loadWiFiList() {
     this.isScanning = true
     this.scanStatus = 'scanning'
     console.log('开始获取WiFi列表，设备ID:', this.bluetoothDeviceId)
     uni.showLoading({ title: '获取WiFi列表...' })
     try {
+      // 第1步：清除所有 BLE 特征値监听，避免旧监听干扰
+      console.log('清除BLE特征値监听...')
+      try { uni.offBLECharacteristicValueChange() } catch (e) {}
+
+      // 第2步：先显式断开 BLE 连接，让设备端释放连接
+      if (this.bluetoothDeviceId) {
+        console.log('断开旧BLE连接...')
+        await new Promise((resolve) => {
+          uni.closeBLEConnection({
+            deviceId: this.bluetoothDeviceId,
+            success: () => { console.log('旧BLE连接已断开'); resolve() },
+            fail: () => { console.log('旧BLE连接断开失败（忽略）'); resolve() }
+          })
+        })
+        // 等待设备端释放连接
+        await new Promise(resolve => setTimeout(resolve, 800))
+      }
+
+      // 第3步：关闭蓝牙适配器，确保完全重置
+      console.log('关闭蓝牙适配器...')
+      await new Promise((resolve) => {
+        uni.closeBluetoothAdapter({
+          success: () => {
+            console.log('蓝牙适配器已关闭')
+            resolve()
+          },
+          fail: () => {
+            console.log('蓝牙适配器未打开，忽略')
+            resolve()
+          }
+        })
+      })
+      // 等待适配器完全关闭
+      await new Promise(resolve => setTimeout(resolve, 500))
+
       const { initBluetooth } = await import('@/utils/bluetooth.js')
       console.log('正在初始化蓝牙适配器...')
       await initBluetooth()
@@ -113,9 +182,9 @@ export default {
         
         if (wifiList.length === 0) {
           console.log('WiFi列表为空')
-          this.scanStatus = 'success' // 扫描成功但列表为空
+          this.scanStatus = 'success'
           uni.showToast({
-            title: '未获取到WiFi列表',
+            title: '未发现可用的WiFi，请检查路由器是否开启',
             icon: 'none'
           })
         } else {
@@ -130,17 +199,10 @@ export default {
         this.scanStatus = 'failed'
         uni.hideLoading()
         
-        if (error.message.includes('超时')) {
-          uni.showToast({
-            title: 'WiFi扫描超时，请重试',
-            icon: 'none'
-          })
-        } else {
-          uni.showToast({
-            title: '获取WiFi列表失败: ' + error.message,
-            icon: 'none'
-          })
-        }
+        uni.showToast({
+          title: '未能搜索到周边WiFi，请重试',
+          icon: 'none'
+        })
       }
     },
     
@@ -173,7 +235,7 @@ export default {
           console.log('WiFi列表为空')
           this.scanStatus = 'success' // 扫描成功但列表为空
           uni.showToast({
-            title: '未获取到WiFi列表',
+            title: '未发现可用的WiFi，请检查路由器是否开启',
             icon: 'none'
           })
         } else {
@@ -185,18 +247,10 @@ export default {
         this.isScanning = false
         this.scanStatus = 'failed'
         uni.hideLoading()
-        
-        if (error.message.includes('超时')) {
-          uni.showToast({
-            title: 'WiFi扫描超时，请重试',
-            icon: 'none'
-          })
-        } else {
-          uni.showToast({
-            title: '获取WiFi列表失败: ' + error.message,
-            icon: 'none'
-          })
-        }
+        uni.showToast({
+          title: '未能搜索到周边WiFi，请重试',
+          icon: 'none'
+        })
       }
     },
     handleBack() {
@@ -205,7 +259,7 @@ export default {
     stopScan() {
       console.log('用户手动停止扫描')
       this.isScanning = false
-      this.scanStatus = 'failed'
+      this.scanStatus = 'stopped'
       uni.hideLoading()
       uni.showToast({
         title: '扫描已停止',
@@ -217,15 +271,16 @@ export default {
     },
     handleSelectWiFi() {
       if (this.isScanning) {
-        return  // 扫描中不能点击
+        return // 扫描中不能点击
       }
-      
-      // 如果扫描失败，点击可以重新扫描
-      if (this.scanStatus === 'failed') {
-        this.loadWiFiList()
+
+      // 如果扫描失败/停止，或WiFi列表为空，重新扫描
+      if (this.scanStatus === 'failed' || this.scanStatus === 'stopped' || this.wifiList.length === 0) {
+        this.reloadWiFiList()
         return
       }
-      
+
+      // 有WiFi列表时，显示选择弹窗
       if (this.wifiList.length > 0) {
         this.showWiFiList = true
       }
@@ -236,6 +291,10 @@ export default {
     handleWiFiSelected(wifiName) {
       this.selectedWiFi = wifiName
       this.showWiFiList = false
+    },
+    handleWiFiRefresh() {
+      this.showWiFiList = false
+      this.reloadWiFiList()
     },
 
     
@@ -314,17 +373,44 @@ export default {
         if (this.bluetoothDeviceId) {
           // 蓝牙配网模式
           console.log('使用蓝牙配网模式，设备ID:', this.bluetoothDeviceId)
-          
+
+          // 检查蓝牙连接状态，如果已断开则重新连接
+          uni.showLoading({ title: '检查设备连接...' })
+          try {
+            await connectToDevice(this.bluetoothDeviceId)
+            console.log('蓝牙设备连接/已连接')
+          } catch (connErr) {
+            const msg = connErr.errMsg || connErr.message || ''
+            if (!msg.includes('already connect') && !msg.includes('connected')) {
+              console.log('蓝牙重连失败，尝试重新初始化...', connErr)
+              try { uni.offBLECharacteristicValueChange() } catch (e) {}
+              await new Promise(resolve => {
+                uni.closeBluetoothAdapter({ success: resolve, fail: resolve })
+              })
+              await new Promise(resolve => setTimeout(resolve, 500))
+              const { initBluetooth } = await import('@/utils/bluetooth.js')
+              await initBluetooth()
+              try {
+                await connectToDevice(this.bluetoothDeviceId)
+                console.log('蓝牙重置后重连成功')
+              } catch (retryErr) {
+                uni.hideLoading()
+                this.isConnecting = false
+                uni.showToast({ title: '设备连接失败，请靠近设备后重试', icon: 'none' })
+                return
+              }
+            }
+          }
+          uni.showLoading({ title: '配网中...' })
+
           // 先订阅配网结果，在发送命令之前
           console.log('1. 开始订阅配网结果...')
-          console.log('期望数据格式: #config#success 或 success 或 #config#fail 或 fail')
           const resultPromise = subscribeToConfigResult(this.bluetoothDeviceId)
-          
-          // 发送服务器IP - 严格按照你的格式
+
+          // 发送服务器URL + WiFi 配置
           const serverUrl = 'http://app.mixwarebot.cn/api/iot/auth'
           console.log('2. 准备发送服务器URL:', serverUrl)
-          console.log('发送格式: #url#-r||' + serverUrl + '#end')
-          
+
           await sendWiFiConfig(this.bluetoothDeviceId, serverUrl, this.selectedWiFi, this.wifiPassword)
           console.log('3. 服务器URL和WiFi配置发送成功')
           
@@ -332,67 +418,76 @@ export default {
           const result = await resultPromise
           console.log('4. 配网结果:', result)
           
+          uni.hideLoading()
+          this.isConnecting = false
+
           if (result.success) {
-            console.log('5. 配网成功，跳转到成功页面')
+            console.log('5. 配网成功，断开蓝牙并跳转到成功页面')
+            // 先保存 printerId，再断开蓝牙（断开后 bluetoothDeviceId 会被清空）
+            const printerId = this.bluetoothDeviceId
+            this._closeBluetooth()
             uni.showToast({
               title: '配网成功',
               icon: 'success'
             })
             setTimeout(() => {
               uni.navigateTo({
-                url: `/pagesMember/printer/deviceSuccess/deviceSuccess?printerId=${this.bluetoothDeviceId}`
+                url: `/pagesMember/printer/deviceSuccess/deviceSuccess?printerId=${printerId}`
               })
             }, 1000)
           } else {
             console.log('5. 配网失败:', result.message)
-            uni.showToast({
-              title: '配网失败: ' + (result.message || '未知错误'),
-              icon: 'none'
+            // 密码错误时设备不回复会导致超时，两种情况提示相同
+            const isTimeout = result.message && result.message.includes('超时')
+            uni.showModal({
+              title: '配网失败',
+              content: isTimeout
+                ? '连接超时，请检查：\n1. WiFi密码是否正确\n2. 设备是否已上电\n3. 路由器是否为2.4G网络'
+                : '配网失败，请检查WiFi密码是否正确后重试',
+              showCancel: false,
+              confirmText: '我知道了',
+              confirmColor: '#FF5A00'
             })
           }
         } else {
-          // WiFi直连模式 - 可能需要不同的处理方式
-          console.log('使用WiFi直连模式')
-          
-          // 连接到选定的WiFi
-          try {
-            await connectWifi({
-              SSID: this.selectedWiFi,
-              password: this.wifiPassword
-            })
-            
-            uni.showToast({
-              title: 'WiFi连接成功',
-              icon: 'success'
-            })
-            
-            // 连接成功后，跳转到设备发现页面或成功页面
-            setTimeout(() => {
-              uni.navigateTo({
-                url: '/pagesMember/printer/deviceSuccess/deviceSuccess'
+          // 手机WiFi直连模式
+          console.log('使用手机WiFi直连模式')
+          uni.connectWifi({
+            SSID: this.selectedWiFi,
+            password: this.wifiPassword,
+            success: () => {
+              console.log('WiFi连接成功')
+              uni.hideLoading()
+              this.isConnecting = false
+              uni.showToast({
+                title: 'WiFi连接成功',
+                icon: 'success'
               })
-            }, 1000)
-          } catch (wifiError) {
-            console.log('WiFi连接失败:', wifiError)
-            uni.showToast({
-              title: 'WiFi连接失败: ' + wifiError.message,
-              icon: 'none'
-            })
-          }
+              setTimeout(() => {
+                uni.navigateTo({
+                  url: '/pagesMember/printer/deviceSuccess/deviceSuccess'
+                })
+              }, 1000)
+            },
+            fail: (err) => {
+              console.log('WiFi连接失败:', err)
+              uni.hideLoading()
+              this.isConnecting = false
+              uni.showToast({
+                title: 'WiFi连接失败，请检查密码后重试',
+                icon: 'none'
+              })
+            }
+          })
         }
       } catch (error) {
         console.log('配网流程出错:', error)
         uni.hideLoading()
         this.isConnecting = false
         uni.showToast({
-          title: '配网失败: ' + error.message,
+          title: '配网失败，请重试',
           icon: 'none'
         })
-      } finally {
-        if (this.isConnecting) {
-          uni.hideLoading()
-          this.isConnecting = false
-        }
       }
     }
   }
@@ -506,6 +601,11 @@ export default {
   font-size: 32rpx;
   border: none;
   border-radius: 50rpx;
+}
+
+.next-button[disabled] {
+  background-color: #999;
+  opacity: 0.7;
 }
 
 

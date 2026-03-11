@@ -110,7 +110,7 @@ export default {
           const devices = await getBluetoothDevices(boundDevices)
           const elapsed = Date.now() - startTime
 
-          if (devices.length > 0 && elapsed >= 5000) {
+          if (devices.length > 0 && elapsed >= 3000) {
             this.finishScan(devices)
           } else if (elapsed >= 40000) {
             this.finishScan(devices)
@@ -125,7 +125,7 @@ export default {
         uni.hideLoading()
         console.error('蓝牙扫描失败:', error)
         uni.showToast({
-          title: (this.texts.bluetoothScanFailed || '蓝牙扫描失败') + ': ' + error.message,
+          title: this.texts.bluetoothScanFailed || '蓝牙扫描失败，请确认已开启蓝牙权限',
           icon: 'none'
         })
       }
@@ -160,7 +160,11 @@ export default {
       try {
         const res = await getDeviceList()
         if (res.code === 1 || res.code === 200) {
-          return res.data.records || []
+          // data 可能是数组或 { records: [] } 两种结构
+          const data = res.data
+          if (Array.isArray(data)) return data
+          if (data && Array.isArray(data.records)) return data.records
+          return []
         } else {
           console.error('获取已绑定设备列表失败:', res)
           return []

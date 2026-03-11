@@ -606,7 +606,7 @@ export function subscribeToWiFiList(deviceId) {
         console.log('累计数据:', accumulatedData)
         lastReceiveTime = Date.now()
         if (!receiveTimeoutId) {
-          receiveTimeoutId = setTimeout(checkReceiveComplete, 2000)
+          receiveTimeoutId = setTimeout(checkReceiveComplete, 800)
         }
       } catch (error) {
         console.log('解析异常:', error)
@@ -648,14 +648,14 @@ export function subscribeToWiFiList(deviceId) {
           resolve([])
         }
       } else {
-        receiveTimeoutId = setTimeout(checkReceiveComplete, 500)
+        receiveTimeoutId = setTimeout(checkReceiveComplete, 300)
       }
     }
     
     const timeoutId = setTimeout(() => {
       isResolved = true
       resolve([])
-    }, 30000)
+    }, 15000)
 
     uni.onBLECharacteristicValueChange(onCharacteristicChange)
 
