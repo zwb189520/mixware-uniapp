@@ -273,7 +273,7 @@ export default {
       activeIndex: 0,
       slideDirection: 'right',
       refreshing: false,
-      refreshingText: '',
+      refreshingText: '下拉刷新',
       refreshHeight: 0,
       refreshOpacity: 0,
       refreshStep: 1,

@@ -21,6 +21,15 @@
     </scroll-view>
 
     <view class="input-bar">
+      <view 
+        class="voice-btn"
+        :class="{ recording: isRecording }"
+        @touchstart="startRecord"
+        @touchend="stopRecord"
+        @touchcancel="cancelRecord"
+      >
+        <uni-icons :type="isRecording ? 'mic-filled' : 'mic'" size="22" :color="isRecording ? '#FF5A00' : '#666'"></uni-icons>
+      </view>
       <input
         class="input"
         type="text"
@@ -50,6 +59,7 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { textToModel } from '@/api/hunyuan3d.js'
+import { audioOffline } from '@/api/audio.js'
 import { useLanguageStore } from '@/stores'
 
 export default {
@@ -63,7 +73,9 @@ export default {
       isGenerating: false,
       messages: [],
       scrollIntoView: '',
-      bottomAnchorId: 'chat-bottom-anchor'
+      bottomAnchorId: 'chat-bottom-anchor',
+      isRecording: false,
+      recorderManager: null
     }
   },
   computed: {
@@ -191,6 +203,54 @@ export default {
     handleStop() {
       this.isGenerating = false
       uni.hideLoading()
+    },
+    initRecorder() {
+      if (!this.recorderManager) {
+        this.recorderManager = uni.getRecorderManager()
+        this.recorderManager.onStop(async (res) => {
+          if (res.duration < 500) {
+            uni.showToast({ title: '录音时间太短', icon: 'none' })
+            return
+          }
+          uni.showLoading({ title: '识别中...' })
+          try {
+            const result = await audioOffline(res.tempFilePath)
+            uni.hideLoading()
+            if (result.code === 1 || result.code === 0) {
+              this.promptText = result.data || ''
+              if (this.promptText.trim()) {
+                this.handleGenerate3D()
+              }
+            } else {
+              uni.showToast({ title: result.msg || '识别失败', icon: 'none' })
+            }
+          } catch (err) {
+            uni.hideLoading()
+            console.error('语音识别失败:', err)
+            uni.showToast({ title: '识别失败', icon: 'none' })
+          }
+        })
+      }
+    },
+    startRecord() {
+      this.initRecorder()
+      this.recorderManager.start({
+        format: 'mp3',
+        duration: 60000
+      })
+      this.isRecording = true
+    },
+    stopRecord() {
+      if (this.isRecording) {
+        this.recorderManager.stop()
+        this.isRecording = false
+      }
+    },
+    cancelRecord() {
+      if (this.isRecording) {
+        this.recorderManager.stop()
+        this.isRecording = false
+      }
     },
     scrollToBottom() {
       this.$nextTick(() => {
@@ -327,6 +387,20 @@ export default {
 
 .send-btn:disabled {
 	opacity: 0.6;
+}
+
+.voice-btn {
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: #f5f5f5;
+}
+
+.voice-btn.recording {
+	background: #fff0e6;
 }
 
 .stop-btn {
