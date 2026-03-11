@@ -30,6 +30,7 @@
 
         <!-- 旋转面板 -->
         <RotationPanel
+          ref="rotationPanel"
           :visible="showRotationPanel"
           @close="showRotationPanel = false"
           @reset="onRotationReset"
@@ -552,12 +553,24 @@ export default {
       this.scalePercent = 100
       this.modelScale = 1
       
+      // 重置旋转面板
+      this.currentRotation = { x: 0, y: 0, z: 0 }
+      this.showRotationPanel = false
+      if (this.$refs.rotationPanel && typeof this.$refs.rotationPanel.setRotation === 'function') {
+        this.$refs.rotationPanel.setRotation(0, 0, 0)
+      }
+      
       if (this.$refs.preview3d) {
         // 调用组件的重置方法
         if (typeof this.$refs.preview3d.resetModel === 'function') {
           try {
             this.$refs.preview3d.resetModel()
-
+            // 重置后恢复绿色（选中状态）
+            this.$nextTick(() => {
+              setTimeout(() => {
+                this.setModelColor(0x00ff00)
+              }, 100)
+            })
             uni.showToast({
               title: this.texts.resetSuccess || '重置成功',
               icon: 'success',
@@ -654,6 +667,10 @@ export default {
     // 旋转面板：重置旋转
     onRotationReset() {
       this.currentRotation = { x: 0, y: 0, z: 0 }
+      // 重置旋转面板滑尺
+      if (this.$refs.rotationPanel && typeof this.$refs.rotationPanel.setRotation === 'function') {
+        this.$refs.rotationPanel.setRotation(0, 0, 0)
+      }
       // #ifdef APP
       if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
         this.$refs.preview3d.$refs.stageApp.call({
