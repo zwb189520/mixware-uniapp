@@ -1,5 +1,10 @@
 import { post, get, put, del } from './request'
 
+/**
+ * 添加模型
+ * @param {Object} modelData - 模型数据
+ * @returns {Promise<Object>} 返回添加结果
+ */
 export function addModel(modelData) {
   return post('/models/add', {
     name: modelData.name || '',
@@ -12,30 +17,66 @@ export function addModel(modelData) {
   })
 }
 
+/**
+ * 获取模型列表
+ * @param {Object} [params={}] - 查询参数
+ * @returns {Promise<Object>} 返回模型列表
+ */
 export function getModelList(params = {}) {
   return get('/models/list', params)
 }
 
+/**
+ * 获取模型详情
+ * @param {string} modelId - 模型 ID
+ * @returns {Promise<Object>} 返回模型详情
+ */
 export function getModelDetail(modelId) {
   return get(`/models/${modelId}`)
 }
 
+/**
+ * 更新模型
+ * @param {string} modelId - 模型 ID
+ * @param {Object} updateData - 更新数据
+ * @returns {Promise<Object>} 返回更新结果
+ */
 export function updateModel(modelId, updateData) {
   return put(`/models/update/${modelId}`, updateData)
 }
 
+/**
+ * 删除模型
+ * @param {string} modelId - 模型 ID
+ * @returns {Promise<Object>} 返回删除结果
+ */
 export function deleteModel(modelId) {
   return del(`/models/${modelId}`)
 }
 
+/**
+ * 获取模型分页列表
+ * @param {Object} [params={}] - 查询参数
+ * @returns {Promise<Object>} 返回分页模型列表
+ */
 export function getModelPage(params = {}) {
   return get('/models/page', params)
 }
 
+/**
+ * 获取我的模型列表
+ * @param {Object} [params={}] - 查询参数
+ * @returns {Promise<Object>} 返回我的模型列表
+ */
 export function getMyModels(params = {}) {
   return get('/models/my', params)
 }
 
+/**
+ * 处理模型数据，提取关键字段
+ * @param {Object} modelData - 原始模型数据
+ * @returns {Object} 返回处理后的模型数据
+ */
 export function processModelData(modelData) {
   if (!modelData) {
     return {
@@ -46,9 +87,9 @@ export function processModelData(modelData) {
       dimensions: { x: 0, y: 0, z: 0 }
     }
   }
-  
+
   let downloadUrl = ''
-  
+
   if (modelData.modelFile) {
     downloadUrl = modelData.modelFile
   } else if (modelData.downloadUrl) {
@@ -56,9 +97,9 @@ export function processModelData(modelData) {
   } else if (modelData.modelUrl) {
     downloadUrl = modelData.modelUrl
   }
-  
+
   const modelType = extractFileType(downloadUrl)
-  
+
   let thumb = ''
   if (modelData.previewUrl) {
     thumb = modelData.previewUrl
@@ -67,13 +108,13 @@ export function processModelData(modelData) {
   } else if (modelData.image) {
     thumb = modelData.image
   }
-  
+
   const dimensions = modelData.dimensions ? {
     x: modelData.dimensions.x || modelData.dimensions.width || 0,
     y: modelData.dimensions.y || modelData.dimensions.height || 0,
     z: modelData.dimensions.z || modelData.dimensions.depth || 0
   } : { x: 0, y: 0, z: 0 }
-  
+
   return {
     downloadUrl,
     modelUrl: downloadUrl,
@@ -84,6 +125,11 @@ export function processModelData(modelData) {
   }
 }
 
+/**
+ * 从 URL 提取文件类型
+ * @param {string} url - 文件 URL
+ * @returns {string} 返回文件类型
+ */
 function extractFileType(url) {
   if (!url) return ''
   try {
@@ -101,13 +147,3 @@ function extractFileType(url) {
   }
 }
 
-export default {
-  addModel,
-  getModelList,
-  getModelDetail,
-  updateModel,
-  deleteModel,
-  getModelPage,
-  getMyModels,
-  processModelData
-}

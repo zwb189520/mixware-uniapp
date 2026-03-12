@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import { parseSnCode } from '@/api/deviceManager.js'
+import { parseSnCode } from '@/api/devices.js'
 import { useLanguageStore } from '@/stores'
 import ManualInputModal from './ManualInputModal.vue'
 import uniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'

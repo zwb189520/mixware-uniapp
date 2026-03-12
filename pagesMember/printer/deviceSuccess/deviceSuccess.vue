@@ -45,8 +45,7 @@
 <script>
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { bindDevice } from '@/api/devices.js'
-import { getDeviceInfo } from '@/api/deviceManager.js'
+import { bindDevice, getDeviceInfo } from '@/api/devices.js'
 import { getDeviceStatus, getDeviceAuth } from '@/api/iot.js'
 import { useLanguageStore } from '@/stores'
 

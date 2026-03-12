@@ -311,12 +311,30 @@
 			async loadHotExamples() {
 				try {
 					const res = await getHotExamples(5)
+					console.log('热门示例响应:', res)
 					if (res.code === 1 || res.code === 0) {
-						const data = res.data || []
-						this.chatStore.examples = data
+						// 处理多种可能的数据结构
+						let data = res.data
+						
+						// 如果 data 是 null 或 undefined，使用空数组
+						if (!data) {
+							data = []
+						}
+						
+						// 确保是数组
+						if (!Array.isArray(data)) {
+							data = []
+						}
+						
+						console.log('设置热门示例:', data)
+						this.chatStore.setExamples(data)
+					} else {
+						console.warn('热门示例响应码异常:', res.code, res.msg)
+						this.chatStore.setExamples([])
 					}
 				} catch (error) {
 					console.error('加载热门示例失败:', error)
+					this.chatStore.setExamples([])
 				}
 			},
 			scrollToBottom() {

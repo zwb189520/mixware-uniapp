@@ -815,13 +815,13 @@ export const uploadFile = (url, filePath, options = {}) => {
 	})
 }
 
-export default {
+export {
 	install,
 	request,
 	get,
 	post,
 	put,
-	delete: del,
+	del as delete,
 	postForm,
 	uploadFile,
 	clearCache,

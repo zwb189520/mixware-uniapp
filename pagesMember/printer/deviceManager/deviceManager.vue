@@ -114,8 +114,7 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import SnScannerSection from './components/SnScannerSection.vue'
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
-import { getDeviceList, updateDeviceInfo, deleteDevice } from '@/api/devices.js'
-import { parseSnCode } from '@/api/deviceManager.js'
+import { getDeviceList, updateDeviceInfo, deleteDevice, parseSnCode } from '@/api/devices.js'
 import { useLanguageStore } from '@/stores'
 
 export default {

@@ -1,17 +1,38 @@
-import { postForm, post, get, uploadFile } from './request'
+import { post, get, uploadFile } from './request'
 
+/**
+ * 文本转 3D 模型
+ * @param {string} prompt - 模型描述文本
+ * @returns {Promise<Object>} 返回任务 ID
+ */
 export function textToModel(prompt) {
-  return postForm('/hunyuan3d/text-to-model', { prompt })
+  return post('/hunyuan3d/text-to-model', { prompt })
 }
 
+/**
+ * 获取任务状态
+ * @param {string} taskId - 任务 ID
+ * @returns {Promise<Object>} 返回任务状态
+ */
 export function getTaskStatus(taskId) {
   return get(`/hunyuan3d/query/${taskId}`)
 }
 
+/**
+ * 下载模型
+ * @param {string} taskId - 任务 ID
+ * @returns {Promise<Object>} 返回下载链接
+ */
 export function downloadModel(taskId) {
   return get(`/hunyuan3d/download/${taskId}`)
 }
 
+/**
+ * 图片转 3D 模型
+ * @param {string} image - 图片文件路径
+ * @param {string} prompt - 模型描述文本
+ * @returns {Promise<Object>} 返回模型生成结果
+ */
 export async function imageToModel(image, prompt) {
   console.log('开始上传图片:', image)
   const token = uni.getStorageSync('token') || ''
@@ -28,9 +49,9 @@ export async function imageToModel(image, prompt) {
     }
     console.log('准备发送模型生成请求，imageUrl:', imageUrl)
     if (imageUrl) {
-      const modelRes = await post('/hunyuan3d/image-to-model', { 
+      const modelRes = await post('/hunyuan3d/image-to-model', {
         imageUrl: imageUrl,
-        prompt: prompt 
+        prompt: prompt
       })
       console.log('模型生成响应:', modelRes)
       return modelRes
