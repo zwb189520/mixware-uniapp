@@ -644,6 +644,22 @@ export const postWithQuery = (url, data = {}, queryParams = {}, options = {}) =>
  * @param {Object} data 请求数据
  * @param {Object} options 其他配置选项
  */
+export const putWithQuery = (url, data = {}, queryParams = {}, options = {}) => {
+	if (queryParams && Object.keys(queryParams).length > 0) {
+		const queryString = Object.keys(queryParams)
+			.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
+			.join('&')
+		const separator = url.includes('?') ? '&' : '?'
+		url = `${url}${separator}${queryString}`
+	}
+	return request({
+		url,
+		method: 'PUT',
+		data,
+		...options
+	})
+}
+
 export const put = (url, data = {}, options = {}) => {
 	return request({
 		url,
@@ -817,13 +833,6 @@ export const uploadFile = (url, filePath, options = {}) => {
 
 export {
 	install,
-	request,
-	get,
-	post,
-	put,
-	del as delete,
-	postForm,
-	uploadFile,
 	clearCache,
 	clearUrlCache
 }

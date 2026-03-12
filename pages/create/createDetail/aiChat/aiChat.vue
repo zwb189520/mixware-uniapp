@@ -309,34 +309,39 @@
 			},
 			
 			async loadHotExamples() {
-				try {
-					const res = await getHotExamples(5)
-					console.log('热门示例响应:', res)
-					if (res.code === 1 || res.code === 0) {
-						// 处理多种可能的数据结构
-						let data = res.data
-						
-						// 如果 data 是 null 或 undefined，使用空数组
-						if (!data) {
-							data = []
-						}
-						
-						// 确保是数组
-						if (!Array.isArray(data)) {
-							data = []
-						}
-						
-						console.log('设置热门示例:', data)
-						this.chatStore.setExamples(data)
+			try {
+				const res = await getHotExamples(5)
+				console.log('热门示例完整响应:', JSON.stringify(res))
+				if (res.code === 1 || res.code === 0) {
+					// 处理多种可能的数据结构
+					let data = res.data
+					
+					// 尝试从不同位置获取数组
+					if (Array.isArray(data)) {
+						// 直接是数组
+					} else if (data && Array.isArray(data.list)) {
+						data = data.list
+					} else if (data && Array.isArray(data.records)) {
+						data = data.records
+					} else if (data && Array.isArray(data.examples)) {
+						data = data.examples
+					} else if (data && Array.isArray(data.data)) {
+						data = data.data
 					} else {
-						console.warn('热门示例响应码异常:', res.code, res.msg)
-						this.chatStore.setExamples([])
+						data = []
 					}
-				} catch (error) {
-					console.error('加载热门示例失败:', error)
+					
+					console.log('设置热门示例:', data)
+					this.chatStore.setExamples(data)
+				} else {
+					console.warn('热门示例响应码异常:', res.code, res.msg)
 					this.chatStore.setExamples([])
 				}
-			},
+			} catch (error) {
+				console.error('加载热门示例失败:', error)
+				this.chatStore.setExamples([])
+			}
+		},
 			scrollToBottom() {
 				this.$nextTick(() => {
 					const anchor = `chat-bottom-anchor-${Date.now()}`

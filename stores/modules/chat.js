@@ -29,8 +29,12 @@ export const useChatStore = defineStore('chat', () => {
     examples.value = data.examples || []
   }
 
-  function setMessages(msgs) {
-    messages.value = msgs
+  function setMessages(messages) {
+    messages.value = messages
+  }
+
+  function setExamples(examples) {
+    examples.value = examples
   }
 
   function addMessage(msg) {
@@ -134,6 +138,7 @@ export const useChatStore = defineStore('chat', () => {
     setSessionId,
     setSessionData,
     setMessages,
+    setExamples,
     addMessage,
     setLoading,
     setInputValue,

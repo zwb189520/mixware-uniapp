@@ -1,4 +1,4 @@
-import { post, get, uploadFile } from './request'
+import { post, get, uploadFile, postWithQuery } from './request'
 
 /**
  * 文本转 3D 模型
@@ -6,7 +6,7 @@ import { post, get, uploadFile } from './request'
  * @returns {Promise<Object>} 返回任务 ID
  */
 export function textToModel(prompt) {
-  return post('/hunyuan3d/text-to-model', { prompt })
+  return postWithQuery('/hunyuan3d/text-to-model', {}, { prompt })
 }
 
 /**
@@ -16,15 +16,6 @@ export function textToModel(prompt) {
  */
 export function getTaskStatus(taskId) {
   return get(`/hunyuan3d/query/${taskId}`)
-}
-
-/**
- * 下载模型
- * @param {string} taskId - 任务 ID
- * @returns {Promise<Object>} 返回下载链接
- */
-export function downloadModel(taskId) {
-  return get(`/hunyuan3d/download/${taskId}`)
 }
 
 /**
@@ -50,8 +41,7 @@ export async function imageToModel(image, prompt) {
     console.log('准备发送模型生成请求，imageUrl:', imageUrl)
     if (imageUrl) {
       const modelRes = await post('/hunyuan3d/image-to-model', {
-        imageUrl: imageUrl,
-        prompt: prompt
+        imageUrl: imageUrl
       })
       console.log('模型生成响应:', modelRes)
       return modelRes

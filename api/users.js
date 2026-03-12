@@ -1,4 +1,4 @@
-import { put, post, get, del } from './request'
+import { put, post, get, del, putWithQuery } from './request'
 import { useLanguageStore } from '@/stores/index.js'
 
 /**
@@ -17,7 +17,7 @@ export function updateUserInfo(userInfoDTO) {
  * @returns {Promise<Object>} 返回更新结果
  */
 export function updateUserStatus(userId, accountStatus) {
-  return put(`/users/status/${userId}`, { accountStatus })
+  return putWithQuery(`/users/status/${userId}`, {}, { accountStatus })
 }
 
 /**

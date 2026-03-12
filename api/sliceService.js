@@ -1,4 +1,4 @@
-import { post, get, del } from './request'
+import { post, get, del, postWithQuery } from './request'
 
 /**
  * 提交切片任务
@@ -24,6 +24,6 @@ export function getSliceStatus(taskId) {
  * @returns {Promise<Object>} 返回清理结果
  */
 export function cleanupSliceTask(taskId) {
-  return post('/curaengine/slice/cleanup', { taskId })
+  return postWithQuery('/curaengine/slice/cleanup', {}, { taskId })
 }
 
