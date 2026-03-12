@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useStorageSync } from '../../composables/modules/useStorageSync'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
