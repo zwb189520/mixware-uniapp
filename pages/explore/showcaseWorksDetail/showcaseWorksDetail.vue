@@ -333,16 +333,20 @@ export default {
       if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined') return
       
       try {
-        const [likeRes, followRes] = await Promise.all([
-          checkLikeStatus('POST', this.postId),
-          this.postDetail.userId && this.postDetail.userId !== 'local_user' ? checkFollowStatus(this.postDetail.userId) : Promise.resolve({ code: 0, data: false })
-        ])
+        // ✅ 改进：不要重复调用接口
+        // getPostDetail 已经返回了 isLiked 和 isFollowing
+        // 直接使用返回的数据，不需要再调用 checkLikeStatus 和 checkFollowStatus
         
-        if (likeRes.code === 0 || likeRes.code === 1) {
-          this.postDetail.isLiked = likeRes.data
-        }
-        if (followRes.code === 0 || followRes.code === 1) {
-          this.postDetail.isFollowing = followRes.data
+        // 只在需要时才调用关注状态检查（如果后端没有返回）
+        if (this.postDetail.isFollowing === undefined && this.postDetail.userId && this.postDetail.userId !== 'local_user') {
+          try {
+            const followRes = await checkFollowStatus(this.postDetail.userId)
+            if (followRes.code === 0 || followRes.code === 1) {
+              this.postDetail.isFollowing = followRes.data
+            }
+          } catch (e) {
+            console.error('检查关注状态失败:', e)
+          }
         }
       } catch (e) {
         console.error('检查用户交互状态失败:', e)

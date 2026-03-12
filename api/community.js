@@ -2,7 +2,10 @@ import { get, post, postFormWithQuery, del } from './request'
 
 // 帖子相关
 export function getPostDetail(postId) {
-  return get(`/community/posts/${postId}`)
+  return get(`/community/posts/${postId}`, {}, {
+    cache: true,
+    cacheTime: 3 * 60 * 1000  // 3分钟缓存
+  })
 }
 
 export function getPostList(params = {}) {

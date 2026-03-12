@@ -592,6 +592,7 @@ export default {
            console.log('创建文件失败', e);
         });
       });
+      return;
       // #endif
 
       // #ifdef H5
