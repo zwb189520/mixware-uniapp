@@ -1,4 +1,4 @@
-import { BASE_URL } from './request.js'
+import { BASE_URL } from '../api/request.js'
 
 const buildFullUrl = (url = '') => {
 	if (!url) return ''

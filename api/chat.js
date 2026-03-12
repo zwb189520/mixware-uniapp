@@ -1,5 +1,5 @@
 import { postWithQuery, get } from './request'
-import { streamRequest } from './streamRequest.js'
+import { streamRequest } from '../utils/streamRequest.js'
 
 /**
  * 流式聊天请求
