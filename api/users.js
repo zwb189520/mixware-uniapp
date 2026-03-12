@@ -1,5 +1,28 @@
 import { put, post, get, del, putWithQuery } from './request'
-import { useLanguageStore } from '@/stores/index.js'
+import { useLanguageStore, useUserStore } from '@/stores/index.js'
+
+/**
+ * 登录成功后统一同步状态到 Pinia Store 和本地存储
+ * @param {Object} userInfo - 用户信息对象
+ * @param {string} token - 登录 token
+ */
+function _syncLoginToStore(userInfo, token) {
+  // 同步到 Pinia Store（唯一数据源）
+  const userStore = useUserStore()
+  userStore.setToken(token)
+  userStore.setUserInfo(userInfo)
+
+  // 保留零散 key 供遗留代码兼容读取
+  if (userInfo.userId) uni.setStorageSync('userId', userInfo.userId)
+  if (userInfo.id) uni.setStorageSync('id', userInfo.id)
+  if (userInfo.username) uni.setStorageSync('username', userInfo.username)
+  if (userInfo.email) uni.setStorageSync('email', userInfo.email)
+  if (userInfo.accountStatus !== undefined) uni.setStorageSync('accountStatus', userInfo.accountStatus)
+  // isLoggedIn 标志位保持兼容（遗留代码仍读取该 key）
+  uni.setStorageSync('isLoggedIn', true)
+
+  uni.$emit('userLogin', userInfo)
+}
 
 /**
  * 更新用户信息
@@ -94,20 +117,12 @@ export function loginByCodeWithHandler(email, verificationCode) {
       throw new Error(res.msg || '登录失败')
     }
     const { token, userId, username, avatarUrl, id, accountStatus } = res.data
-    if (token) uni.setStorageSync('token', token)
-    if (userId) uni.setStorageSync('userId', userId)
-    if (id) uni.setStorageSync('id', id)
-    if (username) uni.setStorageSync('username', username)
-    if (email) uni.setStorageSync('email', email)
-    if (accountStatus !== undefined) uni.setStorageSync('accountStatus', accountStatus)
 
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
     const userInfo = { userId, id, username, nickname: username, avatar: finalAvatarUrl, email, accountStatus }
-    uni.setStorageSync('userInfo', userInfo)
-    uni.setStorageSync('isLoggedIn', true)
-    uni.$emit('userLogin', userInfo)
+    _syncLoginToStore(userInfo, token)
     return res
   })
 }
@@ -210,18 +225,12 @@ export function loginWithPassword(email, password) {
       throw new Error(res.msg || '用户不存在')
     }
     const { token, userId, username, avatarUrl } = res.data
-    if (token) uni.setStorageSync('token', token)
-    if (userId) uni.setStorageSync('userId', userId)
-    if (username) uni.setStorageSync('username', username)
-    if (email) uni.setStorageSync('email', email)
 
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
     const userInfo = { userId, username, nickname: username, avatar: finalAvatarUrl, email }
-    uni.setStorageSync('userInfo', userInfo)
-    uni.setStorageSync('isLoggedIn', true)
-    uni.$emit('userLogin', userInfo)
+    _syncLoginToStore(userInfo, token)
     return res
   })
 }
@@ -247,17 +256,12 @@ export function registerWithHandler(registerData) {
       throw new Error(errorMsg)
     }
     const { token, userId, username, avatarUrl } = res.data
-    if (token) uni.setStorageSync('token', token)
-    if (userId) uni.setStorageSync('userId', userId)
-    if (username) uni.setStorageSync('username', username)
 
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
     const userInfo = { userId, username, nickname: registerData.username || username, avatar: finalAvatarUrl }
-    uni.setStorageSync('userInfo', userInfo)
-    uni.setStorageSync('isLoggedIn', true)
-    uni.$emit('userLogin', userInfo)
+    _syncLoginToStore(userInfo, token)
     return res
   })
 }
@@ -281,17 +285,12 @@ export function deleteUser(userId) {
 export function thirdPartyLoginWithHandler(platform, code, extraData = {}) {
   return post('/users/thirdPartyLogin', { platform, code, ...extraData }).then(res => {
     const { token, userId, username, avatarUrl } = res.data
-    if (token) uni.setStorageSync('token', token)
-    if (userId) uni.setStorageSync('userId', userId)
-    if (username) uni.setStorageSync('username', username)
 
     let finalAvatarUrl = avatarUrl || extraData.avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
     const userInfo = { userId, username, nickname: username || extraData.nickname, avatar: finalAvatarUrl }
-    uni.setStorageSync('userInfo', userInfo)
-    uni.setStorageSync('isLoggedIn', true)
-    uni.$emit('userLogin', userInfo)
+    _syncLoginToStore(userInfo, token)
     return res
   })
 }

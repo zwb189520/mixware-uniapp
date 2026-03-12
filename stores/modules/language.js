@@ -1745,7 +1745,7 @@ export const useLanguageStore = defineStore('language', {
       // 只在 TabBar 页面更新
       const pages = getCurrentPages()
       const currentPage = pages[pages.length - 1]
-      const tabBarPages = ['pages/explore/explore/explore', 'pages/create/create/create', 'pagesMember/profile/profile']
+      const tabBarPages = ['pages/explore/explore/explore', 'pages/create/create/create', 'pages/profile/profile']
       if (!currentPage || !tabBarPages.includes(currentPage.route)) {
         return
       }

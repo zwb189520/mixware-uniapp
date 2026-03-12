@@ -33,9 +33,9 @@ export const handleLogout = (isUserNotFoundFlag = false) => {
 		
 		// 延迟跳转到登录页面，避免在请求回调中直接跳转
 		setTimeout(() => {
-			if (currentRoute !== 'pages/auth/login') {
+			if (currentRoute !== '/pagesMember/auth/login/login') {
 				uni.reLaunch({
-					url: '/pages/auth/login'
+					url: '/pagesMember/auth/login/login'
 				})
 			}
 		}, 1500)

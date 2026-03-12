@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="modelInfo.name || texts.modelDetail" @back="handleBack" />
@@ -1160,8 +1160,8 @@ export default {
 }
 
 .toolbar-icon {
-  width: 48rpx;
-  height: 48rpx;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .toolbar-item.primary {

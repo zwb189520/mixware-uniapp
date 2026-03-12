@@ -25,7 +25,7 @@ import ProfileStats from './components/ProfileStats.vue'
 import ProfileMedals from './components/ProfileMedals.vue'
 import ShowcaseButton from './components/ShowcaseButton.vue'
 import PrinterPartner from './components/PrinterPartner.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore, useUserStore } from '@/stores'
 
 export default {
   name: 'Profile',
@@ -49,7 +49,7 @@ export default {
     // 页面显示时更新TabBar语言
     const languageStore = useLanguageStore()
     languageStore.updateTabBar()
-    
+
     this.$nextTick(() => {
       const comp = this.$refs.printerPartner
       if (comp) {
@@ -64,7 +64,8 @@ export default {
       })
     },
     handleNotification() {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      const userStore = useUserStore()
+      if (!userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }

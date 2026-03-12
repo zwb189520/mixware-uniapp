@@ -12,9 +12,11 @@ export const install = () => {
 				return false // 拦截请求
 			}
 
-			// 设置请求头
+			// 仅在未设置 Content-Type 时才补默认值，避免覆盖 form-urlencoded 等显式设置
 			args.header = args.header || {}
-			args.header['Content-Type'] = 'application/json'
+			if (!args.header['Content-Type'] && !args.header['content-type']) {
+				args.header['Content-Type'] = 'application/json'
+			}
 		},
 		success(args) {
 			// 可选：记录成功的请求
