@@ -137,7 +137,10 @@ export const requestWithRetry = (requestConfig, retryCount = 0) => {
 				resolve(res)
 			},
 			fail: async (err) => {
-				if (retryCount < API.MAX_RETRY_COUNT) {
+				// 只对网络错误重试，不重试业务错误
+				const shouldRetry = shouldRetryError(err)
+				
+				if (shouldRetry && retryCount < API.MAX_RETRY_COUNT) {
 					console.log(`请求失败，第${retryCount + 1}次重试，URL: ${requestConfig.url}`)
 					await delay(API.RETRY_DELAY * (retryCount + 1))
 					try {
@@ -152,6 +155,40 @@ export const requestWithRetry = (requestConfig, retryCount = 0) => {
 			}
 		})
 	})
+}
+
+/**
+ * 判断是否应该重试
+ * @param {Object} err 错误对象
+ * @returns {Boolean} 是否应该重试
+ */
+const shouldRetryError = (err) => {
+	if (!err) return false
+	
+	const errMsg = (err.errMsg || err.message || '').toLowerCase()
+	
+	// 网络超时、连接失败、DNS 失败等才重试
+	const retryableErrors = [
+		'timeout',
+		'connect',
+		'network',
+		'econnrefused',
+		'enotfound',
+		'enetunreach'
+	]
+	
+	// 用户主动取消、请求被拦截等不重试
+	const nonRetryableErrors = [
+		'abort',
+		'cancel',
+		'intercepted'
+	]
+	
+	if (nonRetryableErrors.some(keyword => errMsg.includes(keyword))) {
+		return false
+	}
+	
+	return retryableErrors.some(keyword => errMsg.includes(keyword))
 }
 
 // 请求耗时记录 Map，key 为 url+method

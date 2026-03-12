@@ -2,36 +2,19 @@ import { ref } from 'vue'
 
 /**
  * 请求相关组合式函数
- * @returns {Object} 请求相关方法和状态
+ * 注意：request.js 已经提供了 showLoading 参数，建议直接使用 request 函数
+ * 本 composable 仅在需要额外的错误处理或状态管理时使用
+ * @returns {Object} 错误状态和重置方法
  */
 export function useRequest() {
-  const loading = ref(false)
   const error = ref(null)
-  
-  const executeRequest = async (requestFunction, ...args) => {
-    loading.value = true
-    error.value = null
-    
-    try {
-      const result = await requestFunction(...args)
-      return result
-    } catch (err) {
-      error.value = err
-      console.error('请求失败:', err)
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
   
   const resetError = () => {
     error.value = null
   }
   
   return {
-    loading,
     error,
-    executeRequest,
     resetError
   }
 }

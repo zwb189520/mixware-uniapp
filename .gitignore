@@ -1,5 +1,6 @@
 node_modules/
-unpackage/dist/
+unpackage/
+dist/
 *.log
 .DS_Store
 .idea/
@@ -16,3 +17,18 @@ unpackage/dist/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# 构建产物
+*.apk
+*.ipa
+*.dmg
+*.exe
+*.zip
+
+# 缓存文件
+.cache/
+*.cache
+
+# 临时文件
+*.tmp
+*.temp

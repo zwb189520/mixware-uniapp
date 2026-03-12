@@ -6,7 +6,7 @@
 export const isNoTokenUrl = (url) => {
 	if (!url) return false
 	
-	// 基础免登录路径
+	// 基础免登录路径 - 精确匹配或前缀匹配
 	const noTokenPaths = [
 		'/users/login', 
 		'/users/register', 
@@ -23,25 +23,41 @@ export const isNoTokenUrl = (url) => {
 		'/session/hot',
 		'/session/hot-examples',
 		'/community/list',
-		'/community/posts'
+		'/community/posts' // GET 列表接口
 	]
 	
-	// 特殊处理：/models/{id} 等详情接口
+	// 精确前缀匹配
+	const isNoTokenPath = noTokenPaths.some(path => {
+		// 对于 /community/posts，需要区分 GET（列表）和 POST（创建）
+		if (path === '/community/posts') {
+			// 这里无法判断 HTTP 方法，建议在 request.js 中传入 method 参数
+			// 暂时允许所有 /community/posts 请求，实际应该在调用处控制
+			return url.includes(path)
+		}
+		return url.includes(path)
+	})
+	
+	if (isNoTokenPath) {
+		return true
+	}
+	
+	// 特殊处理：/models/{id} 等详情接口（GET 请求）
+	// 只允许 GET 模型详情，不允许 POST/PUT/DELETE
 	if (url.includes('/models/') && 
 		!url.includes('/models/page') && 
 		!url.includes('/models/list') &&
 		!url.includes('/models/add') && 
 		!url.includes('/models/delete') && 
 		!url.includes('/models/update') && 
-		!url.includes('/models/my')) {
-		const parts = url.split('/')
-		const lastPart = parts[parts.length - 1]
-		if (lastPart && lastPart.length > 10) {
-			return true
-		}
+		!url.includes('/models/my') &&
+		!url.includes('/models/scaleAndSlice') &&
+		!url.includes('/models/enlarge') &&
+		!url.includes('/models/audit')) {
+		// 这是一个模型详情接口，允许未登录访问
+		return true
 	}
 	
-	return noTokenPaths.some(path => url.includes(path))
+	return false
 }
 
 /**

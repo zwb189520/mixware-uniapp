@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useStorageSync } from '../../composables/modules/useStorageSync'
+import { STORAGE } from '../../constants/index.js'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -17,25 +17,25 @@ export const useUserStore = defineStore('user', {
   actions: {
     setToken(token) {
       this.token = token
-      uni.setStorageSync('token', token)
+      uni.setStorageSync(STORAGE.TOKEN_KEY, token)
     },
     
     setUserInfo(userInfo) {
       this.userInfo = userInfo
-      uni.setStorageSync('userInfo', userInfo)
+      uni.setStorageSync(STORAGE.USER_INFO_KEY, userInfo)
     },
     
     logout() {
       this.token = ''
       this.userInfo = null
-      uni.removeStorageSync('token')
-      uni.removeStorageSync('userInfo')
+      uni.removeStorageSync(STORAGE.TOKEN_KEY)
+      uni.removeStorageSync(STORAGE.USER_INFO_KEY)
     },
     
     initFromStorage() {
       try {
-        const token = uni.getStorageSync('token')
-        const userInfo = uni.getStorageSync('userInfo')
+        const token = uni.getStorageSync(STORAGE.TOKEN_KEY)
+        const userInfo = uni.getStorageSync(STORAGE.USER_INFO_KEY)
         if (token) this.token = token
         if (userInfo) this.userInfo = userInfo
       } catch (e) {

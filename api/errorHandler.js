@@ -1,5 +1,6 @@
 import { isPublicPage, isTokenInvalid, isUserNotFound } from './validators.js'
 import { setCache, generateCacheKey } from './cache.js'
+import { useUserStore } from '../stores/modules/user.js'
 
 /**
  * 执行登出逻辑
@@ -8,9 +9,9 @@ import { setCache, generateCacheKey } from './cache.js'
  */
 export const handleLogout = (isUserNotFoundFlag = false) => {
 	try {
-		// 清除本地登录信息
-		uni.removeStorageSync('token')
-		uni.removeStorageSync('userInfo')
+		// 通过 Store 统一清除登录信息，确保状态一致
+		const userStore = useUserStore()
+		userStore.logout()
 		
 		// 如果是公共页面，不论是 token 失效还是用户不存在，都只清除 token 不强制跳转登录
 		if (isPublicPage()) {
