@@ -1,7 +1,7 @@
 import { API } from '../constants/index.js'
-import { generateCacheKey, getCache, setCache, clearCache, clearUrlCache } from './cache.js'
-import { isNoTokenUrl, hasNaN } from './validators.js'
-import { handleLogout, handleSuccess, handleError, handleNetworkError } from './errorHandler.js'
+import { generateCacheKey, getCache, clearCache, clearUrlCache } from './cache.js'
+import { isNoTokenUrl } from './validators.js'
+import { handleSuccess, handleError, handleNetworkError } from './errorHandler.js'
 import { install } from './interceptor.js'
 import {
 	buildUrl,
@@ -12,7 +12,9 @@ import {
 	prepareRequestData,
 	requestWithRetry,
 	objectToFormUrlencoded,
-	debugLog
+	logRequest,
+	logResponse,
+	logRequestError
 } from './utils.js'
 
 export const BASE_URL = API.BASE_URL
@@ -100,14 +102,8 @@ export const request = (options = {}) => {
 		const contentType = (headers['Content-Type'] || '').toLowerCase()
 		let requestData = prepareRequestData(method, data, contentType)
 		
-		// 调试日志
-		debugLog('请求信息', {
-			url: requestUrl,
-			method: method || 'GET',
-			headers,
-			data: data || {},
-			requestData
-		})
+		// 请求日志 + 计时
+		const _timerKey = logRequest(method || 'GET', requestUrl, data)
 		
 		const requestConfig = {
 			url: requestUrl,
@@ -120,10 +116,7 @@ export const request = (options = {}) => {
 		
 		requestWithRetry(requestConfig)
 			.then((res) => {
-				debugLog('响应信息', {
-					statusCode: res.statusCode,
-					data: res.data
-				})
+				logResponse(_timerKey, res.statusCode, res.data)
 				
 				// 处理成功响应
 				const successData = handleSuccess(res, options, url, data, cache, cacheTime)
@@ -142,6 +135,7 @@ export const request = (options = {}) => {
 				reject(res)
 			})
 			.catch((err) => {
+				logRequestError(_timerKey, err)
 				handleNetworkError(err, options, requestUrl)
 				reject(err)
 			})

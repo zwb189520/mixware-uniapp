@@ -1,5 +1,5 @@
 import { post, get, uploadFile, postWithQuery } from './request'
-import { API } from '../constants'
+import { API } from '../constants/index.js'
 
 /**
  * 文本转 3D 模型
@@ -25,7 +25,7 @@ export function getTaskStatus(taskId) {
  * @param {string} prompt - 模型描述文本
  * @returns {Promise<Object>} 返回模型生成结果
  */
-export async function imageToModel(image, prompt) {
+export async function imageToModel(image, _prompt) {
   console.log('开始上传图片:', image)
   const token = uni.getStorageSync('token') || ''
   const uploadRes = await uploadFile('/upload/image', image, {
@@ -37,7 +37,7 @@ export async function imageToModel(image, prompt) {
   if (uploadRes.code === 1 && uploadRes.data) {
     let imageUrl = uploadRes.data.url || uploadRes.data.fileUrl
     if (!imageUrl && uploadRes.data.originalFileName) {
-      imageUrl = `${API.IMAGE_URL}/image/${uploadRes.data.originalFileName}`
+      imageUrl = `${API.UPLOAD_IMAGE_URL}/${uploadRes.data.originalFileName}`
     }
     console.log('准备发送模型生成请求，imageUrl:', imageUrl)
     if (imageUrl) {

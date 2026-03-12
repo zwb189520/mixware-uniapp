@@ -919,7 +919,7 @@ export default {
   height: 140rpx;
   margin-bottom: 24rpx;
   filter: drop-shadow(0 8rpx 16rpx rgba(0,0,0,0.15));
-  animation: float 3s ease-in-out infinite;
+  /* animation: float 3s ease-in-out infinite; */
 }
 
 @keyframes float {

@@ -810,14 +810,29 @@ export default {
       }
       
       // #ifdef APP
+      // 原功能：自动适配模型
+      // if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+      //   this.$refs.preview3d.$refs.stageApp.call({
+      //     key: 'fitModel',
+      //     args: [],
+      //     isReturn: false
+      //   })
+      //   uni.showToast({
+      //     title: '模型已自动适配',
+      //     icon: 'success',
+      //     duration: 1000
+      //   })
+      // }
+      
+      // 新功能：和center一样，居中模型
       if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
         this.$refs.preview3d.$refs.stageApp.call({
-          key: 'fitModel',
+          key: 'centerModel',
           args: [],
           isReturn: false
         })
         uni.showToast({
-          title: '模型已自动适配',
+          title: '模型已适配',
           icon: 'success',
           duration: 1000
         })

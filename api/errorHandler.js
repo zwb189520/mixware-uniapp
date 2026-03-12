@@ -78,6 +78,39 @@ export const handleSuccess = (res, options, url, data, cache, cacheTime) => {
 }
 
 /**
+ * 处理 429 限流
+ * @param {String} url 请求URL
+ */
+const handleRateLimit = (url) => {
+	console.warn('请求频率超限 (429):', url)
+	uni.showToast({
+		title: '操作太频繁，请稍后再试',
+		icon: 'none',
+		duration: 3000
+	})
+}
+
+/**
+ * 处理服务端 5xx 错误
+ * @param {Number} statusCode HTTP状态码
+ * @param {String} url 请求URL
+ */
+const handleServerError = (statusCode, url) => {
+	console.error(`服务端错误 (${statusCode}):`, url)
+	const msgMap = {
+		500: '服务器内部错误，请稍后重试',
+		502: '网关错误，请稍后重试',
+		503: '服务暂时不可用，请稍后重试',
+		504: '网关超时，请检查网络'
+	}
+	uni.showToast({
+		title: msgMap[statusCode] || `服务异常 (${statusCode})`,
+		icon: 'none',
+		duration: 3000
+	})
+}
+
+/**
  * 处理请求错误响应
  * @param {Object} res 响应对象
  * @param {Object} options 配置选项
@@ -103,6 +136,20 @@ export const handleError = (res, options, url) => {
 	
 	// 如果是公共页面且返回 401，直接返回
 	if (res.statusCode === 401 && isPublicPage()) {
+		return true
+	}
+
+	// 处理 429 限流
+	if (res.statusCode === 429) {
+		handleRateLimit(url)
+		return true
+	}
+
+	// 处理 5xx 服务端错误
+	if (res.statusCode >= 500 && res.statusCode < 600) {
+		if (!options.silent) {
+			handleServerError(res.statusCode, url)
+		}
 		return true
 	}
 
@@ -145,21 +192,28 @@ export const handleNetworkError = (err, options, url) => {
 	})
 	
 	let errorMessage = '网络错误，请稍后重试'
-	if (err.errMsg) {
-		if (err.errMsg.includes('timeout')) {
+	const errMsg = err.errMsg || err.message || ''
+	if (errMsg) {
+		if (errMsg.includes('timeout')) {
 			errorMessage = '请求超时，请检查网络连接'
-		} else if (err.errMsg.includes('fail') && err.errMsg.includes('http')) {
-			errorMessage = '网络连接失败，请检查服务器地址和端口'
-		} else if (err.errMsg.includes('abort')) {
+		} else if (errMsg.includes('abort')) {
 			errorMessage = '请求已取消'
+			// 请求被主动取消时不弹提示
+			return
+		} else if (errMsg.includes('ssl') || errMsg.includes('certificate')) {
+			errorMessage = '证书验证失败，请检查网络环境'
+		} else if (errMsg.includes('fail') && (errMsg.includes('http') || errMsg.includes('connect'))) {
+			errorMessage = '无法连接到服务器，请检查网络'
 		} else {
-			errorMessage = `网络错误: ${err.errMsg}`
+			errorMessage = `网络错误: ${errMsg}`
 		}
 	}
-	
-	uni.showToast({
-		title: errorMessage,
-		icon: 'none',
-		duration: 3000
-	})
+
+	if (!options.silent) {
+		uni.showToast({
+			title: errorMessage,
+			icon: 'none',
+			duration: 3000
+		})
+	}
 }

@@ -154,15 +154,84 @@ export const requestWithRetry = (requestConfig, retryCount = 0) => {
 	})
 }
 
+// 请求耗时记录 Map，key 为 url+method
+const _requestTimers = new Map()
+
 /**
- * 调试日志
+ * 日志级别
+ */
+const LOG_LEVEL = {
+	DEBUG: 0,
+	INFO: 1,
+	WARN: 2,
+	ERROR: 3
+}
+
+// 当前最低输出级别：dev 输出 DEBUG 及以上，prod 只输出 WARN 及以上
+const CURRENT_LEVEL = process.env.NODE_ENV === 'development' ? LOG_LEVEL.DEBUG : LOG_LEVEL.WARN
+
+/**
+ * 带级别的日志输出
+ * @param {'DEBUG'|'INFO'|'WARN'|'ERROR'} level 日志级别
+ * @param {String} tag 标签
+ * @param {any} data 数据
+ */
+const _log = (level, tag, data) => {
+	if (LOG_LEVEL[level] < CURRENT_LEVEL) return
+	const ts = new Date().toISOString().slice(11, 23) // HH:mm:ss.mmm
+	const prefix = `[${ts}][${level}][${tag}]`
+	switch (level) {
+		case 'ERROR': console.error(prefix, data); break
+		case 'WARN':  console.warn(prefix, data);  break
+		default:      console.log(prefix, data)
+	}
+}
+
+/**
+ * 调试日志（兼容旧调用）
  * @param {String} type 日志类型
  * @param {Object} data 日志数据
  */
 export const debugLog = (type, data) => {
-	if (process.env.NODE_ENV === 'development') {
-		console.log(`=== ${type} ===`)
-		console.log(data)
-		console.log('================')
-	}
+	_log('DEBUG', type, data)
+}
+
+/**
+ * 记录请求开始，返回 timerKey（传给 logResponse 计算耗时）
+ * @param {String} method 请求方法
+ * @param {String} url 请求URL
+ * @param {Object} data 请求数据
+ * @returns {String} timerKey
+ */
+export const logRequest = (method, url, data) => {
+	const key = `${method}:${url}:${Date.now()}`
+	_requestTimers.set(key, Date.now())
+	_log('INFO', 'REQ', { method, url, data })
+	return key
+}
+
+/**
+ * 记录请求响应，自动计算耗时
+ * @param {String} timerKey logRequest 返回的 key
+ * @param {Number} statusCode HTTP 状态码
+ * @param {any} data 响应数据
+ */
+export const logResponse = (timerKey, statusCode, data) => {
+	const startTime = _requestTimers.get(timerKey)
+	const duration = startTime ? `${Date.now() - startTime}ms` : 'N/A'
+	_requestTimers.delete(timerKey)
+	const level = statusCode >= 400 ? 'WARN' : 'INFO'
+	_log(level, 'RES', { statusCode, duration, data })
+}
+
+/**
+ * 记录请求失败
+ * @param {String} timerKey logRequest 返回的 key
+ * @param {Object} err 错误对象
+ */
+export const logRequestError = (timerKey, err) => {
+	const startTime = _requestTimers.get(timerKey)
+	const duration = startTime ? `${Date.now() - startTime}ms` : 'N/A'
+	_requestTimers.delete(timerKey)
+	_log('ERROR', 'REQ_FAIL', { duration, err })
 }
