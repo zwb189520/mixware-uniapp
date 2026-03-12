@@ -106,12 +106,6 @@
 			}
 		},
 		{
-			"path": "pages/create/createDetail/draw/draw",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
 			"path": "pages/create/createDetail/draw1/draw1",
 			"style": {
 				"navigationStyle": "custom"

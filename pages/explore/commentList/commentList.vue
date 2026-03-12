@@ -325,9 +325,15 @@ export default {
     async handleLikeClick(commentId) {
       this.updateCommentLikeLocal(commentId)
       try {
-        await toggleLike('COMMENT', commentId)
+        const res = await toggleLike('COMMENT', commentId)
+        if (res.code !== 0 && res.code !== 1) {
+          // 接口失败，回滚本地状态
+          this.updateCommentLikeLocal(commentId)
+        }
       } catch (e) {
         console.error('点赞失败:', e)
+        // 接口异常，回滚本地状态
+        this.updateCommentLikeLocal(commentId)
       }
     },
 

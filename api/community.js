@@ -1,4 +1,4 @@
-import { postForm, get, post, del } from './request'
+import { get, post, postFormWithQuery, del } from './request'
 
 // 帖子相关
 export function getPostDetail(postId) {
@@ -34,9 +34,9 @@ export function deleteComment(commentId) {
   return del(`/community/comments/${commentId}`)
 }
 
-// 点赞相关
+// 点赞相关 - 使用 form-urlencoded 格式（接口要求）
 export function toggleLike(targetType, targetId) {
-  return postForm('/community/likes', {
+  return postFormWithQuery('/community/likes', {}, {
     targetType,
     targetId
   })
@@ -69,6 +69,7 @@ export function getFollowersList(userId) {
 export default {
   getPostDetail,
   getPostList,
+  getLikedPosts,
   createPost,
   deletePost,
   getPostComments,

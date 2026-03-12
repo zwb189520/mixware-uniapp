@@ -86,13 +86,37 @@ export default {
       return this.languageStore?.texts?.myWorks || {}
     }
   },
+  watch: {
+    'languageStore.language': {
+      handler() {
+        this.cancelText = this.texts.cancel || '取消'
+      },
+      immediate: true
+    },
+    'languageStore.texts': {
+      handler() {
+        this.cancelText = this.texts.cancel || '取消'
+      },
+      immediate: true,
+      deep: true
+    }
+  },
   onShow() {
     this.languageStore.loadLanguage()
-    // 检查是否需要刷新
     if (uni.getStorageSync('needRefreshWorks')) {
       uni.removeStorageSync('needRefreshWorks')
     }
     this.loadData()
+    // 先移除旧监听再注册，避免 onShow 多次触发导致重复叠加
+    uni.$off('refreshLikedPosts')
+    uni.$on('refreshLikedPosts', () => {
+      if (this.activeTab === 'likes') {
+        this.loadLikedPosts()
+      }
+    })
+  },
+  onHide() {
+    uni.$off('refreshLikedPosts')
   },
   methods: {
     switchTab(tab) {
@@ -114,7 +138,6 @@ export default {
           current: 1,
           size: 100
         })
-        
         if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
           this.worksList = res.data.records.map(post => ({
             id: post.postId,
@@ -137,24 +160,7 @@ export default {
         this.loading = false
       }
     },
-  
-  watch: {
-    'languageStore.language': {
-      handler(newLang) {
-        // 更新取消按钮文本
-        this.cancelText = this.texts.cancel || '取消'
-      },
-      immediate: true
-    },
-    'languageStore.texts': {
-      handler(newTexts) {
-        // 更新取消按钮文本
-        this.cancelText = this.texts.cancel || '取消'
-      },
-      immediate: true,
-      deep: true
-    }
-  },
+
     async loadWorks() {
       this.loading = true
       try {
@@ -165,7 +171,6 @@ export default {
             current: 1,
             size: 100
           })
-          
           if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
             let apiPosts = res.data.records.map(post => ({
               id: post.postId,
@@ -178,9 +183,7 @@ export default {
               isPost: true
             }))
 
-            // 检查是否有刚发布的帖子
             const newlyCreatedPost = uni.getStorageSync('newlyCreatedPost')
-            const userInfo = uni.getStorageSync('userInfo')
             if (newlyCreatedPost && String(newlyCreatedPost.userId) === String(userInfo?.userId)) {
               if (!apiPosts.some(ap => String(ap.id) === String(newlyCreatedPost.id))) {
                 apiPosts.unshift({
@@ -197,15 +200,13 @@ export default {
                 uni.removeStorageSync('newlyCreatedPost')
               }
             }
-            
             this.worksList = apiPosts
           }
         }
       } catch (error) {
         console.error('加载作品失败:', error)
-        const loadFailedText = this.texts.loadFailed || '加载失败'
         uni.showToast({
-          title: error.message || loadFailedText,
+          title: error.message || this.texts.loadFailed || '加载失败',
           icon: 'none'
         })
       } finally {
@@ -220,17 +221,14 @@ export default {
     handleWorkClick(work) {
       if (work.isPost) {
         uni.navigateTo({
-          url: `/pages/explore/showcaseWorksDetail/showcaseWorksDetail?id=${work.id}&title=${encodeURIComponent(work.title || '')}&image=${encodeURIComponent(work.image || '')}`
+          url: `/pages/explore/showcaseWorksDetail/showcaseWorksDetail?postId=${work.id}&title=${encodeURIComponent(work.title || '')}&image=${encodeURIComponent(work.image || '')}`
         })
         return
       }
       this.selectedWork = work
-      
-      // 使用后备默认值
       const printPosterText = this.texts.printPoster || '打印海报'
       const deleteWorkText = this.texts.deleteWork || '删除作品'
       const cancelText = this.texts.cancel || '取消'
-      
       this.actionSheetItems = [printPosterText, deleteWorkText]
       this.cancelText = cancelText
       this.showCustomActionSheet = true
@@ -250,7 +248,6 @@ export default {
     },
     
     handleDeleteWork(work) {
-      // 使用后备默认值
       const deleteConfirmText = this.texts.deleteConfirm || '确认删除'
       const deleteConfirmContentText = this.texts.deleteConfirmContent || '确定要删除这个作品吗？此操作不可恢复。'
       const confirmText = this.texts.confirm || '确认'
@@ -268,24 +265,14 @@ export default {
             try {
               const response = await deleteModel(work.id)
               if (response.code === 1) {
-                uni.showToast({
-                  title: deleteSuccessText,
-                  icon: 'success'
-                })
-                // 从列表中移除删除的作品
+                uni.showToast({ title: deleteSuccessText, icon: 'success' })
                 this.worksList = this.worksList.filter(item => item.id !== work.id)
               } else {
-                uni.showToast({
-                  title: response.msg || deleteFailedText,
-                  icon: 'none'
-                })
+                uni.showToast({ title: response.msg || deleteFailedText, icon: 'none' })
               }
             } catch (error) {
               console.error('删除作品失败:', error)
-              uni.showToast({
-                title: deleteFailedText,
-                icon: 'none'
-              })
+              uni.showToast({ title: deleteFailedText, icon: 'none' })
             }
           }
         }
@@ -293,19 +280,9 @@ export default {
     },
     
     handlePrintPoster(work) {
-      const generatingPosterText = this.texts.generatingPoster || '正在生成海报...'
-      const posterGeneratedText = this.texts.posterGenerated || '海报生成成功'
-      
-      uni.showToast({
-        title: generatingPosterText,
-        icon: 'loading'
-      })
-      
+      uni.showToast({ title: this.texts.generatingPoster || '正在生成海报...', icon: 'loading' })
       setTimeout(() => {
-        uni.showToast({
-          title: posterGeneratedText,
-          icon: 'success'
-        })
+        uni.showToast({ title: this.texts.posterGenerated || '海报生成成功', icon: 'success' })
       }, 1500)
     }
   }

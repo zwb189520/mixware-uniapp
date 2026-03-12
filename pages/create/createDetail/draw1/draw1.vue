@@ -592,7 +592,6 @@ export default {
            console.log('创建文件失败', e);
         });
       });
-      return;
       // #endif
 
       // #ifdef H5
@@ -844,7 +843,8 @@ export default {
   background: transparent;
   height: 32px;
   line-height: 32px;
-  width: auto;
+  width: 150px;
+  min-width: 50px;
   display: inline-block;
 }
 
@@ -854,7 +854,7 @@ export default {
   height: 32px;
   line-height: 32px;
   flex-shrink: 0;
-  margin-left: 0;
+  margin-left: 4px;
 }
 
 .edit-icon {

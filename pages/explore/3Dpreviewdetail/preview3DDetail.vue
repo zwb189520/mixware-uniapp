@@ -8,23 +8,23 @@
         <view class="left-toolbar">
           <view class="toolbar-btn" @tap="handleCenter">
             <uni-icons type="location-filled" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">居中</text>
+            <text class="toolbar-text">{{ texts.center }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleRotate">
             <uni-icons type="reload" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">旋转</text>
+            <text class="toolbar-text">{{ texts.rotate }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleCopy">
             <uni-icons type="plus" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">复制</text>
+            <text class="toolbar-text">{{ texts.copy }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleFit">
             <uni-icons type="eye" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">适配</text>
+            <text class="toolbar-text">{{ texts.fit }}</text>
           </view>
           <view class="toolbar-btn" @tap="handleDelete">
             <uni-icons type="trash" size="20" color="#fff"></uni-icons>
-            <text class="toolbar-text">删除</text>
+            <text class="toolbar-text">{{ texts.delete }}</text>
           </view>
         </view>
 
