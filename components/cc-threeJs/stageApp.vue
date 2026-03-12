@@ -1264,6 +1264,11 @@
 					case 'stl':
 						loader = new STLLoader()
 						break;
+					case 'jpg':
+					case 'png':
+					case 'jpeg':
+						loader = new THREE.TextureLoader()
+						break;
 					default:
 						break;
 				}
@@ -2142,7 +2147,7 @@
 					width,
 					height
 				} = container.getBoundingClientRect()
-				console.log('容器尺寸:', { width, height })
+				console.log('容器尺寸: width=' + width + ', height=' + height)
 				
 				// 如果容器尺寸为0，延迟初始化
 				if (width === 0 || height === 0) {

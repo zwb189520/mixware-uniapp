@@ -154,10 +154,10 @@ export default {
           })
           
           setTimeout(() => {
-            uni.navigateTo({
-              url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${jobId}&name=生成的3D模型&url=${encodeURIComponent(this.uploadedImage)}`
-            })
-          }, 1500)
+			  uni.navigateTo({
+			    url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${jobId}&name=生成的3D模型`
+			  })
+			}, 1500)
         } else {
           console.log('响应数据不符合预期:', res)
           uni.showToast({

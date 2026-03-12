@@ -57,10 +57,6 @@
           @scaleUpdate="onScaleUpdate"
         ></Preview3D>
         
-        <!-- 选中状态指示器 -->
-        <!-- <view v-if="isModelSelected" class="selection-indicator">
-          <text class="selection-text">已选中</text>
-        </view> -->
         <view v-if="!modelUrl" class="empty-state">
           <text class="empty-text">{{ texts.noModel }}</text>
         </view>
@@ -110,6 +106,7 @@
 import { sendPrintCommand } from '@/api/iot.js'
 import { getModelDetail } from '@/api/models.js'
 import { getDefaultDevice } from '@/api/devices.js'
+import { getTaskStatus } from '@/api/hunyuan3d.js'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
 import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores'
@@ -126,6 +123,9 @@ export default {
       modelUrl: '',
       modelType: '',
       loading: false,
+      pollTimer: null,
+      pollCount: 0,
+      maxPollCount: 60,
       statusBarHeight: 0,
       topBarHeightPx: 0,
       safeAreaBottom: 0,
@@ -187,26 +187,15 @@ export default {
     }
 
     this.modelName = options.name ? decodeURIComponent(options.name) : ''
-    let url = decodeURIComponent(options.url || '')
-    // 清理URL中的反引号、空格和其他特殊字符
-    url = url.replace(/[`'"\s]/g, '').trim()
-    // 确保URL以http开头
-    if (url && !url.startsWith('http')) {
-      url = 'http://' + url
-    }
-    this.modelUrl = url
+    this.modelUrl = this.normalizeUrl(decodeURIComponent(options.url || ''))
     this.modelType = options.modelType || this.getModelTypeFromUrl(this.modelUrl)
     
-    // 接收并解析尺寸信息
     if (options.dimensions) {
       try {
         const parsedDimensions = JSON.parse(decodeURIComponent(options.dimensions))
-        if (parsedDimensions && parsedDimensions.x && parsedDimensions.y && parsedDimensions.z) {
-          this.dimensions = {
-            x: Math.round(parsedDimensions.x * 10) / 10,
-            y: Math.round(parsedDimensions.y * 10) / 10,
-            z: Math.round(parsedDimensions.z * 10) / 10
-          }
+        const dimensions = this.parseDimensions(parsedDimensions)
+        if (dimensions) {
+          this.dimensions = dimensions
           console.log('使用从 modelDetail 传递的尺寸:', this.dimensions)
         }
       } catch (e) {
@@ -236,16 +225,73 @@ export default {
     this.safeAreaBottom = safeAreaBottom
     
     if (this.modelUrl) {
-      this.loading = true
-      // 延迟显示Preview3D，确保容器有尺寸
-      setTimeout(() => {
-        this.showPreview = true
-      }, 1000)
-    } else if (this.modelId) {
-      this.loadModelDetail()
-    }
+			  this.loading = true
+			  // 延迟显示Preview3D，确保容器有尺寸
+			  setTimeout(() => {
+			    this.showPreview = true
+			  }, 1000)
+			} else if (this.modelId) {
+			  // 判断是否为任务ID（32位十六进制字符串）
+			  if (/^[a-f0-9]{32}$/.test(this.modelId)) {
+			    this.pollTaskStatus()
+			  } else {
+			    this.loadModelDetail()
+			  }
+			}
   },
   methods: {
+    normalizeUrl(url) {
+      if (!url) return ''
+      let normalized = url.replace(/[`'"\s]/g, '').trim()
+      if (normalized && !normalized.startsWith('http')) {
+        normalized = 'http://' + normalized
+      }
+      return normalized
+    },
+
+    fixImageUrl(url) {
+      if (!url) return ''
+      return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
+    },
+
+    parseDimensions(data) {
+      if (!data) return null
+      if (data.x && data.y && data.z) {
+        return {
+          x: Math.round(data.x * 10) / 10,
+          y: Math.round(data.y * 10) / 10,
+          z: Math.round(data.z * 10) / 10
+        }
+      }
+      if (data.modelParam) {
+        try {
+          const modelParam = typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
+          const sizeStr = modelParam.size || modelParam.modelSize || modelParam.dimensions || ''
+          if (sizeStr) {
+            const sizeMatch = sizeStr.match(/([\d.]+)mm[^\d]+([\d.]+)mm[^\d]+([\d.]+)mm/)
+            if (sizeMatch) {
+              return {
+                x: parseFloat(sizeMatch[1]),
+                y: parseFloat(sizeMatch[2]),
+                z: parseFloat(sizeMatch[3])
+              }
+            }
+          }
+        } catch (e) {
+          console.error('解析 modelParam 失败:', e)
+        }
+      }
+      return null
+    },
+
+    isTaskCompleted(status) {
+      return status === 'completed' || status === 'success'
+    },
+
+    isTaskFailed(status) {
+      return status === 'failed' || status === 'error'
+    },
+
     initStatusBarHeight() {
       try {
         const systemInfo = uni.getSystemInfoSync()
@@ -269,61 +315,22 @@ export default {
     async loadModelDetail() {
       try {
         this.loading = true
-        // console.log('请求模型详情，ID:', this.modelId)
         const res = await getModelDetail(this.modelId)
-        // console.log('模型详情API返回:', res)
         if (res && res.data) {
           const data = res.data
           this.modelInfo = data
           this.modelName = data.name || this.modelName
           
-          const fixImageUrl = (url) => {
-            if (!url) return ''
-            return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
-          }
-          
-          this.modelUrl = fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
+          this.modelUrl = this.fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
           this.modelType = this.getModelTypeFromUrl(this.modelUrl)
           
-          // 解析尺寸信息
-          let dimensions = null
-          if (data.modelParam) {
-            try {
-              const modelParam = typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
-              const sizeStr = modelParam.size || modelParam.modelSize || modelParam.dimensions || ''
-              if (sizeStr) {
-                const sizeMatch = sizeStr.match(/([\d.]+)mm[^\d]+([\d.]+)mm[^\d]+([\d.]+)mm/)
-                if (sizeMatch) {
-                  dimensions = {
-                    x: parseFloat(sizeMatch[1]),
-                    y: parseFloat(sizeMatch[2]),
-                    z: parseFloat(sizeMatch[3])
-                  }
-                }
-              }
-            } catch (e) {
-              console.error('解析 modelParam 失败:', e)
+          if (!this.dimensions.x) {
+            const dimensions = this.parseDimensions(data)
+            if (dimensions) {
+              this.dimensions = dimensions
             }
           }
           
-          // 如果没有从页面参数获取到尺寸信息，才使用解析出的尺寸
-          if (!this.dimensions.x && dimensions) {
-            console.log('使用从 API 解析出的尺寸:', dimensions)
-            this.dimensions = {
-              x: Math.round(dimensions.x * 10) / 10,
-              y: Math.round(dimensions.y * 10) / 10,
-              z: Math.round(dimensions.z * 10) / 10
-            }
-          } else if (!this.dimensions.x && data.dimensions && data.dimensions.x) {
-            console.log('使用 API 直接返回的尺寸:', data.dimensions)
-            this.dimensions = {
-              x: Math.round(data.dimensions.x * 10) / 10,
-              y: Math.round(data.dimensions.y * 10) / 10,
-              z: Math.round(data.dimensions.z * 10) / 10
-            }
-          }
-          
-          // 延迟显示Preview3D，确保容器有尺寸
           setTimeout(() => {
             this.showPreview = true
           }, 1000)
@@ -338,6 +345,86 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    async pollTaskStatus() {
+      this.loading = true
+      this.pollCount = 0
+      
+      const poll = async () => {
+        try {
+          this.pollCount++
+          console.log(`轮询任务状态 (${this.pollCount}/${this.maxPollCount}):`, this.modelId)
+          
+          const res = await getTaskStatus(this.modelId)
+          console.log('任务状态响应:', res)
+          
+          if (res && res.data) {
+            const status = res.data.Status
+            const progress = res.data.progress || 0
+            console.log('任务状态:', status, '进度:', progress + '%')
+            
+            if (this.isTaskCompleted(status)) {
+              console.log('任务完成')
+              let modelUrl = res.data.modelUrl
+              if (!modelUrl && res.data.ResultFile3Ds && res.data.ResultFile3Ds.length > 0) {
+                modelUrl = res.data.ResultFile3Ds[0].Url
+              }
+              if (modelUrl) {
+                this.modelUrl = modelUrl
+                this.modelType = this.getModelTypeFromUrl(modelUrl)
+                this.stopPoll()
+                
+                setTimeout(() => {
+                  this.showPreview = true
+                },1000)
+                return
+              }
+            } else if (this.isTaskFailed(status)) {
+              console.error('任务失败')
+              this.stopPoll()
+              uni.showToast({ title: '模型生成失败', icon: 'none' })
+              setTimeout(() => {
+                uni.navigateBack()
+              }, 1500)
+              return
+            }
+          }
+          
+          if (this.pollCount >= this.maxPollCount) {
+            console.error('轮询超时')
+            this.stopPoll()
+            uni.showToast({ title: '生成超时，请稍后查看', icon: 'none' })
+            setTimeout(() => {
+              uni.navigateBack()
+            }, 1500)
+            return
+          }
+          
+          this.pollTimer = setTimeout(poll, 2000)
+        } catch (error) {
+          console.error('轮询任务状态失败:', error)
+          if (this.pollCount >= this.maxPollCount) {
+            this.stopPoll()
+            uni.showToast({ title: '查询失败', icon: 'none' })
+            setTimeout(() => {
+              uni.navigateBack()
+            }, 1500)
+          } else {
+            this.pollTimer = setTimeout(poll, 2000)
+          }
+        }
+      }
+      
+      poll()
+    },
+    
+    stopPoll() {
+      if (this.pollTimer) {
+        clearTimeout(this.pollTimer)
+        this.pollTimer = null
+      }
+      this.pollCount = 0
     },
     
     handleBack() {
@@ -852,6 +939,9 @@ export default {
         url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}`
       })
     }
+  },
+  beforeUnmount() {
+    this.stopPoll()
   }
 }
 </script>
