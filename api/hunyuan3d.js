@@ -1,4 +1,5 @@
 import { post, get, uploadFile, postWithQuery } from './request'
+import { API } from '../constants'
 
 /**
  * 文本转 3D 模型
@@ -36,7 +37,7 @@ export async function imageToModel(image, prompt) {
   if (uploadRes.code === 1 && uploadRes.data) {
     let imageUrl = uploadRes.data.url || uploadRes.data.fileUrl
     if (!imageUrl && uploadRes.data.originalFileName) {
-      imageUrl = `http://app.mixwarebot.cn:9000/image/${uploadRes.data.originalFileName}`
+      imageUrl = `${API.IMAGE_URL}/image/${uploadRes.data.originalFileName}`
     }
     console.log('准备发送模型生成请求，imageUrl:', imageUrl)
     if (imageUrl) {
