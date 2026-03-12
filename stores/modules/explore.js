@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useStorageSync } from '../../composables/modules/useStorageSync'
 
 export const useExploreStore = defineStore('explore', () => {
+  // 基础状态
   const currentTab = ref('daily')
   const keyword = ref('')
   const showSearch = ref(false)
@@ -11,6 +13,15 @@ export const useExploreStore = defineStore('explore', () => {
   const categoryModels = ref([])
   const loading = ref(false)
 
+  // 使用通用 Hook 管理存储
+  const { state: storageState, initFromStorage, saveToStorage } = useStorageSync('exploreData', {
+    dailyModels: [],
+    hotModels: [],
+    categoryModels: [],
+    hotTags: []
+  })
+
+  // 计算属性 - 瀑布流布局
   const dailyLeftList = computed(() => dailyModels.value.filter((_, i) => i % 2 === 0))
   const dailyRightList = computed(() => dailyModels.value.filter((_, i) => i % 2 === 1))
   const hotLeftList = computed(() => hotModels.value.filter((_, i) => i % 2 === 0))
@@ -18,6 +29,7 @@ export const useExploreStore = defineStore('explore', () => {
   const categoryLeftList = computed(() => categoryModels.value.filter((_, i) => i % 2 === 0))
   const categoryRightList = computed(() => categoryModels.value.filter((_, i) => i % 2 === 1))
 
+  // 设置方法
   function setCurrentTab(tab) {
     currentTab.value = tab
   }
@@ -32,55 +44,58 @@ export const useExploreStore = defineStore('explore', () => {
 
   function setHotTags(tags) {
     hotTags.value = tags
+    storageState.value.hotTags = tags
   }
 
   function setDailyModels(models) {
     dailyModels.value = models
-    saveToStorage()
+    storageState.value.dailyModels = models
+    persistToStorage()
   }
 
   function setHotModels(models) {
     hotModels.value = models
-    saveToStorage()
+    storageState.value.hotModels = models
+    persistToStorage()
   }
 
   function setCategoryModels(models) {
     categoryModels.value = models
-    saveToStorage()
+    storageState.value.categoryModels = models
+    persistToStorage()
   }
 
   function setLoading(value) {
     loading.value = value
   }
 
-  function saveToStorage() {
-    try {
-      uni.setStorageSync('exploreData', {
-        dailyModels: dailyModels.value,
-        hotModels: hotModels.value,
-        categoryModels: categoryModels.value,
-        hotTags: hotTags.value
-      })
-    } catch (e) {
-      console.warn('保存探索数据到本地存储失败:', e)
+  // 保存到本地存储
+  function persistToStorage() {
+    storageState.value = {
+      dailyModels: dailyModels.value,
+      hotModels: hotModels.value,
+      categoryModels: categoryModels.value,
+      hotTags: hotTags.value
     }
+    saveToStorage()
   }
 
-  function initFromStorage() {
-    try {
-      const storedData = uni.getStorageSync('exploreData')
-      if (storedData) {
-        if (storedData.dailyModels) dailyModels.value = storedData.dailyModels
-        if (storedData.hotModels) hotModels.value = storedData.hotModels
-        if (storedData.categoryModels) categoryModels.value = storedData.categoryModels
-        if (storedData.hotTags) hotTags.value = storedData.hotTags
-      }
-    } catch (e) {
-      console.warn('从本地存储加载探索数据失败:', e)
+  // 清除所有数据
+  function clearAll() {
+    dailyModels.value = []
+    hotModels.value = []
+    categoryModels.value = []
+    hotTags.value = []
+    storageState.value = {
+      dailyModels: [],
+      hotModels: [],
+      categoryModels: [],
+      hotTags: []
     }
   }
 
   return {
+    // 状态
     currentTab,
     keyword,
     showSearch,
@@ -89,12 +104,14 @@ export const useExploreStore = defineStore('explore', () => {
     hotModels,
     categoryModels,
     loading,
+    // 计算属性
     dailyLeftList,
     dailyRightList,
     hotLeftList,
     hotRightList,
     categoryLeftList,
     categoryRightList,
+    // 方法
     setCurrentTab,
     setKeyword,
     setShowSearch,
@@ -103,6 +120,8 @@ export const useExploreStore = defineStore('explore', () => {
     setHotModels,
     setCategoryModels,
     setLoading,
+    persistToStorage,
+    clearAll,
     initFromStorage
   }
 })

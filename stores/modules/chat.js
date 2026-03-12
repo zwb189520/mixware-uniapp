@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useStorageSync } from '../../composables/modules/useStorageSync'
 
 export const useChatStore = defineStore('chat', () => {
+  // 基础状态
   const sessionId = ref('')
   const sessionTitle = ref('')
   const sessionDescribe = ref('')
@@ -12,6 +14,16 @@ export const useChatStore = defineStore('chat', () => {
   const sessionList = ref([])
   const currentSessionIndex = ref(-1)
 
+  // 使用通用 Hook 管理存储
+  const { state: storageState, initFromStorage, saveToStorage } = useStorageSync('chatData', {
+    sessionId: '',
+    sessionTitle: '',
+    sessionDescribe: '',
+    examples: [],
+    messages: []
+  })
+
+  // 计算属性
   const currentSession = computed(() => {
     if (currentSessionIndex.value >= 0 && currentSessionIndex.value < sessionList.value.length) {
       return sessionList.value[currentSessionIndex.value]
@@ -19,26 +31,34 @@ export const useChatStore = defineStore('chat', () => {
     return null
   })
 
+  // 设置方法
   function setSessionId(id) {
     sessionId.value = id
+    storageState.value.sessionId = id
   }
 
   function setSessionData(data) {
     sessionTitle.value = data.title || ''
     sessionDescribe.value = data.describe || ''
     examples.value = data.examples || []
+    storageState.value.sessionTitle = sessionTitle.value
+    storageState.value.sessionDescribe = sessionDescribe.value
+    storageState.value.examples = examples.value
   }
 
-  function setMessages(messages) {
-    messages.value = messages
+  function setMessages(msgs) {
+    messages.value = msgs
+    storageState.value.messages = msgs
   }
 
-  function setExamples(examples) {
-    examples.value = examples
+  function setExamples(exs) {
+    examples.value = exs
+    storageState.value.examples = exs
   }
 
   function addMessage(msg) {
     messages.value.push(msg)
+    storageState.value.messages = messages.value
   }
 
   function setLoading(value) {
@@ -93,38 +113,29 @@ export const useChatStore = defineStore('chat', () => {
     examples.value = []
     messages.value = []
     currentSessionIndex.value = -1
-  }
-
-  function saveToStorage() {
-    try {
-      uni.setStorageSync('chatData', {
-        sessionId: sessionId.value,
-        sessionTitle: sessionTitle.value,
-        sessionDescribe: sessionDescribe.value,
-        examples: examples.value,
-        messages: messages.value
-      })
-    } catch (e) {
-      console.warn('保存聊天数据到本地存储失败:', e)
+    storageState.value = {
+      sessionId: '',
+      sessionTitle: '',
+      sessionDescribe: '',
+      examples: [],
+      messages: []
     }
   }
 
-  function initFromStorage() {
-    try {
-      const storedData = uni.getStorageSync('chatData')
-      if (storedData) {
-        if (storedData.sessionId) sessionId.value = storedData.sessionId
-        if (storedData.sessionTitle) sessionTitle.value = storedData.sessionTitle
-        if (storedData.sessionDescribe) sessionDescribe.value = storedData.sessionDescribe
-        if (storedData.examples) examples.value = storedData.examples
-        if (storedData.messages) messages.value = storedData.messages
-      }
-    } catch (e) {
-      console.warn('从本地存储加载聊天数据失败:', e)
+  // 保存到本地存储
+  function persistToStorage() {
+    storageState.value = {
+      sessionId: sessionId.value,
+      sessionTitle: sessionTitle.value,
+      sessionDescribe: sessionDescribe.value,
+      examples: examples.value,
+      messages: messages.value
     }
+    saveToStorage()
   }
 
   return {
+    // 状态
     sessionId,
     sessionTitle,
     sessionDescribe,
@@ -135,6 +146,7 @@ export const useChatStore = defineStore('chat', () => {
     sessionList,
     currentSessionIndex,
     currentSession,
+    // 方法
     setSessionId,
     setSessionData,
     setMessages,
@@ -148,6 +160,7 @@ export const useChatStore = defineStore('chat', () => {
     selectSession,
     updateSessionTitle,
     clearCurrentSession,
+    persistToStorage,
     initFromStorage
   }
 })
