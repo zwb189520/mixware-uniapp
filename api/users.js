@@ -116,12 +116,12 @@ export function loginByCodeWithHandler(email, verificationCode) {
     if (!res.data) {
       throw new Error(res.msg || '登录失败')
     }
-    const { token, userId, username, avatarUrl, id, accountStatus } = res.data
+    const { token, userId, username, avatarUrl, id, accountStatus, birthday } = res.data
 
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
-    const userInfo = { userId, id, username, nickname: username, avatar: finalAvatarUrl, email, accountStatus }
+    const userInfo = { userId, id, username, nickname: username, avatar: finalAvatarUrl, email, accountStatus, birthday }
     _syncLoginToStore(userInfo, token)
     return res
   })
@@ -224,12 +224,12 @@ export function loginWithPassword(email, password) {
     if (!res.data) {
       throw new Error(res.msg || '用户不存在')
     }
-    const { token, userId, username, avatarUrl } = res.data
+    const { token, userId, username, avatarUrl, birthday } = res.data
 
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
-    const userInfo = { userId, username, nickname: username, avatar: finalAvatarUrl, email }
+    const userInfo = { userId, username, nickname: username, avatar: finalAvatarUrl, email, birthday }
     _syncLoginToStore(userInfo, token)
     return res
   })

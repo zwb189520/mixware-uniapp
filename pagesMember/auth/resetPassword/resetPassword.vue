@@ -17,6 +17,10 @@
         </view>
       </view>
       <view class="form-item">
+        <text class="form-label">旧密码</text>
+        <input class="form-input" v-model="oldPassword" type="password" placeholder="请输入旧密码" />
+      </view>
+      <view class="form-item">
         <text class="form-label">{{ texts.newPasswordLabel }}</text>
         <input class="form-input" v-model="newPassword" type="password" :placeholder="texts.newPasswordPlaceholder" />
       </view>
@@ -34,6 +38,7 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores'
 import { sendResetPasswordCode, resetPassword } from '@/api/users.js'
+import { handleLogout } from '@/api/errorHandler.js'
 
 export default {
   name: 'ResetPassword',
@@ -45,6 +50,7 @@ export default {
     return {
       email: '',
       code: '',
+      oldPassword: '',
       newPassword: '',
       confirmPassword: '',
       countdown: 0,
@@ -85,12 +91,7 @@ export default {
         return
       }
       
-      uni.showLoading({
-        title: this.texts.sending
-      })
-      
       sendResetPasswordCode(this.email).then(() => {
-        uni.hideLoading()
         
         this.countdown = 60
         this.timer = setInterval(() => {
@@ -99,13 +100,7 @@ export default {
             clearInterval(this.timer)
           }
         }, 1000)
-        
-        uni.showToast({
-          title: this.texts.codeSent,
-          icon: 'success'
-        })
       }).catch((error) => {
-        uni.hideLoading()
         uni.showToast({
           title: error.message || this.texts.sendFailed,
           icon: 'none'
@@ -114,9 +109,17 @@ export default {
     },
     
     handleSubmit() {
-      if (!this.email || !this.code || !this.newPassword || !this.confirmPassword) {
+      if (!this.email || !this.code || !this.oldPassword || !this.newPassword || !this.confirmPassword) {
         uni.showToast({
           title: this.texts.fillAllFields,
+          icon: 'none'
+        })
+        return
+      }
+      
+      if (this.newPassword === this.oldPassword) {
+        uni.showToast({
+          title: '新密码不能与旧密码相同',
           icon: 'none'
         })
         return
@@ -145,6 +148,7 @@ export default {
       resetPassword({
         email: this.email,
         verificationCode: this.code,
+        oldPassword: this.oldPassword,
         newPassword: this.newPassword
       }).then(() => {
         uni.hideLoading()
@@ -155,7 +159,12 @@ export default {
         })
         
         setTimeout(() => {
-          uni.navigateBack()
+          // 执行退出登录操作
+          handleLogout()
+          // 跳转到登录页面
+          uni.redirectTo({
+            url: '/pagesMember/auth/login/login'
+          })
         }, 1500)
       }).catch((error) => {
         uni.hideLoading()

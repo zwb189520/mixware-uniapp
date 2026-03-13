@@ -151,7 +151,10 @@ export default {
   mounted() {
     this.languageStore.loadLanguage()
     this.initializeTestUser()
+    // 只有在 H5 平台才需要处理 OAuth 回调
+    // #ifdef H5
     this.handleOAuthCallback()
+    // #endif
   },
   
   async handleOAuthCallback() {
@@ -383,7 +386,9 @@ export default {
         })
         
         setTimeout(() => {
-          uni.navigateBack()
+          uni.switchTab({
+            url: '/pages/profile/profile'
+          })
         }, 500)
       } catch (error) {
         uni.hideLoading()
@@ -409,9 +414,11 @@ export default {
           icon: 'success'
         })
         
-        // 延迟返回上一页
+        // 跳转到首页
         setTimeout(() => {
-          uni.navigateBack()
+          uni.switchTab({
+            url: '/pages/profile/profile'
+          })
         }, 500)
       } catch (error) {
         uni.hideLoading()
@@ -453,9 +460,11 @@ export default {
           icon: 'success'
         })
         
-        // 延迟返回上一页
+        // 跳转到首页
         setTimeout(() => {
-          uni.navigateBack()
+          uni.switchTab({
+            url: '/pages/profile/profile'
+          })
         }, 500)
       } catch (error) {
         uni.hideLoading()
@@ -668,7 +677,9 @@ export default {
         uni.setStorageSync('userInfo', { userId, username, avatarUrl })
         uni.showToast({ title: this.texts.loginSuccess, icon: 'success' })
         setTimeout(() => {
-          uni.navigateBack()
+          uni.switchTab({
+            url: '/pages/profile/profile'
+          })
         }, 500)
       } else {
         uni.showToast({ title: result.msg || '登录失败', icon: 'none' })
