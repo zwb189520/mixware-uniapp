@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.workDetail" @back="handleBack" />
