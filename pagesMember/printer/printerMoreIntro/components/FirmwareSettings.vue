@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="firmware-section">
     <view class="section-title">
       <text>固件设置</text>
@@ -57,7 +57,6 @@ export default {
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
 }
 
 .section-title {
@@ -117,7 +116,6 @@ export default {
   top: 4rpx;
   left: 4rpx;
   transition: transform 0.3s;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
 }
 
 .switch-active .switch-dot {

@@ -298,15 +298,9 @@ export default {
 }
 
 @keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 20rpx rgba(102, 126, 234, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
-  }
+  0% { opacity: 1; }
+  70% { opacity: 0.7; }
+  100% { opacity: 1; }
 }
 
 .model-summary {

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="info-section">
     <view class="info-item" @click="handleEditName">
       <text class="info-label">名称</text>
@@ -150,7 +150,6 @@ export default {
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
 }
 
 .info-item {

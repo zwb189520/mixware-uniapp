@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container" :class="{ 'lock-scroll': isPopupOpen }">
     <safe-area />
     <custom-navbar :title="workTitle" @back="handleBack">
@@ -1066,12 +1066,10 @@ export default {
   border-radius: 40rpx;
   background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
   transition: all 0.3s;
-  box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
 }
 
 .follow-btn.followed {
   background: #f0f0f0;
-  box-shadow: none;
 }
 
 .follow-text {
@@ -1333,7 +1331,6 @@ export default {
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: #fff;
   border-top: 1rpx solid #f0f0f0;
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
   z-index: 100;
 }
 

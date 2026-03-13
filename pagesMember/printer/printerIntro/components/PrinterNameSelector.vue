@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="printer-name-container">
     <text class="printer-name">{{ currentPrinter.name }}</text>
     <view class="dropdown-icon" @click="toggleDropdown">
@@ -153,7 +153,6 @@ export default {
   transform: translateX(-50%);
   background: #fff;
   border-radius: 20rpx;
-  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.15);
   z-index: 100;
   min-width: 280rpx;
   margin-top: 12rpx;

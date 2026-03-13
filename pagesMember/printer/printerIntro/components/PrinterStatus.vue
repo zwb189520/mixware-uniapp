@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="status-container">
     <view class="status-icon">
       <view :class="['status-dot', `status-${status}`]"></view>
@@ -47,7 +47,6 @@ export default {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 50rpx;
   backdrop-filter: blur(20rpx);
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
   border: 2rpx solid rgba(255, 255, 255, 0.6);
 }
 
@@ -65,7 +64,6 @@ export default {
   height: 32rpx;
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
-  box-shadow: 0 0 20rpx currentColor, 0 0 40rpx currentColor;
   position: relative;
 }
 

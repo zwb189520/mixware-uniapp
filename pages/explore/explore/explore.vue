@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <!-- 顶部背景 -->
     <view class="header" :class="{ 'header-hidden': isSticky }">
@@ -943,7 +943,6 @@ export default {
   padding-top: 24rpx;
   position: relative;
   z-index: 1;
-  box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.08);
   transition: all 0.3s ease;
   height: calc(100vh - 290rpx);
   display: flex;
@@ -995,7 +994,6 @@ export default {
   border-top: 5rpx solid #FF5A00;
   border-radius: 50%;
   margin-bottom: 12rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255,90,0,0.2);
 }
 
 .refresh-spinner.rotating {
@@ -1087,7 +1085,6 @@ export default {
   height: 6rpx;
   background: linear-gradient(90deg, #FF5A00 0%, #FF8A00 100%);
   border-radius: 3rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255,90,0,0.3);
 }
 
 .tabs-more {
@@ -1132,7 +1129,6 @@ export default {
   padding: 24rpx 32rpx;
   background: #FFF9F5;
   z-index: 100;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.1);
   animation: fadeIn 0.3s ease-out;
 }
 

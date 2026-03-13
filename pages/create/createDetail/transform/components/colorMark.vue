@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="color-mark">
     <view class="control-header">
       <text class="control-title">{{ texts.colorMarks }}</text>
@@ -163,7 +163,6 @@ export default {
   border-radius: 50%;
   margin-right: 20rpx;
   border: 2rpx solid #fff;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
 }
 
 .color-info {
@@ -259,7 +258,6 @@ export default {
   cursor: pointer;
   transition: transform 0.2s;
   border: 2rpx solid #fff;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
 }
 
 .color-option:hover {

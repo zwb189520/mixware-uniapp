@@ -801,7 +801,6 @@ export default {
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
 }
 
 .model-name {
@@ -837,7 +836,6 @@ export default {
   border-radius: 50%;
   background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
   border: 3rpx solid #fff;
-  box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
 }
 
 .author-name {
@@ -885,7 +883,6 @@ export default {
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
 }
 
 .description-text {
@@ -926,7 +923,6 @@ export default {
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
   padding: 24rpx 28rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
 }
 
 .detail-item {
@@ -990,7 +986,6 @@ export default {
   padding: 10rpx 20rpx;
   background: linear-gradient(135deg, #FF9500, #FF5A00);
   border-radius: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -1014,7 +1009,6 @@ export default {
 
 .create-post-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 3rpx 8rpx rgba(255, 90, 0, 0.5);
 }
 
 .create-post-btn:hover::before {
@@ -1046,19 +1040,16 @@ export default {
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .print-item:active {
   transform: translateY(-4rpx);
-  box-shadow: 0 12rpx 40rpx rgba(0,0,0,0.12);
 }
 
 .print-item:hover {
   transform: translateY(-2rpx);
-  box-shadow: 0 10rpx 36rpx rgba(0,0,0,0.1);
 }
 
 .print-image {
@@ -1068,7 +1059,6 @@ export default {
   border-radius: 20rpx;
   margin-right: 28rpx;
   flex-shrink: 0;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.08);
   transition: all 0.3s ease;
 }
 
@@ -1120,7 +1110,6 @@ export default {
   padding: 16rpx 24rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   z-index: 100;
-  box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.08);
 }
 
 .toolbar {
@@ -1170,12 +1159,10 @@ export default {
   width: 100%;
   padding: 28rpx 48rpx;
   border-radius: 60rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255,90,0,0.4);
 }
 
 .toolbar-item.primary:active {
   background: #CC4800;
-  box-shadow: 0 4rpx 16rpx rgba(255,90,0,0.3);
 }
 
 .toolbar-text {
@@ -1241,7 +1228,6 @@ export default {
   border-top: 6rpx solid #FF5A00;
   border-radius: 50%;
   animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
 }
 
 @keyframes spin {

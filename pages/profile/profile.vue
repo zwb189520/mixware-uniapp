@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="profile-page">
     <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
     <view class="header-right">
@@ -108,7 +108,6 @@ export default {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 
 .icon-btn:active {

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="chat-page">
     <safe-area />
     <custom-navbar :title="texts.chat" @back="handleBack" />
@@ -327,7 +327,6 @@ export default {
 	font-size: 15px;
 	line-height: 1.5;
 	color: #222;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 	white-space: pre-wrap;
 }
 
@@ -349,7 +348,6 @@ export default {
 	align-items: center;
 	padding: 10px 12px;
 	background: #ffffff;
-	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
 	gap: 8px;
 	z-index: 2;
 }

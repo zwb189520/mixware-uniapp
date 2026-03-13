@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="work-card">
     <image 
       class="work-image" 
@@ -33,7 +33,6 @@ export default {
   background-color: #fff;
   border-radius: 16rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 
 .work-image {

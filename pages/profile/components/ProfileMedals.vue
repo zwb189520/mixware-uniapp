@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="profile-medals" @click="handleMedalClick">
     <view class="medals-title">
       <image src="/static/images/icon/medal.png" mode="aspectFit" class="title-icon"></image>
@@ -73,7 +73,6 @@ export default {
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
   transition: all 0.3s ease;
 }
 

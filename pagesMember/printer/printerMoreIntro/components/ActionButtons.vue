@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="action-buttons">
     <view class="action-button" @click="handleReconfigure">
       <text class="button-text">重新配网</text>
@@ -81,12 +81,10 @@ export default {
   border: 2rpx solid rgba(255, 107, 53, 0.2);
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.08);
 }
 
 .action-button:active {
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.12);
 }
 
 .unbind-button {

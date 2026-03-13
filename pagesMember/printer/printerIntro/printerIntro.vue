@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="printer-intro-page">
     <view class="header-wrapper">
       <safe-area />
@@ -286,7 +286,6 @@ export default {
   padding: 32rpx 60rpx;
   background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
   border-radius: 80rpx;
-  box-shadow: 0 16rpx 48rpx rgba(255, 107, 53, 0.4);
   position: relative;
   overflow: hidden;
   animation: slide-up 0.6s ease-out;

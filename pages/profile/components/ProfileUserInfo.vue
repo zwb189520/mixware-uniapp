@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="profile-user-info">
     <view class="user-main" @click="handleLogin">
       <view class="user-avatar">
@@ -191,7 +191,6 @@ export default {
   align-items: center;
   justify-content: center;
   border: 6rpx solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
   flex-shrink: 0;
 }

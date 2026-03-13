@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="showcase-button" @click="handleShowcaseClick">
     <view class="button-content">
       <image src="/static/images/icon/my-works.png" mode="aspectFit" class="button-icon"></image>
@@ -73,13 +73,11 @@ export default {
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
   transition: all 0.3s ease;
 }
 
 .showcase-button:active {
   transform: scale(0.98);
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.12);
 }
 
 .button-content {

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="container">
     <!-- 顶部导航栏容器 (不再悬浮覆盖，而是独占空间) -->
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
@@ -916,7 +916,6 @@ export default {
   align-items: center;
   justify-content: center;
   margin-right: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .btn-next {

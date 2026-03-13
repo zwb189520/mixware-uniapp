@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="profile-stats">
     <view class="stats-grid">
       <view 
@@ -75,7 +75,6 @@ export default {
   padding: 40rpx 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
 }
 
 .stats-grid {
@@ -105,12 +104,10 @@ export default {
   justify-content: center;
   background: linear-gradient(135deg, #FFF9F5 0%, #FFE8DC 100%);
   border-radius: 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.12);
   transition: all 0.3s ease;
 }
 
 .stat-item:active .stat-icon-wrapper {
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.2);
 }
 
 .stat-icon {

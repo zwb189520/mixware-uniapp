@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="sn-scanner-section">
     <view class="section-title">
       <text>{{ texts.scanDevice || '扫码添加设备' }}</text>
@@ -261,7 +261,6 @@ export default {
   backdrop-filter: blur(20rpx);
   border-radius: 32rpx;
   padding: 32rpx;
-  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.1);
   animation: slideUp 0.6s ease-out;
 }
 
@@ -350,7 +349,6 @@ export default {
 .scan-btn.primary {
   background: linear-gradient(135deg, #FF5A00, #FF8C00);
   color: #ffffff;
-  box-shadow: 0 8rpx 20rpx rgba(255, 90, 0, 0.2);
 }
 
 .scan-btn.secondary {

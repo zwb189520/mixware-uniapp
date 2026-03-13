@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="painting-guide">
     <view class="control-header">
       <text class="control-title">{{ texts.paintingGuide }}</text>
@@ -205,7 +205,6 @@ export default {
   margin-right: 16rpx;
   margin-top: 4rpx;
   border: 2rpx solid #fff;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
   flex-shrink: 0;
 }
 
@@ -302,7 +301,6 @@ export default {
   height: 48rpx;
   border-radius: 50%;
   border: 2rpx solid #fff;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
   cursor: pointer;
   position: relative;
   transition: transform 0.2s;

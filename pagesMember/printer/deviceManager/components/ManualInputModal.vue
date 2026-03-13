@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view v-show="visible" class="modal-mask" @click="handleCancel">
     <view class="modal-content" @click.stop>
       <view class="modal-decoration">
@@ -158,7 +158,6 @@ export default {
   width: 85%;
   max-width: 640rpx;
   overflow: hidden;
-  box-shadow: 0 24rpx 64rpx rgba(0, 0, 0, 0.3);
   animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
 }
@@ -268,7 +267,6 @@ export default {
 .input-wrapper:focus-within {
   border-color: #FF5A00;
   background: #fff;
-  box-shadow: 0 0 0 6rpx rgba(255, 90, 0, 0.1);
 }
 
 .input-icon {
@@ -324,12 +322,10 @@ export default {
   border: none;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
 .modal-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.15);
 }
 
 .modal-btn.cancel-btn {

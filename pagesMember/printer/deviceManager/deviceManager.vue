@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="device-manager-page">
     <view class="header-wrapper">
       <safe-area />
@@ -411,7 +411,6 @@ export default {
   background: #fff;
   border-radius: 24rpx;
   padding: 32rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.08);
   transition: all 0.3s ease;
   animation: slideUp 0.4s ease-out;
 }
@@ -429,7 +428,6 @@ export default {
 
 .device-card:active {
   transform: scale(0.98);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.12);
 }
 
 .card-header {
@@ -581,7 +579,6 @@ export default {
   border-radius: 32rpx 32rpx 0 0;
   width: 100%;
   overflow: hidden;
-  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.1);
   animation: modalSlideUp 0.3s ease-out;
   position: relative;
   padding-bottom: safe-area-inset-bottom;
@@ -689,7 +686,6 @@ export default {
 .input-wrapper:focus-within {
   border-color: #FF5A00;
   background: #fff;
-  box-shadow: 0 0 0 6rpx rgba(255, 90, 0, 0.1);
 }
 
 .input-icon {
@@ -742,11 +738,9 @@ export default {
 .btn-confirm {
   background: linear-gradient(135deg, #FF5A00, #FF8C00);
   color: #fff;
-  box-shadow: 0 8rpx 20rpx rgba(255, 90, 0, 0.2);
 }
 
 .btn-confirm:active {
   transform: scale(0.95);
-  box-shadow: 0 4rpx 10rpx rgba(255, 90, 0, 0.2);
 }
 </style>

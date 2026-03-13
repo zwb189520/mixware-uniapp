@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <view class="nav-fixed">
       <safe-area />
@@ -323,7 +323,6 @@ export default {
   border-radius: 20rpx;
   padding: 24rpx;
   margin: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
 }
 
 /* 模型信息 */
@@ -594,18 +593,15 @@ export default {
   font-size: 32rpx;
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 4rpx 16rpx rgba(255, 90, 0, 0.3);
   transition: all 0.3s;
 }
 
 .publish-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(255, 90, 0, 0.4);
 }
 
 .publish-btn:disabled {
   background: #e0e0e0;
   color: #999;
-  box-shadow: none;
 }
 </style>

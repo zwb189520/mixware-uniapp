@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="calibration-section">
     <view class="section-title">
       <text>校准功能</text>
@@ -69,7 +69,6 @@ export default {
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
 }
 
 .section-title {
@@ -110,7 +109,6 @@ export default {
   background: linear-gradient(135deg, #FFF9F5 0%, #FFE8DC 100%);
   border-radius: 16rpx;
   margin-right: 20rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.1);
 }
 
 .calibration-info {

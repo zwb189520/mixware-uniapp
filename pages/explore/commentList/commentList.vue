@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -573,7 +573,6 @@ export default {
   margin-top: 8rpx;
   background: #fff;
   border-radius: 16rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
   z-index: 100;
   overflow: hidden;
 }
@@ -795,7 +794,6 @@ export default {
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: #fff;
   border-top: 1rpx solid #f0f0f0;
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
   z-index: 100;
 }
 

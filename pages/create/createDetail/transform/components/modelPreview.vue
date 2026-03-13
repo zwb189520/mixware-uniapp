@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="model-preview">
     <view class="preview-container">
       <canvas 
@@ -93,7 +93,6 @@ export default {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15);
   transform: scale(0.8);
   transition: transform 0.2s;
 }

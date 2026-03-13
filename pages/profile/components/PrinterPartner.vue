@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="printer-partner">
     <view class="partner-header">
       <view class="partner-title">
@@ -187,7 +187,6 @@ export default {
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
 }
 
 .partner-header {
@@ -231,13 +230,11 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
   transition: all 0.3s ease;
 }
 
 .manage-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.2);
 }
 
 .manage-btn-text {
@@ -351,13 +348,11 @@ export default {
   border-radius: 16rpx;
   padding: 20rpx;
   background: linear-gradient(135deg, #FFF9F5 0%, #FFE8DC 100%);
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.1);
   transition: all 0.3s ease;
 }
 
 .intro-entry:active {
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.15);
 }
 
 .intro-content {

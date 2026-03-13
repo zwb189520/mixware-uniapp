@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="progress-container">
     <text class="progress-status">{{ progressStatusText }}</text>
     
@@ -93,7 +93,6 @@ export default {
   border-radius: 8rpx;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .filament-line {
@@ -102,7 +101,6 @@ export default {
   border-radius: 8rpx;
   position: relative;
   transition: width 0.5s ease;
-  box-shadow: 0 0 16rpx rgba(255, 107, 53, 0.4);
 }
 
 .filament-wave {
