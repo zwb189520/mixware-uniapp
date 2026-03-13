@@ -1,11 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.mixwarebot.cn:8080/api'
-const API_IMAGE_URL = import.meta.env.VITE_API_IMAGE_URL || 'https://app.mixwarebot.cn:9000'
-const API_UPLOAD_IMAGE_URL = import.meta.env.VITE_API_UPLOAD_IMAGE_URL || 'https://app.mixwarebot.cn:9000/image'
-
 export const API = {
-  BASE_URL: API_BASE_URL,
-  IMAGE_URL: API_IMAGE_URL,
-  UPLOAD_IMAGE_URL: API_UPLOAD_IMAGE_URL,
+  BASE_URL: 'http://app.mixwarebot.cn:8080/api',
+  IMAGE_URL: 'http://app.mixwarebot.cn:9000',
+  UPLOAD_IMAGE_URL: 'http://app.mixwarebot.cn:9000/image',
   TIMEOUT: 10000,
   DEFAULT_CACHE_TIME: 5 * 60 * 1000,
   USER_CACHE_TIME: 10 * 60 * 1000,

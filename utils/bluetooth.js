@@ -182,7 +182,7 @@ function writeInChunks(deviceId, serviceId, characteristicId, buffer, chunkSize 
         writeType: 'write',
         success: () => {
           offset = end
-          setTimeout(writeNext, 100)
+          setTimeout(writeNext, 1000)
         },
         fail: (err) => {
           console.error('分包写入失败:', err)
