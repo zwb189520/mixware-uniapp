@@ -54,6 +54,26 @@ export const handleLogout = (isUserNotFoundFlag = false) => {
  * @param {Number} cacheTime 缓存时间
  * @returns {Object|null} 处理后的数据或null
  */
+/**
+ * 判断当前请求是否为当前登录用户自身的接口
+ * 只有操作自身账户的接口返回"用户不存在"才应触发登出
+ * 查看他人主页等接口返回"用户不存在"不应影响当前用户的登录态
+ * @param {String} url 请求URL
+ * @returns {Boolean}
+ */
+const isSelfUserUrl = (url) => {
+	if (!url) return false
+	// 明确属于当前用户自身操作的接口
+	const selfPaths = [
+		'/users/me',
+		'/users/updateUserInfo',
+		'/users/changePassword',
+		'/users/deleteUser',
+		'/users/status/'
+	]
+	return selfPaths.some(path => url.includes(path))
+}
+
 export const handleSuccess = (res, options, url, data, cache, cacheTime) => {
 	if (options.showLoading) {
 		uni.hideLoading()
@@ -66,8 +86,9 @@ export const handleSuccess = (res, options, url, data, cache, cacheTime) => {
 			setCache(cacheKey, res.data, cacheTime)
 		}
 		
-		// 检查用户是否存在
-		if (isUserNotFound(res.data)) {
+		// 仅在操作自身账户的接口返回"用户不存在"时才触发登出
+		// 查看他人主页、搜索用户等接口的"用户不存在"不影响当前登录态
+		if (isUserNotFound(res.data) && isSelfUserUrl(url)) {
 			handleLogout(true)
 			return null
 		}

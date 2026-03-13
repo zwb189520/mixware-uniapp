@@ -69,6 +69,8 @@ export default {
         this.loadDeviceList()
       } else {
         this.stopBluetoothScan()
+        this.deviceList = []
+        this.bluetoothDevices = []
       }
     }
   },

@@ -157,6 +157,44 @@ function ab2str(buffer) {
   return utf82str(new Uint8Array(buffer))
 }
 
+function writeInChunks(deviceId, serviceId, characteristicId, buffer, chunkSize = 18) {
+  return new Promise((resolve, reject) => {
+    const bytes = new Uint8Array(buffer)
+    let offset = 0
+    
+    const writeNext = () => {
+      if (offset >= bytes.length) {
+        console.log('分包发送完成，共', bytes.length, '字节')
+        resolve()
+        return
+      }
+      
+      const end = Math.min(offset + chunkSize, bytes.length)
+      const chunk = bytes.slice(offset, end)
+      
+      console.log(`分包发送: ${offset}-${end}/${bytes.length} 字节`)
+      
+      uni.writeBLECharacteristicValue({
+        deviceId,
+        serviceId,
+        characteristicId,
+        value: chunk.buffer,
+        writeType: 'write',
+        success: () => {
+          offset = end
+          setTimeout(writeNext, 100)
+        },
+        fail: (err) => {
+          console.error('分包写入失败:', err)
+          reject(err)
+        }
+      })
+    }
+    
+    writeNext()
+  })
+}
+
 // 请求 WiFi 权限
 export const requestWifiPermission = () => {
 	return new Promise((resolve, reject) => {
@@ -595,7 +633,21 @@ export function subscribeToWiFiList(deviceId) {
     let lastReceiveTime = Date.now()
     let receiveTimeoutId = null
     let isResolved = false
-    
+
+    // 统一清理函数：清除定时器并移除 BLE 监听器
+    const cleanup = (globalTimeoutId) => {
+      if (receiveTimeoutId) {
+        clearTimeout(receiveTimeoutId)
+        receiveTimeoutId = null
+      }
+      if (globalTimeoutId) clearTimeout(globalTimeoutId)
+      try {
+        uni.offBLECharacteristicValueChange(onCharacteristicChange)
+      } catch (e) {
+        // 部分平台不支持传入 callback 参数，忽略
+      }
+    }
+
     const onCharacteristicChange = (res) => {
       if (isResolved) return
       try {
@@ -612,7 +664,7 @@ export function subscribeToWiFiList(deviceId) {
         console.log('解析异常:', error)
       }
     }
-    
+
     const checkReceiveComplete = () => {
       if (isResolved) return
       if (Date.now() - lastReceiveTime >= 1000 && accumulatedData.length > 0) {
@@ -641,20 +693,23 @@ export function subscribeToWiFiList(deviceId) {
               }
             }).filter(item => item.ssid)
           }
-          clearTimeout(receiveTimeoutId)
+          cleanup(timeoutId)
           resolve(wifiList)
         } catch (error) {
-          clearTimeout(receiveTimeoutId)
+          cleanup(timeoutId)
           resolve([])
         }
       } else {
         receiveTimeoutId = setTimeout(checkReceiveComplete, 300)
       }
     }
-    
+
     const timeoutId = setTimeout(() => {
-      isResolved = true
-      resolve([])
+      if (!isResolved) {
+        isResolved = true
+        cleanup(null)
+        resolve([])
+      }
     }, 15000)
 
     uni.onBLECharacteristicValueChange(onCharacteristicChange)
@@ -675,8 +730,8 @@ export function subscribeToWiFiList(deviceId) {
         })
       },
       fail: (error) => {
-        clearTimeout(timeoutId)
         isResolved = true
+        cleanup(timeoutId)
         reject(error)
       }
     })
@@ -691,7 +746,6 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
       success: (res) => {
         console.log('设备特征值:', res.characteristics)
         
-        // 查找可写的特征值
         const writeCharacteristic = res.characteristics.find(c => 
           c.uuid.includes('2AD2') && (c.properties.write || c.properties.writeNoResponse)
         )
@@ -702,7 +756,6 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
         }
         console.log('使用写入特征值:', writeCharacteristic.uuid, '属性:', writeCharacteristic.properties)
         
-        // 启用通知
         uni.notifyBLECharacteristicValueChange({
           deviceId,
           serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
@@ -710,128 +763,83 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
           state: true,
           success: () => {
             console.log('通知启用成功');
-            // 添加500ms延迟确保通知已正确设置
-            setTimeout(() => {
-              // 尝试设置MTU以确保数据传输稳定
+            setTimeout(async () => {
               uni.setBLEMTU({
                 deviceId: deviceId,
-                mtu: 512, // 尝试设置较大的MTU
+                mtu: 512,
                 success: (mtuRes) => {
                   console.log('MTU设置成功:', mtuRes);
                 },
                 fail: (mtuErr) => {
                   console.log('MTU设置失败或不支持:', mtuErr);
-                  // MTU设置失败不影响主要功能，继续执行
                 }
               });
               
-              // 发送服务器URL - 使用UTF-8编码
-              const serverData = `#url#-r||${serverUrl}#end`
-              const serverBuffer = str2utf8(serverData)
-              
-              console.log('准备发送服务器URL:', serverData);
-              console.log('使用特征值ID:', writeCharacteristic.uuid);
-              console.log('服务器URL Buffer长度:', serverBuffer.byteLength);
-              
-              // 验证数据是否正确转换为buffer
-              const tempView = new Uint8Array(serverBuffer);
-              console.log('前10字节数据:', Array.from(tempView.slice(0, 10)));
-              
-              uni.writeBLECharacteristicValue({
-                deviceId,
-                serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-                characteristicId: writeCharacteristic.uuid,
-                value: serverBuffer,
-                writeType: 'write',  // 对于服务器URL，使用需要响应的方式
-                success: (writeRes) => {
-                  console.log('服务器URL发送成功', writeRes);
-                  
-                  // 确保服务器URL被设备完全处理后再发送WiFi配置
-                  setTimeout(() => {
-                    // 发送WiFi配置 - 使用UTF-8编码
-                    const wifiData = `#start#${ssid}||${password}#end`
-                    const wifiBuffer = str2utf8(wifiData)
-                    
-                    console.log('准备发送WiFi配置:', wifiData);
-                    console.log('使用特征值ID:', writeCharacteristic.uuid);
-                    console.log('WiFi配置 Buffer长度:', wifiBuffer.byteLength);
-                    
-                    // 验证数据是否正确转换为buffer
-                    const wifiTempView = new Uint8Array(wifiBuffer);
-                    console.log('前10字节数据:', Array.from(wifiTempView.slice(0, 10)));
-                    
-                    uni.writeBLECharacteristicValue({
-                      deviceId,
-                      serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-                      characteristicId: writeCharacteristic.uuid,
-                      value: wifiBuffer,
-                      writeType: 'write',  // 统一使用write类型，确保设备能正确接收
-                      success: (writeRes2) => {
-                        console.log('WiFi配置发送成功', writeRes2);
-                        
-                        // 延迟一点时间再发送触发命令，确保设备处理完WiFi配置
-                        setTimeout(() => {
-                          const triggerData = '#config#start#end';
-                          const triggerBuffer = str2utf8(triggerData);
-                          
-                          console.log('发送配网触发命令:', triggerData);
-                          uni.writeBLECharacteristicValue({
-                            deviceId,
-                            serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-                            characteristicId: writeCharacteristic.uuid,
-                            value: triggerBuffer,
-                            writeType: 'write',
-                            success: (triggerRes) => {
-                              console.log('配网触发命令发送成功', triggerRes);
-                              
-                              // 发送完触发命令后，可能还需要发送一个结束命令
-                              setTimeout(() => {
-                                const endData = '#config#end#end';
-                                const endBuffer = str2utf8(endData);
-                                
-                                console.log('发送配网结束命令:', endData);
-                                uni.writeBLECharacteristicValue({
-                                  deviceId,
-                                  serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-                                  characteristicId: writeCharacteristic.uuid,
-                                  value: endBuffer,
-                                  writeType: 'write',
-                                  success: (endRes) => {
-                                    console.log('配网结束命令发送成功', endRes);
-                                    resolve();
-                                  },
-                                  fail: (endErr) => {
-                                    console.log('配网结束命令发送失败', endErr);
-                                    resolve(); // 仍然继续
-                                  }
-                                });
-                              }, 300); // 给设备时间处理触发命令
-                            },
-                            fail: (triggerErr) => {
-                              console.log('配网触发命令发送失败', triggerErr);
-                              // 即使触发命令失败，也认为主要配置已完成
-                              resolve();
-                            }
-                          });
-                        }, 500); // 给设备更多时间处理WiFi配置
-                      },
-                      fail: (err) => {
-                        console.error('发送WiFi配置失败:', err);
-                        console.error('特征值UUID:', writeCharacteristic.uuid);
-                        console.error('特征值属性:', writeCharacteristic.properties);
-                        reject(new Error(`发送WiFi配置失败: ${err.errMsg || err.message} (特征值: ${writeCharacteristic.uuid})`));
-                      }
-                    })
-                  }, 500); // 给设备更多时间处理服务器URL
-                },
-                fail: (err) => {
-                  console.error('发送服务器URL失败:', err);
-                  console.error('特征值UUID:', writeCharacteristic.uuid);
-                  console.error('特征值属性:', writeCharacteristic.properties);
-                  reject(new Error(`发送服务器URL失败: ${err.errMsg || err.message} (特征值: ${writeCharacteristic.uuid})`));
-                }
-              })
-            }, 500); // 500ms延迟
+              try {
+                const serverData = `#url#-r||${serverUrl}#end`
+                const serverBuffer = str2utf8(serverData)
+                
+                console.log('准备发送服务器URL(分包):', serverData);
+                console.log('服务器URL Buffer长度:', serverBuffer.byteLength);
+                
+                await writeInChunks(
+                  deviceId,
+                  '0000181A-0000-1000-8000-00805F9B34FB',
+                  writeCharacteristic.uuid,
+                  serverBuffer
+                )
+                console.log('服务器URL发送成功');
+                
+                await new Promise(r => setTimeout(r, 500))
+                
+                const wifiData = `#start#${ssid}||${password}#end`
+                const wifiBuffer = str2utf8(wifiData)
+                
+                console.log('准备发送WiFi配置(分包):', wifiData);
+                console.log('WiFi配置 Buffer长度:', wifiBuffer.byteLength);
+                
+                await writeInChunks(
+                  deviceId,
+                  '0000181A-0000-1000-8000-00805F9B34FB',
+                  writeCharacteristic.uuid,
+                  wifiBuffer
+                )
+                console.log('WiFi配置发送成功');
+                
+                await new Promise(r => setTimeout(r, 500))
+                
+                const triggerData = '#config#start#end';
+                const triggerBuffer = str2utf8(triggerData);
+                
+                console.log('发送配网触发命令:', triggerData);
+                await writeInChunks(
+                  deviceId,
+                  '0000181A-0000-1000-8000-00805F9B34FB',
+                  writeCharacteristic.uuid,
+                  triggerBuffer
+                )
+                console.log('配网触发命令发送成功');
+                
+                await new Promise(r => setTimeout(r, 300))
+                
+                const endData = '#config#end#end';
+                const endBuffer = str2utf8(endData);
+                
+                console.log('发送配网结束命令:', endData);
+                await writeInChunks(
+                  deviceId,
+                  '0000181A-0000-1000-8000-00805F9B34FB',
+                  writeCharacteristic.uuid,
+                  endBuffer
+                )
+                console.log('配网结束命令发送成功');
+                
+                resolve();
+              } catch (err) {
+                console.error('发送失败:', err);
+                reject(new Error(`发送失败: ${err.errMsg || err.message}`));
+              }
+            }, 500);
           },
           fail: (err) => {
             console.error('启用通知失败:', err);
@@ -849,81 +857,90 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
 
 export function subscribeToConfigResult(deviceId) {
   return new Promise((resolve, reject) => {
-    let timeoutId;
-    let isResolved = false;
-    
-    const resultHandler = (res) => {
-      if (isResolved) return;
+    let timeoutId
+    let isResolved = false
+
+    // 统一清理函数：清除超时并移除 BLE 监听器
+    const cleanup = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+        timeoutId = null
+      }
       try {
-        const resultData = ab2str(res.value)
-        console.log('收到配网结果数据:', resultData);
-        console.log('数据长度:', resultData.length);
-        console.log('数据十六进制:', ab2hex(res.value));
-        
-        // 检查是否是配网结果
-        if (resultData.includes('#config#success') || resultData.includes('success') || resultData.includes('true')) {
-          clearTimeout(timeoutId); // 清除超时定时器
-          isResolved = true;
-          resolve({ success: true, message: resultData || '配网成功' })
-        } else if (resultData.includes('#config#fail') || resultData.includes('fail') || resultData.includes('false')) {
-          clearTimeout(timeoutId); // 清除超时定时器
-          isResolved = true;
-          resolve({ success: false, message: resultData || '配网失败' })
-        } else if (resultData.includes('#config#connecting') || resultData.includes('connecting')) {
-          // 设备正在连接WiFi，继续等待结果
-          console.log('设备正在连接WiFi...');
-        } else if (resultData.includes('#config#connected') || resultData.includes('connected')) {
-          // 设备已连接到WiFi，视为成功
-          clearTimeout(timeoutId); // 清除超时定时器
-          isResolved = true;
-          resolve({ success: true, message: resultData || '设备已连接到WiFi' })
-        } else if (resultData.includes('#split#') && resultData.includes('#endsplit')) {
-          // 收到WiFi列表数据，忽略并继续等待配网结果
-          console.log('收到WiFi列表数据，继续等待配网结果');
-        } else {
-          // 其他数据，可能是设备状态信息，继续等待
-          console.log('收到其他数据，继续等待配网结果');
-        }
-      } catch (error) {
-        console.error('解析配网结果失败:', error);
+        uni.offBLECharacteristicValueChange(resultHandler)
+      } catch (e) {
+        // 部分平台不支持传入 callback 参数，忽略
       }
     }
-    
-    // 设置超时时间，避免无限等待
+
+    const resultHandler = (res) => {
+      if (isResolved) return
+      try {
+        const resultData = ab2str(res.value)
+        console.log('收到配网结果数据:', resultData)
+        console.log('数据长度:', resultData.length)
+        console.log('数据十六进制:', ab2hex(res.value))
+
+        if (resultData.includes('#config#success') || resultData.includes('success') || resultData.includes('true')) {
+          isResolved = true
+          cleanup()
+          resolve({ success: true, message: resultData || '配网成功' })
+        } else if (resultData.includes('#config#fail') || resultData.includes('fail') || resultData.includes('false')) {
+          isResolved = true
+          cleanup()
+          resolve({ success: false, message: resultData || '配网失败' })
+        } else if (resultData.includes('#config#connecting') || resultData.includes('connecting')) {
+          console.log('设备正在连接WiFi...')
+        } else if (resultData.includes('#config#connected') || resultData.includes('connected')) {
+          isResolved = true
+          cleanup()
+          resolve({ success: true, message: resultData || '设备已连接到WiFi' })
+        } else if (resultData.includes('#split#') && resultData.includes('#endsplit')) {
+          console.log('收到WiFi列表数据，继续等待配网结果')
+        } else {
+          console.log('收到其他数据，继续等待配网结果')
+        }
+      } catch (error) {
+        console.error('解析配网结果失败:', error)
+      }
+    }
+
     timeoutId = setTimeout(() => {
-      console.log('配网结果等待超时');
-      isResolved = true;
-      resolve({ success: false, message: '配网结果等待超时' });
-    }, 60000); // 增加到60秒超时，因为设备可能需要更多时间来连接WiFi
-    
+      if (!isResolved) {
+        console.log('配网结果等待超时')
+        isResolved = true
+        cleanup()
+        resolve({ success: false, message: '配网结果等待超时' })
+      }
+    }, 60000)
+
     // 启用通知 - 尝试使用结果特征值 0x2AD4
     uni.notifyBLECharacteristicValueChange({
       deviceId,
       serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-      characteristicId: '00002AD4-0000-1000-8000-00805F9B34FB', // 使用结果特征值
+      characteristicId: '00002AD4-0000-1000-8000-00805F9B34FB',
       state: true,
       success: () => {
-        console.log('配网结果通知已启用 (0x2AD4)');
-        // 注册监听器
-        uni.onBLECharacteristicValueChange(resultHandler);
+        console.log('配网结果通知已启用 (0x2AD4)')
+        uni.onBLECharacteristicValueChange(resultHandler)
       },
       fail: (err) => {
-        console.error('启用配网结果通知失败 (0x2AD4):', err);
-        // 如果0x2AD4失败，尝试使用通知特征值0x2AD3
+        console.error('启用配网结果通知失败 (0x2AD4):', err)
+        // 降级尝试 0x2AD3
         uni.notifyBLECharacteristicValueChange({
           deviceId,
           serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-          characteristicId: '00002AD3-0000-1000-8000-00805F9B34FB', // 使用通知特征值
+          characteristicId: '00002AD3-0000-1000-8000-00805F9B34FB',
           state: true,
           success: () => {
-            console.log('配网结果通知已启用 (0x2AD3)');
-            // 注册监听器
-            uni.onBLECharacteristicValueChange(resultHandler);
+            console.log('配网结果通知已启用 (0x2AD3)')
+            uni.onBLECharacteristicValueChange(resultHandler)
           },
           fail: (err2) => {
-            console.error('启用配网结果通知失败 (0x2AD3):', err2);
-            clearTimeout(timeoutId); // 清除超时定时器
-            reject(new Error(`启用配网结果通知失败: ${err.errMsg || err.message}, 备用: ${err2.errMsg || err2.message}`));
+            console.error('启用配网结果通知失败 (0x2AD3):', err2)
+            isResolved = true
+            cleanup()
+            reject(new Error(`启用配网结果通知失败: ${err.errMsg || err.message}, 备用: ${err2.errMsg || err2.message}`))
           }
         })
       }
