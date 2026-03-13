@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.workDetail" @back="handleBack" />
@@ -197,7 +197,7 @@ export default {
     handleReturnHome() { uni.switchTab({ url: '/pages/explore/explore/explore' }) },
     startStatusPolling() {
       this.fetchDeviceStatus()
-      this.statusTimer = setInterval(() => this.fetchDeviceStatus(), 5000)
+      this.statusTimer = setInterval(() => this.fetchDeviceStatus(), 10000)
     },
     async fetchDeviceStatus() {
       if (!this.deviceId) return
