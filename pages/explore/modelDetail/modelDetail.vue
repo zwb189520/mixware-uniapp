@@ -139,8 +139,8 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import { addFavorite, cancelFavorite, getFavoriteModels } from '@/api/userFavorite.js'
-import { getModelDetail, deleteModel } from '@/api/models.js'
-import { toggleLike, checkLikeStatus, getPostList } from '@/api/community.js'
+import { getModelDetail, deleteModel, likeModel, unlikeModel } from '@/api/models.js'
+import { getPostList } from '@/api/community.js'
 import { useLanguageStore } from '@/stores'
 
 export default {
@@ -223,7 +223,6 @@ export default {
     async refreshShowcaseWorks() {
       if (!this.modelId) return
       this.checkFavoriteStatus()
-      this.checkLikeStatus()
       await this.loadShowcaseWorks()
       // 如果没有详情数据，则加载详情
       if (!this.modelInfo.name) {
@@ -275,20 +274,6 @@ export default {
         console.error('检查收藏状态失败:', error)
       }
     },
-    async checkLikeStatus() {
-      if (!uni.getStorageSync('isLoggedIn')) return
-      if (!this.modelId || String(this.modelId) === 'NaN' || String(this.modelId) === 'undefined') return
-      
-      try {
-        const res = await checkLikeStatus('MODEL', this.modelId)
-        if (res.code === 1 && res.data) {
-          this.modelInfo.isLiked = res.data.isLiked || false
-          console.log('检查点赞状态:', this.modelInfo.isLiked)
-        }
-      } catch (error) {
-        console.error('检查点赞状态失败:', error)
-      }
-    },
     toggleDescription() {
       this.isDescriptionExpanded = !this.isDescriptionExpanded
     },
@@ -328,7 +313,7 @@ export default {
           images: data.previewUrl ? [fixImageUrl(data.previewUrl)] : ['/static/images/3Dprinter.png'],
           likes: data.likeCount || 0,
           collections: data.collectCount || 0,
-          isLiked: false,
+          isLiked: data.isLiked || false,
           isCollected: false,
           author: data.username || data.nickname || data.userName || '',
           authorAvatar: data.authorAvatar ? fixImageUrl(data.authorAvatar) : '/static/images/Default avatar.png',
@@ -338,16 +323,10 @@ export default {
         // 3. 只有登录了才去尝试获取收藏/点赞状态（失败了也不影响详情展示）
         if (isLoggedIn) {
           try {
-            const [favoriteRes, likeRes] = await Promise.all([
-              getFavoriteModels().catch(() => null),
-              checkLikeStatus('MODEL', id).catch(() => null)
-            ])
+            const favoriteRes = await getFavoriteModels().catch(() => null)
             
             if (favoriteRes && favoriteRes.code === 1 && favoriteRes.data) {
               this.modelInfo.isCollected = favoriteRes.data.some(item => String(item.modelId) === String(id))
-            }
-            if (likeRes && likeRes.code === 1) {
-              this.modelInfo.isLiked = likeRes.data?.isLiked ?? likeRes.data ?? false
             }
           } catch (e) {
             console.warn('获取用户交互状态失败:', e)
@@ -448,7 +427,9 @@ export default {
       }
 
       try {
-        const res = await toggleLike('MODEL', this.modelId)
+        const res = this.modelInfo.isLiked
+          ? await likeModel(this.modelId)
+          : await unlikeModel(this.modelId)
         if (res.code !== 1) {
           // 如果后端返回失败，回滚 UI
           this.modelInfo.isLiked = !this.modelInfo.isLiked
@@ -458,7 +439,6 @@ export default {
             icon: 'none'
           })
         } else {
-          await this.updateModelCount()
           uni.showToast({
             title: this.modelInfo.isLiked ? this.texts.likeSuccess : this.texts.cancelLike,
             icon: 'success'
@@ -496,8 +476,6 @@ export default {
         } else {
           await cancelFavorite(this.modelId)
         }
-        
-        await this.updateModelCount()
         
         uni.showToast({
           title: this.modelInfo.isCollected ? this.texts.collectSuccess : this.texts.cancelCollect,

@@ -195,10 +195,7 @@
 import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
-import { getModelPage, addModel, deleteModel } from '@/api/models.js'
-import { uploadModelFile, uploadImages } from '@/api/upload.js'
-import { addFavorite, cancelFavorite } from '@/api/userFavorite.js'
-import { toggleLike, checkLikeStatus } from '@/api/community.js'
+import { getModelPage, addModel, deleteModel, likeModel, unlikeModel } from '@/api/models.js'
 import { getHotExamples } from '@/api/session.js'
 import { parseSnCode } from '@/api/devices.js'
 import { useExploreStore } from '@/stores/index.js'
@@ -667,12 +664,15 @@ export default {
       }
 
       try {
-        const res = await toggleLike('MODEL', item.id)
+        const res = item.isLiked
+          ? await unlikeModel(item.id)
+          : await likeModel(item.id)
         if (res.code === 1) {
-          item.isLiked = !item.isLiked
-          item.likes += item.isLiked ? 1 : -1
+          const newIsLiked = !item.isLiked
+          const newLikes = item.likes + (newIsLiked ? 1 : -1)
+          this.exploreStore.updateModelLike(item.id, newIsLiked, newLikes)
           
-          if (item.isLiked) {
+          if (newIsLiked) {
             const likeData = {
               id: item.id,
               title: item.name,

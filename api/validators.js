@@ -20,10 +20,7 @@ export const isNoTokenUrl = (url) => {
 		'/auth/apple/config',
 		'/models/page',
 		'/models/list',
-		'/session/hot',
-		'/session/hot-examples',
-		'/community/list',
-		'/community/posts' // GET 列表接口
+		'/community/list'
 	]
 	
 	// 精确前缀匹配

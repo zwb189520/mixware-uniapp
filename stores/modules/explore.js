@@ -69,6 +69,19 @@ export const useExploreStore = defineStore('explore', () => {
     loading.value = value
   }
 
+  function updateModelLike(modelId, isLiked, likes) {
+    const updateInList = (list) => {
+      const model = list.find(m => m.id === modelId)
+      if (model) {
+        model.isLiked = isLiked
+        model.likes = likes
+      }
+    }
+    updateInList(dailyModels.value)
+    updateInList(hotModels.value)
+    updateInList(categoryModels.value)
+  }
+
   // 保存到本地存储
   function persistToStorage() {
     storageState.value = {
@@ -120,6 +133,7 @@ export const useExploreStore = defineStore('explore', () => {
     setHotModels,
     setCategoryModels,
     setLoading,
+    updateModelLike,
     persistToStorage,
     clearAll,
     initFromStorage

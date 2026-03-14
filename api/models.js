@@ -1,4 +1,4 @@
-import { post, get, put, del } from './request'
+import { post, get, put, del, postWithQuery } from './request'
 
 /**
  * 添加模型
@@ -52,6 +52,14 @@ export function updateModel(modelId, updateData) {
  */
 export function deleteModel(modelId) {
   return del(`/models/${modelId}`)
+}
+
+export function likeModel(modelId) {
+  return postWithQuery('/model-like/like', null, { modelId })
+}
+
+export function unlikeModel(modelId) {
+  return postWithQuery('/model-like/unlike', null, { modelId })
 }
 
 /**

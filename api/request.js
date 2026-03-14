@@ -246,6 +246,19 @@ export const del = (url, data = {}, options = {}) => {
 	})
 }
 
+export const delWithQuery = (url, data = {}, queryParams = {}, options = {}) => {
+	let finalUrl = url
+	if (queryParams && Object.keys(queryParams).length > 0) {
+		finalUrl = appendQueryParams(url, queryParams)
+	}
+	return request({
+		url: finalUrl,
+		method: 'DELETE',
+		data,
+		...options
+	})
+}
+
 /**
  * POST 请求（form-urlencoded 格式）
  * @param {String} url 请求地址

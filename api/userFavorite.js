@@ -1,4 +1,4 @@
-import { put, del, get } from './request'
+import { put, del, get, putWithQuery, delWithQuery } from './request'
 
 /**
  * 添加收藏
@@ -6,7 +6,7 @@ import { put, del, get } from './request'
  * @returns {Promise<Object>} 返回添加结果
  */
 export function addFavorite(modelId) {
-  return put('/user-model-favorite/add', { modelId })
+  return putWithQuery('/user-model-favorite/add', null, { modelId })
 }
 
 /**
@@ -15,7 +15,7 @@ export function addFavorite(modelId) {
  * @returns {Promise<Object>} 返回取消结果
  */
 export function cancelFavorite(modelId) {
-  return del('/user-model-favorite/cancel', { modelId })
+  return delWithQuery('/user-model-favorite/cancel', null, { modelId })
 }
 
 /**

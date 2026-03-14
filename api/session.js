@@ -6,7 +6,7 @@ import { post, put, get } from './request'
  * @returns {Promise<Object>} 返回热门示例列表
  */
 export function getHotExamples(n = 20) {
-  return get('/session/hot', { n })
+  return post('/session/hot', { n })
 }
 
 /**
