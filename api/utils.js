@@ -1,4 +1,5 @@
 import { API } from '../constants/index.js'
+import { useUserStore } from '../stores/modules/user.js'
 
 /**
  * 延迟函数
@@ -66,6 +67,8 @@ export const isValidUrl = (url) => {
 
 /**
  * 获取token
+ * ✅ 改进：从内存（Pinia store）获取 Token，而不是本地存储
+ * 这样可以防止 XSS 攻击
  * @param {Boolean} needToken 是否需要token
  * @returns {String} token值
  */
@@ -73,7 +76,8 @@ export const getToken = (needToken = true) => {
 	if (!needToken) return ''
 	
 	try {
-		return uni.getStorageSync('token') || ''
+		const userStore = useUserStore()
+		return userStore.token || ''
 	} catch (e) {
 		console.error('获取 token 失败:', e)
 		return ''

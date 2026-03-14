@@ -1,10 +1,15 @@
 <script>
-	import { useLanguageStore } from '@/stores'
+	import { useLanguageStore, useUserStore } from '@/stores'
 	import { checkAllPermissions } from '@/utils/permission.js'
 	
 	export default {
 		onLaunch: function() {
 			console.log('App Launch')
+			
+			// ✅ 初始化用户状态（恢复加密的 Token 和用户信息）
+			const userStore = useUserStore()
+			userStore.initFromStorage()
+			
 			// 初始化语言设置（不更新TabBar，等页面显示时再更新）
 			const languageStore = useLanguageStore()
 			languageStore.loadLanguage(false)

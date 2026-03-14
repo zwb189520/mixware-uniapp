@@ -1,5 +1,5 @@
 import { API } from '../constants/index.js'
-import { generateCacheKey, getCache, clearCache, clearUrlCache } from './cache.js'
+import { generateCacheKey, getCache, clearCache, clearUrlCache, setCache } from './cache.js'
 import { isNoTokenUrl } from './validators.js'
 import { handleSuccess, handleError, handleNetworkError } from './errorHandler.js'
 import { install } from './interceptor.js'
@@ -329,6 +329,9 @@ export const uploadFile = (url, filePath, options = {}) => {
 			})
 		}
 
+		// 记录请求开始
+		const timerKey = logRequest('UPLOAD', requestUrl, { filePath, formData })
+
 		uni.uploadFile({
 			url: requestUrl,
 			filePath: filePath,
@@ -337,6 +340,8 @@ export const uploadFile = (url, filePath, options = {}) => {
 			header: headers,
 			timeout: 30000,
 			success: (res) => {
+				logResponse(timerKey, res.statusCode, res.data)
+
 				if (options.showLoading) {
 					uni.hideLoading()
 				}
@@ -346,15 +351,20 @@ export const uploadFile = (url, filePath, options = {}) => {
 					if (res.statusCode >= 200 && res.statusCode < 300) {
 						resolve(data)
 					} else {
-						console.error('上传失败，状态码:', res.statusCode, '响应:', data)
-						reject({
-							code: res.statusCode,
-							msg: data?.msg || data?.message || `上传失败，状态码: ${res.statusCode}`,
-							data: data
-						})
+						// 使用统一的错误处理
+						const isHandled = handleError(res, options, requestUrl)
+						if (isHandled) {
+							reject(res)
+						} else {
+							reject({
+								code: res.statusCode,
+								msg: data?.msg || data?.message || `上传失败，状态码: ${res.statusCode}`,
+								data: data
+							})
+						}
 					}
 				} catch (e) {
-					console.error('上传响应解析失败:', e, '原始响应:', res.data)
+					logRequestError(timerKey, e)
 					reject({
 						code: -1,
 						msg: '上传响应格式错误',
@@ -363,10 +373,11 @@ export const uploadFile = (url, filePath, options = {}) => {
 				}
 			},
 			fail: (err) => {
+				logRequestError(timerKey, err)
+				handleNetworkError(err, options, requestUrl)
 				if (options.showLoading) {
 					uni.hideLoading()
 				}
-				console.error('上传请求失败:', err)
 				reject({
 					code: err.errCode || -1,
 					msg: err.errMsg || '上传请求失败',
