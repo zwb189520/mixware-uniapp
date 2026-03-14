@@ -4,6 +4,27 @@
     <custom-navbar :title="texts.workDetail" @back="handleBack" />
 
     <scroll-view scroll-y class="content-scroll">
+      <!-- 设备选择器 -->
+      <view class="device-selector-section">
+        <view class="device-selector" @click="showDeviceSelector">
+          <text class="device-label-text">设备名称</text>
+          <view class="device-right">
+            <text class="device-name">{{ currentDevice.name || '选择设备' }}</text>
+            <uni-icons type="down" size="16" color="#666"></uni-icons>
+          </view>
+        </view>
+      </view>
+
+      <!-- 打印机状态 -->
+      <view class="status-section">
+        <view class="status-row">
+          <text class="status-label">打印机状态</text>
+          <view class="status-badge" :class="statusBadgeClass">
+            <view class="status-dot" :class="statusDotClass"></view>
+            <text class="status-badge-text">{{ displayStatus }}</text>
+          </view>
+        </view>
+      </view>
 
       <!-- 模型图片 -->
       <view class="model-image-section">
@@ -15,25 +36,6 @@
         />
         <view class="model-name-overlay">
           <text class="model-name-text">{{ modelName }}</text>
-        </view>
-      </view>
-
-      <!-- 设备信息卡片 -->
-      <view class="section-card">
-        <view class="card-header-row">
-          <text class="section-title-text">打印机状态</text>
-          <view class="status-badge" :class="statusBadgeClass">
-            <view class="status-dot" :class="statusDotClass"></view>
-            <text class="status-badge-text">{{ displayStatus }}</text>
-          </view>
-        </view>
-        <view class="device-row">
-          <text class="device-label">设备</text>
-          <text class="device-value">{{ printerName || "--" }}</text>
-        </view>
-        <view v-if="firmwareVersion" class="device-row">
-          <text class="device-label">固件版本</text>
-          <text class="device-value">v{{ firmwareVersion }}</text>
         </view>
       </view>
 
@@ -98,11 +100,6 @@
         </view>
       </view>
 
-      <!-- 返回首页 -->
-      <view class="return-btn" @click="handleReturnHome">
-        <text class="return-btn-text">{{ texts.returnHome }}</text>
-      </view>
-
       <view class="bottom-safe"></view>
     </scroll-view>
   </view>
@@ -111,6 +108,7 @@
 <script>
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { useLanguageStore } from '@/stores'
+import { getDeviceList, setDefaultDevice } from '@/api/devices.js'
 import {
   sendPauseCommand,
   sendResumeCommand,
@@ -136,7 +134,9 @@ export default {
       estimatedTime: 0,
       isPrinting: false,
       isPaused: false,
-      gcodeUrl: ''
+      gcodeUrl: '',
+      deviceList: [],
+      currentDevice: { id: '', name: '' }
     }
   },
   computed: {
@@ -184,11 +184,59 @@ export default {
     if (this.deviceId) {
       this.loadFirmwareInfo()
     }
+    this.$nextTick(() => {
+      this.loadDeviceList()
+    })
   },
   methods: {
+    async loadDeviceList() {
+      try {
+        const res = await getDeviceList()
+        const records = res?.data?.records ?? []
+        this.deviceList = Array.isArray(records) ? records.map(device => ({
+          id: device.id || device.deviceId,
+          name: device.deviceName || device.name || device.deviceId || '未命名设备'
+        })) : []
+        
+        if (this.deviceId) {
+          const device = this.deviceList.find(d => d.id === this.deviceId)
+          if (device) {
+            this.currentDevice = device
+            this.printerName = device.name
+          }
+        } else if (this.deviceList.length > 0) {
+          this.currentDevice = this.deviceList[0]
+          this.deviceId = this.deviceList[0].id
+          this.printerName = this.deviceList[0].name
+        }
+      } catch (error) {
+        console.error('加载设备列表失败:', error)
+      }
+    },
     handleBack() { uni.navigateBack() },
     handleImageError() { this.modelImage = '/static/images/logo.png' },
-    handleReturnHome() { uni.switchTab({ url: '/pages/explore/explore/explore' }) },
+    showDeviceSelector() {
+      if (this.deviceList.length === 0) {
+        uni.showToast({ title: '暂无可用设备', icon: 'none' })
+        return
+      }
+      const itemList = this.deviceList.map(d => d.name)
+      uni.showActionSheet({
+        itemList,
+        success: async (res) => {
+          const selected = this.deviceList[res.tapIndex]
+          this.currentDevice = selected
+          this.deviceId = selected.id
+          this.printerName = selected.name
+          try {
+            await setDefaultDevice(selected.id)
+            this.loadFirmwareInfo()
+          } catch (e) {
+            console.error('设置默认设备失败:', e)
+          }
+        }
+      })
+    },
     async loadFirmwareInfo() {
       try {
         const res = await getFirmwareInfo(this.deviceId)
@@ -281,12 +329,60 @@ export default {
 }
 .bottom-safe { height: 40rpx; }
 
+/* 设备选择器 */
+.device-selector-section {
+  padding: 24rpx 24rpx 16rpx;
+}
+.device-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx;
+  background: rgba(255,255,255,0.95);
+  border-radius: 40rpx;
+}
+.device-label-text {
+  font-size: 28rpx;
+  color: #888;
+}
+.device-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.device-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+/* 状态区域 */
+.status-section {
+  padding: 0 24rpx 16rpx;
+}
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 32rpx;
+  background: rgba(255,255,255,0.95);
+  border-radius: 24rpx;
+}
+.status-label {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
 /* 模型图片 */
 .model-image-section {
   position: relative;
   width: 100%;
   height: 500rpx;
-  margin-bottom: 24rpx;
+  margin: 0 24rpx 24rpx;
+  width: calc(100% - 48rpx);
+  border-radius: 24rpx;
+  overflow: hidden;
   background: rgba(255,255,255,0.6);
 }
 .model-image {
@@ -485,22 +581,4 @@ export default {
 .restart-btn .ctrl-text { color: #FF5A00; }
 .stop-btn   { background: #FFF5F5; border-color: #ff4d4f; }
 .stop-btn   .ctrl-text { color: #ff4d4f; }
-
-/* 返回首页 */
-.return-btn {
-  margin: 0 24rpx 24rpx;
-  height: 96rpx;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.return-btn:active { opacity: 0.8; }
-.return-btn-text {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #555;
-}
 </style>

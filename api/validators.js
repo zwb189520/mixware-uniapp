@@ -73,7 +73,7 @@ export const isPublicPage = () => {
 			'pages/explore/search/search',
 			'pages/explore/modelDetail/modelDetail',
 			'pages/explore/3Dpreviewdetail/preview3DDetail',
-			'pages/explore/workDetail/workDetail',
+			'pages/explore/printDetail/printDetail',
 			'pages/explore/showcaseWorksDetail/showcaseWorksDetail'
 		]
 		

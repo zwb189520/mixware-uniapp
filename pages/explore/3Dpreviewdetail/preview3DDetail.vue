@@ -931,7 +931,7 @@ export default {
         
       //   setTimeout(() => {
       //     uni.navigateTo({
-      //       url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelUrl)}&modelUrl=${encodeURIComponent(this.modelUrl)}&scale=${this.scalePercent}&deviceId=${deviceId}`
+      //       url: `/pages/explore/printDetail/printDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelUrl)}&modelUrl=${encodeURIComponent(this.modelUrl)}&scale=${this.scalePercent}&deviceId=${deviceId}`
       //     })
       //   }, 1500)
       // } catch (error) {

@@ -379,10 +379,9 @@ export default {
         
         if (res.code === 1 || res.code === 0) {
           uni.showToast({ title: '打印指令已发送', icon: 'success' })
-          // 跳转到workDetail
           setTimeout(() => {
             uni.redirectTo({
-              url: `/pages/explore/workDetail/workDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}`
+              url: `/pages/explore/printDetail/printDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}`
             })
           }, 1500)
         } else {
