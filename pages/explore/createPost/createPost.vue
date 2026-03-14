@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <view class="nav-fixed">
       <safe-area />
@@ -72,10 +72,9 @@
               class="topic-item" 
               v-for="topic in selectedTopics" 
               :key="topic"
-              @click="removeTopic(topic)"
             >
               <text class="topic-text">{{ topic }}</text>
-              <image class="topic-close" src="/static/images/icon/close.png" mode="aspectFit" />
+              <uni-icons type="close" size="14" color="#667eea" @click="removeTopic(topic)" />
             </view>
             <view class="topic-input-wrapper">
               <view class="add-topic-trigger" @click="showTopicInput = true" v-if="!showTopicInput && selectedTopics.length < 5">
@@ -105,13 +104,13 @@
     
     <!-- 发布按钮 -->
     <view class="publish-container">
-      <button 
+      <view 
         class="publish-btn" 
-        :disabled="!canPublish" 
+        :class="{ 'disabled': !canPublish }"
         @click="handlePublish"
       >
-        {{ texts.publish }}
-      </button>
+        <text class="publish-btn-text">{{ texts.publish }}</text>
+      </view>
     </view>
   </view>
 </template>
@@ -236,7 +235,15 @@ export default {
     
     // 发布帖子
     async handlePublish() {
-      if (!this.canPublish) return
+      // 检查是否可以发布
+      if (!this.canPublish) {
+        if (!this.postForm.title.trim()) {
+          uni.showToast({ title: '请输入标题', icon: 'none' })
+        } else if (!this.postForm.content.trim()) {
+          uni.showToast({ title: '请输入内容', icon: 'none' })
+        }
+        return
+      }
       
       uni.showLoading({ title: this.texts.publishing })
       
@@ -280,6 +287,13 @@ export default {
         const res = await createPost(postData)
         if (res.code === 0 || res.code === 1) {
           uni.showToast({ title: this.texts.publishSuccess, icon: 'success' })
+          
+          // 触发帖子创建事件，通知模型详情页刷新作品展示
+          console.log('触发 postCreated 事件，modelId:', this.postForm.modelId)
+          uni.$emit('postCreated', this.postForm.modelId)
+          
+          // 设置标记，让模型详情页在 onShow 时刷新
+          uni.setStorageSync('needRefreshShowcase', this.postForm.modelId)
           
           setTimeout(() => {
             // 返回到模型详情页
@@ -585,23 +599,34 @@ export default {
 }
 
 .publish-btn {
-  width: 100%;
-  height: 88rpx;
+  height: 96rpx;
   background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
-  border: none;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  color: #fff;
-  font-weight: 600;
-  transition: all 0.3s;
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 32rpx 32rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255,90,0,0.3);
 }
 
 .publish-btn:active {
+  opacity: 0.85;
   transform: scale(0.98);
+}
+
+.publish-btn-text {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2rpx;
 }
 
 .publish-btn:disabled {
   background: #e0e0e0;
+  box-shadow: none;
+}
+
+.publish-btn:disabled .publish-btn-text {
   color: #999;
 }
 </style>

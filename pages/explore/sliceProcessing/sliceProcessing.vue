@@ -611,19 +611,23 @@ export default {
 .cancel-btn {
   width: 100%;
   height: 88rpx;
+  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  border: none;
   border-radius: 44rpx;
-  border: 2rpx solid #ddd;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s;
 }
 
 .cancel-btn-text {
   font-size: 28rpx;
-  color: #666;
+  color: #fff;
+  font-weight: 600;
 }
 
 .cancel-btn:active {
-  background-color: #f5f5f5;
+  transform: scale(0.98);
+  opacity: 0.85;
 }
 </style>

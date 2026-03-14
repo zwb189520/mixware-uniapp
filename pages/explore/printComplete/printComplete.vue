@@ -21,21 +21,21 @@
       <view class="info-card">
         <view class="info-row">
           <view class="info-icon-wrapper">
-            <uni-icons type="clock" size="20" color="#666"></uni-icons>
+            <image src="/static/images/print/time.png" mode="aspectFit" class="info-icon"></image>
           </view>
           <text class="info-label">{{ texts.printTimeLabel }}</text>
           <text class="info-value">{{ printData.printTime }}</text>
         </view>
         <view class="info-row">
           <view class="info-icon-wrapper">
-            <uni-icons type="circle-filled" size="20" color="#666"></uni-icons>
+            <image src="/static/images/print/material.png" mode="aspectFit" class="info-icon"></image>
           </view>
           <text class="info-label">{{ texts.material }}</text>
           <text class="info-value">{{ printData.material }}</text>
         </view>
         <view class="info-row">
           <view class="info-icon-wrapper">
-            <uni-icons type="compose" size="20" color="#666"></uni-icons>
+            <image src="/static/images/print/size.png" mode="aspectFit" class="info-icon"></image>
           </view>
           <text class="info-label">{{ texts.sizeLabel }}</text>
           <text class="info-value">{{ printData.size }}</text>
@@ -81,6 +81,7 @@ export default {
   data() {
     return {
       recordId: '',
+      modelId: '',  // 添加 modelId 字段
       printData: {
         modelName: '',
         modelImage: '/static/images/logo.png',
@@ -101,6 +102,12 @@ export default {
   },
   onLoad(options) {
     this.recordId = options.recordId || ''
+    this.modelId = options.modelId || ''  // 接收 modelId 参数
+    
+    console.log('printComplete onLoad options:', options)
+    console.log('接收到的 modelId:', this.modelId)
+    console.log('接收到的 recordId:', this.recordId)
+    
     this.languageStore.loadLanguage()
     
     // 如果有recordId，从后端加载数据
@@ -168,16 +175,45 @@ export default {
     // 加载用户信息
     async loadUserInfo() {
       try {
-        const res = await getUserInfo()
+        // 先尝试从本地存储获取用户ID
+        const userId = uni.getStorageSync('userId') || uni.getStorageSync('id')
+        
+        if (!userId) {
+          console.log('未找到用户ID，使用默认信息')
+          this.userData = {
+            avatar: '/static/images/Default avatar.png',
+            nickname: 'Mixware3D',
+            username: '用户'
+          }
+          return
+        }
+        
+        // 使用 getUserInfo(userId) 而不是 getCurrentUserInfo()
+        const { getUserInfo } = await import('@/api/users.js')
+        const res = await getUserInfo(userId)
+        
         if (res.code === 1 && res.data) {
           this.userData = {
             avatar: res.data.avatar || res.data.avatarUrl || '/static/images/Default avatar.png',
             nickname: 'Mixware3D',  // 固定显示品牌名称
             username: res.data.nickname || res.data.username || res.data.name || res.data.email || '用户'  // 显示真实用户名
           }
+        } else {
+          // 如果获取失败，使用默认值
+          this.userData = {
+            avatar: '/static/images/Default avatar.png',
+            nickname: 'Mixware3D',
+            username: '用户'
+          }
         }
       } catch (error) {
         console.error('加载用户信息失败:', error)
+        // 使用默认值
+        this.userData = {
+          avatar: '/static/images/Default avatar.png',
+          nickname: 'Mixware3D',
+          username: '用户'
+        }
       }
     },
     
@@ -229,10 +265,12 @@ export default {
     handleShare() {
       // 跳转到创建帖子页面，传递打印完成的数据
       const modelInfo = {
-        id: this.recordId || 'unknown',
+        id: this.modelId || this.recordId || 'unknown',  // 优先使用 modelId
         name: this.printData.modelName,
         image: this.printData.modelImage
       }
+      
+      console.log('分享报告，modelId:', modelInfo.id)
       
       uni.navigateTo({
         url: `/pages/explore/createPost/createPost?modelId=${encodeURIComponent(modelInfo.id)}&modelName=${encodeURIComponent(modelInfo.name)}&modelImage=${encodeURIComponent(modelInfo.image)}&printTime=${encodeURIComponent(this.printData.printTime)}&material=${encodeURIComponent(this.printData.material)}&size=${encodeURIComponent(this.printData.size)}`
@@ -312,6 +350,10 @@ export default {
   justify-content: center;
   margin-right: 16rpx;
 }
+.info-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
 
 .info-label {
   font-size: 28rpx;
@@ -365,13 +407,13 @@ export default {
 
 .share-btn {
   height: 96rpx;
-  background: linear-gradient(135deg, #2a7fff 0%, #1e5dd8 100%);
+  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
   border-radius: 48rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 32rpx 32rpx;
-  box-shadow: 0 8rpx 24rpx rgba(42,127,255,0.3);
+  box-shadow: 0 8rpx 24rpx rgba(255,90,0,0.3);
 }
 
 .share-btn:active { 

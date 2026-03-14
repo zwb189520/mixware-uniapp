@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.workDetail" @back="handleBack" />
@@ -178,6 +178,9 @@ export default {
   },
   onLoad(options) {
     this.workId = options.workId || ''
+    console.log('printDetail onLoad options:', options)
+    console.log('接收到的 workId:', this.workId)
+    
     try { this.modelName = options.modelName ? decodeURIComponent(options.modelName) : '' } catch { this.modelName = options.modelName || '' }
     try { this.modelImage = options.modelImage ? decodeURIComponent(options.modelImage) : '' } catch { this.modelImage = options.modelImage || '' }
     if (!this.modelImage) this.modelImage = '/static/images/logo.png'
@@ -243,12 +246,17 @@ export default {
       })
     },
     async loadFirmwareInfo() {
+      if (!this.deviceId) return
+      
       try {
         const res = await getFirmwareInfo(this.deviceId)
         if (res.code === 1 && res.data) {
           this.firmwareVersion = res.data.version || res.data.currentVersion || ''
         }
-      } catch (e) { console.error('获取固件信息失败:', e) }
+      } catch (e) { 
+        console.log('获取固件信息失败（非关键错误）:', e)
+        // 固件信息获取失败不影响主要功能，静默处理
+      }
     },
     async handlePause() {
       if (!this.deviceId) return this._toast('设备ID不存在')
@@ -317,8 +325,9 @@ export default {
     },
     _toast(title, icon = 'none') { uni.showToast({ title, icon }) },
     goToPrintComplete() {
+      console.log('跳转到打印完成页，workId:', this.workId)
       uni.navigateTo({
-        url: `/pages/explore/printComplete/printComplete?modelName=${encodeURIComponent(this.modelName || '测试模型')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent('10分钟')}&material=${encodeURIComponent('0.64g')}&size=${encodeURIComponent('10mm(X)*10mm(Y)*15mm(Z)')}&userAvatar=${encodeURIComponent('/static/images/Default avatar.png')}&userName=${encodeURIComponent('智小白3D')}&userId=${encodeURIComponent('智小白用户9467')}`
+        url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '测试模型')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent('10分钟')}&material=${encodeURIComponent('0.64g')}&size=${encodeURIComponent('10mm(X)*10mm(Y)*15mm(Z)')}&userAvatar=${encodeURIComponent('/static/images/Default avatar.png')}&userName=${encodeURIComponent('智小白3D')}&userId=${encodeURIComponent('智小白用户9467')}`
       })
     }
   }

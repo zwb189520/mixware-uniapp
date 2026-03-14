@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="modelInfo.name || texts.modelDetail" @back="handleBack" />
@@ -203,19 +203,33 @@ export default {
       }, 1500)
     }
     
-    // 监听帖子删除事件
     uni.$on('postDeleted', (deletedPostId) => {
       if (this.modelId) {
+        this.refreshShowcaseWorks()
+      }
+    })
+    
+    uni.$on('postCreated', (modelId) => {
+      if (modelId && String(modelId) === String(this.modelId)) {
         this.refreshShowcaseWorks()
       }
     })
   },
   onUnload() {
     uni.$off('postDeleted')
+    uni.$off('postCreated')
   },
   onShow() {
     if (this.modelId) {
-      this.refreshShowcaseWorks()
+      // 检查是否需要刷新作品展示
+      const needRefreshModelId = uni.getStorageSync('needRefreshShowcase')
+      if (needRefreshModelId && String(needRefreshModelId) === String(this.modelId)) {
+        console.log('检测到需要刷新作品展示，modelId:', this.modelId)
+        uni.removeStorageSync('needRefreshShowcase')
+        this.refreshShowcaseWorks()
+      } else {
+        this.refreshShowcaseWorks()
+      }
     }
   },
   methods: {

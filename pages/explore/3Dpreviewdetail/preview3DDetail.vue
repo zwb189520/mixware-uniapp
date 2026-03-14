@@ -893,66 +893,49 @@ export default {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
-      // try {
-      //   uni.showLoading({
-      //     title: this.texts.gettingDeviceInfo
-      //   })
-        
-      //   const deviceRes = await getDefaultDevice()
-      //   console.log('默认设备响应:', deviceRes)
-      //   console.log('默认设备数据:', deviceRes.data)
-        
-      //   const deviceId = deviceRes.data?.deviceId || deviceRes.data?.data?.deviceId
-      //   console.log('解析后的设备ID:', deviceId)
-        
-      //   if (!deviceId) {
-      //     uni.hideLoading()
-      //     uni.showToast({
-      //       title: this.texts.addDeviceFirst,
-      //       icon: 'none'
-      //     })
-      //     return
-      //   }
-        
-      //   uni.showLoading({
-      //     title: this.texts.sendingPrintCommand
-      //   })
-        
-      //   console.log('设备ID:', deviceId)
-      //   console.log('发送打印命令:', { deviceId, modelId: this.modelId })
-      //   const res = await sendPrintCommand(deviceId, this.modelId, 'P')
-      //   console.log('打印命令返回:', res)
-        
-      //   uni.hideLoading()
-      //   uni.showToast({
-      //     title: this.texts.printCommandSent,
-      //     icon: 'success'
-      //   })
-        
-      //   setTimeout(() => {
-      //     uni.navigateTo({
-      //       url: `/pages/explore/printDetail/printDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelUrl)}&modelUrl=${encodeURIComponent(this.modelUrl)}&scale=${this.scalePercent}&deviceId=${deviceId}`
-      //     })
-      //   }, 1500)
-      // } catch (error) {
-      //   uni.hideLoading()
-      //   console.error('打印命令失败:', error)
-      //   uni.showToast({
-      //     title: error.message || this.texts.sendPrintCommandFailed,
-      //     icon: 'none'
-      //   })
-      // }
-      // 跳转到切片处理页面，使用previewUrl而不是modelUrl
-      let imageUrl = this.modelUrl
       
-      // 如果有模型详情且有previewUrl，使用previewUrl
-      if (this.modelInfo && this.modelInfo.previewUrl) {
-        imageUrl = this.modelInfo.previewUrl
+      try {
+        uni.showLoading({
+          title: this.texts.gettingDeviceInfo || '获取设备信息...'
+        })
+        
+        const deviceRes = await getDefaultDevice()
+        console.log('默认设备响应:', deviceRes)
+        console.log('默认设备数据:', deviceRes.data)
+        
+        const deviceId = deviceRes.data?.deviceId || deviceRes.data?.data?.deviceId
+        console.log('解析后的设备ID:', deviceId)
+        
+        if (!deviceId) {
+          uni.hideLoading()
+          uni.showToast({
+            title: this.texts.addDeviceFirst || '请先添加并连接打印机',
+            icon: 'none'
+          })
+          return
+        }
+        
+        uni.hideLoading()
+        
+        // 跳转到切片处理页面，使用previewUrl而不是modelUrl
+        let imageUrl = this.modelUrl
+        
+        // 如果有模型详情且有previewUrl，使用previewUrl
+        if (this.modelInfo && this.modelInfo.previewUrl) {
+          imageUrl = this.modelInfo.previewUrl
+        }
+        
+        uni.navigateTo({
+          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}`
+        })
+      } catch (error) {
+        uni.hideLoading()
+        console.error('获取设备信息失败:', error)
+        uni.showToast({
+          title: error.message || '获取设备信息失败，请检查打印机连接',
+          icon: 'none'
+        })
       }
-      
-      uni.navigateTo({
-        url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}`
-      })
     }
   },
   beforeUnmount() {
