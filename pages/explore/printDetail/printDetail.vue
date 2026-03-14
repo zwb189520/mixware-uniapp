@@ -100,6 +100,11 @@
         </view>
       </view>
 
+      <!-- 临时测试按钮 -->
+      <view class="test-btn" @click="goToPrintComplete">
+        <text class="test-btn-text">测试：跳转打印完成页</text>
+      </view>
+
       <view class="bottom-safe"></view>
     </scroll-view>
   </view>
@@ -310,7 +315,12 @@ export default {
         }
       })
     },
-    _toast(title, icon = 'none') { uni.showToast({ title, icon }) }
+    _toast(title, icon = 'none') { uni.showToast({ title, icon }) },
+    goToPrintComplete() {
+      uni.navigateTo({
+        url: `/pages/explore/printComplete/printComplete?modelName=${encodeURIComponent(this.modelName || '测试模型')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent('10分钟')}&material=${encodeURIComponent('0.64g')}&size=${encodeURIComponent('10mm(X)*10mm(Y)*15mm(Z)')}&userAvatar=${encodeURIComponent('/static/images/Default avatar.png')}&userName=${encodeURIComponent('智小白3D')}&userId=${encodeURIComponent('智小白用户9467')}`
+      })
+    }
   }
 }
 </script>
@@ -581,4 +591,21 @@ export default {
 .restart-btn .ctrl-text { color: #FF5A00; }
 .stop-btn   { background: #FFF5F5; border-color: #ff4d4f; }
 .stop-btn   .ctrl-text { color: #ff4d4f; }
+
+/* 临时测试按钮 */
+.test-btn {
+  margin: 32rpx 24rpx;
+  height: 80rpx;
+  background: #2a7fff;
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.test-btn:active { opacity: 0.8; }
+.test-btn-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+}
 </style>

@@ -40,6 +40,12 @@
 			}
 		},
 		{
+			"path": "pages/explore/printComplete/printComplete",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/explore/showcaseWorksDetail/showcaseWorksDetail",
 			"style": {
 				"navigationStyle": "custom"
