@@ -116,7 +116,6 @@ import {
   sendResumeCommand,
   sendRestartCommand,
   sendStopCommand,
-  getDeviceStatus,
   getFirmwareInfo
 } from '@/api/iot.js'
 
@@ -137,8 +136,7 @@ export default {
       estimatedTime: 0,
       isPrinting: false,
       isPaused: false,
-      gcodeUrl: '',
-      statusTimer: null
+      gcodeUrl: ''
     }
   },
   computed: {
@@ -184,40 +182,13 @@ export default {
     this.isPrinting = options.autoStart === 'true'
     this.languageStore.loadLanguage()
     if (this.deviceId) {
-      this.startStatusPolling()
       this.loadFirmwareInfo()
     }
-  },
-  onUnload() {
-    if (this.statusTimer) clearInterval(this.statusTimer)
   },
   methods: {
     handleBack() { uni.navigateBack() },
     handleImageError() { this.modelImage = '/static/images/logo.png' },
     handleReturnHome() { uni.switchTab({ url: '/pages/explore/explore/explore' }) },
-    startStatusPolling() {
-      this.fetchDeviceStatus()
-      this.statusTimer = setInterval(() => this.fetchDeviceStatus(), 10000)
-    },
-    async fetchDeviceStatus() {
-      if (!this.deviceId) return
-      try {
-        const res = await getDeviceStatus(this.deviceId)
-        if (res.code === 1 && res.data) {
-          const d = res.data
-          this.printerStatus = d.printState || d.deviceState || this.printerStatus
-          this.currentTemp = d.nozzleTemp ?? d.currentTemp ?? this.currentTemp
-          this.targetTemp = d.targetTemp ?? this.targetTemp
-          this.currentProgress = d.progress ?? this.currentProgress
-          this.estimatedTime = d.remainingTime ?? this.estimatedTime
-          if (!this.printerName) this.printerName = d.deviceName || d.printerName || ''
-          const state = d.printState
-          if (state === 'Printing') { this.isPrinting = true; this.isPaused = false }
-          else if (state === 'Pausing' || state === 'Paused') { this.isPrinting = false; this.isPaused = true }
-          else if (state === 'StandingBy' || state === 'Idle') { this.isPrinting = false; this.isPaused = false }
-        }
-      } catch (e) { console.error('获取设备状态失败:', e) }
-    },
     async loadFirmwareInfo() {
       try {
         const res = await getFirmwareInfo(this.deviceId)

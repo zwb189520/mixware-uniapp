@@ -51,8 +51,7 @@ export default {
       progress: 0,
       estimatedTime: '0分钟',
       showEncouragement: true,
-      deviceId: '',
-      statusTimer: null
+      deviceId: ''
     }
   },
   computed: {
@@ -70,7 +69,6 @@ export default {
     try {
       await this.loadDefaultDevice()
       await this.loadDeviceStatus()
-      this.startStatusPolling()
     } catch (error) {
       console.error('初始化设备信息失败:', error)
       uni.showToast({
@@ -86,27 +84,9 @@ export default {
       console.log('设置deviceId:', this.deviceId)
     }
   },
-  onHide() {
-    this.stopStatusPolling()
-  },
-  onUnload() {
-    this.stopStatusPolling()
-  },
   methods: {
     handleBack() {
       uni.navigateBack()
-    },
-    startStatusPolling() {
-      this.stopStatusPolling()
-      this.statusTimer = setInterval(() => {
-        this.loadDeviceStatus()
-      }, 30000)
-    },
-    stopStatusPolling() {
-      if (this.statusTimer) {
-        clearInterval(this.statusTimer)
-        this.statusTimer = null
-      }
     },
     async loadDefaultDevice() {
       // 如果已经有deviceId了，就不需要再加载默认设备
