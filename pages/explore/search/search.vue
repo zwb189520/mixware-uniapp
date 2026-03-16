@@ -172,6 +172,7 @@ export default {
     },
     
     async loadHotTags() {
+      if (!uni.getStorageSync('isLoggedIn')) return
       try {
         // 优先使用store中的热门标签
         if (this.storeHotTags && this.storeHotTags.length > 0) {
@@ -327,6 +328,12 @@ export default {
     },
     
     handleModelClick(item) {
+      if (!uni.getStorageSync('isLoggedIn')) {
+        uni.navigateTo({
+          url: '/pagesMember/auth/login/login'
+        })
+        return
+      }
       uni.navigateTo({
         url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
       })

@@ -302,7 +302,7 @@ export default {
   font-weight: 700;
   color: #1a1a2e;
   text-align: center;
-  margin: 40rpx 32rpx 32rpx;
+  margin: 100rpx 32rpx 16rpx;
   display: block;
   line-height: 1.3;
 }
@@ -310,9 +310,9 @@ export default {
 .model-image-section {
   width: calc(100% - 64rpx);
   height: 420rpx;
-  border-radius: 32rpx;
+  border-radius: 32rpx 32rpx 0 0;
   overflow: hidden;
-  margin: 0 32rpx 32rpx;
+  margin: 0 32rpx 0;
   background: #fff;
   box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
 }
@@ -324,8 +324,8 @@ export default {
 
 .info-card {
   background: rgba(255,255,255,0.98);
-  border-radius: 32rpx;
-  padding: 40rpx;
+  border-radius: 0 0 32rpx 32rpx;
+  padding: 4rpx 40rpx 32rpx;
   margin: 0 32rpx 40rpx;
   box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.06);
 }
@@ -333,13 +333,13 @@ export default {
 .info-row {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
+  padding: 2rpx 0;
   border-bottom: 1rpx solid rgba(0,0,0,0.05);
 }
 
 .info-row:last-of-type {
   border-bottom: none;
-  margin-bottom: 32rpx;
+  margin-bottom: 12rpx;
 }
 
 .info-icon-wrapper {
@@ -356,14 +356,14 @@ export default {
 }
 
 .info-label {
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #666;
   width: 140rpx;
   font-weight: 500;
 }
 
 .info-value {
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #1a1a2e;
   font-weight: 600;
   flex: 1;

@@ -409,6 +409,7 @@ export default {
     loadMore() {
     },
     async loadHotTags() {
+      if (!uni.getStorageSync('isLoggedIn')) return
       try {
         const res = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {

@@ -102,16 +102,8 @@ export default {
 .icon-btn {
   width: 64rpx;
   height: 64rpx;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.icon-btn:active {
-  transform: scale(0.95);
-  background: rgba(255, 255, 255, 1);
 }
 </style>

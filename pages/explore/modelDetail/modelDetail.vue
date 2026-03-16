@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="modelInfo.name || texts.modelDetail" @back="handleBack" />
@@ -245,6 +245,10 @@ export default {
     },
     async loadShowcaseWorks() {
       if (!this.modelId) return
+      if (!uni.getStorageSync('isLoggedIn')) {
+        this.showcaseWorks = []
+        return
+      }
       try {
         // 后端按modelId查询有bug，先查询所有帖子再过滤
         const res = await getPostList({

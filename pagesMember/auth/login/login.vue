@@ -151,38 +151,8 @@ export default {
   mounted() {
     this.languageStore.loadLanguage()
     this.initializeTestUser()
-    // 只有在 H5 平台才需要处理 OAuth 回调
     // #ifdef H5
     this.handleOAuthCallback()
-    // #endif
-  },
-  
-  async handleOAuthCallback() {
-    // #ifdef H5
-    const urlParams = new URLSearchParams(window.location.search)
-    const code = urlParams.get('code')
-    const state = urlParams.get('state')
-    const error = urlParams.get('error')
-    
-    if (error) {
-      uni.showToast({ title: '授权失败', icon: 'none' })
-      return
-    }
-    
-    if (code && state) {
-      uni.showLoading({ title: '登录中...' })
-      try {
-        if (state.startsWith('google_')) {
-          const result = await googleCallback(code, state)
-          this.handleOAuthResult(result)
-        }
-        // 清理URL参数
-        window.history.replaceState({}, document.title, window.location.pathname)
-      } catch (err) {
-        uni.hideLoading()
-        uni.showToast({ title: '登录失败', icon: 'none' })
-      }
-    }
     // #endif
   },
   
@@ -204,6 +174,35 @@ export default {
   methods: {
     handleBack() {
       uni.navigateBack()
+    },
+    
+    handleOAuthCallback() {
+      // #ifdef H5
+      const urlParams = new URLSearchParams(window.location.search)
+      const code = urlParams.get('code')
+      const state = urlParams.get('state')
+      const error = urlParams.get('error')
+      
+      if (error) {
+        uni.showToast({ title: '授权失败', icon: 'none' })
+        return
+      }
+      
+      if (code && state) {
+        uni.showLoading({ title: '登录中...' })
+        try {
+          if (state.startsWith('google_')) {
+            googleCallback(code, state).then(result => {
+              this.handleOAuthResult(result)
+            })
+          }
+          window.history.replaceState({}, document.title, window.location.pathname)
+        } catch (err) {
+          uni.hideLoading()
+          uni.showToast({ title: '登录失败', icon: 'none' })
+        }
+      }
+      // #endif
     },
     
     switchLoginType(type) {
@@ -518,9 +517,9 @@ export default {
         // #endif
         
         // #ifdef APP-PLUS
-        const config = await getGoogleOAuthConfig()
-        if (config.code === 1 || config.code === 0) {
-          const { clientId, redirectUri } = config.data
+        const appConfig = await getGoogleOAuthConfig()
+        if (appConfig.code === 1 || appConfig.code === 0) {
+          const { clientId, redirectUri } = appConfig.data
           plus.oauth.getServices(services => {
             const google = services.find(s => s.id === 'google')
             if (google) {

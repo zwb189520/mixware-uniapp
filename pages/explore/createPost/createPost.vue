@@ -286,6 +286,7 @@ export default {
         
         const res = await createPost(postData)
         if (res.code === 0 || res.code === 1) {
+          uni.hideLoading()
           uni.showToast({ title: this.texts.publishSuccess, icon: 'success' })
           
           // 触发帖子创建事件，通知模型详情页刷新作品展示
@@ -302,9 +303,8 @@ export default {
         }
       } catch (error) {
         console.error('发布帖子失败:', error)
-        uni.showToast({ title: this.texts.publishFailed, icon: 'none' })
-      } finally {
         uni.hideLoading()
+        uni.showToast({ title: this.texts.publishFailed, icon: 'none' })
       }
     }
   }
