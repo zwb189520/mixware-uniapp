@@ -37,6 +37,9 @@
             <button class="card-btn edit-btn" @click.stop="handleEditDevice(device)">
               <text>{{ texts.editDevice || '编辑' }}</text>
             </button>
+            <button class="card-btn default-btn" @click.stop="handleSetDefault(device)">
+              <text>{{ texts.setDefault || '设为默认' }}</text>
+            </button>
             <button class="card-btn delete-btn" @click.stop="handleDeleteDevice(device)">
               <text>{{ texts.deleteDevice || '删除' }}</text>
             </button>
@@ -102,7 +105,7 @@ import { ref, computed, onMounted } from 'vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
-import { getDeviceList, updateDeviceInfo, deleteDevice } from '@/api/devices'
+import { getDeviceList, updateDeviceInfo, deleteDevice, setDefaultDevice } from '@/api/devices'
 import { useLanguageStore } from '@/stores'
 
 interface Device {
@@ -270,6 +273,30 @@ const closeEditModal = () => {
     id: '',
     deviceId: '',
     deviceName: ''
+  }
+}
+
+const handleSetDefault = async (device: Device) => {
+  try {
+    const res: any = await setDefaultDevice(device.deviceId)
+    if (res.code === 1 || res.code === 200) {
+      uni.showToast({
+        title: texts.setDefaultSuccess || '设置默认设备成功',
+        icon: 'success'
+      })
+      loadDevices()
+    } else {
+      uni.showToast({
+        title: res.msg || (texts.setDefaultFailed || '设置默认设备失败'),
+        icon: 'none'
+      })
+    }
+  } catch (error) {
+    console.error('设置默认设备失败:', error)
+    uni.showToast({
+      title: texts.setDefaultFailed || '设置默认设备失败',
+      icon: 'none'
+    })
   }
 }
 </script>
@@ -496,6 +523,11 @@ const closeEditModal = () => {
 
 .edit-btn {
   background: #4A90E2;
+  color: #fff;
+}
+
+.default-btn {
+  background: #52c41a;
   color: #fff;
 }
 

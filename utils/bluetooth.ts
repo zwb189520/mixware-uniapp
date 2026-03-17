@@ -8,6 +8,15 @@ export function initBluetooth() {
   })
 }
 
+export function closeBluetooth() {
+  return new Promise((resolve, reject) => {
+    uni.closeBluetoothAdapter({
+      success: resolve,
+      fail: reject
+    })
+  })
+}
+
 export function startBluetoothScan() {
   return new Promise((resolve, reject) => {
     uni.startBluetoothDevicesDiscovery({

@@ -65,7 +65,8 @@
 <script lang="ts">
 // @ts-nocheck
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
-import { getDeviceList, setDefaultDevice, deleteDevice } from '@/api/devices.ts'
+import { getDeviceList, setDefaultDevice, deleteDevice } from '@/api/devices'
+import { closeBluetooth } from '@/utils/bluetooth'
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -136,6 +137,22 @@ export default {
             try {
               const result = await deleteDevice(deviceId)
               console.log('解绑结果:', result)
+              
+              // 重置蓝牙适配器
+              try {
+                await closeBluetooth()
+                console.log('蓝牙适配器已关闭')
+                
+                // 等待500ms让系统完全释放资源
+                await new Promise(resolve => setTimeout(resolve, 500))
+                
+                // 重新初始化蓝牙适配器
+                await import('@/utils/bluetooth').then(module => module.initBluetooth())
+                console.log('蓝牙适配器已重新初始化')
+              } catch (bluetoothError) {
+                console.error('重置蓝牙适配器失败:', bluetoothError)
+              }
+              
               uni.showToast({
                 title: this.texts.unbindSuccess,
                 icon: 'success'

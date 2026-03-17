@@ -46,7 +46,7 @@
 // @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { bindDevice, getDeviceInfo } from '@/api/devices.ts'
+import { bindDevice, getDeviceInfo, setDefaultDevice } from '@/api/devices.ts'
 import { getDeviceStatus, getDeviceAuth } from '@/api/iot.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -149,6 +149,14 @@ export default {
           if (deviceInfo && (deviceInfo.code === 1 || deviceInfo.code === 200)) {
             uni.setStorageSync('currentDeviceInfo', deviceInfo.data)
             console.log('设备信息已存储到本地缓存:', deviceInfo.data)
+            
+            // 设置为默认设备
+            try {
+              const setDefaultRes = await setDefaultDevice(this.printerId)
+              console.log('设置默认设备响应:', setDefaultRes)
+            } catch (setDefaultError) {
+              console.error('设置默认设备失败:', setDefaultError)
+            }
           }
 
           if (deviceStatus && (deviceStatus.code === 1 || deviceStatus.code === 200)) {
