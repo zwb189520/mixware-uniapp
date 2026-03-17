@@ -102,15 +102,15 @@ export default {
       const diff = now - date
       
       const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-      if (days > 0) return `${days}天前`
+      if (days > 0) return `${days}${this.texts.daysAgo || '天前'}`
       
       const hours = Math.floor(diff / (1000 * 60 * 60))
-      if (hours > 0) return `${hours}小时前`
+      if (hours > 0) return `${hours}${this.texts.hoursAgo || '小时前'}`
       
       const minutes = Math.floor(diff / (1000 * 60))
-      if (minutes > 0) return `${minutes}分钟前`
+      if (minutes > 0) return `${minutes}${this.texts.minutesAgo || '分钟前'}`
       
-      return '刚刚'
+      return this.texts.justNow || '刚刚'
     },
     handleItemClick(item) {
       uni.navigateTo({

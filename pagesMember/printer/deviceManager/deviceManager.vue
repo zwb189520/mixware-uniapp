@@ -8,8 +8,8 @@
     <view class="content-container">
       <view v-if="devices.length === 0 && !isLoading" class="empty-state">
         <view class="empty-icon">📱</view>
-        <text class="empty-title">还没有设备</text>
-        <text class="empty-desc">扫描设备二维码或手动输入SN码添加设备</text>
+        <text class="empty-title">{{ texts.noDevices || '还没有设备' }}</text>
+        <text class="empty-desc">{{ texts.noDevicesHint || '扫描设备二维码或手动输入SN码添加设备' }}</text>
       </view>
       
       <view v-else class="device-list">
@@ -35,10 +35,10 @@
           
           <view class="card-actions">
             <button class="card-btn edit-btn" @click.stop="handleEditDevice(device)">
-              <text>编辑</text>
+              <text>{{ texts.editDevice || '编辑' }}</text>
             </button>
             <button class="card-btn delete-btn" @click.stop="handleDeleteDevice(device)">
-              <text>删除</text>
+              <text>{{ texts.deleteDevice || '删除' }}</text>
             </button>
           </view>
         </view>
@@ -46,7 +46,7 @@
       
       <view class="add-printer-btn" @click="handleShowAddPrinter">
         <uni-icons type="plus" size="20" color="#FF5A00"></uni-icons>
-        <text class="add-text">添加打印机</text>
+        <text class="add-text">{{ texts.addDevice || '添加打印机' }}</text>
       </view>
     </view>
     
@@ -66,7 +66,7 @@
         <view class="modal-header">
           <view class="header-left">
             <text class="modal-icon">✏️</text>
-            <text class="modal-title">编辑设备</text>
+            <text class="modal-title">{{ texts.editDevice || '编辑设备' }}</text>
           </view>
           <view class="modal-close" @click="closeEditModal">
             <text>×</text>
@@ -79,17 +79,17 @@
             <input 
               class="form-input"
               v-model="editForm.deviceName"
-              placeholder="请输入设备名称"
+              :placeholder="texts.deviceNamePlaceholder || '请输入设备名称'"
             />
           </view>
         </view>
         
         <view class="modal-footer">
           <button class="btn-cancel" @click="closeEditModal">
-            <text>取消</text>
+            <text>{{ texts.cancel || '取消' }}</text>
           </button>
           <button class="btn-confirm" @click="handleSaveDevice">
-            <text>保存</text>
+            <text>{{ texts.save || '保存' }}</text>
           </button>
         </view>
       </view>
@@ -129,7 +129,7 @@ const editForm = ref<EditForm>({
 })
 const isLoading = ref(false)
 
-const texts = computed(() => languageStore?.texts?.deviceManager || {})
+const texts = computed(() => languageStore?.texts?.deviceManager || {}) as any
 
 onMounted(() => {
   languageStore.loadLanguage()
@@ -143,7 +143,7 @@ const handleBack = () => {
 const loadDevices = async () => {
   isLoading.value = true
   try {
-    const res = await getDeviceList()
+    const res: any = await getDeviceList()
     if (res.data && res.data.records) {
       devices.value = res.data.records
     }
@@ -157,9 +157,9 @@ const loadDevices = async () => {
 const getDeviceStatusText = (device: Device) => {
   const status = device.deviceStatus
   if (status === 1 || status === '1') {
-    return '在线'
+    return texts.online || '在线'
   }
-  return '离线'
+  return texts.offline || '离线'
 }
 
 const getStatusClass = (device: Device) => {
@@ -188,7 +188,7 @@ const handleEditDevice = (device: Device) => {
 const handleSaveDevice = async () => {
   if (!editForm.value.deviceName.trim()) {
     uni.showToast({
-      title: '请输入设备名称',
+      title: texts.deviceNameRequired || '请输入设备名称',
       icon: 'none'
     })
     return
@@ -200,25 +200,25 @@ const handleSaveDevice = async () => {
   }
   
   try {
-    const res = await updateDeviceInfo(submitData)
+    const res: any = await updateDeviceInfo(submitData)
     
     if (res.code === 1 || res.code === 200) {
       uni.showToast({
-        title: '保存成功',
+        title: texts.saveSuccess || '保存成功',
         icon: 'success'
       })
       closeEditModal()
       loadDevices()
     } else {
       uni.showToast({
-        title: res.msg || '保存失败',
+        title: res.msg || (texts.saveFailed || '保存失败'),
         icon: 'none'
       })
     }
   } catch (error) {
     console.error('保存设备信息失败:', error)
     uni.showToast({
-      title: '保存失败',
+      title: texts.saveFailed || '保存失败',
       icon: 'none'
     })
   }
@@ -226,21 +226,21 @@ const handleSaveDevice = async () => {
 
 const handleDeleteDevice = async (device: Device) => {
   uni.showModal({
-    title: '确认删除',
-    content: `确定要删除设备 "${device.deviceName || device.deviceId}" 吗？`,
+    title: texts.deleteConfirm || '确认删除',
+    content: `${texts.deleteConfirmContent || '确定要删除设备'} "${device.deviceName || device.deviceId}" ${texts.questionMark || '吗？'}`,
     success: async (res) => {
       if (res.confirm) {
         try {
           await deleteDevice(device.deviceId)
           uni.showToast({
-            title: '删除成功',
+            title: texts.deleteSuccess || '删除成功',
             icon: 'success'
           })
           loadDevices()
         } catch (error) {
           console.error('删除设备失败:', error)
           uni.showToast({
-            title: '删除失败',
+            title: texts.deleteFailed || '删除失败',
             icon: 'none'
           })
         }

@@ -561,7 +561,11 @@ export const useLanguageStore = defineStore('language', {
         },
         myWorks: {
           title: '作品博物馆',
+          myWorks: '我的作品',
+          myLikes: '我的点赞',
           noWorks: '暂无作品',
+          noLikes: '暂无点赞',
+          goLike: '快去点赞吧',
           loadFailed: '加载失败',
           unknown: '未知',
           printPoster: '打印海报',
@@ -585,6 +589,9 @@ export const useLanguageStore = defineStore('language', {
           hungry: '饿了',
           error: '生病了',
           offline: '失联了'
+        },
+        printerMoreIntro: {
+          title: '打印机设置'
         },
         profileEdit: {
           title: '个人资料',
@@ -665,6 +672,8 @@ export const useLanguageStore = defineStore('language', {
             emailPlaceholder: '请输入邮箱',
             codeLabel: '验证码',
             codePlaceholder: '请输入验证码',
+            oldPasswordLabel: '旧密码',
+            oldPasswordPlaceholder: '请输入旧密码',
             newPasswordLabel: '新密码',
             newPasswordPlaceholder: '请输入新密码',
             confirmPasswordLabel: '确认密码',
@@ -677,6 +686,7 @@ export const useLanguageStore = defineStore('language', {
             enterCode: '请输入验证码',
             enterNewPassword: '请输入新密码',
             passwordsNotMatch: '两次密码输入不一致',
+            newPasswordSameAsOld: '新密码不能与旧密码相同',
             resetSuccess: '密码重置成功',
             resetFailed: '密码重置失败',
             sending: '发送中...',
@@ -727,7 +737,11 @@ export const useLanguageStore = defineStore('language', {
         myFavorites: {
           title: '收藏',
           emptyText: '暂无收藏',
-          noFavorites: '暂无收藏内容'
+          noFavorites: '暂无收藏内容',
+          daysAgo: '天前',
+          hoursAgo: '小时前',
+          minutesAgo: '分钟前',
+          justNow: '刚刚'
         },
         myLikes: {
           title: '赞过',
@@ -1388,7 +1402,11 @@ export const useLanguageStore = defineStore('language', {
         myFavorites: {
           title: 'My Favorites',
           emptyText: 'No favorites yet',
-          noFavorites: 'No favorite content'
+          noFavorites: 'No favorite content',
+          daysAgo: ' days ago',
+          hoursAgo: ' hours ago',
+          minutesAgo: ' minutes ago',
+          justNow: 'Just now'
         },
         myLikes: {
           title: 'My Likes',
@@ -1403,7 +1421,11 @@ export const useLanguageStore = defineStore('language', {
         },
         myWorks: {
           title: 'My Works Museum',
+          myWorks: 'My Works',
+          myLikes: 'My Likes',
           noWorks: 'No works yet',
+          noLikes: 'No likes',
+          goLike: 'Go like some works',
           loadFailed: 'Load Failed',
           unknown: 'Unknown',
           printPoster: 'Print Poster',
@@ -1490,6 +1512,8 @@ export const useLanguageStore = defineStore('language', {
             emailPlaceholder: 'Please enter email',
             codeLabel: 'Verification Code',
             codePlaceholder: 'Please enter verification code',
+            oldPasswordLabel: 'Old Password',
+            oldPasswordPlaceholder: 'Please enter old password',
             newPasswordLabel: 'New Password',
             newPasswordPlaceholder: 'Please enter new password',
             confirmPasswordLabel: 'Confirm Password',
@@ -1502,6 +1526,7 @@ export const useLanguageStore = defineStore('language', {
             enterCode: 'Please enter verification code',
             enterNewPassword: 'Please enter new password',
             passwordsNotMatch: 'Passwords do not match',
+            newPasswordSameAsOld: 'New password cannot be the same as old password',
             resetSuccess: 'Password reset successful',
             resetFailed: 'Password reset failed',
             sending: 'Sending...',
@@ -1552,7 +1577,7 @@ export const useLanguageStore = defineStore('language', {
           offline: 'Lost'
         },
         printerMoreIntro: {
-          title: 'Printer Details'
+          title: 'Printer Settings'
         },
         printerPrint: {
           title: 'Printer Print',

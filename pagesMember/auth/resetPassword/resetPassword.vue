@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="reset-password-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -17,8 +17,8 @@
         </view>
       </view>
       <view class="form-item">
-        <text class="form-label">旧密码</text>
-        <input class="form-input" v-model="oldPassword" type="password" placeholder="请输入旧密码" />
+        <text class="form-label">{{ texts.oldPasswordLabel }}</text>
+        <input class="form-input" v-model="oldPassword" type="password" :placeholder="texts.oldPasswordPlaceholder" />
       </view>
       <view class="form-item">
         <text class="form-label">{{ texts.newPasswordLabel }}</text>
@@ -33,149 +33,127 @@
   </view>
 </template>
 
-<script lang="ts">
-// @ts-nocheck
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores/index.ts'
-import { sendResetPasswordCode, resetPassword } from '@/api/users.ts'
-import { handleLogout } from '@/api/errorHandler.ts'
+import { useLanguageStore } from '@/stores'
+import { sendResetPasswordCode, resetPassword } from '@/api/users'
+import { handleLogout } from '@/api/errorHandler'
 
-export default {
-  name: 'ResetPassword',
-  components: {
-    CustomNavbar,
-    SafeArea
-  },
-  data() {
-    return {
-      email: '',
-      code: '',
-      oldPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-      countdown: 0,
-      timer: null
-    }
-  },
-  
-  mounted() {
-    this.languageStore.loadLanguage()
-  },
-  
-  beforeDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer)
-    }
-  },
-  
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore.texts.accountSecurity.resetPassword
-    }
-  },
-  
-  methods: {
-    handleBack() {
-      uni.navigateBack()
-    },
-    
-    handleGetCode() {
-      if (!this.email) {
-        uni.showToast({
-          title: this.texts.enterEmail,
-          icon: 'none'
-        })
-        return
-      }
-      
-      sendResetPasswordCode(this.email).then(() => {
-        
-        this.countdown = 60
-        this.timer = setInterval(() => {
-          this.countdown--
-          if (this.countdown <= 0) {
-            clearInterval(this.timer)
-          }
-        }, 1000)
-      }).catch((error) => {
-        uni.showToast({
-          title: error.message || this.texts.sendFailed,
-          icon: 'none'
-        })
-      })
-    },
-    
-    handleSubmit() {
-      if (!this.email || !this.code || !this.oldPassword || !this.newPassword || !this.confirmPassword) {
-        uni.showToast({
-          title: this.texts.fillAllFields,
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (this.newPassword === this.oldPassword) {
-        uni.showToast({
-          title: '新密码不能与旧密码相同',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (this.newPassword !== this.confirmPassword) {
-        uni.showToast({
-          title: this.texts.passwordsNotMatch,
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (this.newPassword.length < 6) {
-        uni.showToast({
-          title: this.texts.passwordTooShort,
-          icon: 'none'
-        })
-        return
-      }
-      
-      uni.showLoading({
-        title: this.texts.resetting
-      })
-      
-      resetPassword({
-        email: this.email,
-        verificationCode: this.code,
-        oldPassword: this.oldPassword,
-        newPassword: this.newPassword
-      }).then(() => {
-        uni.hideLoading()
-        
-        uni.showToast({
-          title: this.texts.resetSuccess,
-          icon: 'success'
-        })
-        
-        setTimeout(() => {
-          // 执行退出登录操作
-          handleLogout()
-          // 跳转到登录页面
-          uni.redirectTo({
-            url: '/pagesMember/auth/login/login'
-          })
-        }, 1500)
-      }).catch((error) => {
-        uni.hideLoading()
-        uni.showToast({
-          title: error.message || this.texts.resetFailed,
-          icon: 'none'
-        })
-      })
-    }
+const languageStore = useLanguageStore()
+const email = ref('')
+const code = ref('')
+const oldPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const countdown = ref(0)
+const timer = ref<ReturnType<typeof setInterval> | null>(null)
+
+const texts = computed(() => languageStore.texts.accountSecurity.resetPassword)
+
+onMounted(() => {
+  languageStore.loadLanguage()
+})
+
+onUnmounted(() => {
+  if (timer.value) {
+    clearInterval(timer.value)
   }
+})
+
+const handleBack = () => {
+  uni.navigateBack()
+}
+
+const handleGetCode = () => {
+  if (!email.value) {
+    uni.showToast({
+      title: texts.value.enterEmail,
+      icon: 'none'
+    })
+    return
+  }
+  
+  sendResetPasswordCode(email.value).then(() => {
+    countdown.value = 60
+    timer.value = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0 && timer.value) {
+        clearInterval(timer.value)
+      }
+    }, 1000)
+  }).catch((error: any) => {
+    uni.showToast({
+      title: error.message || texts.value.sendFailed,
+      icon: 'none'
+    })
+  })
+}
+
+const handleSubmit = () => {
+  if (!email.value || !code.value || !oldPassword.value || !newPassword.value || !confirmPassword.value) {
+    uni.showToast({
+      title: texts.value.fillAllFields,
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (newPassword.value === oldPassword.value) {
+    uni.showToast({
+      title: '新密码不能与旧密码相同',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (newPassword.value !== confirmPassword.value) {
+    uni.showToast({
+      title: texts.value.passwordsNotMatch,
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (newPassword.value.length < 6) {
+    uni.showToast({
+      title: texts.value.passwordTooShort,
+      icon: 'none'
+    })
+    return
+  }
+  
+  uni.showLoading({
+    title: texts.value.resetting
+  })
+  
+  resetPassword({
+    email: email.value,
+    verificationCode: code.value,
+    oldPassword: oldPassword.value,
+    newPassword: newPassword.value
+  }).then(() => {
+    uni.hideLoading()
+    
+    uni.showToast({
+      title: texts.value.resetSuccess,
+      icon: 'success'
+    })
+    
+    setTimeout(() => {
+      handleLogout()
+      uni.redirectTo({
+        url: '/pagesMember/auth/login/login'
+      })
+    }, 1500)
+  }).catch((error: any) => {
+    uni.hideLoading()
+    uni.showToast({
+      title: error.message || texts.value.resetFailed,
+      icon: 'none'
+    })
+  })
 }
 </script>
 
@@ -250,5 +228,3 @@ export default {
   margin-top: 40rpx;
 }
 </style>
-
-

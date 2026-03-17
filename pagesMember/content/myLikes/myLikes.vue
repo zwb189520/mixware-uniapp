@@ -36,16 +36,39 @@ interface LikeItem {
   title: string
   image: string
   time: string
+  timestamp?: string
 }
 
 const languageStore = useLanguageStore()
 const likesList = ref<LikeItem[]>([])
 const loading = ref(false)
 
-const texts = computed(() => languageStore?.texts?.myLikes || {})
+const texts = computed(() => ({
+  ...(languageStore?.texts?.myLikes || {}),
+  ...(languageStore?.texts?.myFavorites || {})
+}))
 
 const handleBack = () => {
   uni.navigateBack()
+}
+
+const formatTime = (timeStr: string) => {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const textsValue = texts.value
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  if (days > 0) return `${days}${textsValue.daysAgo || '天前'}`
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  if (hours > 0) return `${hours}${textsValue.hoursAgo || '小时前'}`
+  
+  const minutes = Math.floor(diff / (1000 * 60))
+  if (minutes > 0) return `${minutes}${textsValue.minutesAgo || '分钟前'}`
+  
+  return textsValue.justNow || '刚刚'
 }
 
 const loadLikes = async () => {
@@ -54,7 +77,10 @@ const loadLikes = async () => {
   
   try {
     const localLikes = uni.getStorageSync('likesList') || []
-    likesList.value = localLikes
+    likesList.value = localLikes.map((item: any) => ({
+      ...item,
+      time: formatTime(item.time || item.timestamp || new Date().toISOString())
+    }))
   } catch (error) {
     console.error('加载点赞列表失败:', error)
     likesList.value = []

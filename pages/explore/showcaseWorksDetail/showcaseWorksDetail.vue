@@ -638,10 +638,10 @@ export default {
         const newComment = {
           id: Date.now(),
           userId: this.currentUserId,
-          userName: '我',
+          userName: this.texts.me || '我',
           userAvatar: '/static/images/Default avatar.png',
           content: content,
-          time: '刚刚',
+          time: this.texts.justNow || '刚刚',
           likes: 0,
           isLiked: false,
           replies: []
@@ -699,10 +699,10 @@ export default {
         const newReply = {
           id: Date.now(),
           userId: this.currentUserId,
-          userName: '我',
+          userName: this.texts.me || '我',
           userAvatar: this.userAvatar || '/static/images/Default avatar.png',
           content: data.content,
-          time: '刚刚',
+          time: this.texts.justNow || '刚刚',
           likes: 0,
           isLiked: false
         }

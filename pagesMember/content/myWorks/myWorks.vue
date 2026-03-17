@@ -8,14 +8,14 @@
         :class="{ active: activeTab === 'works' }"
         @click="switchTab('works')"
       >
-        <text class="tab-text">我的作品</text>
+        <text class="tab-text">{{ texts.myWorks || '我的作品' }}</text>
       </view>
       <view 
         class="tab-item" 
         :class="{ active: activeTab === 'likes' }"
         @click="switchTab('likes')"
       >
-        <text class="tab-text">我的点赞</text>
+        <text class="tab-text">{{ texts.myLikes || '我的点赞' }}</text>
       </view>
     </view>
     <view class="works-container">
@@ -31,8 +31,8 @@
       </view>
       <view v-else-if="!loading" class="empty-state">
         <image class="empty-icon" src="/static/images/empty-box.png" mode="aspectFit" />
-        <text class="empty-text">{{ activeTab === 'works' ? (texts.noWorks || '暂无作品') : '暂无点赞' }}</text>
-        <text class="empty-hint">{{ activeTab === 'works' ? (texts.emptyHint || '快去打印吧') : '快去点赞吧' }}</text>
+        <text class="empty-text">{{ activeTab === 'works' ? (texts.noWorks || '暂无作品') : (texts.noLikes || '暂无点赞') }}</text>
+        <text class="empty-hint">{{ activeTab === 'works' ? (texts.emptyHint || '快去打印吧') : (texts.goLike || '快去点赞吧') }}</text>
       </view>
     </view>
     
