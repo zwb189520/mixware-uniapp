@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="message-settings-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -34,55 +34,44 @@
   </view>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores'
 
-export default {
-  name: 'MessageSettings',
-  components: {
-    CustomNavbar,
-    SafeArea
-  },
-  data() {
-    return {
-      messageReminder: true,
-      printSuccess: true,
-      printFailure: true
-    }
-  },
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore?.texts?.messageSettings || {}
-    }
-  },
-  mounted() {
-    this.languageStore.loadLanguage()
-  },
-  methods: {
-    handleBack() {
-      uni.navigateBack()
-    },
-    goToSystemSettings() {
-      uni.showToast({
-        title: this.texts.goToSystemSettings,
-        icon: 'none'
-      })
-    },
-    handleMessageReminderChange(e) {
-      this.messageReminder = e.detail.value
-    },
-    handlePrintSuccessChange(e) {
-      this.printSuccess = e.detail.value
-    },
-    handlePrintFailureChange(e) {
-      this.printFailure = e.detail.value
-    }
-  }
+const languageStore = useLanguageStore()
+const messageReminder = ref(true)
+const printSuccess = ref(true)
+const printFailure = ref(true)
+
+const texts = computed(() => languageStore?.texts?.messageSettings || {})
+
+onMounted(() => {
+  languageStore.loadLanguage()
+})
+
+const handleBack = () => {
+  uni.navigateBack()
+}
+
+const goToSystemSettings = () => {
+  uni.showToast({
+    title: texts.value.goToSystemSettings,
+    icon: 'none'
+  })
+}
+
+const handleMessageReminderChange = (e: any) => {
+  messageReminder.value = e.detail.value
+}
+
+const handlePrintSuccessChange = (e: any) => {
+  printSuccess.value = e.detail.value
+}
+
+const handlePrintFailureChange = (e: any) => {
+  printFailure.value = e.detail.value
 }
 </script>
 
@@ -90,10 +79,6 @@ export default {
 .message-settings-page {
   min-height: 100vh;
   background: #FFF9F5;
-}
-
-.safe-area-top {
-  background: #fff;
 }
 
 .content {

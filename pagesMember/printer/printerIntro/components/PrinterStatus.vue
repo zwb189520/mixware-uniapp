@@ -7,8 +7,9 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'PrinterStatus',
@@ -127,3 +128,5 @@ export default {
   letter-spacing: 1rpx;
 }
 </style>
+
+

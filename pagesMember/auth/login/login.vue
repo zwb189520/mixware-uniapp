@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="login-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -119,12 +119,13 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores'
-import { sendVerificationCodeWithHandler, loginWithPassword, registerWithHandler, thirdPartyLoginWithHandler, loginByCodeWithHandler } from '@/api/users.js'
-import { getGoogleOAuthConfig, googleCallback, appleCallback, getAppleConfig } from '@/api/auth.js'
+import { useLanguageStore } from '@/stores/index.ts'
+import { sendVerificationCodeWithHandler, loginWithPassword, registerWithHandler, thirdPartyLoginWithHandler, loginByCodeWithHandler } from '@/api/users.ts'
+import { getGoogleOAuthConfig, googleCallback, appleCallback, getAppleConfig } from '@/api/auth.ts'
 
 export default {
   name: 'Login',
@@ -980,3 +981,4 @@ export default {
   color: #333;
 }
 </style>
+

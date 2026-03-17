@@ -23,7 +23,6 @@
       </view>
     </view>
     
-    <!-- 扫描结果 -->
     <view v-if="scanResult" class="scan-result">
       <view class="result-header">
         <text class="result-title">{{ texts.scanResult || '扫描结果' }}</text>
@@ -60,7 +59,6 @@
       </view>
     </view>
     
-    <!-- 手动输入弹窗 - 使用 teleport 避免背景变暗 -->
     <ManualInputModal
       v-if="showManualInput"
       :visible="showManualInput"
@@ -76,182 +74,180 @@
   </view>
 </template>
 
-<script>
-import { parseSnCode } from '@/api/devices.js'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { useLanguageStore } from '@/stores'
 import ManualInputModal from './ManualInputModal.vue'
 import uniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
-export default {
-  name: 'SnScannerSection',
-  components: {
-    ManualInputModal,
-    uniIcons
-  },
-  data() {
-    return {
-      scanResult: null,
-      showManualInput: false,
-      isScanning: false
+interface ScanResult {
+  snCode: string
+  deviceName?: string
+  deviceType?: string
+  deviceId?: string
+}
+
+interface ScanCodeResult {
+  result: string
+}
+
+const emit = defineEmits<{
+  (e: 'scan-success', result: ScanResult): void
+  (e: 'add-device', result: ScanResult): void
+  (e: 'scan-cleared'): void
+}>()
+
+const languageStore = useLanguageStore()
+const scanResult = ref<ScanResult | null>(null)
+const showManualInput = ref(false)
+const isScanning = ref(false)
+
+const texts = computed(() => languageStore?.texts?.deviceManager || {})
+
+onMounted(() => {
+  languageStore.loadLanguage()
+})
+
+const handleScan = async () => {
+  if (isScanning.value) return
+  
+  isScanning.value = true
+  try {
+    const result = await scanCode()
+    if (result && result.result) {
+      await processSnCode(result.result)
     }
-  },
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore?.texts?.deviceManager || {}
-    }
-  },
-  mounted() {
-    this.languageStore.loadLanguage()
-  },
-  methods: {
-    async handleScan() {
-      if (this.isScanning) return
-      
-      this.isScanning = true
-      try {
-        const result = await this.scanCode()
-        if (result && result.result) {
-          await this.processSnCode(result.result)
-        }
-      } catch (error) {
-        console.error('扫描失败:', error)
-        uni.showToast({
-          title: this.texts.scanFailed || '扫描失败',
-          icon: 'none'
-        })
-      } finally {
-        this.isScanning = false
-      }
-    },
-    
-    handleManualInput() {
-      this.showManualInput = true
-      this.manualSnCode = ''
-    },
-    
-    async processSnCode(snCode) {
-      if (!snCode) {
-        uni.showToast({
-          title: this.texts.snCodeRequired || 'SN码不能为空',
-          icon: 'none'
-        })
-        return
-      }
-      
-      uni.showLoading({ title: this.texts.parsing || '解析中...' })
-      try {
-        const res = await uni.$http.post('/devices/parseSnCode', { snCode })
-        uni.hideLoading()
-        
-        if (res.code === 0) {
-          // 解析成功，设置扫描结果
-          this.scanResult = {
-            snCode: snCode,
-            deviceName: '新设备',
-            deviceType: '3D_PRINTER'
-          }
-          this.$emit('scan-success', this.scanResult)
-          uni.showToast({
-            title: '解析成功',
-            icon: 'success'
-          })
-        } else {
-          uni.showToast({
-            title: res.msg || '解析失败',
-            icon: 'none'
-          })
-        }
-      } catch (error) {
-        uni.hideLoading()
-        console.error('解析SN码失败:', error)
-        uni.showToast({
-          title: this.texts.parseFailed || '解析失败',
-          icon: 'none'
-        })
-      }
-    },
-    
-    async handleManualConfirm(snCode) {
-      await this.processSnCode(snCode)
-    },
-    
-    handleRescan() {
-      this.clearResult()
-      this.handleScan()
-    },
-    
-    async handleAddDevice() {
-      if (!this.scanResult) return
-      
-      uni.showLoading({ title: '添加中...' })
-      try {
-        const res = await uni.$http.post('/devices/bind', {
-          deviceId: this.scanResult.deviceId || '',
-          snCode: this.scanResult.snCode
-        })
-        uni.hideLoading()
-        
-        if (res.code === 0) {
-          uni.showToast({
-            title: '添加成功',
-            icon: 'success'
-          })
-          this.$emit('add-device', this.scanResult)
-          this.clearResult()
-        } else {
-          uni.showToast({
-            title: res.msg || '添加失败',
-            icon: 'none'
-          })
-        }
-      } catch (error) {
-        uni.hideLoading()
-        console.error('添加设备失败:', error)
-        uni.showToast({
-          title: '添加失败',
-          icon: 'none'
-        })
-      }
-    },
-    
-    clearResult() {
-      this.scanResult = null
-      this.$emit('scan-cleared')
-    },
-    
-    scanCode() {
-      return new Promise((resolve, reject) => {
-        uni.scanCode({
-          onlyFromCamera: true,
-          scanType: ['qrCode', 'barCode'],
-          success: (res) => {
-            resolve(res)
-          },
-          fail: (err) => {
-            // 用户取消扫码不提示错误
-            if (err.errMsg && err.errMsg.includes('cancel')) {
-              resolve(null)
-            } else {
-              reject(err)
-            }
-          }
-        })
-      })
-    },
-    
-    getDeviceTypeText(type) {
-      const typeMap = {
-        '3D_PRINTER': '3D打印机',
-        'LASER_CUTTER': '激光切割机',
-        'CNC_MACHINE': 'CNC机床',
-        'OTHER': '其他设备'
-      }
-      return typeMap[type] || '未知设备'
-    }
+  } catch (error) {
+    console.error('扫描失败:', error)
+    uni.showToast({
+      title: texts.value.scanFailed || '扫描失败',
+      icon: 'none'
+    })
+  } finally {
+    isScanning.value = false
   }
+}
+
+const handleManualInput = () => {
+  showManualInput.value = true
+}
+
+const processSnCode = async (snCode: string) => {
+  if (!snCode) {
+    uni.showToast({
+      title: texts.value.snCodeRequired || 'SN码不能为空',
+      icon: 'none'
+    })
+    return
+  }
+  
+  uni.showLoading({ title: texts.value.parsing || '解析中...' })
+  try {
+    const res = await uni.$http.post('/devices/parseSnCode', { snCode })
+    uni.hideLoading()
+    
+    if (res.code === 0) {
+      scanResult.value = {
+        snCode: snCode,
+        deviceName: '新设备',
+        deviceType: '3D_PRINTER'
+      }
+      emit('scan-success', scanResult.value)
+      uni.showToast({
+        title: '解析成功',
+        icon: 'success'
+      })
+    } else {
+      uni.showToast({
+        title: res.msg || '解析失败',
+        icon: 'none'
+      })
+    }
+  } catch (error) {
+    uni.hideLoading()
+    console.error('解析SN码失败:', error)
+    uni.showToast({
+      title: texts.value.parseFailed || '解析失败',
+      icon: 'none'
+    })
+  }
+}
+
+const handleManualConfirm = async (snCode: string) => {
+  await processSnCode(snCode)
+}
+
+const handleRescan = () => {
+  clearResult()
+  handleScan()
+}
+
+const handleAddDevice = async () => {
+  if (!scanResult.value) return
+  
+  uni.showLoading({ title: '添加中...' })
+  try {
+    const res = await uni.$http.post('/devices/bind', {
+      deviceId: scanResult.value.deviceId || '',
+      snCode: scanResult.value.snCode
+    })
+    uni.hideLoading()
+    
+    if (res.code === 0) {
+      uni.showToast({
+        title: '添加成功',
+        icon: 'success'
+      })
+      emit('add-device', scanResult.value)
+      clearResult()
+    } else {
+      uni.showToast({
+        title: res.msg || '添加失败',
+        icon: 'none'
+      })
+    }
+  } catch (error) {
+    uni.hideLoading()
+    console.error('添加设备失败:', error)
+    uni.showToast({
+      title: '添加失败',
+      icon: 'none'
+    })
+  }
+}
+
+const clearResult = () => {
+  scanResult.value = null
+  emit('scan-cleared')
+}
+
+const scanCode = (): Promise<ScanCodeResult | null> => {
+  return new Promise((resolve, reject) => {
+    uni.scanCode({
+      onlyFromCamera: true,
+      scanType: ['qrCode', 'barCode'],
+      success: (res) => {
+        resolve(res as ScanCodeResult)
+      },
+      fail: (err) => {
+        if (err.errMsg && err.errMsg.includes('cancel')) {
+          resolve(null)
+        } else {
+          reject(err)
+        }
+      }
+    })
+  })
+}
+
+const getDeviceTypeText = (type: string): string => {
+  const typeMap: Record<string, string> = {
+    '3D_PRINTER': '3D打印机',
+    'LASER_CUTTER': '激光切割机',
+    'CNC_MACHINE': 'CNC机床',
+    'OTHER': '其他设备'
+  }
+  return typeMap[type] || '未知设备'
 }
 </script>
 
@@ -475,4 +471,3 @@ export default {
   color: #333;
 }
 </style>
-

@@ -18,7 +18,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'FirmwareSettings',
   props: {
@@ -122,3 +123,5 @@ export default {
   transform: translateX(48rpx);
 }
 </style>
+
+

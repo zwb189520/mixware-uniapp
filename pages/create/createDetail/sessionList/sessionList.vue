@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="session-list-page">
     <safe-area />
     <custom-navbar :title="texts.sessionList" @back="goBack">
@@ -50,11 +50,12 @@
   </view>
 </template>
 
-<script>
-import { useChatStore } from '@/stores/index.js'
+<script lang="ts">
+// @ts-nocheck
+import { useChatStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
-import { useLanguageStore } from '@/stores'
-import { getSessionList, createSession, setCurrentSession } from '@/api/session.js'
+import { useLanguageStore } from '@/stores/index.ts'
+import { getSessionList, createSession, setCurrentSession } from '@/api/session.ts'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 
@@ -349,3 +350,4 @@ export default {
   padding: 10rpx;
 }
 </style>
+

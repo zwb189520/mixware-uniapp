@@ -1,10 +1,11 @@
-<template>
+﻿<template>
   <view class="transform-page">
     <text>Transform Page</text>
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'TransformPage'
 }
@@ -16,3 +17,5 @@ export default {
   text-align: center;
 }
 </style>
+
+

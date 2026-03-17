@@ -19,8 +19,9 @@
   </view>
 </template>
 
-<script>
-import { getDeviceList, setDefaultDevice } from '@/api/devices.js'
+<script lang="ts">
+// @ts-nocheck
+import { getDeviceList, setDefaultDevice } from '@/api/devices.ts'
 
 export default {
   name: 'PrinterNameSelector',
@@ -182,3 +183,5 @@ export default {
   font-weight: 500;
 }
 </style>
+
+

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view v-show="visible" class="custom-action-mask" @click="handleCancel">
     <view class="custom-action-sheet" @click.stop>
       <view class="action-list">
@@ -18,7 +18,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'CustomActionSheet',
   props: {
@@ -132,3 +133,4 @@ export default {
   font-weight: 500;
 }
 </style>
+

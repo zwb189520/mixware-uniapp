@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="my-print-configs-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -26,49 +26,43 @@
   </view>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores'
 
-export default {
-  name: 'MyPrintConfigs',
-  components: {
-    CustomNavbar,
-    SafeArea
-  },
-  data() {
-    return {
-      configsList: []
-    }
-  },
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore?.texts?.myPrintConfigs || {}
-    }
-  },
-  mounted() {
-    this.languageStore.loadLanguage()
-    this.loadConfigs()
-  },
-  methods: {
-    handleBack() {
-      uni.navigateBack()
-    },
-    loadConfigs() {
-      const configs = uni.getStorageSync('configsList') || []
-      this.configsList = configs
-    },
-    handleItemClick(item) {
-      uni.showToast({
-        title: this.texts.viewDetail,
-        icon: 'none'
-      })
-    }
-  }
+interface Config {
+  id: string | number
+  name: string
+  detail: string
+  time: string
+}
+
+const languageStore = useLanguageStore()
+const configsList = ref<Config[]>([])
+
+const texts = computed(() => languageStore?.texts?.myPrintConfigs || {})
+
+onMounted(() => {
+  languageStore.loadLanguage()
+  loadConfigs()
+})
+
+const handleBack = () => {
+  uni.navigateBack()
+}
+
+const loadConfigs = () => {
+  const configs = uni.getStorageSync('configsList') || []
+  configsList.value = configs
+}
+
+const handleItemClick = (item: Config) => {
+  uni.showToast({
+    title: texts.value.viewDetail,
+    icon: 'none'
+  })
 }
 </script>
 

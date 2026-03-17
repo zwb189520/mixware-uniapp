@@ -55,12 +55,13 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { textToModel } from '@/api/hunyuan3d.js'
-import { audioOffline } from '@/api/audio.js'
-import { useLanguageStore } from '@/stores'
+import { textToModel } from '@/api/hunyuan3d.ts'
+import { audioOffline } from '@/api/audio.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   components: {
@@ -144,8 +145,8 @@ export default {
         console.log('文生模型响应:', res)
         console.log('响应数据详情:', JSON.stringify(res))
         
-        if ((res.code === 0 || res.code === 1) && res.data && (res.data.JobId || res.data.RequestId)) {
-          const jobId = res.data.JobId || res.data.RequestId
+        if ((res.code === 0 || res.code === 1) && res.data && (res.data.taskId || res.data.JobId || res.data.RequestId)) {
+          const jobId = res.data.taskId || res.data.JobId || res.data.RequestId
           const aiMsg = {
             id: `ai-${Date.now()}`,
             role: 'assistant',
@@ -453,3 +454,5 @@ export default {
 	line-height: 1.5;
 }
 </style>
+
+

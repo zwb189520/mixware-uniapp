@@ -16,7 +16,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import { useLanguage } from '@/composables'
 
 export default {
@@ -128,3 +129,5 @@ export default {
   font-weight: 500;
 }
 </style>
+
+

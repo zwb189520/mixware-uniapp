@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="custom-navbar">
     <view class="navbar-left" v-if="showBack" @click="handleBack">
       <uni-icons type="left" size="24"></uni-icons>
@@ -12,7 +12,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'CustomNavbar',
   props: {
@@ -91,3 +92,5 @@ export default {
   opacity: 0.6;
 }
 </style>
+
+

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="printer-intro-page">
     <view class="header-wrapper">
       <safe-area />
@@ -27,14 +27,15 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import PrinterNameSelector from './components/PrinterNameSelector.vue'
 import PrinterStatus from './components/PrinterStatus.vue'
 import PrinterImage from './components/PrinterImage.vue'
 import PrinterProgress from './components/PrinterProgress.vue'
-import { getDeviceStatus, getDefaultDevice, getDeviceList, setDefaultDevice } from '@/api/devices.js'
-import { useLanguageStore } from '@/stores'
+import { getDeviceStatus, getDefaultDevice, getDeviceList, setDefaultDevice } from '@/api/devices.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'PrinterIntro',
@@ -338,3 +339,5 @@ export default {
   letter-spacing: 1rpx;
 }
 </style>
+
+

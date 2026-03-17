@@ -62,10 +62,11 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
-import { getDeviceList, setDefaultDevice, deleteDevice } from '@/api/devices.js'
-import { useLanguageStore } from '@/stores'
+import { getDeviceList, setDefaultDevice, deleteDevice } from '@/api/devices.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'PrinterPartner',
@@ -383,3 +384,4 @@ export default {
   color: #FF5A00;
 }
 </style>
+

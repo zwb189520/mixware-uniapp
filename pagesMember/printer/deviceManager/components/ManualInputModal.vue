@@ -46,7 +46,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'ManualInputModal',
   props: {
@@ -338,4 +339,6 @@ export default {
   color: #fff;
 }
 </style>
+
+
 

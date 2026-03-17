@@ -25,7 +25,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'CalibrationSection',
   data() {
@@ -133,3 +134,5 @@ export default {
   margin-left: 10rpx;
 }
 </style>
+
+

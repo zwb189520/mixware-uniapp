@@ -48,10 +48,11 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { getFollowingList, getFollowersList, toggleFollow } from '@/api/community'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   components: {
@@ -295,4 +296,6 @@ export default {
   color: #999;
 }
 </style>
+
+
 

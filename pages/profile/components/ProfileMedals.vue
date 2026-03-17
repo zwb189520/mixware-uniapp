@@ -19,7 +19,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import { useLanguage } from '@/composables'
 
 export default {
@@ -144,3 +145,5 @@ export default {
   color: #666;
 }
 </style>
+
+

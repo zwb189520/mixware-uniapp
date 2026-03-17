@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view v-if="visible" class="wifi-modal-overlay" @tap="handleClose">
     <view class="wifi-modal-content" @tap.stop>
       <!-- 头部 -->
@@ -37,7 +37,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'WiFiSelectorModal',
   props: {
@@ -164,3 +165,4 @@ export default {
   color: #999;
 }
 </style>
+

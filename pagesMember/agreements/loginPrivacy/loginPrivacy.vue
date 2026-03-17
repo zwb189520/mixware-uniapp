@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="privacy-page">
     <custom-navbar :title="texts.title" @back="handleBack" />
     <view class="content">
@@ -38,9 +38,10 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'LoginPrivacy',
@@ -98,3 +99,5 @@ export default {
   line-height: 1.8;
 }
 </style>
+
+

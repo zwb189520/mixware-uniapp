@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="search-page">
     <safe-area />
     <!-- 顶部搜索栏 -->
@@ -79,14 +79,15 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { getModelPage } from '@/api/models.js'
-import { getHotExamples } from '@/api/session.js'
-import { useExploreStore } from '@/stores/index.js'
+import { getModelPage } from '@/api/models.ts'
+import { getHotExamples } from '@/api/session.ts'
+import { useExploreStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   components: {
@@ -473,3 +474,4 @@ export default {
   flex: 1;
 }
 </style>
+

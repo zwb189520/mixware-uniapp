@@ -5,8 +5,9 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'SearchBar',
@@ -60,3 +61,4 @@ export default {
   color: #999;
 }
 </style>
+

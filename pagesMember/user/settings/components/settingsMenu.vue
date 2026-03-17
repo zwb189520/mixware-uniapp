@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="settings-menu">
     <view class="menu-section">
       <view 
@@ -28,9 +28,10 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
-import { logout } from '@/api/users.js'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+import { logout } from '@/api/users.ts'
 
 export default {
   name: 'SettingsMenu',
@@ -226,3 +227,5 @@ export default {
   color: #FF5A00;
 }
 </style>
+
+

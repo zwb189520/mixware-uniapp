@@ -1,8 +1,9 @@
-<template>
+﻿<template>
   <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'SafeArea',
   data() {
@@ -22,3 +23,5 @@ export default {
   background: #fff;
 }
 </style>
+
+

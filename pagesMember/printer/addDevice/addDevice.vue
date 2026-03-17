@@ -46,11 +46,12 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import WiFiSelectorModal from './components/WiFiSelectorModal.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { connectToDevice, subscribeToWiFiList, sendWiFiConfig, subscribeToConfigResult, initWifi, getWifiList } from '@/utils/bluetooth.js'
+import { connectToDevice, subscribeToWiFiList, sendWiFiConfig, subscribeToConfigResult, initWifi, getWifiList } from '@/utils/bluetooth.ts'
 
 export default {
   name: 'AddDevice',
@@ -155,7 +156,7 @@ export default {
       // 等待适配器完全关闭
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      const { initBluetooth } = await import('@/utils/bluetooth.js')
+      const { initBluetooth } = await import('@/utils/bluetooth.ts')
       console.log('正在初始化蓝牙适配器...')
       await initBluetooth()
       console.log('蓝牙适配器初始化成功')
@@ -388,7 +389,7 @@ export default {
                 uni.closeBluetoothAdapter({ success: resolve, fail: resolve })
               })
               await new Promise(resolve => setTimeout(resolve, 500))
-              const { initBluetooth } = await import('@/utils/bluetooth.js')
+              const { initBluetooth } = await import('@/utils/bluetooth.ts')
               await initBluetooth()
               try {
                 await connectToDevice(this.bluetoothDeviceId)
@@ -610,3 +611,4 @@ export default {
 
 
 </style>
+

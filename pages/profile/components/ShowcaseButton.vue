@@ -10,9 +10,10 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
-import { getPostList } from '@/api/community.js'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+import { getPostList } from '@/api/community.ts'
 
 export default {
   name: 'ShowcaseButton',
@@ -121,3 +122,5 @@ export default {
   margin-top: 4rpx;
 }
 </style>
+
+

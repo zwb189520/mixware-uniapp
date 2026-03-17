@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="my-likes-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -25,84 +25,54 @@
   </view>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores'
 
-export default {
-  name: 'MyLikes',
-  components: {
-    CustomNavbar,
-    SafeArea
-  },
-  data() {
-    return {
-      likesList: [],
-      loading: false
-    }
-  },
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore?.texts?.myLikes || {}
-    }
-  },
-  mounted() {
-    this.languageStore.loadLanguage()
-    this.loadLikes()
-  },
-  onShow() {
-    this.loadLikes()
-  },
-  methods: {
-    handleBack() {
-      uni.navigateBack()
-    },
-    async loadLikes() {
-      if (this.loading) return
-      this.loading = true
-      
-      try {
-        const localLikes = uni.getStorageSync('likesList') || []
-        this.likesList = localLikes
-      } catch (error) {
-        console.error('加载点赞列表失败:', error)
-        this.likesList = []
-      } finally {
-        this.loading = false
-      }
-    },
-    fixImageUrl(url) {
-      if (!url) return ''
-      return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
-    },
-    formatTime(timeStr) {
-      if (!timeStr) return ''
-      const date = new Date(timeStr)
-      const now = new Date()
-      const diff = now - date
-      
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-      if (days > 0) return `${days}天前`
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60))
-      if (hours > 0) return `${hours}小时前`
-      
-      const minutes = Math.floor(diff / (1000 * 60))
-      if (minutes > 0) return `${minutes}分钟前`
-      
-      return '刚刚'
-    },
-    handleItemClick(item) {
-      uni.navigateTo({
-        url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
-      })
-    }
+interface LikeItem {
+  id: string
+  title: string
+  image: string
+  time: string
+}
+
+const languageStore = useLanguageStore()
+const likesList = ref<LikeItem[]>([])
+const loading = ref(false)
+
+const texts = computed(() => languageStore?.texts?.myLikes || {})
+
+const handleBack = () => {
+  uni.navigateBack()
+}
+
+const loadLikes = async () => {
+  if (loading.value) return
+  loading.value = true
+  
+  try {
+    const localLikes = uni.getStorageSync('likesList') || []
+    likesList.value = localLikes
+  } catch (error) {
+    console.error('加载点赞列表失败:', error)
+    likesList.value = []
+  } finally {
+    loading.value = false
   }
 }
+
+const handleItemClick = (item: LikeItem) => {
+  uni.navigateTo({
+    url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
+  })
+}
+
+onMounted(() => {
+  languageStore.loadLanguage()
+  loadLikes()
+})
 </script>
 
 <style scoped>

@@ -25,11 +25,12 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import { useLanguage } from '@/composables'
 import { useUser } from '@/composables'
 import { getFollowingList, getFollowersList } from '@/api/community'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 import { computed } from 'vue'
 
 export default {
@@ -261,3 +262,5 @@ export default {
   background: #e0e0e0;
 }
 </style>
+
+

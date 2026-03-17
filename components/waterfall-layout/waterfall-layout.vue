@@ -66,8 +66,9 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'WaterfallLayout',
@@ -238,3 +239,4 @@ export default {
   color: #ff6b9d;
 }
 </style>
+

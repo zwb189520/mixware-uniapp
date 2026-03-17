@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="reset-password-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -33,12 +33,13 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores'
-import { sendResetPasswordCode, resetPassword } from '@/api/users.js'
-import { handleLogout } from '@/api/errorHandler.js'
+import { useLanguageStore } from '@/stores/index.ts'
+import { sendResetPasswordCode, resetPassword } from '@/api/users.ts'
+import { handleLogout } from '@/api/errorHandler.ts'
 
 export default {
   name: 'ResetPassword',
@@ -249,3 +250,5 @@ export default {
   margin-top: 40rpx;
 }
 </style>
+
+

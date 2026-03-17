@@ -1,4 +1,4 @@
-<template>
+﻿﻿<template>
   <view class="my-favorites-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -25,10 +25,11 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 import { getFavoriteModels } from '@/api/userFavorite'
 
 export default {
@@ -182,3 +183,5 @@ export default {
   color: #999;
 }
 </style>
+
+

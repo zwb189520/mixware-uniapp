@@ -9,8 +9,9 @@
   </view>
 </template>
 
-<script>
-import { deleteDevice } from '@/api/devices.js'
+<script lang="ts">
+// @ts-nocheck
+import { deleteDevice } from '@/api/devices.ts'
 
 export default {
   name: 'ActionButtons',
@@ -102,3 +103,5 @@ export default {
   font-weight: 600;
 }
 </style>
+
+

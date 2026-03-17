@@ -29,8 +29,9 @@
   </view>
 </template>
 
-<script>
-import { getDeviceInfo, updateDeviceInfo } from '@/api/devices.js'
+<script lang="ts">
+// @ts-nocheck
+import { getDeviceInfo, updateDeviceInfo } from '@/api/devices.ts'
 
 export default {
   name: 'PrinterInfoSection',
@@ -186,3 +187,5 @@ export default {
   font-weight: 500;
 }
 </style>
+
+

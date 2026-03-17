@@ -29,7 +29,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'ModelCard',
   props: {
@@ -149,3 +150,4 @@ export default {
 }
 
 </style>
+

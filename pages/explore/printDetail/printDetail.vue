@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.workDetail" @back="handleBack" />
@@ -110,17 +110,18 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import { useLanguageStore } from '@/stores'
-import { getDeviceList, setDefaultDevice } from '@/api/devices.js'
+import { useLanguageStore } from '@/stores/index.ts'
+import { getDeviceList, setDefaultDevice } from '@/api/devices.ts'
 import {
   sendPauseCommand,
   sendResumeCommand,
   sendRestartCommand,
   sendStopCommand,
   getFirmwareInfo
-} from '@/api/iot.js'
+} from '@/api/iot.ts'
 
 export default {
   components: { CustomNavbar },
@@ -618,3 +619,5 @@ export default {
   color: #fff;
 }
 </style>
+
+

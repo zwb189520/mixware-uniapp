@@ -90,19 +90,20 @@
 	</view>
 </template>
 
-<script>
-	import { chatStream, stopChat } from '@/api/chat.js'
-	import { audioOffline } from '@/api/audio.js'
-	import { post, get } from '@/api/request.js'
-	import { getSessionMessages, setCurrentSession, getHotExamples, getSessionDetail } from '@/api/session.js'
-	import { asyncTextToImg, queryTextToImgTask } from '@/api/text2img.js'
+<script lang="ts">
+// @ts-nocheck
+	import { chatStream, stopChat } from '@/api/chat.ts'
+	import { audioOffline } from '@/api/audio.ts'
+	import { post, get } from '@/api/request.ts'
+	import { getSessionMessages, setCurrentSession, getHotExamples, getSessionDetail } from '@/api/session.ts'
+	import { asyncTextToImg, queryTextToImgTask } from '@/api/text2img.ts'
 	import MarkdownIt from 'markdown-it'
 	import mpHtml from '@/components/mp-html/mp-html.vue'
 	import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 	import SafeArea from '@/components/safe-area/safe-area.vue'
-	import { useChatStore } from '@/stores/index.js'
+	import { useChatStore } from '@/stores/index.ts'
 	import { storeToRefs } from 'pinia'
-	import { useLanguageStore } from '@/stores'
+	import { useLanguageStore } from '@/stores/index.ts'
 
 	export default {
 		components: {
@@ -864,3 +865,5 @@
 	padding: 10rpx 20rpx;
 }
 </style>
+
+

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="printer-more-intro-page">
     <view class="header-wrapper">
       <safe-area />
@@ -14,15 +14,16 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import PrinterInfoSection from './components/PrinterInfoSection.vue'
 import FirmwareSettings from './components/FirmwareSettings.vue'
 import MaintenanceSection from './components/MaintenanceSection.vue'
 import CalibrationSection from './components/CalibrationSection.vue'
 import ActionButtons from './components/ActionButtons.vue'
-import { useLanguageStore } from '@/stores'
-import { getDefaultDevice } from '@/api/devices.js'
+import { useLanguageStore } from '@/stores/index.ts'
+import { getDefaultDevice } from '@/api/devices.ts'
 
 export default {
   name: 'PrinterMoreIntro',
@@ -91,3 +92,5 @@ export default {
   padding-bottom: 40rpx;
 }
 </style>
+
+

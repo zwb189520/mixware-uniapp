@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="profile-edit-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack">
@@ -35,12 +35,13 @@
   </view>
 </template>
 
-<script>
-import { updateUserInfo } from '@/api/users.js'
-import { BASE_URL } from '@/api/request.js'
+<script lang="ts">
+// @ts-nocheck
+import { updateUserInfo } from '@/api/users.ts'
+import { BASE_URL } from '@/api/request.ts'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'ProfileEdit',
@@ -290,3 +291,4 @@ export default {
   color: #666;
 }
 </style>
+

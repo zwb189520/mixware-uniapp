@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="printer-image-container">
     <image 
       class="printer-image" 
@@ -8,7 +8,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'PrinterImage',
   data() {
@@ -72,3 +73,5 @@ export default {
   50% { transform: translateY(-15rpx); }
 }
 </style>
+
+

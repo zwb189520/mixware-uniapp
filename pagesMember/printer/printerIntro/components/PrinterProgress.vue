@@ -18,8 +18,9 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'PrinterProgress',
@@ -151,3 +152,5 @@ export default {
   font-weight: 500;
 }
 </style>
+
+

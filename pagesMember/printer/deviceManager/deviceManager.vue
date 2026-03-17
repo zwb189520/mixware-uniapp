@@ -6,14 +6,12 @@
     </view>
     
     <view class="content-container">
-      <!-- 空状态 -->
       <view v-if="devices.length === 0 && !isLoading" class="empty-state">
         <view class="empty-icon">📱</view>
         <text class="empty-title">还没有设备</text>
         <text class="empty-desc">扫描设备二维码或手动输入SN码添加设备</text>
       </view>
       
-      <!-- 设备列表 -->
       <view v-else class="device-list">
         <view 
           v-for="device in devices" 
@@ -46,28 +44,18 @@
         </view>
       </view>
       
-      <!-- 扫码添加设备 -->
-      <!-- <sn-scanner-section 
-        @scan-success="handleScanSuccess"
-        @add-device="handleCreateDevice"
-        @scan-cleared="handleScanCleared"
-      /> -->
-
-      <!-- 添加打印机盒子 -->
       <view class="add-printer-btn" @click="handleShowAddPrinter">
         <uni-icons type="plus" size="20" color="#FF5A00"></uni-icons>
         <text class="add-text">添加打印机</text>
       </view>
     </view>
     
-    <!-- 添加打印机弹框 -->
     <AddPrinterModal 
       :visible="showAddPrinter" 
       @select-printer="onSelectPrinter" 
       @cancel="onCancelAddPrinter" 
     />
     
-    <!-- 编辑设备弹窗 -->
     <view v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
       <view class="edit-modal" @click.stop>
         <view class="modal-decoration">
@@ -109,199 +97,179 @@
   </view>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import SnScannerSection from './components/SnScannerSection.vue'
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
-import { getDeviceList, updateDeviceInfo, deleteDevice, parseSnCode } from '@/api/devices.js'
+import { getDeviceList, updateDeviceInfo, deleteDevice } from '@/api/devices'
 import { useLanguageStore } from '@/stores'
 
-export default {
-  name: 'DeviceManager',
-  components: {
-    CustomNavbar,
-    SafeArea,
-    SnScannerSection,
-    AddPrinterModal
-  },
-  data() {
-    return {
-      devices: [],
-      showEditModal: false,
-      showAddPrinter: false,
-      editForm: {
-        id: '',
-        deviceId: '',
-        deviceName: ''
-      },
-      isLoading: false
+interface Device {
+  id?: string
+  deviceId: string
+  deviceName?: string
+  deviceStatus?: number | string
+}
+
+interface EditForm {
+  id: string
+  deviceId: string
+  deviceName: string
+}
+
+const languageStore = useLanguageStore()
+const devices = ref<Device[]>([])
+const showEditModal = ref(false)
+const showAddPrinter = ref(false)
+const editForm = ref<EditForm>({
+  id: '',
+  deviceId: '',
+  deviceName: ''
+})
+const isLoading = ref(false)
+
+const texts = computed(() => languageStore?.texts?.deviceManager || {})
+
+onMounted(() => {
+  languageStore.loadLanguage()
+  loadDevices()
+})
+
+const handleBack = () => {
+  uni.navigateBack()
+}
+
+const loadDevices = async () => {
+  isLoading.value = true
+  try {
+    const res = await getDeviceList()
+    if (res.data && res.data.records) {
+      devices.value = res.data.records
     }
-  },
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore?.texts?.deviceManager || {}
-    }
-  },
-  mounted() {
-    this.languageStore.loadLanguage()
-    this.loadDevices()
-  },
-  methods: {
-    handleBack() {
-      uni.navigateBack()
-    },
+  } catch (error) {
+    console.error('加载设备列表失败:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const getDeviceStatusText = (device: Device) => {
+  const status = device.deviceStatus
+  if (status === 1 || status === '1') {
+    return '在线'
+  }
+  return '离线'
+}
+
+const getStatusClass = (device: Device) => {
+  const status = device.deviceStatus
+  if (status === 1 || status === '1') {
+    return 'status-online'
+  }
+  return 'status-offline'
+}
+
+const handleDeviceClick = (device: Device) => {
+  uni.navigateTo({
+    url: `/pagesMember/printer/printerIntro/printerIntro?deviceId=${device.deviceId}`
+  })
+}
+
+const handleEditDevice = (device: Device) => {
+  editForm.value = {
+    id: device.id || device.deviceId,
+    deviceId: device.deviceId,
+    deviceName: device.deviceName || ''
+  }
+  showEditModal.value = true
+}
+
+const handleSaveDevice = async () => {
+  if (!editForm.value.deviceName.trim()) {
+    uni.showToast({
+      title: '请输入设备名称',
+      icon: 'none'
+    })
+    return
+  }
+  
+  const submitData = {
+    deviceId: editForm.value.deviceId,
+    deviceName: editForm.value.deviceName
+  }
+  
+  try {
+    const res = await updateDeviceInfo(submitData)
     
-    async loadDevices() {
-      this.isLoading = true
-      try {
-        const res = await getDeviceList()
-        if (res.data && res.data.records) {
-          this.devices = res.data.records
-        }
-      } catch (error) {
-        console.error('加载设备列表失败:', error)
-      } finally {
-        this.isLoading = false
-      }
-    },
-    
-    getDeviceStatusText(device) {
-      const status = device.deviceStatus
-      if (status === 1 || status === '1') {
-        return '在线'
-      }
-      return '离线'
-    },
-    
-    getStatusClass(device) {
-      const status = device.deviceStatus
-      if (status === 1 || status === '1') {
-        return 'status-online'
-      }
-      return 'status-offline'
-    },
-    
-    handleDeviceClick(device) {
-      uni.navigateTo({
-        url: `/pagesMember/printer/printerIntro/printerIntro?deviceId=${device.deviceId}`
+    if (res.code === 1 || res.code === 200) {
+      uni.showToast({
+        title: '保存成功',
+        icon: 'success'
       })
-    },
-    
-    handleEditDevice(device) {
-      console.log('编辑设备原始数据:', device)
-      this.editForm = {
-        id: device.id || device.deviceId, // 优先使用 id，如果没有则尝试 deviceId
-        deviceId: device.deviceId,
-        deviceName: device.deviceName || ''
-      }
-      this.showEditModal = true
-    },
-    
-    async handleSaveDevice() {
-      if (!this.editForm.deviceName.trim()) {
-        uni.showToast({
-          title: '请输入设备名称',
-          icon: 'none'
-        })
-        return
-      }
-      
-      const submitData = {
-        deviceId: this.editForm.deviceId,
-        deviceName: this.editForm.deviceName
-      }
-      console.log('尝试精简提交数据:', submitData)
-      
-      try {
-        const res = await updateDeviceInfo(submitData)
-        
-        if (res.code === 1 || res.code === 200) {
+      closeEditModal()
+      loadDevices()
+    } else {
+      uni.showToast({
+        title: res.msg || '保存失败',
+        icon: 'none'
+      })
+    }
+  } catch (error) {
+    console.error('保存设备信息失败:', error)
+    uni.showToast({
+      title: '保存失败',
+      icon: 'none'
+    })
+  }
+}
+
+const handleDeleteDevice = async (device: Device) => {
+  uni.showModal({
+    title: '确认删除',
+    content: `确定要删除设备 "${device.deviceName || device.deviceId}" 吗？`,
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deleteDevice(device.deviceId)
           uni.showToast({
-            title: '保存成功',
+            title: '删除成功',
             icon: 'success'
           })
-          this.closeEditModal()
-          this.loadDevices()
-        } else {
+          loadDevices()
+        } catch (error) {
+          console.error('删除设备失败:', error)
           uni.showToast({
-            title: res.msg || '保存失败',
+            title: '删除失败',
             icon: 'none'
           })
         }
-      } catch (error) {
-        console.error('保存设备信息失败:', error)
-        uni.showToast({
-          title: '保存失败',
-          icon: 'none'
-        })
-      }
-    },
-    
-    async handleDeleteDevice(device) {
-      uni.showModal({
-        title: '确认删除',
-        content: `确定要删除设备 "${device.deviceName || device.deviceId}" 吗？`,
-        success: async (res) => {
-          if (res.confirm) {
-            try {
-              await deleteDevice(device.deviceId)
-              uni.showToast({
-                title: '删除成功',
-                icon: 'success'
-              })
-              this.loadDevices()
-            } catch (error) {
-              console.error('删除设备失败:', error)
-              uni.showToast({
-                title: '删除失败',
-                icon: 'none'
-              })
-            }
-          }
-        }
-      })
-    },
-    
-    handleScanSuccess(scanData) {
-      console.log('扫描成功:', scanData)
-    },
-    
-    async handleCreateDevice(deviceData) {
-      // 设备已在 SnScannerSection 中添加，这里只需刷新列表
-      this.loadDevices()
-    },
-    
-    handleScanCleared() {
-      console.log('扫描清除')
-    },
-    
-    handleShowAddPrinter() {
-      this.showAddPrinter = true
-    },
-    
-    onSelectPrinter(printerId) {
-      // 跳转到配网页面
-      uni.navigateTo({
-        url: `/pagesMember/printer/addDevice/addDevice?deviceId=${printerId}`
-      })
-      this.showAddPrinter = false
-    },
-    
-    onCancelAddPrinter() {
-      this.showAddPrinter = false
-    },
-    
-    closeEditModal() {
-      this.showEditModal = false
-      this.editForm = {
-        deviceId: '',
-        deviceName: ''
       }
     }
+  })
+}
+
+const handleShowAddPrinter = () => {
+  showAddPrinter.value = true
+}
+
+const onSelectPrinter = (printerId: string) => {
+  uni.navigateTo({
+    url: `/pagesMember/printer/addDevice/addDevice?deviceId=${printerId}`
+  })
+  showAddPrinter.value = false
+}
+
+const onCancelAddPrinter = () => {
+  showAddPrinter.value = false
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editForm.value = {
+    id: '',
+    deviceId: '',
+    deviceName: ''
   }
 }
 </script>

@@ -69,12 +69,13 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import { useLanguageStore } from '@/stores'
-import { getCurrentUserInfo } from '@/api/users.js'
-import { get } from '@/api/request.js'
-import { getPrintRecords } from '@/api/operationRecords.js'
+import { useLanguageStore } from '@/stores/index.ts'
+import { get } from '@/api/request.ts'
+import { getPrintRecords } from '@/api/operationRecords.ts'
+import { getUserInfo } from '@/api/users.ts'
 
 export default {
   components: { CustomNavbar },
@@ -189,7 +190,6 @@ export default {
         }
         
         // 使用 getUserInfo(userId) 而不是 getCurrentUserInfo()
-        const { getUserInfo } = await import('@/api/users.js')
         const res = await getUserInfo(userId)
         
         if (res.code === 1 && res.data) {
@@ -442,3 +442,5 @@ export default {
   opacity: 0.7;
 }
 </style>
+
+

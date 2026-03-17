@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="message-list">
     <view v-if="messages.length === 0" class="empty-state">
       <text class="empty-text">{{ texts.emptyText }}</text>
@@ -26,58 +26,64 @@
   </view>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { useLanguageStore } from '@/stores'
 
-export default {
-  name: 'MessageList',
-  data() {
-    return {
-      messages: []
-    }
-  },
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore?.texts?.messageList || {}
-    }
-  },
-  mounted() {
-    this.languageStore.loadLanguage()
-    this.loadMessages()
-  },
-  methods: {
-    loadMessages() {
-      this.messages = uni.getStorageSync('messages') || []
-    },
-    getMessageIcon(type) {
-      const iconMap = {
-        'system': 'info',
-        'notification': 'notification',
-        'like': 'heart',
-        'comment': 'chat'
-      }
-      return iconMap[type] || 'info'
-    },
-    handleMessageClick(message) {
-      message.read = true
-      this.saveMessages()
-    },
-    clearAllMessages() {
-      this.messages = []
-      this.saveMessages()
-      uni.showToast({
-        title: this.texts.cleared,
-        icon: 'success'
-      })
-    },
-    saveMessages() {
-      uni.setStorageSync('messages', this.messages)
-    }
-  }
+interface MessageItem {
+  id: string | number
+  type: string
+  title: string
+  content: string
+  time: string
+  read: boolean
 }
+
+const languageStore = useLanguageStore()
+const messages = ref<MessageItem[]>([])
+
+const texts = computed(() => languageStore?.texts?.messageList || {})
+
+onMounted(() => {
+  languageStore.loadLanguage()
+  loadMessages()
+})
+
+const loadMessages = () => {
+  messages.value = uni.getStorageSync('messages') || []
+}
+
+const getMessageIcon = (type: string): string => {
+  const iconMap: Record<string, string> = {
+    'system': 'info',
+    'notification': 'notification',
+    'like': 'heart',
+    'comment': 'chat'
+  }
+  return iconMap[type] || 'info'
+}
+
+const handleMessageClick = (message: MessageItem) => {
+  message.read = true
+  saveMessages()
+}
+
+const clearAllMessages = () => {
+  messages.value = []
+  saveMessages()
+  uni.showToast({
+    title: texts.value.cleared,
+    icon: 'success'
+  })
+}
+
+const saveMessages = () => {
+  uni.setStorageSync('messages', messages.value)
+}
+
+defineExpose({
+  clearAllMessages
+})
 </script>
 
 <style scoped>

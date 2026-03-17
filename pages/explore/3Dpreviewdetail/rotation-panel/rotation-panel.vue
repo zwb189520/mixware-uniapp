@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="rotation-panel" v-if="visible">
     <view class="panel-header">
       <text class="reset-btn" @tap="handleReset">{{ texts.reset || '重置' }}</text>
@@ -59,8 +59,9 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'RotationPanel',
@@ -281,3 +282,4 @@ export default {
   z-index: 10;
 }
 </style>
+

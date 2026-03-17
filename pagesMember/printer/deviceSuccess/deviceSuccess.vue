@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="device-success-page">
     <safe-area />
     <custom-navbar :title="pageTitle" @back="handleBack" />
@@ -42,12 +42,13 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { bindDevice, getDeviceInfo } from '@/api/devices.js'
-import { getDeviceStatus, getDeviceAuth } from '@/api/iot.js'
-import { useLanguageStore } from '@/stores'
+import { bindDevice, getDeviceInfo } from '@/api/devices.ts'
+import { getDeviceStatus, getDeviceAuth } from '@/api/iot.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'DeviceSuccess',
@@ -328,3 +329,5 @@ export default {
   border-radius: 50rpx;
 }
 </style>
+
+

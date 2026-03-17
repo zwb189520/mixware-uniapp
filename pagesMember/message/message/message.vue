@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="message-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack">
@@ -11,11 +11,12 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import MessageList from '../components/messageList.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'Message',
@@ -72,3 +73,5 @@ export default {
   background: #fff;
 }
 </style>
+
+

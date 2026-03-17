@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="my-works-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -48,15 +48,16 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import WorkCard from './components/WorkCard.vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import CustomActionSheet from './components/CustomActionSheet.vue'
-import { getModelRecords, getPrintRecords } from '@/api/operationRecords.js'
-import { deleteModel } from '@/api/models.js'
-import { getPostList, getLikedPosts } from '@/api/community.js'
-import { useLanguageStore } from '@/stores'
+import { getModelRecords, getPrintRecords } from '@/api/operationRecords.ts'
+import { deleteModel } from '@/api/models.ts'
+import { getPostList, getLikedPosts } from '@/api/community.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'MyWorks',
@@ -375,3 +376,5 @@ export default {
   font-weight: bold;
 }
 </style>
+
+

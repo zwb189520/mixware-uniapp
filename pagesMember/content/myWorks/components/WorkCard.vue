@@ -16,7 +16,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'WorkCard',
   props: {
@@ -69,3 +70,5 @@ export default {
   color: #999;
 }
 </style>
+
+

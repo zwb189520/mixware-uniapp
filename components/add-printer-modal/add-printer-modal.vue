@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view v-if="visible" class="modal-overlay" @tap="handleCancel">
     <view class="modal-content" @tap.stop>
       <view class="modal-header">
@@ -32,11 +32,12 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
-import { deleteDevice, bindDevice, getDeviceList } from '@/api/devices.js'
-import { initBluetooth, startBluetoothScan, stopBluetoothScan, getBluetoothDevices } from '@/utils/bluetooth.js'
-import { checkAllPermissions } from '@/utils/permission.js'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+import { deleteDevice, bindDevice, getDeviceList } from '@/api/devices.ts'
+import { initBluetooth, startBluetoothScan, stopBluetoothScan, getBluetoothDevices } from '@/utils/bluetooth.ts'
+import { checkAllPermissions } from '@/utils/permission.ts'
 
 export default {
   name: 'AddPrinterModal',
@@ -351,3 +352,5 @@ export default {
   color: white;
 }
 </style>
+
+

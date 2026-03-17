@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <view class="nav-fixed">
       <safe-area />
@@ -115,10 +115,11 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 import { createPost } from '@/api/community'
 import { uploadFile } from '@/api/request'
 
@@ -630,3 +631,4 @@ export default {
   color: #999;
 }
 </style>
+

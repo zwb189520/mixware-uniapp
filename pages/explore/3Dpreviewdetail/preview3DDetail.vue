@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="preview-page">
     <safe-area class="fixed-top" />
     <custom-navbar class="fixed-top" :title="modelName" @back="handleBack" />
@@ -102,14 +102,15 @@
   </view>
 </template>
 
-<script>
-import { sendPrintCommand } from '@/api/iot.js'
-import { getModelDetail } from '@/api/models.js'
-import { getDefaultDevice } from '@/api/devices.js'
-import { getTaskStatus } from '@/api/hunyuan3d.js'
+<script lang="ts">
+// @ts-nocheck
+import { sendPrintCommand } from '@/api/iot.ts'
+import { getModelDetail } from '@/api/models.ts'
+import { getDefaultDevice } from '@/api/devices.ts'
+import { getTaskStatus } from '@/api/hunyuan3d.ts'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
 import RotationPanel from './rotation-panel/rotation-panel.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   components: {
@@ -1194,3 +1195,4 @@ export default {
 	opacity: 0.5;
 }
 </style>
+

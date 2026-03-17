@@ -19,13 +19,14 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import ProfileUserInfo from './components/ProfileUserInfo.vue'
 import ProfileStats from './components/ProfileStats.vue'
 import ProfileMedals from './components/ProfileMedals.vue'
 import ShowcaseButton from './components/ShowcaseButton.vue'
 import PrinterPartner from './components/PrinterPartner.vue'
-import { useLanguageStore, useUserStore } from '@/stores'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 export default {
   name: 'Profile',
@@ -107,3 +108,5 @@ export default {
   justify-content: center;
 }
 </style>
+
+

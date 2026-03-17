@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="category-tabs">
     <view 
       class="tab-item" 
@@ -14,7 +14,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'CategoryTabs',
   props: {
@@ -113,3 +114,4 @@ export default {
   transform: scale(1.05);
 }
 </style>
+

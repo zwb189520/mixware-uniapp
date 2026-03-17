@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <safe-area />
     <custom-navbar :title="texts.photography" @back="handleBack" />
@@ -35,11 +35,12 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { imageToModel } from '@/api/hunyuan3d.js'
-import { useLanguageStore } from '@/stores'
+import { imageToModel } from '@/api/hunyuan3d.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   components: {
@@ -285,3 +286,4 @@ export default {
   font-size: 28rpx;
 }
 </style>
+

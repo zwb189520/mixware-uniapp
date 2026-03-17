@@ -131,10 +131,11 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import CommentSection from './components/CommentSection.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores/index.ts'
 import { 
   getPostDetail, 
   getPostComments, 
@@ -1389,3 +1390,4 @@ export default {
   font-weight: 600;
 }
 </style>
+

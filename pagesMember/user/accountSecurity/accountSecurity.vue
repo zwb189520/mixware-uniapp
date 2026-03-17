@@ -27,104 +27,92 @@
   </view>
 </template>
 
-<script>
-import { deleteUser } from '@/api/users.js'
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { deleteUser } from '@/api/users'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores'
 
-export default {
-  name: 'AccountSecurity',
-  components: {
-    CustomNavbar,
-    SafeArea
-  },
-  computed: {
-    languageStore() {
-      return useLanguageStore()
-    },
-    texts() {
-      return this.languageStore.texts.accountSecurity
-    }
-  },
-  mounted() {
-    this.languageStore.loadLanguage()
-  },
-  methods: {
-    handleBack() {
-      uni.navigateBack()
-    },
-    
-    handleResetPassword() {
-      uni.navigateTo({
-        url: '/pagesMember/auth/resetPassword/resetPassword'
-      })
-    },
-    
-    handleEmailBinding() {
-      uni.navigateTo({
-        url: '/pagesMember/auth/emailBinding/emailBinding'
-      })
-    },
-    
-    handleThirdPartyBinding() {
-      uni.navigateTo({
-        url: '/pagesMember/auth/thirdPartyBinding/thirdPartyBinding'
-      })
-    },
-    
-    handleDeleteAccount() {
-      uni.showModal({
-        title: this.texts.deleteAccountTitle,
-        content: this.texts.deleteAccountContent,
-        confirmText: this.texts.confirm,
-        cancelText: this.texts.cancel,
-        success: (res) => {
-          if (res.confirm) {
-            this.performDeleteAccount()
-          }
-        }
-      })
-    },
-    
-    async performDeleteAccount() {
-      try {
-        uni.showLoading({
-          title: this.texts.deleting
-        })
-        
-        // 恢复为数字 ID，这是后端数据库唯一识别的格式
-        const id = uni.getStorageSync('id') || uni.getStorageSync('userId')
-        const response = await deleteUser(id)
-        
-        if (response.code === 200 || response.code === 0 || response.code === 1) {
-          uni.showToast({
-            title: this.texts.deleteSuccess,
-            icon: 'success'
-          })
-          setTimeout(() => {
-            uni.clearStorage()
-            uni.$emit('userLogout')
-            uni.reLaunch({
-              url: '/pages/profile/profile'
-            })
-          }, 1000)
-        } else {
-          uni.showToast({
-            title: response.msg || this.texts.deleteFailed,
-            icon: 'none'
-          })
-        }
-      } catch (error) {
-        console.error('删除账号失败:', error)
-        uni.showToast({
-          title: error.msg || this.texts.deleteFailed,
-          icon: 'none'
-        })
-      } finally {
-        uni.hideLoading()
+const languageStore = useLanguageStore()
+
+const texts = computed(() => languageStore.texts.accountSecurity)
+
+onMounted(() => {
+  languageStore.loadLanguage()
+})
+
+const handleBack = () => {
+  uni.navigateBack()
+}
+
+const handleResetPassword = () => {
+  uni.navigateTo({
+    url: '/pagesMember/auth/resetPassword/resetPassword'
+  })
+}
+
+const handleEmailBinding = () => {
+  uni.navigateTo({
+    url: '/pagesMember/auth/emailBinding/emailBinding'
+  })
+}
+
+const handleThirdPartyBinding = () => {
+  uni.navigateTo({
+    url: '/pagesMember/auth/thirdPartyBinding/thirdPartyBinding'
+  })
+}
+
+const handleDeleteAccount = () => {
+  uni.showModal({
+    title: texts.value.deleteAccountTitle,
+    content: texts.value.deleteAccountContent,
+    confirmText: texts.value.confirm,
+    cancelText: texts.value.cancel,
+    success: (res) => {
+      if (res.confirm) {
+        performDeleteAccount()
       }
     }
+  })
+}
+
+const performDeleteAccount = async () => {
+  try {
+    uni.showLoading({
+      title: texts.value.deleting
+    })
+    
+    const id = uni.getStorageSync('id') || uni.getStorageSync('userId')
+    const response = await deleteUser(id) as any
+    
+    if (response.code === 200 || response.code === 0 || response.code === 1) {
+      uni.showToast({
+        title: texts.value.deleteSuccess,
+        icon: 'success'
+      })
+      setTimeout(() => {
+        uni.clearStorage()
+        uni.$emit('userLogout')
+        uni.reLaunch({
+          url: '/pages/profile/profile'
+        })
+      }, 1000)
+    } else {
+      uni.showToast({
+        title: response.msg || texts.value.deleteFailed,
+        icon: 'none'
+      })
+    }
+  } catch (error: any) {
+    console.error('删除账号失败:', error)
+    uni.showToast({
+      title: error.msg || texts.value.deleteFailed,
+      icon: 'none'
+    })
+  } finally {
+    uni.hideLoading()
   }
 }
 </script>

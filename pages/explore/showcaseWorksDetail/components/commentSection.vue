@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="comment-section-container">
     <view class="comment-section">
       <text class="section-title">{{ texts.comments }} ({{ totalCount }})</text>
@@ -123,8 +123,9 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'CommentSection',
@@ -430,3 +431,5 @@ export default {
   letter-spacing: 0.5rpx;
 }
 </style>
+
+

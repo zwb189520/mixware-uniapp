@@ -134,14 +134,15 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
-import { addFavorite, cancelFavorite, getFavoriteModels } from '@/api/userFavorite.js'
-import { getModelDetail, deleteModel, likeModel, unlikeModel } from '@/api/models.js'
-import { getPostList } from '@/api/community.js'
-import { useLanguageStore } from '@/stores'
+import { addFavorite, cancelFavorite, getFavoriteModels } from '@/api/userFavorite.ts'
+import { getModelDetail, deleteModel, likeModel, unlikeModel } from '@/api/models.ts'
+import { getPostList } from '@/api/community.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   components: {
@@ -1237,3 +1238,4 @@ export default {
   font-weight: 600;
 }
 </style>
+

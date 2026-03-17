@@ -36,9 +36,10 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
-import { createSession } from '@/api/session.js'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+import { createSession } from '@/api/session.ts'
 
 export default {
   data() {
@@ -263,3 +264,4 @@ export default {
   padding: 80rpx 40rpx;
 }
 </style>
+

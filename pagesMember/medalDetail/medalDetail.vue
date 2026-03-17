@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="medal-detail-page">
     <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
     <view class="header">
@@ -33,8 +33,9 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'MedalDetail',
@@ -244,3 +245,5 @@ export default {
   line-height: 1.6;
 }
 </style>
+
+

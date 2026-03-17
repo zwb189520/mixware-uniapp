@@ -38,7 +38,8 @@
   </view>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-nocheck
 export default {
   name: 'MaintenanceSection',
   props: {
@@ -139,4 +140,6 @@ export default {
   transition: width 0.5s ease;
 }
 </style>
+
+
 

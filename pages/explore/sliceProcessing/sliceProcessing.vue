@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.slicePreview" @back="handleBack" />
@@ -65,12 +65,13 @@
   </view>
 </template>
 
-<script>
-import { useLanguageStore } from '@/stores'
-import { getModelDetail } from '@/api/models.js'
-import { submitSliceTask, getSliceStatus } from '@/api/sliceService.js'
-import { sendPrintCommand } from '@/api/iot.js'
-import { getDefaultDevice, getDeviceList } from '@/api/devices.js'
+<script lang="ts">
+// @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+import { getModelDetail } from '@/api/models.ts'
+import { submitSliceTask, getSliceStatus } from '@/api/sliceService.ts'
+import { sendPrintCommand } from '@/api/iot.ts'
+import { getDefaultDevice, getDeviceList } from '@/api/devices.ts'
 
 export default {
   data() {
@@ -631,3 +632,4 @@ export default {
   opacity: 0.85;
 }
 </style>
+
