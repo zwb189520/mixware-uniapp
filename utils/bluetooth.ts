@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 export function initBluetooth() {
   return new Promise((resolve, reject) => {
     uni.openBluetoothAdapter({
@@ -167,10 +167,14 @@ function ab2str(buffer) {
   return utf82str(new Uint8Array(buffer))
 }
 
-function writeInChunks(deviceId, serviceId, characteristicId, buffer, chunkSize = 18) {
+// writeType: 'write' 需要等设备 ATT Write Response，间隔需要足够长
+// writeType: 'writeNoResponse' 无需等待，速度快但设备必须支持
+function writeInChunks(deviceId, serviceId, characteristicId, buffer, writeType = 'write', chunkSize = 180) {
   return new Promise((resolve, reject) => {
     const bytes = new Uint8Array(buffer)
     let offset = 0
+    // write 模式需要等设备处理完上一包，给足够间隔；writeNoResponse 无需等待
+    const interval = writeType === 'writeNoResponse' ? 50 : 500
     
     const writeNext = () => {
       if (offset >= bytes.length) {
@@ -182,17 +186,17 @@ function writeInChunks(deviceId, serviceId, characteristicId, buffer, chunkSize 
       const end = Math.min(offset + chunkSize, bytes.length)
       const chunk = bytes.slice(offset, end)
       
-      console.log(`分包发送: ${offset}-${end}/${bytes.length} 字节`)
+      console.log(`分包发送: ${offset}-${end}/${bytes.length} 字节 (${writeType})`)
       
       uni.writeBLECharacteristicValue({
         deviceId,
         serviceId,
         characteristicId,
         value: chunk.buffer,
-        writeType: 'write',
+        writeType: writeType,
         success: () => {
           offset = end
-          setTimeout(writeNext, 1000)
+          setTimeout(writeNext, interval)
         },
         fail: (err) => {
           console.error('分包写入失败:', err)
@@ -774,15 +778,20 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
           success: () => {
             console.log('通知启用成功');
             setTimeout(async () => {
-              uni.setBLEMTU({
-                deviceId: deviceId,
-                mtu: 512,
-                success: (mtuRes) => {
-                  console.log('MTU设置成功:', mtuRes);
-                },
-                fail: (mtuErr) => {
-                  console.log('MTU设置失败或不支持:', mtuErr);
-                }
+              // 先等 MTU 协商完成，避免与后续写入并发冲突
+              await new Promise((mtuResolve) => {
+                uni.setBLEMTU({
+                  deviceId: deviceId,
+                  mtu: 512,
+                  success: (mtuRes) => {
+                    console.log('MTU设置成功:', mtuRes);
+                    mtuResolve()
+                  },
+                  fail: (mtuErr) => {
+                    console.log('MTU设置失败或不支持:', mtuErr);
+                    mtuResolve() // 失败也继续，不阻塞
+                  }
+                });
               });
               
               try {
@@ -792,11 +801,16 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                 console.log('准备发送服务器URL(分包):', serverData);
                 console.log('服务器URL Buffer长度:', serverBuffer.byteLength);
                 
+                // 根据特征值属性选择 writeType
+                const writeType = writeCharacteristic.properties.writeNoResponse ? 'writeNoResponse' : 'write'
+                console.log('使用写入模式:', writeType)
+                
                 await writeInChunks(
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  serverBuffer
+                  serverBuffer,
+                  writeType
                 )
                 console.log('服务器URL发送成功');
                 
@@ -812,7 +826,8 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  wifiBuffer
+                  wifiBuffer,
+                  writeType
                 )
                 console.log('WiFi配置发送成功');
                 
@@ -826,7 +841,8 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  triggerBuffer
+                  triggerBuffer,
+                  writeType
                 )
                 console.log('配网触发命令发送成功');
                 
@@ -840,7 +856,8 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  endBuffer
+                  endBuffer,
+                  writeType
                 )
                 console.log('配网结束命令发送成功');
                 
