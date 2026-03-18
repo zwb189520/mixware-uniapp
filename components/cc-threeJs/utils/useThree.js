@@ -167,6 +167,18 @@ const initThreeJs = (inst = {}) => {
 	// 重置配置
 	Object.assign(globalConfig, defaultConfig)
 
+	// 重置所有场景辅助对象引用，防止重复初始化时旧引用残留（单例污染修复）
+	bboxHelper = null
+	faceLabels = []
+	centerPlatform = null
+	centerPlatformEdges = null
+	centerPlatformGrid = null
+	xyGridHelper = null
+	platformCube = null
+	platformCubeEdges = null
+	platformCubeGrid = null
+	platformCubeLogo = null
+
 	// 设置event.js中的参数
 	const {
 		camera
@@ -893,10 +905,49 @@ const dispose = () => {
 
 		clearFaceLabels(scene)
 		
+		// 清理 bboxHelper
+		if (bboxHelper) {
+			scene.remove(bboxHelper)
+			if (bboxHelper.material) bboxHelper.material.dispose()
+			bboxHelper = null
+		}
+		
+		// 清理中心平台
+		if (centerPlatform) {
+			scene.remove(centerPlatform)
+			if (centerPlatform.geometry) centerPlatform.geometry.dispose()
+			if (centerPlatform.material) centerPlatform.material.dispose()
+			centerPlatform = null
+		}
+		if (centerPlatformEdges) {
+			scene.remove(centerPlatformEdges)
+			if (centerPlatformEdges.geometry) centerPlatformEdges.geometry.dispose()
+			if (centerPlatformEdges.material) centerPlatformEdges.material.dispose()
+			centerPlatformEdges = null
+		}
+		if (centerPlatformGrid) {
+			scene.remove(centerPlatformGrid)
+			centerPlatformGrid = null
+		}
+		
 		// 清理XY平面网格
 		if (xyGridHelper) {
 			scene.remove(xyGridHelper)
 			xyGridHelper = null
+		}
+		
+		// 清理平台立方体边框
+		if (platformCube) {
+			scene.remove(platformCube)
+			if (platformCube.geometry) platformCube.geometry.dispose()
+			if (platformCube.material) platformCube.material.dispose()
+			platformCube = null
+		}
+		if (platformCubeEdges) {
+			scene.remove(platformCubeEdges)
+			if (platformCubeEdges.geometry) platformCubeEdges.geometry.dispose()
+			if (platformCubeEdges.material) platformCubeEdges.material.dispose()
+			platformCubeEdges = null
 		}
 		
 		// 清理正方体底部网格

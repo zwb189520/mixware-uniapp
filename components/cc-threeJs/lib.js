@@ -65,7 +65,7 @@ import {
 
 
 /********** 淘宝小程序 *************/
-// #ifdef MP-TOUTIAO
+// #ifdef MP-ALIPAY
 import {
 	TaobaoPlatform as Platform
 } from 'three-platformize/src/TaobaoPlatform'
