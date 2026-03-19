@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="message-list">
     <view v-if="messages.length === 0" class="empty-state">
       <text class="empty-text">{{ texts.emptyText }}</text>
@@ -42,7 +42,7 @@ interface MessageItem {
 const languageStore = useLanguageStore()
 const messages = ref<MessageItem[]>([])
 
-const texts = computed(() => languageStore?.texts?.messageList || {})
+const texts = computed(() => languageStore?.texts?.messageList || { emptyText: '', cleared: '' })
 
 onMounted(() => {
   languageStore.loadLanguage()

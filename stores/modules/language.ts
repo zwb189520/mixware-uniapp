@@ -501,7 +501,6 @@ export const useLanguageStore = defineStore('language', {
           followers: '粉丝',
           likes: '赞过',
           collections: '收藏',
-          printConfig: '打印配置',
           medalsWall: '勋章墙',
           newbieMedal: '新手勋章',
           creatorMedal: '创作者',
@@ -751,12 +750,6 @@ export const useLanguageStore = defineStore('language', {
           title: '赞过',
           emptyText: '暂无赞过的内容',
           noLikedContent: '暂无点赞内容'
-        },
-        myPrintConfigs: {
-          title: '打印配置',
-          emptyText: '暂无打印配置',
-          noConfigs: '暂无配置',
-          viewDetail: '查看配置详情'
         },
         loginUserAgreement: {
           title: '用户协议',
@@ -1350,7 +1343,6 @@ export const useLanguageStore = defineStore('language', {
           followers: 'Followers',
           likes: 'Likes',
           collections: 'Collections',
-          printConfig: 'Print Config',
           medalsWall: 'Medals Wall',
           newbieMedal: 'Newbie Medal',
           creatorMedal: 'Creator',
@@ -1420,12 +1412,6 @@ export const useLanguageStore = defineStore('language', {
           title: 'My Likes',
           emptyText: 'No liked content yet',
           noLikedContent: 'No liked content'
-        },
-        myPrintConfigs: {
-          title: 'Print Configurations',
-          emptyText: 'No print configurations',
-          noConfigs: 'No configurations',
-          viewDetail: 'View configuration details'
         },
         myWorks: {
           title: 'My Works Museum',

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="message-settings-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />

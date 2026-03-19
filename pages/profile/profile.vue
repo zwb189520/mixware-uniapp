@@ -71,7 +71,7 @@ export default {
         return
       }
       uni.navigateTo({
-        url: '/pagesMember/message/message/message'
+        url: '/pagesMember/message/index'
       })
     }
   }

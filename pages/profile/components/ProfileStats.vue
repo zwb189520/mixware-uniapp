@@ -44,7 +44,6 @@ export default {
       this.stats = [
         { id: 1, name: this.texts.likes, icon: '/static/images/customIcon/like.png' },
         { id: 2, name: this.texts.collections, icon: '/static/images/customIcon/collect.png' }
-        // { id: 4, name: this.texts.printConfig, icon: '/static/images/customIcon/print-config.png' }
       ]
     },
     handleStatClick(stat) {
@@ -109,8 +108,7 @@ export default {
   transition: all 0.3s ease;
 }
 
-.stat-item:active .stat-icon-wrapper {
-}
+
 
 .stat-icon {
   width: 56rpx;

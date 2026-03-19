@@ -267,12 +267,6 @@
 					"style": {
 						"navigationStyle": "custom"
 					}
-				},
-				{
-					"path": "myPrintConfigs/myPrintConfigs",
-					"style": {
-						"navigationStyle": "custom"
-					}
 				}
 			]
 		},
@@ -280,13 +274,13 @@
 			"root": "pagesMember/message",
 			"pages": [
 				{
-					"path": "message/message",
+					"path": "index",
 					"style": {
 						"navigationStyle": "custom"
 					}
 				},
 				{
-					"path": "messageSettings/messageSettings",
+					"path": "settings",
 					"style": {
 						"navigationStyle": "custom"
 					}

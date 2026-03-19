@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="message-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack">
@@ -14,7 +14,7 @@
 <script lang="ts">
 // @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import MessageList from '../components/messageList.vue'
+import MessageList from './components/list.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -56,7 +56,7 @@ export default {
     },
     handleSettings() {
       uni.navigateTo({
-        url: '/pagesMember/message/messageSettings/messageSettings'
+        url: '/pagesMember/message/settings'
       })
     }
   }
@@ -73,5 +73,3 @@ export default {
   background: #fff;
 }
 </style>
-
-
