@@ -76,6 +76,7 @@ export default {
   padding: 40rpx 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
 }
 
 .stats-grid {

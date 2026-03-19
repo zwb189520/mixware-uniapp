@@ -197,12 +197,14 @@ export default {
   border-radius: 24rpx;
   padding: 50rpx 30rpx;
   text-align: center;
+  box-shadow: 0 15rpx 40rpx rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
   overflow: hidden;
 }
 
 .tool-button:active {
   transform: scale(0.95);
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
 .button-background {

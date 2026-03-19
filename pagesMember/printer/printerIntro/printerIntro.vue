@@ -269,6 +269,7 @@ export default {
   border-radius: 80rpx;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 12rpx 40rpx rgba(255, 107, 53, 0.25);
   animation: slide-up 0.6s ease-out;
 }
 

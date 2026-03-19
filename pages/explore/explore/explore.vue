@@ -945,6 +945,7 @@ export default {
   padding-top: 24rpx;
   position: relative;
   z-index: 1;
+  box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.08);
   transition: all 0.3s ease;
   height: calc(100vh - 290rpx);
   display: flex;

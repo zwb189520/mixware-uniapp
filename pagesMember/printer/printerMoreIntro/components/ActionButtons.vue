@@ -80,12 +80,14 @@ export default {
   background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
   border-radius: 48rpx;
   border: 2rpx solid rgba(255, 107, 53, 0.2);
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.1);
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .action-button:active {
   transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.15);
 }
 
 .unbind-button {

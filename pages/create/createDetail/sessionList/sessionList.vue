@@ -300,11 +300,13 @@ export default {
   color: #fff;
   border-radius: 8rpx;
   font-size: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 122, 255, 0.3);
 }
 
 .session-items {
   background: #fff;
   border-radius: 16rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 

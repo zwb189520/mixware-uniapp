@@ -406,8 +406,14 @@ const handleSetDefault = async (device: Device) => {
   background: #fff;
   border-radius: 24rpx;
   padding: 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   animation: slideUp 0.4s ease-out;
+}
+
+.device-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
 }
 
 @keyframes slideUp {

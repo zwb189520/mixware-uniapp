@@ -315,6 +315,7 @@ export default {
   font-size: 32rpx;
   border: none;
   border-radius: 50rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255, 90, 0, 0.3);
 }
 
 .retry-button {
@@ -325,6 +326,7 @@ export default {
   font-size: 32rpx;
   border: none;
   border-radius: 50rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255, 90, 0, 0.3);
 }
 
 .home-button-outline {

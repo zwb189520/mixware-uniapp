@@ -723,6 +723,7 @@ export default {
   background-color: #fff;
   border-radius: 16rpx;
   padding: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
 }
 
 .login-tabs {

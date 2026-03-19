@@ -463,6 +463,7 @@ export default {
   max-width: 100%;
   word-break: break-all;
   box-sizing: border-box;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .history-tag:active,

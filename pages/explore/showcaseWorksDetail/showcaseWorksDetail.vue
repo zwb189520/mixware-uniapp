@@ -1067,11 +1067,13 @@ export default {
   padding: 12rpx 32rpx;
   border-radius: 40rpx;
   background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
   transition: all 0.3s;
 }
 
 .follow-btn.followed {
   background: #f0f0f0;
+  box-shadow: none;
 }
 
 .follow-text {

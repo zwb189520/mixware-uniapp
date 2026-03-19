@@ -145,6 +145,7 @@ export default {
   border-radius: 16rpx;
   margin-bottom: 20rpx;
   overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   animation: fadeIn 0.3s ease;
 }
@@ -162,6 +163,7 @@ export default {
 
 .model-card:active {
   transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.12);
 }
 
 .card-img {

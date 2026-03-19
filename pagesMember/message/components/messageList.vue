@@ -106,6 +106,7 @@ defineExpose({
 .message-items {
   background-color: #fff;
   border-radius: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 

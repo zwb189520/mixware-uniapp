@@ -93,6 +93,7 @@ export default {
   background-color: white;
   border-radius: 20rpx;
   margin: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
@@ -120,6 +121,7 @@ export default {
   border-radius: 20rpx;
   margin: 20rpx;
   padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   text-align: center;
 }
 

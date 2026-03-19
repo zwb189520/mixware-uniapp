@@ -293,6 +293,7 @@ export default {
   background-color: #FFF9F5;
   border-radius: 16rpx;
   margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 
 .printer-main {
@@ -350,6 +351,7 @@ export default {
   border: none;
   background-color: #FF5A00;
   color: white;
+  box-shadow: 0 8rpx 24rpx rgba(255, 90, 0, 0.3);
 }
 </style>
 

@@ -574,6 +574,7 @@ export default {
   margin-top: 8rpx;
   background: #fff;
   border-radius: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
   z-index: 100;
   overflow: hidden;
 }

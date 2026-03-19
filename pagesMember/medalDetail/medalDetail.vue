@@ -172,6 +172,7 @@ export default {
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .medal-header {

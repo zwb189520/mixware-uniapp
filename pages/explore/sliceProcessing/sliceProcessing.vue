@@ -489,6 +489,7 @@ export default {
   height: 600rpx;
   border-radius: 20rpx;
   background-color: #fff;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
 }
 
 .progress-section {
@@ -524,6 +525,7 @@ export default {
   border-radius: 20rpx;
   padding: 25rpx;
   margin: 0 20rpx 20rpx 20rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;

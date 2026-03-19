@@ -798,6 +798,7 @@ export default {
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
 }
 
 .model-name {
@@ -833,6 +834,7 @@ export default {
   border-radius: 50%;
   background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
   border: 3rpx solid #fff;
+  box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
 }
 
 .author-name {
@@ -880,6 +882,7 @@ export default {
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
 }
 
 .description-text {

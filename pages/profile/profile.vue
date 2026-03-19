@@ -103,9 +103,12 @@ export default {
 .icon-btn {
   width: 64rpx;
   height: 64rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 </style>
 

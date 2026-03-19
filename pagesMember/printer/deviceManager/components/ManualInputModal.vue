@@ -158,6 +158,7 @@ export default {
   border-radius: 32rpx;
   width: 85%;
   max-width: 640rpx;
+  box-shadow: 0 24rpx 80rpx rgba(0, 0, 0, 0.2);
   overflow: hidden;
   animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;

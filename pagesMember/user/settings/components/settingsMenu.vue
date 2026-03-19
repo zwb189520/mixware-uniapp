@@ -177,6 +177,7 @@ export default {
 .menu-section {
   background-color: #fff;
   margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .menu-item {

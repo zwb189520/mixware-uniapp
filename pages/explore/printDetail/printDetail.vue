@@ -425,6 +425,7 @@ export default {
   border-radius: 24rpx;
   overflow: hidden;
   background: rgba(255,255,255,0.6);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
 }
 .model-image {
   width: 100%;
@@ -452,6 +453,7 @@ export default {
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
   padding: 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
 }
 .card-header-row {
   display: flex;

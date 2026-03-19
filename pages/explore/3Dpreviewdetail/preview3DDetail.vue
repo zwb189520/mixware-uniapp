@@ -1028,10 +1028,12 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 4rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
 }
 
 .toolbar-btn:active {
   opacity: 0.8;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
 }
 
 

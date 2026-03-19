@@ -49,6 +49,7 @@ export default {
   padding: 8rpx;
   display: flex;
   align-items: center;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,.1);
 }
 .search-input {
   flex: 1;

@@ -154,6 +154,7 @@ export default {
   transform: translateX(-50%);
   background: #fff;
   border-radius: 20rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
   z-index: 100;
   min-width: 280rpx;
   margin-top: 12rpx;
