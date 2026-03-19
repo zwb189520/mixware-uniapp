@@ -141,6 +141,9 @@ export default {
       isPrinting: false,
       isPaused: false,
       gcodeUrl: '',
+      modelDimensions: '',
+      printTime: '',
+      materialWeight: '',
       deviceList: [],
       currentDevice: { id: '', name: '' }
     }
@@ -187,6 +190,9 @@ export default {
     if (!this.modelImage) this.modelImage = '/static/images/logo.png'
     try { this.gcodeUrl = options.gcodeUrl ? decodeURIComponent(options.gcodeUrl) : '' } catch { this.gcodeUrl = options.gcodeUrl || '' }
     try { this.printerName = options.printerName ? decodeURIComponent(options.printerName) : '' } catch { this.printerName = options.printerName || '' }
+    try { this.modelDimensions = options.dimensions ? decodeURIComponent(options.dimensions) : '' } catch { this.modelDimensions = options.dimensions || '' }
+    try { this.printTime = options.printTime ? decodeURIComponent(options.printTime) : '' } catch { this.printTime = options.printTime || '' }
+    try { this.materialWeight = options.materialWeight ? decodeURIComponent(options.materialWeight) : '' } catch { this.materialWeight = options.materialWeight || '' }
     this.deviceId = options.deviceId || ''
     this.isPrinting = options.autoStart === 'true'
     this.languageStore.loadLanguage()
@@ -325,10 +331,25 @@ export default {
       })
     },
     _toast(title, icon = 'none') { uni.showToast({ title, icon }) },
-    goToPrintComplete() {
+    async goToPrintComplete() {
       console.log('跳转到打印完成页，workId:', this.workId)
+      
+      // 获取当前用户信息
+      let userAvatar = '/static/images/Default avatar.png'
+      let userName = '用户'
+      try {
+        const userInfo = uni.getStorageSync('userInfo')
+        if (userInfo) {
+          const user = JSON.parse(userInfo)
+          userAvatar = user.avatar || user.avatarUrl || '/static/images/Default avatar.png'
+          userName = user.nickname || user.username || user.name || '用户'
+        }
+      } catch (e) {
+        console.log('获取用户信息失败:', e)
+      }
+      
       uni.navigateTo({
-        url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '测试模型')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent('10分钟')}&material=${encodeURIComponent('0.64g')}&size=${encodeURIComponent('10mm(X)*10mm(Y)*15mm(Z)')}&userAvatar=${encodeURIComponent('/static/images/Default avatar.png')}&userName=${encodeURIComponent('智小白3D')}&userId=${encodeURIComponent('智小白用户9467')}`
+        url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '测试模型')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(this.printTime || '10分钟')}&material=${encodeURIComponent(this.materialWeight || '0.64g')}&size=${encodeURIComponent(this.modelDimensions || '10mm(X)*10mm(Y)*15mm(Z)')}&userAvatar=${encodeURIComponent(userAvatar)}&userName=${encodeURIComponent(userName)}`
       })
     }
   }

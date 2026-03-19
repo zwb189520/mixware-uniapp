@@ -287,7 +287,15 @@
 				[...group.children].forEach(c => { // 切换模型需要删除上一个模型
 					c.removeFromParent()
 					// group.remove(c)
+					// group.remove(c)
 				})
+
+					// console.log('开始加载模型:', { modelurl, modelType })
+					
+					// 检查 URL 是否有效
+					if (!modelurl || (typeof modelurl === 'string' && modelurl.trim() === '')) {
+						throw new Error('模型 URL 无效')
+					}
 
 					// console.log('开始加载模型:', { modelurl, modelType })
 					

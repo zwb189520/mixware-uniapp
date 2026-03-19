@@ -55,7 +55,7 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import WiFiSelectorModal from './components/WiFiSelectorModal.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { connectToDevice, subscribeToWiFiList, sendWiFiConfig, subscribeToConfigResult, initWifi, getWifiList } from '@/utils/bluetooth.ts'
-import { sendWiFiConfigByPlugin, subscribeToConfigResultByPlugin, closePluginBle } from '@/utils/bluetooth-ble.ts'
+// import { sendWiFiConfigByPlugin, subscribeToConfigResultByPlugin, closePluginBle } from '@/utils/bluetooth-ble.ts'
 
 export default {
   name: 'AddDevice',
@@ -410,14 +410,14 @@ export default {
 
           // 先订阅配网结果，在发送命令之前
           console.log('1. 开始订阅配网结果...')
-          // const resultPromise = subscribeToConfigResult(this.bluetoothDeviceId)
-          const resultPromise = subscribeToConfigResultByPlugin(this.bluetoothDeviceId)
+          const resultPromise = subscribeToConfigResult(this.bluetoothDeviceId)
+          // const resultPromise = subscribeToConfigResultByPlugin(this.bluetoothDeviceId)
           // 发送服务器URL + WiFi 配置
           const serverUrl = 'http://app.mixwarebot.cn/api/iot/auth'
           console.log('2. 准备发送服务器URL:', serverUrl)
 
-          // await sendWiFiConfig(this.bluetoothDeviceId, serverUrl, this.selectedWiFi, this.wifiPassword)
-          await sendWiFiConfigByPlugin(this.bluetoothDeviceId, serverUrl, this.selectedWiFi, this.wifiPassword)
+          await sendWiFiConfig(this.bluetoothDeviceId, serverUrl, this.selectedWiFi, this.wifiPassword)
+          // await sendWiFiConfigByPlugin(this.bluetoothDeviceId, serverUrl, this.selectedWiFi, this.wifiPassword)
           console.log('3. 服务器URL和WiFi配置发送成功')
           
           // 等待配网结果
@@ -431,8 +431,8 @@ export default {
             console.log('5. 配网成功，断开蓝牙并跳转到成功页面')
             // 先保存 printerId，再断开蓝牙（断开后 bluetoothDeviceId 会被清空）
             const printerId = this.bluetoothDeviceId
-            // this._closeBluetooth()
-            closePluginBle()
+            this._closeBluetooth()
+            // closePluginBle()
             uni.showToast({
               title: '配网成功',
               icon: 'success'

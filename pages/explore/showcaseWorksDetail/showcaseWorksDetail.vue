@@ -248,6 +248,7 @@ export default {
       
       try {
         const res = await getPostDetail(String(this.postId))
+        console.log('getPostDetail 返回:', JSON.stringify(res))
         
         if (res.code === 0 || res.code === 1) {
           const postData = res.data

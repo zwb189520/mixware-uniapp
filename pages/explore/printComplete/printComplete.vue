@@ -49,16 +49,13 @@
             mode="aspectFill" 
             @error="handleAvatarError" 
           />
-          <view class="user-info">
-            <text class="user-name">{{ userData.nickname }}</text>
-            <text class="user-id">{{ userData.username }}</text>
-          </view>
+          <text class="user-name">{{ userData.username }}</text>
         </view>
       </view>
 
       <!-- 分享按钮 -->
       <view class="share-btn" @click="handleShare">
-        <text class="share-btn-text">{{ texts.shareReport }}</text>
+        <text class="share-btn-text">{{ texts.share }}</text>
       </view>
 
       <!-- 返回首页 -->
@@ -378,31 +375,19 @@ export default {
 }
 
 .user-avatar {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 24rpx;
-  margin-right: 24rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
   background: #f0f0f0;
-  border: 3rpx solid #fff;
+  border: 2rpx solid #fff;
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
-}
-
-.user-info {
-  flex: 1;
 }
 
 .user-name {
   font-size: 32rpx;
   font-weight: 700;
   color: #1a1a2e;
-  display: block;
-  margin-bottom: 8rpx;
-}
-
-.user-id {
-  font-size: 24rpx;
-  color: #888;
-  font-weight: 500;
 }
 
 .share-btn {

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.slicePreview" @back="handleBack" />
@@ -88,6 +88,10 @@ export default {
       timer: null,
       taskId: '',
       gcodeUrl: '',
+      modelDimensions: '', // 模型尺寸
+      printTime: '', // 打印时间
+      materialWeight: '', // 材料重量
+      originalDimensions: null, // 从preview3DDetail传入的原始尺寸
       realTaskCompleted: false, // 真实任务是否完成
       fakeProgressCompleted: false // 假进度是否完成
     }
@@ -115,9 +119,35 @@ export default {
     }
     console.log('初始modelImage:', this.modelImage)
     
+    // 接收从preview3DDetail传入的尺寸
+    try {
+      if (options.dimensions) {
+        this.originalDimensions = JSON.parse(decodeURIComponent(options.dimensions))
+        console.log('接收到的原始尺寸:', this.originalDimensions)
+      }
+    } catch (e) {
+      console.log('解析尺寸参数失败:', e)
+    }
+    
     // 加载语言和初始化文本
     this.languageStore.loadLanguage()
     this.initializeTexts()
+    
+    // 如果是自定义涂鸦模型（custom_ 开头），直接使用传入的 modelUrl，跳过后端查询
+    if (this.modelId.startsWith('custom_')) {
+      try {
+        this.modelUrl = options.modelUrl ? decodeURIComponent(options.modelUrl) : ''
+      } catch (e) {
+        this.modelUrl = ''
+      }
+      console.log('自定义模型，直接使用modelUrl:', this.modelUrl)
+      if (this.modelUrl) {
+        this.startSliceTask()
+      } else {
+        uni.showToast({ title: '模型文件不存在', icon: 'none' })
+      }
+      return
+    }
     
     // 加载模型详情获取图片和模型URL，完成后开始切片
     await this.loadModelImages()
@@ -211,12 +241,25 @@ export default {
       const pollTimer = setInterval(async () => {
         try {
           const res = await getSliceStatus(taskId)
+          console.log('切片状态返回:', JSON.stringify(res))
           if (res.code === 1 || res.code === 0) {
             const data = res.data
             if (data?.status === 'COMPLETED') {
               clearInterval(pollTimer)
               this.realTaskCompleted = true
               this.gcodeUrl = data?.gcodeUrl || ''
+              // 打印所有可能的字段名
+              console.log('切片完成数据:', JSON.stringify(data))
+              console.log('dimensions:', data?.dimensions)
+              console.log('modelDimensions:', data?.modelDimensions)
+              console.log('size:', data?.size)
+              console.log('printTime:', data?.printTime)
+              console.log('estimatedTime:', data?.estimatedTime)
+              console.log('materialWeight:', data?.materialWeight)
+              console.log('weight:', data?.weight)
+              this.modelDimensions = data?.dimensions || data?.modelDimensions || data?.size || ''
+              this.printTime = data?.printTime || data?.estimatedTime || ''
+              this.materialWeight = data?.materialWeight || data?.weight || ''
               this.checkBothCompleted()
             } else if (data?.status === 'FAILED') {
               clearInterval(pollTimer)
@@ -380,9 +423,13 @@ export default {
         
         if (res.code === 1 || res.code === 0) {
           uni.showToast({ title: '打印指令已发送', icon: 'success' })
+          // 使用原始尺寸（从preview3DDetail传入）
+          const dimensionsStr = this.originalDimensions ? 
+            `${this.originalDimensions.x.toFixed(1)}mm(X)*${this.originalDimensions.y.toFixed(1)}mm(Y)*${this.originalDimensions.z.toFixed(1)}mm(Z)` : 
+            (this.modelDimensions || '')
           setTimeout(() => {
             uni.redirectTo({
-              url: `/pages/explore/printDetail/printDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}`
+              url: `/pages/explore/printDetail/printDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}&dimensions=${encodeURIComponent(dimensionsStr)}&printTime=${encodeURIComponent(this.printTime || '')}&materialWeight=${encodeURIComponent(this.materialWeight || '')}`
             })
           }, 1500)
         } else {

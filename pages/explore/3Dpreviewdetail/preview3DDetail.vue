@@ -926,8 +926,11 @@ export default {
           imageUrl = this.modelInfo.previewUrl
         }
         
+        // 构建尺寸参数
+        const dimensionsParam = this.dimensions && this.dimensions.x ? encodeURIComponent(JSON.stringify(this.dimensions)) : ''
+        
         uni.navigateTo({
-          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}`
+          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(this.modelUrl || '')}&dimensions=${dimensionsParam}`
         })
       } catch (error) {
         uni.hideLoading()
