@@ -79,6 +79,7 @@ interface ModelDimensions {
 
 const languageStore = useLanguageStore()
 const url = ref('http://app.mixwarebot.cn/?token=uniapp_user_123')
+// const url = ref('http://192.168.0.43:8081/?token=uniapp_user_123')
 const statusBarHeight = ref(0)
 const postNumber = ref(0)
 const webviewContext = ref<any>(null)
@@ -190,6 +191,14 @@ onMounted(() => {
     
     wv.addEventListener('loaded', () => {
       console.log('Webview 加载完成')
+      // 延迟通知 H5 初始化，确保消息通道就绪
+      setTimeout(() => {
+        wv.evalJS(`
+          if (window.onUniAppMessageReady) {
+            window.onUniAppMessageReady();
+          }
+        `)
+      }, 200)
     }, false)
 
     plusMessageListener.value = (msg: any) => {
