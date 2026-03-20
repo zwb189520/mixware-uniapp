@@ -117,6 +117,10 @@ export default {
     } catch (e) {
       this.modelImage = options.modelImage || ''
     }
+    // 自定义模型没有预览图，使用默认图片（但如果传了有效图片则保留）
+    if (!this.modelImage || this.modelImage.endsWith('.stl')) {
+      this.modelImage = '/static/images/logo.png'
+    }
     console.log('初始modelImage:', this.modelImage)
     
     // 接收从preview3DDetail传入的尺寸
@@ -133,7 +137,7 @@ export default {
     this.languageStore.loadLanguage()
     this.initializeTexts()
     
-    // 如果是自定义涂鸦模型（custom_ 开头），直接使用传入的 modelUrl，跳过后端查询
+    // 如果是自定义涂鸦模型（custom_ 开头），直接使用传入的 modelUrl
     if (this.modelId.startsWith('custom_')) {
       try {
         this.modelUrl = options.modelUrl ? decodeURIComponent(options.modelUrl) : ''
@@ -418,7 +422,8 @@ export default {
         }
         
         // 发送打印命令
-        const res = await sendPrintCommand(deviceId, this.modelId, 'P')
+        const res = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl)
+        console.log('sendPrintCommand 响应:', res)
         uni.hideLoading()
         
         if (res.code === 1 || res.code === 0) {

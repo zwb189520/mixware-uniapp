@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { uploadModelFile } from '@/api/upload'
+import { uploadModelFile, uploadImage } from '@/api/upload'
 import { useLanguageStore } from '@/stores'
 import { API } from '@/constants/index'
 
@@ -244,6 +244,109 @@ const goBack = () => {
   }
 }
 
+const uploadSnapshotAndExportSTL = async (base64: string) => {
+  // 去掉 base64 前缀
+  let pureBase64 = base64
+  if (base64.includes(',')) {
+    pureBase64 = base64.split(',')[1]
+  }
+  console.log('处理截图，base64长度:', pureBase64.length)
+  
+  // APP端使用plus
+  // @ts-ignore
+  if (typeof plus !== 'undefined') {
+    try {
+      const bitmap = new plus.nativeObj.Bitmap('snapshot_' + Date.now())
+      bitmap.loadBase64Data(pureBase64, async () => {
+        const fileName = '_doc/snapshot_' + Date.now() + '.png'
+        bitmap.save(fileName, { overwrite: true }, async () => {
+          // 上传图片
+          try {
+            const uploadRes = await uploadImage(fileName, 'model', 'custom') as any
+            console.log('截图上传响应:', uploadRes)
+            if (uploadRes.code === 1 && uploadRes.data?.url) {
+              snapshotImageUrl.value = uploadRes.data.url
+              console.log('截图上传成功:', snapshotImageUrl.value)
+            } else {
+              console.log('截图上传失败:', uploadRes)
+            }
+          } catch (err) {
+            console.error('截图上传异常:', err)
+          }
+          bitmap.clear()
+          // 继续导出STL
+          sendMessage('exportSTL')
+        }, (err: any) => {
+          console.error('保存截图文件失败:', err)
+          bitmap.clear()
+          sendMessage('exportSTL')
+        })
+      }, (err: any) => {
+        console.error('加载base64图片失败:', err)
+        sendMessage('exportSTL')
+      })
+    } catch (error) {
+      console.error('上传截图失败:', error)
+      sendMessage('exportSTL')
+    }
+  } else {
+    // H5端
+  console.log('H5开始处理截图上传')
+  try {
+    const base64Data = pureBase64
+    console.log('base64数据长度:', base64Data.length)
+    const byteCharacters = atob(base64Data)
+    const byteNumbers = new Array(byteCharacters.length)
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+    const byteArray = new Uint8Array(byteNumbers)
+    const imageBlob = new Blob([byteArray], { type: 'image/png' })
+    console.log('图片Blob大小:', imageBlob.size)
+    
+    const formData = new FormData()
+    formData.append('file', imageBlob, 'snapshot.png')
+    formData.append('type', 'model')
+    formData.append('id', 'custom')
+    
+    const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
+    console.log('上传图片到:', baseUrl + '/upload/image')
+    
+    fetch(baseUrl + '/upload/image', {
+      method: 'POST',
+      headers: {
+        'Authorization': uni.getStorageSync('token') ? `Bearer ${uni.getStorageSync('token')}` : ''
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      console.log('H5截图上传响应:', res)
+      console.log('响应data:', res.data, 'data类型:', typeof res.data)
+      if (res.code === 1 && res.data) {
+        const url = res.data.url || res.data.fileUrl || res.data.path
+        if (url) {
+          snapshotImageUrl.value = url
+          console.log('H5截图上传成功:', snapshotImageUrl.value)
+        } else {
+          console.log('响应中无URL字段:', res.data)
+        }
+      } else {
+        console.log('H5截图上传失败:', res)
+      }
+      sendMessage('exportSTL')
+    })
+    .catch(err => {
+      console.error('H5截图上传异常:', err)
+      sendMessage('exportSTL')
+    })
+  } catch (err) {
+    console.error('H5截图处理失败:', err)
+    sendMessage('exportSTL')
+  }
+  }
+}
+
 const saveImageToPhotosAlbum = (base64: string) => {
   // #ifdef APP-PLUS
   const bitmap = new plus.nativeObj.Bitmap("snapshot_" + Date.now())
@@ -313,17 +416,22 @@ const handleShare = () => {
   sendMessage('exportSTL')
 }
 
+const snapshotImageUrl = ref('')
+
 const handlePrint = () => {
   console.log('去打印')
   isPrinting.value = true
-  sendMessage('exportSTL')
+  snapshotImageUrl.value = ''
+  // 先截图
+  sendMessage('snapshot')
 }
 
 const handleWebviewMessage = (evt: any) => {
   if (isUnloading.value) return
 
-  console.log('接收到来自 Doodle3D 的消息:', evt.detail.data)
   const msg: WebviewMessage = evt.detail.data
+  // 只打印action，不打印完整数据
+  console.log('消息action:', msg.action)
   
   if (msg.action == 'loadDown') {
     isLoadDown3dView.value = true
@@ -334,9 +442,18 @@ const handleWebviewMessage = (evt: any) => {
   }
 
   if (msg.action === 'snapshot') {
-    console.log('接收3d快照数据成功')
+    console.log('接收3d快照数据成功, isPrinting:', isPrinting.value, 'hasSnapshot:', !!msg.snapshot)
     if (msg.snapshot) {
-      saveImageToPhotosAlbum(msg.snapshot)
+      if (isPrinting.value) {
+        // 打印模式：上传图片并保存URL
+        console.log('开始上传截图')
+        uploadSnapshotAndExportSTL(msg.snapshot)
+      } else {
+        // 普通模式：保存到相册
+        saveImageToPhotosAlbum(msg.snapshot)
+      }
+    } else {
+      console.log('snapshot数据为空')
     }
   }
 
@@ -513,6 +630,14 @@ const uploadAndNavigateToPrint = async (stlContent: string) => {
 
 const uploadAndNavigateApp = async (stlContent: string) => {
   try {
+    // 等待截图上传完成（最多等5秒）
+    let waitCount = 0
+    while (!snapshotImageUrl.value && waitCount < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      waitCount++
+    }
+    console.log('截图URL:', snapshotImageUrl.value, '等待次数:', waitCount, 'isPrinting:', isPrinting.value)
+    
     console.log('开始保存STL文件')
     const fileName = "temp_model_" + Date.now() + ".stl"
     const filePath = await saveStlToFile(stlContent, fileName)
@@ -550,8 +675,9 @@ const uploadAndNavigateApp = async (stlContent: string) => {
       plus.screen.lockOrientation('portrait-primary')
       // #endif
       
+      const imageUrl = snapshotImageUrl.value || ''
       uni.navigateTo({
-        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}`,
+        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(imageUrl)}`,
         success: () => {
           console.log('跳转成功')
         },
@@ -575,6 +701,14 @@ const uploadAndNavigateApp = async (stlContent: string) => {
 }
 
 const uploadAndNavigateH5 = async (stlContent: string) => {
+  // 等待截图上传完成（最多等5秒）
+  let waitCount = 0
+  while (!snapshotImageUrl.value && waitCount < 50) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+    waitCount++
+  }
+  console.log('H5截图URL:', snapshotImageUrl.value, '等待次数:', waitCount)
+  
   const blob = new Blob([stlContent], { type: 'model/stl' })
   const tempFilePath = URL.createObjectURL(blob)
   
@@ -587,9 +721,10 @@ const uploadAndNavigateH5 = async (stlContent: string) => {
     
     const h5ModelId = 'custom_' + Date.now()
     const h5ModelName = modelName.value || '未命名模型'
+    const h5ImageUrl = snapshotImageUrl.value || ''
     
     uni.navigateTo({
-      url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${h5ModelId}&name=${encodeURIComponent(h5ModelName)}&url=${encodeURIComponent(h5ModelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}`
+      url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${h5ModelId}&name=${encodeURIComponent(h5ModelName)}&url=${encodeURIComponent(h5ModelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(h5ImageUrl)}`
     })
   } else {
     uni.showToast({ title: '上传失败', icon: 'none' })

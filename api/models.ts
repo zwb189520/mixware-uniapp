@@ -13,7 +13,7 @@ export function addModel(modelData) {
     downloadUrl: modelData.downloadUrl || '',
     description: modelData.description || '',
     userId: modelData.userId || '',
-    editableStatus: modelData.editableStatus || '1'
+    editableStatus: modelData.editableStatus || 'editable'
   })
 }
 

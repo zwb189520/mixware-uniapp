@@ -193,12 +193,6 @@
 					}
 				},
 				{
-					"path": "printerPrint/printerPrint",
-					"style": {
-						"navigationStyle": "custom"
-					}
-				},
-				{
 					"path": "addDevice/addDevice",
 					"style": {
 						"navigationStyle": "custom"

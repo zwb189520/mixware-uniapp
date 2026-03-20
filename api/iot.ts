@@ -42,10 +42,11 @@ export function sendRestartCommand(deviceId, modelId) {
  * @param {string} deviceId - 设备 ID
  * @param {string} modelId - 模型 ID
  * @param {string} action - 操作类型
+ * @param {string} gcodeUrl - GCode文件URL
  * @returns {Promise<Object>} 返回命令结果
  */
-export function sendPrintCommand(deviceId, modelId, action) {
-  return post('/iot/sendPrintCommand', { deviceId, modelId, action })
+export function sendPrintCommand(deviceId, modelId, action, gcodeUrl) {
+  return post('/iot/sendPrintCommand', { deviceId, modelId, action, gcodeUrl })
 }
 
 /**

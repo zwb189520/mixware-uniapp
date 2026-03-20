@@ -111,6 +111,7 @@ import { getTaskStatus } from '@/api/hunyuan3d.ts'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
 import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores/index.ts'
+import { API } from '@/constants/index'
 
 export default {
   components: {
@@ -123,6 +124,7 @@ export default {
       modelName: '',
       modelUrl: '',
       modelType: '',
+      snapshotImageUrl: '',
       loading: false,
       pollTimer: null,
       pollCount: 0,
@@ -190,6 +192,7 @@ export default {
     this.modelName = options.name ? decodeURIComponent(options.name) : ''
     this.modelUrl = this.normalizeUrl(decodeURIComponent(options.url || ''))
     this.modelType = options.modelType || this.getModelTypeFromUrl(this.modelUrl)
+    this.snapshotImageUrl = options.imageUrl ? decodeURIComponent(options.imageUrl) : ''
     
     if (options.dimensions) {
       try {
@@ -441,6 +444,67 @@ export default {
           this.setModelColor(0x00ff00)
         }, 100)
       })
+      
+      // 如果没有涂鸦截图，截取3D预览图
+      if (!this.snapshotImageUrl) {
+        setTimeout(() => {
+          this.capturePreviewImage()
+        }, 500)
+      }
+    },
+    
+    capturePreviewImage() {
+      // #ifdef H5
+      try {
+        const canvas = document.querySelector('canvas')
+        if (canvas) {
+          const dataUrl = canvas.toDataURL('image/png')
+          console.log('截取3D预览图成功，长度:', dataUrl.length)
+          // 上传到服务器获取URL
+          this.uploadPreviewImage(dataUrl)
+        }
+      } catch (err) {
+        console.error('截取3D预览图失败:', err)
+      }
+      // #endif
+    },
+    
+    async uploadPreviewImage(dataUrl: string) {
+      // #ifdef H5
+      try {
+        // 去掉base64前缀
+        const base64 = dataUrl.split(',')[1]
+        const byteCharacters = atob(base64)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: 'image/png' })
+        
+        const formData = new FormData()
+        formData.append('file', blob, 'preview.png')
+        formData.append('type', 'model')
+        formData.append('id', this.modelId)
+        
+        const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
+        const res = await fetch(baseUrl + '/upload/image', {
+          method: 'POST',
+          headers: {
+            'Authorization': uni.getStorageSync('token') ? `Bearer ${uni.getStorageSync('token')}` : ''
+          },
+          body: formData
+        })
+        const data = await res.json()
+        console.log('预览图上传响应:', data)
+        if (data.code === 1 && data.data?.url) {
+          this.snapshotImageUrl = data.data.url
+          console.log('预览图上传成功:', this.snapshotImageUrl)
+        }
+      } catch (err) {
+        console.error('预览图上传失败:', err)
+      }
+      // #endif
     },
     onModelLoadError(error) {
       this.loading = false
@@ -918,12 +982,17 @@ export default {
         
         uni.hideLoading()
         
-        // 跳转到切片处理页面，使用previewUrl而不是modelUrl
-        let imageUrl = this.modelUrl
+        // 跳转到切片处理页面，使用涂鸦截图或模型预览图
+        let imageUrl = this.snapshotImageUrl
         
-        // 如果有模型详情且有previewUrl，使用previewUrl
-        if (this.modelInfo && this.modelInfo.previewUrl) {
+        // 如果没有涂鸦截图，使用模型详情中的previewUrl
+        if (!imageUrl && this.modelInfo && this.modelInfo.previewUrl) {
           imageUrl = this.modelInfo.previewUrl
+        }
+        
+        // 如果都没有，使用modelUrl（虽然可能是STL）
+        if (!imageUrl) {
+          imageUrl = this.modelUrl
         }
         
         // 构建尺寸参数
