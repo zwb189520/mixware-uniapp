@@ -1,6 +1,8 @@
-<script>
+<script lang="ts">
 	import { useLanguageStore, useUserStore } from '@/stores'
-	import { checkAllPermissions } from '@/utils/permission.ts'
+	import { checkUpdate } from '@/api/ota'
+	
+	const APP_VERSION = '1.0.0'
 	
 	export default {
 		onLaunch: function() {
@@ -14,9 +16,11 @@
 			const languageStore = useLanguageStore()
 			languageStore.loadLanguage(false)
 			
-			// ?? APP ????????????????
-			// 检查并请求必要的权限??
+			// 检查并请求必要的权限
 			this.initPermissionCheck()
+			
+			// 检查OTA更新
+			this.checkAppUpdate()
 		},
 		onShow: function() {
 			console.log('App Show')
@@ -26,14 +30,13 @@
 		},
 		methods: {
 			/**
-			 * ??????????????
-			 * ?? APP ???????????????????
+			 * 初始化权限检查
+			 * 在 APP 启动时检查并请求必要的权限
 			 */
 			initPermissionCheck() {
 				// #ifdef APP-PLUS
 				try {
-					// 以下是需要检查的权限列表???
-					// ????????????????
+					// 以下是需要检查的权限列表
 					// - 蓝牙权限（用于连接设备）
 					// - 相机权限（用于扫码）
 					// - 存储权限（用于保存文件）
@@ -46,35 +49,35 @@
 			},
 			
 			/**
-			 * ????????????????????
+			 * 请求蓝牙权限
 			 */
 			async requestBluetoothPermission() {
-				return this.requestAppPlusPermission('bluetooth', '???????????')
+				return this.requestAppPlusPermission('bluetooth', '需要蓝牙权限')
 			},
 			
 			/**
-			 * ??????????????/??????
+			 * 请求相机权限（用于扫码/拍照）
 			 */
 			async requestCameraPermission() {
-				return this.requestAppPlusPermission('camera', '??????????')
+				return this.requestAppPlusPermission('camera', '需要相机权限')
 			},
 			
 			/**
-			 * ??????????????????
+			 * 请求存储权限（用于保存文件）
 			 */
 			async requestStoragePermission() {
-				return this.requestAppPlusPermission('storage', '?????????')
+				return this.requestAppPlusPermission('storage', '需要存储权限')
 			},
 			
 			/**
-			 * ??????????????????
+			 * 请求定位权限（用于蓝牙扫描）
 			 */
 			async requestLocationPermission() {
-				return this.requestAppPlusPermission('location', '??????')
+				return this.requestAppPlusPermission('location', '需要定位权限')
 			},
 			
 			/**
-			 * ????????
+			 * 请求权限
 			 */
 			async requestAppPlusPermission(permission, desc) {
 				// #ifdef APP-PLUS
@@ -135,11 +138,70 @@
 					notifications: "android.permission.POST_NOTIFICATIONS"
 				}
 				return permissionMap[permission] || permission
+			},
+			
+			/**
+			 * 检查OTA更新
+			 */
+			checkAppUpdate() {
+				checkUpdate(APP_VERSION).then((res: any) => {
+					if (res.code !== 0 || !res.data?.hasUpdate) return
+					
+					const { latestVersion, downloadUrl, remark } = res.data
+					
+					uni.showModal({
+						title: `发现新版本 ${latestVersion}`,
+						content: remark || '有新版本可用，是否更新？',
+						confirmText: '立即更新',
+						success: (r) => {
+							if (!r.confirm) return
+							
+							// #ifdef APP-PLUS
+							this.downloadAndInstall(downloadUrl)
+							// #endif
+							
+							// #ifdef H5
+							window.open(downloadUrl)
+							// #endif
+							
+							// #ifdef MP
+							uni.showToast({ title: '请前往应用商店更新', icon: 'none' })
+							// #endif
+						}
+					})
+				})
+			},
+			
+			/**
+			 * 下载并安装更新包
+			 */
+			downloadAndInstall(url) {
+				uni.showLoading({ title: '下载中...', mask: true })
+				
+				uni.downloadFile({
+					url,
+					success: (res) => {
+						uni.hideLoading()
+						if (res.statusCode !== 200) {
+							uni.showToast({ title: '下载失败', icon: 'none' })
+							return
+						}
+						plus.runtime.install(res.tempFilePath, {}, () => {
+							plus.runtime.restart()
+						}, (e: any) => {
+							uni.showToast({ title: '安装失败:' + e.message, icon: 'none' })
+						})
+					},
+					fail: () => {
+						uni.hideLoading()
+						uni.showToast({ title: '下载失败', icon: 'none' })
+					}
+				})
 			}
 		}
 	}
 </script>
 
 <style>
-	/*??????css */
+	/* 全局样式 */
 </style>
