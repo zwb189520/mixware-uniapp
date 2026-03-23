@@ -93,7 +93,8 @@ export default {
       originalDimensions: null, // 从preview3DDetail传入的原始尺寸
       realTaskCompleted: false, // 真实任务是否完成
       fakeProgressCompleted: false, // 假进度是否完成
-      scalePercent: 100 // 缩放比例
+      scalePercent: 100, // 缩放比例
+      taskFailed: false // 任务是否失败
     }
   },
   computed: {
@@ -181,6 +182,7 @@ export default {
       this.currentStatus = this.texts.analysisComplete || '分析完成，请等待模型处理'
     },
     async startSliceTask() {
+      console.log('【调试】startSliceTask 被调用, modelUrl:', this.modelUrl)
       if (!this.modelUrl) {
         uni.showToast({ title: '模型文件不存在', icon: 'none' })
         return
@@ -189,22 +191,29 @@ export default {
       // 提交真实的切片任务到后端
       try {
         const scaleFactor = this.scalePercent / 100
+        console.log('【调试】准备调用 scaleAndSliceModel, 参数:', { modelIdOrUrl: this.modelId, scaleFactor, deviceId: this.deviceId })
         const submitRes = await scaleAndSliceModel({
-          modelIdOrUrl: this.modelUrl,
+          modelIdOrUrl: this.modelId,
           scaleFactor: scaleFactor,
           deviceId: this.deviceId
         })
+        console.log('【调试】scaleAndSliceModel 返回:', JSON.stringify(submitRes))
         
         if (submitRes.code === 1 || submitRes.code === 0) {
           const taskId = submitRes.data?.taskId
+          console.log('【调试】获取到 taskId:', taskId)
           if (taskId) {
             this.taskId = taskId
             // 轮询真实任务状态
             this.pollRealTaskStatus(taskId)
+          } else {
+            console.log('【调试】没有获取到 taskId, data:', JSON.stringify(submitRes.data))
           }
+        } else {
+          console.log('【调试】scaleAndSliceModel 返回非成功状态码:', submitRes.code)
         }
       } catch (err) {
-        console.error('提交切片任务失败:', err)
+        console.error('【调试】提交切片任务失败:', err)
       }
       
       // 模拟切片进度
@@ -244,12 +253,17 @@ export default {
     },
     
     async pollRealTaskStatus(taskId) {
+      console.log('【调试】开始轮询真实任务状态, taskId:', taskId)
       const pollTimer = setInterval(async () => {
         try {
+          console.log('【调试】正在查询状态, taskId:', taskId)
           const res = await getScaleAndSliceStatus(taskId)
-          console.log('缩放切片状态返回:', JSON.stringify(res))
+          console.log('【调试】缩放切片状态返回:', JSON.stringify(res))
+          console.log('【调试】当前状态值: realTaskCompleted=', this.realTaskCompleted, 'fakeProgressCompleted=', this.fakeProgressCompleted)
           if (res.code === 1 || res.code === 0) {
             const data = res.data
+            console.log('【调试】返回data:', JSON.stringify(data))
+            console.log('【调试】data.status:', data?.status)
             if (data?.status === 'COMPLETED') {
               clearInterval(pollTimer)
               this.realTaskCompleted = true
@@ -269,7 +283,18 @@ export default {
               this.checkBothCompleted()
             } else if (data?.status === 'FAILED') {
               clearInterval(pollTimer)
-              uni.showToast({ title: data?.errorMessage || '缩放切片失败', icon: 'none' })
+              this.taskFailed = true // 标记任务失败
+              uni.showModal({
+                title: '切片失败',
+                content: '模型切片处理失败，请稍后重试或联系客服',
+                showCancel: false,
+                confirmText: '确定'
+              })
+              // 停止假进度
+              if (this.timer) {
+                clearInterval(this.timer)
+                this.fakeProgressCompleted = true
+              }
             }
           }
         } catch (error) {
@@ -279,8 +304,16 @@ export default {
     },
     
     checkBothCompleted() {
+      console.log('【调试】检查是否都完成: realTaskCompleted=', this.realTaskCompleted, 'fakeProgressCompleted=', this.fakeProgressCompleted, 'taskFailed=', this.taskFailed)
+      if (this.taskFailed) {
+        console.log('【调试】任务已失败，不发送打印命令')
+        return
+      }
       if (this.realTaskCompleted && this.fakeProgressCompleted) {
+        console.log('【调试】条件满足,开始发送打印命令')
         this.sendPrintCommandAfterSlice()
+      } else {
+        console.log('【调试】条件不满足,等待中...')
       }
     },
     

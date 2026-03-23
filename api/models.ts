@@ -23,7 +23,7 @@ export function addModel(modelData) {
  * @returns {Promise<Object>} 返回模型列表
  */
 export function getModelList(params = {}) {
-  return get('/models/list', params)
+  return get('/models/page', params)
 }
 
 /**
@@ -153,5 +153,23 @@ function extractFileType(url) {
   } catch (e) {
     return ''
   }
+}
+
+/**
+ * 缩放切片模型
+ * @param {Object} data - 切片数据
+ * @returns {Promise<Object>} 返回切片结果
+ */
+export function scaleAndSliceModel(data) {
+  return post('/models/scaleAndSlice', data)
+}
+
+/**
+ * 获取缩放切片状态
+ * @param {string} taskId - 任务ID
+ * @returns {Promise<Object>} 返回切片状态
+ */
+export function getScaleAndSliceStatus(taskId) {
+  return get(`/models/scaleAndSlice/status/${taskId}`)
 }
 
