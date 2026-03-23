@@ -68,8 +68,8 @@
 <script lang="ts">
 // @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
-import { getModelDetail, scaleAndSliceModel, getScaleAndSliceStatus } from '@/api/models.ts'
-import { sendPrintCommand, getDeviceStatus } from '@/api/iot.ts'
+import { getModelDetail, scaleAndSliceModel } from '@/api/models.ts'
+import { sendPrintCommand, getDeviceStatus, connectSSE } from '@/api/iot.ts'
 import { getDefaultDevice, getDeviceList } from '@/api/devices.ts'
 
 export default {
@@ -78,13 +78,10 @@ export default {
       modelId: '',
       modelName: '',
       modelImage: '',
-      modelImages: [], // 添加模型图片数组
-      modelUrl: '', // 模型文件URL
+      modelUrl: '',
       progress: 0,
-      isProcessing: false,
       steps: [],
-      currentStatus: '',
-      timer: null,
+
       taskId: '',
       gcodeUrl: '',
       modelDimensions: '', // 模型尺寸
@@ -92,9 +89,10 @@ export default {
       materialWeight: '', // 材料重量
       originalDimensions: null, // 从preview3DDetail传入的原始尺寸
       realTaskCompleted: false, // 真实任务是否完成
-      fakeProgressCompleted: false, // 假进度是否完成
+
       scalePercent: 100, // 缩放比例
-      taskFailed: false // 任务是否失败
+      taskFailed: false, // 任务是否失败
+      eventSource: null // SSE连接实例
     }
   },
   computed: {
@@ -106,7 +104,7 @@ export default {
     }
   },
   async onLoad(options) {
-    console.log('sliceProcessing onLoad options:', options)
+
     this.modelId = options.modelId || ''
     try {
       this.modelName = options.modelName ? decodeURIComponent(options.modelName) : ''
@@ -123,16 +121,13 @@ export default {
     if (!this.modelImage || this.modelImage.endsWith('.stl')) {
       this.modelImage = '/static/images/logo.png'
     }
-    console.log('初始modelImage:', this.modelImage)
+
     
     // 接收从preview3DDetail传入的尺寸
-    try {
-      if (options.dimensions) {
+    if (options.dimensions) {
+      try {
         this.originalDimensions = JSON.parse(decodeURIComponent(options.dimensions))
-        console.log('接收到的原始尺寸:', this.originalDimensions)
-      }
-    } catch (e) {
-      console.log('解析尺寸参数失败:', e)
+      } catch (e) {}
     }
     
     // 接收缩放比例和设备ID
@@ -150,7 +145,7 @@ export default {
       } catch (e) {
         this.modelUrl = ''
       }
-      console.log('自定义模型，直接使用modelUrl:', this.modelUrl)
+
       if (this.modelUrl) {
         this.startSliceTask()
       } else {
@@ -163,8 +158,8 @@ export default {
     await this.loadModelImages()
   },
   onUnload() {
-    if (this.timer) {
-      clearInterval(this.timer)
+    if (this.eventSource) {
+      this.eventSource.close()
     }
   },
   methods: {
@@ -178,11 +173,9 @@ export default {
         { text: this.texts.processingComplete || '模型处理完成，准备打印', completed: false, active: false }
       ]
       
-      // 初始化当前状态文本
-      this.currentStatus = this.texts.analysisComplete || '分析完成，请等待模型处理'
     },
     async startSliceTask() {
-      console.log('【调试】startSliceTask 被调用, modelUrl:', this.modelUrl)
+
       if (!this.modelUrl) {
         uni.showToast({ title: this.texts.modelFileNotFound || '模型文件不存在', icon: 'none' })
         return
@@ -191,149 +184,78 @@ export default {
       // 提交真实的切片任务到后端
       try {
         const scaleFactor = this.scalePercent / 100
-        console.log('【调试】准备调用 scaleAndSliceModel, 参数:', { modelIdOrUrl: this.modelId, scaleFactor, deviceId: this.deviceId })
+
         const submitRes = await scaleAndSliceModel({
           modelIdOrUrl: this.modelId,
           scaleFactor: scaleFactor,
           deviceId: this.deviceId
         })
-        console.log('【调试】scaleAndSliceModel 返回:', JSON.stringify(submitRes))
+
         
         if (submitRes.code === 1 || submitRes.code === 0) {
           const taskId = submitRes.data?.taskId
-          console.log('【调试】获取到 taskId:', taskId)
+
           if (taskId) {
             this.taskId = taskId
-            // 轮询真实任务状态
             this.pollRealTaskStatus(taskId)
-          } else {
-            console.log('【调试】没有获取到 taskId, data:', JSON.stringify(submitRes.data))
           }
-        } else {
-          console.log('【调试】scaleAndSliceModel 返回非成功状态码:', submitRes.code)
         }
       } catch (err) {
-        console.error('【调试】提交切片任务失败:', err)
+        console.error('提交切片任务失败:', err)
+        return
       }
       
-      // 模拟切片进度
+      // 初始化进度显示
       this.steps[0].completed = true
       this.steps[0].active = false
       this.steps[1].active = true
-      this.progress = 0
-      
-      // 模拟步骤进度
-      this.timer = setInterval(() => {
-        if (this.progress >= 100) {
-          clearInterval(this.timer)
-          this.fakeProgressCompleted = true
-          this.steps[4].active = false
-          this.checkBothCompleted()
-          return
-        }
-        
-        this.progress += 1
-        
-        if (this.progress >= 40 && !this.steps[1].completed) {
-          this.steps[1].completed = true
-          this.steps[1].active = false
-          this.steps[2].active = true
-        }
-        if (this.progress >= 60 && !this.steps[2].completed) {
-          this.steps[2].completed = true
-          this.steps[2].active = false
-          this.steps[3].active = true
-        }
-        if (this.progress >= 80 && !this.steps[3].completed) {
-          this.steps[3].completed = true
-          this.steps[3].active = false
-          this.steps[4].active = true
-        }
-      }, 100)
+      this.progress = 10
     },
     
     async pollRealTaskStatus(taskId) {
-      console.log('【调试】开始轮询真实任务状态, taskId:', taskId)
-      const pollTimer = setInterval(async () => {
-        try {
-          console.log('【调试】正在查询状态, taskId:', taskId)
-          const res = await getScaleAndSliceStatus(taskId)
-          console.log('【调试】缩放切片状态返回:', JSON.stringify(res))
-          console.log('【调试】当前状态值: realTaskCompleted=', this.realTaskCompleted, 'fakeProgressCompleted=', this.fakeProgressCompleted)
-          if (res.code === 1 || res.code === 0) {
-            const data = res.data
-            console.log('【调试】返回data:', JSON.stringify(data))
-            console.log('【调试】data.status:', data?.status)
-            if (data?.status === 'COMPLETED') {
-              clearInterval(pollTimer)
-              this.realTaskCompleted = true
-              this.gcodeUrl = data?.gcodeUrl || ''
-              // 打印所有可能的字段名
-              console.log('缩放切片完成数据:', JSON.stringify(data))
-              console.log('dimensions:', data?.dimensions)
-              console.log('modelDimensions:', data?.modelDimensions)
-              console.log('size:', data?.size)
-              console.log('printTime:', data?.printTime)
-              console.log('estimatedTime:', data?.estimatedTime)
-              console.log('materialWeight:', data?.materialWeight)
-              console.log('weight:', data?.weight)
-              this.modelDimensions = data?.dimensions || data?.modelDimensions || data?.size || ''
-              this.printTime = data?.printTime || data?.estimatedTime || ''
-              this.materialWeight = data?.materialWeight || data?.weight || ''
-              this.checkBothCompleted()
-            } else if (data?.status === 'FAILED') {
-              clearInterval(pollTimer)
-              this.taskFailed = true // 标记任务失败
-              const errorMsg = data?.errorMessage || data?.message || ''
-              uni.showModal({
-                title: this.texts.sliceFailed || '切片失败',
-                content: errorMsg || this.texts.sliceFailedContent || '模型切片处理失败，请稍后重试或联系客服',
-                showCancel: false,
-                confirmText: this.texts.confirm || '确定'
-              })
-              // 停止假进度
-              if (this.timer) {
-                clearInterval(this.timer)
-                this.fakeProgressCompleted = true
-              }
-            }
-          }
-        } catch (error) {
-          console.error('轮询真实任务状态失败:', error)
-        }
-      }, 2000)
-    },
-    
-    checkBothCompleted() {
-      console.log('【调试】检查是否都完成: realTaskCompleted=', this.realTaskCompleted, 'fakeProgressCompleted=', this.fakeProgressCompleted, 'taskFailed=', this.taskFailed)
-      if (this.taskFailed) {
-        console.log('【调试】任务已失败，不发送打印命令')
-        return
-      }
-      if (this.realTaskCompleted && this.fakeProgressCompleted) {
-        console.log('【调试】条件满足,开始发送打印命令')
-        this.sendPrintCommandAfterSlice()
-      } else {
-        console.log('【调试】条件不满足,等待中...')
-      }
-    },
-    
-    async pollSliceStatus(taskId) {
-      this.timer = setInterval(async () => {
-        try {
-          const res = await getScaleAndSliceStatus(taskId)
-          if (res.code !== 1 && res.code !== 0) {
-            console.error('查询切片状态失败:', res.msg)
+
+      
+      // 建立SSE连接
+      this.eventSource = connectSSE(
+        (data) => {
+
+          // 只处理当前任务的消息
+          if (data.taskId && data.taskId !== taskId) {
             return
           }
           
-          const data = res.data
           const status = data?.status
           const progress = data?.progress || 0
           
-          // 根据状态更新步骤
-          if (status === 'RUNNING' || status === 'PENDING') {
-            this.progress = 20 + progress * 0.7 // 20-90%
+          if (status === 'COMPLETED') {
+            this.eventSource.close()
+            this.realTaskCompleted = true
+            this.progress = 100
+            this.steps[1].completed = true
+            this.steps[2].completed = true
+            this.steps[3].completed = true
+            this.steps[4].completed = true
+            this.steps[4].active = false
+            this.gcodeUrl = data?.gcodeUrl || ''
+            this.modelDimensions = data?.dimensions || data?.modelDimensions || data?.size || ''
+            this.printTime = data?.printTime || data?.estimatedTime || ''
+            this.materialWeight = data?.materialWeight || data?.weight || ''
+            this.checkBothCompleted()
+          } else if (status === 'FAILED') {
+            this.eventSource.close()
+            this.taskFailed = true
+            this.progress = 0
+            const errorMsg = data?.errorMessage || data?.message || ''
+            uni.showModal({
+              title: this.texts.sliceFailed || '切片失败',
+              content: errorMsg || this.texts.sliceFailedContent || '模型切片处理失败，请稍后重试或联系客服',
+              showCancel: false,
+              confirmText: this.texts.confirm || '确定'
+            })
+          } else if (status === 'PROCESSING' || status === 'PENDING') {
+            // 更新进度和步骤
+            this.progress = Math.max(this.progress, 20 + progress * 0.7)
+            // 根据进度更新步骤状态
             if (progress > 25 && !this.steps[1].completed) {
               this.steps[1].completed = true
               this.steps[1].active = false
@@ -349,59 +271,48 @@ export default {
               this.steps[3].active = false
               this.steps[4].active = true
             }
-          } else if (status === 'COMPLETED') {
-            // 切片完成
-            console.log('切片完成，准备发送打印命令')
-            clearInterval(this.timer)
-            this.progress = 100
-            this.steps[1].completed = true
-            this.steps[2].completed = true
-            this.steps[3].completed = true
-            this.steps[4].completed = true
-            this.steps[4].active = false
-            
-            // 保存gcodeUrl
-            this.gcodeUrl = data?.gcodeUrl
-            
-            // 切片完成，发送打印命令
-            try {
-              await this.sendPrintCommandAfterSlice()
-            } catch (err) {
-              console.error('sendPrintCommandAfterSlice 执行失败:', err)
-            }
-          } else if (status === 'FAILED') {
-            clearInterval(this.timer)
-            const errorMsg = data?.errorMessage || data?.message || ''
-            uni.showToast({ title: errorMsg || this.texts.sliceFailed || '切片失败', icon: 'none' })
           }
-        } catch (error) {
-          console.error('轮询切片状态失败:', error)
+        },
+        (error) => {
+          console.error('SSE连接错误:', error)
+          uni.showModal({
+            title: '连接失败',
+            content: '无法建立实时连接，请检查网络后重试',
+            showCancel: false,
+            confirmText: '确定',
+            success: () => {
+              uni.navigateBack()
+            }
+          })
         }
-      }, 2000) // 每2秒查询一次
+      )
     },
+
+    checkBothCompleted() {
+      if (this.taskFailed) return
+      if (this.realTaskCompleted) {
+        this.sendPrintCommandAfterSlice()
+      }
+    },
+
     handleBack() {
       uni.navigateBack()
     },
     handleImageError() {
-      console.log('图片加载失败，当前modelImage:', this.modelImage)
       this.modelImage = ''
-      console.log('设置为空图片')
     },
     
     async loadModelImages() {
       try {
-        console.log('加载模型图片，modelId:', this.modelId)
         const res = await getModelDetail(this.modelId)
-        console.log('getModelDetail响应:', res)
-        
+
         // 检查响应状态
         if (!res || (res.code !== 0 && res.code !== 1)) {
           throw new Error(res?.msg || '获取详情失败')
         }
         
         const data = res.data || {}
-        console.log('模型详情数据:', data)
-        
+
         // 使用与modelDetail.vue完全相同的fixImageUrl函数
         const fixImageUrl = (url) => {
           if (!url) return ''
@@ -413,16 +324,13 @@ export default {
         
         if (images.length > 0) {
           this.modelImage = images[0]
-          console.log('设置的新modelImage:', this.modelImage)
         } else {
-          console.log('模型没有有效的图片数据，使用默认图片')
-          this.modelImage = '/static/images/logo.png' // 使用默认图片
+          this.modelImage = '/static/images/logo.png'
         }
         
         // 获取模型文件URL
         this.modelUrl = data.downloadUrl || data.modelFile || data.modelUrl || ''
-        console.log('设置的modelUrl:', this.modelUrl)
-        
+
         // 获取到模型URL后开始切片任务
         if (this.modelUrl) {
           this.startSliceTask()
@@ -430,12 +338,10 @@ export default {
           uni.showToast({ title: this.texts.modelFileNotFound || '模型文件不存在', icon: 'none' })
         }
       } catch (error) {
-        console.error('加载模型图片失败:', error)
         uni.showToast({ title: this.texts.loadModelInfoFailed || '加载模型信息失败', icon: 'none' })
       }
     },
     async sendPrintCommandAfterSlice() {
-      console.log('开始发送打印命令')
       try {
         uni.showLoading({ title: this.texts.sendingPrintCommand || '正在发送打印指令...' })
         
@@ -460,7 +366,6 @@ export default {
         
         // 检查设备状态
         const statusRes = await getDeviceStatus(deviceId)
-        console.log('设备状态:', statusRes)
         const deviceStatus = statusRes.data?.status || statusRes.data
         if (deviceStatus === 'PRINTING' || deviceStatus === 'PAUSED') {
           uni.hideLoading()
@@ -485,7 +390,6 @@ export default {
         
         // 发送打印命令
         const res = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl, this.taskId)
-        console.log('sendPrintCommand 响应:', res)
         uni.hideLoading()
         
         if (res.code === 1 || res.code === 0) {
@@ -504,7 +408,6 @@ export default {
         }
       } catch (error) {
         uni.hideLoading()
-        console.error('发送打印命令失败:', error)
         uni.showToast({ title: this.texts.sendPrintCommandFailed || '发送打印指令失败', icon: 'none' })
       }
     },
@@ -520,8 +423,8 @@ export default {
         content: this.texts.cancelContent || '取消后将停止模型处理，是否确认？',
         success: (res) => {
           if (res.confirm) {
-            if (this.timer) {
-              clearInterval(this.timer)
+            if (this.eventSource) {
+              this.eventSource.close()
             }
             uni.navigateBack()
           }

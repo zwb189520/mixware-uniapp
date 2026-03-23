@@ -101,3 +101,31 @@ export function sendResumeCommand(deviceId) {
 export function sendRestartCommand(deviceId) {
   return post(`/iot/sendRestartCommand/${deviceId}`, {})
 }
+
+/**
+ * 建立SSE连接接收实时通知
+ * @param {Function} onMessage - 收到消息时的回调函数
+ * @param {Function} onError - 连接错误时的回调函数
+ * @returns {EventSource} 返回EventSource实例
+ */
+export function connectSSE(onMessage, onError) {
+  const BASE_URL = 'http://app.mixwarebot.cn:8080'
+  const url = `${BASE_URL}/api/notify/sse/connect`
+  const eventSource = new EventSource(url)
+  
+  eventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      onMessage && onMessage(data)
+    } catch (e) {
+      onMessage && onMessage(event.data)
+    }
+  }
+  
+  eventSource.onerror = (error) => {
+    console.error('SSE连接错误:', error)
+    onError && onError(error)
+  }
+  
+  return eventSource
+}
