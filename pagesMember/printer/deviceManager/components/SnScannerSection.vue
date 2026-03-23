@@ -102,7 +102,7 @@ const scanResult = ref<ScanResult | null>(null)
 const showManualInput = ref(false)
 const isScanning = ref(false)
 
-const texts = computed(() => languageStore?.texts?.deviceManager || {})
+const texts = computed<Record<string, string>>(() => languageStore?.texts?.deviceManager || {})
 
 onMounted(() => {
   languageStore.loadLanguage()
@@ -154,12 +154,12 @@ const processSnCode = async (snCode: string) => {
       }
       emit('scan-success', scanResult.value)
       uni.showToast({
-        title: '解析成功',
+        title: texts.value.parseSuccess || '解析成功',
         icon: 'success'
       })
     } else {
       uni.showToast({
-        title: res.msg || '解析失败',
+        title: res.msg || texts.value.parseFailed || '解析失败',
         icon: 'none'
       })
     }
@@ -185,7 +185,7 @@ const handleRescan = () => {
 const handleAddDevice = async () => {
   if (!scanResult.value) return
   
-  uni.showLoading({ title: '添加中...' })
+  uni.showLoading({ title: texts.value.adding || '添加中...' })
   try {
     const res = await uni.$http.post('/devices/bind', {
       deviceId: scanResult.value.deviceId || '',
@@ -195,14 +195,14 @@ const handleAddDevice = async () => {
     
     if (res.code === 0) {
       uni.showToast({
-        title: '添加成功',
+        title: texts.value.addSuccess || '添加成功',
         icon: 'success'
       })
       emit('add-device', scanResult.value)
       clearResult()
     } else {
       uni.showToast({
-        title: res.msg || '添加失败',
+        title: res.msg || texts.value.addFailed || '添加失败',
         icon: 'none'
       })
     }
@@ -210,7 +210,7 @@ const handleAddDevice = async () => {
     uni.hideLoading()
     console.error('添加设备失败:', error)
     uni.showToast({
-      title: '添加失败',
+      title: texts.value.addFailed || '添加失败',
       icon: 'none'
     })
   }

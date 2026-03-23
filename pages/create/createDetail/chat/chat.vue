@@ -210,10 +210,10 @@ export default {
         this.recorderManager = uni.getRecorderManager()
         this.recorderManager.onStop(async (res) => {
           if (res.duration < 500) {
-            uni.showToast({ title: '录音时间太短', icon: 'none' })
+            uni.showToast({ title: this.texts.recordingTooShort || '录音时间太短', icon: 'none' })
             return
           }
-          uni.showLoading({ title: '识别中...' })
+          uni.showLoading({ title: this.texts.recognizing || '识别中...' })
           try {
             const result = await audioOffline(res.tempFilePath)
             uni.hideLoading()
@@ -223,12 +223,12 @@ export default {
                 this.handleGenerate3D()
               }
             } else {
-              uni.showToast({ title: result.msg || '识别失败', icon: 'none' })
+              uni.showToast({ title: result.msg || this.texts.recognitionFailed || '识别失败', icon: 'none' })
             }
           } catch (err) {
             uni.hideLoading()
             console.error('语音识别失败:', err)
-            uni.showToast({ title: '识别失败', icon: 'none' })
+            uni.showToast({ title: this.texts.recognitionFailed || '识别失败', icon: 'none' })
           }
         })
       }

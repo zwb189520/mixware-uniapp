@@ -28,6 +28,14 @@
 		onHide: function() {
 			console.log('App Hide')
 		},
+		computed: {
+			languageStore() {
+				return useLanguageStore()
+			},
+			texts() {
+				return this.languageStore.texts.common || {}
+			}
+		},
 		methods: {
 			/**
 			 * 初始化权限检查
@@ -150,9 +158,9 @@
 					const { latestVersion, downloadUrl, remark } = res.data
 					
 					uni.showModal({
-						title: `发现新版本 ${latestVersion}`,
-						content: remark || '有新版本可用，是否更新？',
-						confirmText: '立即更新',
+						title: `${this.texts.newVersionFound || '发现新版本'} ${latestVersion}`,
+					content: remark || this.texts.updateAvailable || '有新版本可用，是否更新？',
+					confirmText: this.texts.updateNow || '立即更新',
 						success: (r) => {
 							if (!r.confirm) return
 							
@@ -165,8 +173,8 @@
 							// #endif
 							
 							// #ifdef MP
-							uni.showToast({ title: '请前往应用商店更新', icon: 'none' })
-							// #endif
+						uni.showToast({ title: this.texts.pleaseGoToAppStore || '请前往应用商店更新', icon: 'none' })
+						// #endif
 						}
 					})
 				})
@@ -176,25 +184,25 @@
 			 * 下载并安装更新包
 			 */
 			downloadAndInstall(url) {
-				uni.showLoading({ title: '下载中...', mask: true })
+				uni.showLoading({ title: this.texts.downloading || '下载中...', mask: true })
 				
 				uni.downloadFile({
 					url,
 					success: (res) => {
 						uni.hideLoading()
 						if (res.statusCode !== 200) {
-							uni.showToast({ title: '下载失败', icon: 'none' })
+							uni.showToast({ title: this.texts.downloadFailed || '下载失败', icon: 'none' })
 							return
 						}
 						plus.runtime.install(res.tempFilePath, {}, () => {
 							plus.runtime.restart()
 						}, (e: any) => {
-							uni.showToast({ title: '安装失败:' + e.message, icon: 'none' })
+							uni.showToast({ title: (this.texts.installFailed || '安装失败') + ':' + e.message, icon: 'none' })
 						})
 					},
 					fail: () => {
 						uni.hideLoading()
-						uni.showToast({ title: '下载失败', icon: 'none' })
+						uni.showToast({ title: this.texts.downloadFailed || '下载失败', icon: 'none' })
 					}
 				})
 			}

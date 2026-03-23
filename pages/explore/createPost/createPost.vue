@@ -188,7 +188,7 @@ export default {
     // 选择图片
     chooseImage() {
       if (this.postForm.imageUrls.length >= 9) {
-        uni.showToast({ title: '最多可上传9张图片', icon: 'none' })
+        uni.showToast({ title: this.texts.maxImagesHint || '最多可上传9张图片', icon: 'none' })
         return
       }
       
@@ -239,9 +239,9 @@ export default {
       // 检查是否可以发布
       if (!this.canPublish) {
         if (!this.postForm.title.trim()) {
-          uni.showToast({ title: '请输入标题', icon: 'none' })
+          uni.showToast({ title: this.texts.enterTitle || '请输入标题', icon: 'none' })
         } else if (!this.postForm.content.trim()) {
-          uni.showToast({ title: '请输入内容', icon: 'none' })
+          uni.showToast({ title: this.texts.enterContent || '请输入内容', icon: 'none' })
         }
         return
       }

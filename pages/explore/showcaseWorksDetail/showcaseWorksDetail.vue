@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container" :class="{ 'lock-scroll': isPopupOpen }">
     <safe-area />
     <custom-navbar :title="workTitle" @back="handleBack">
@@ -620,7 +620,7 @@ export default {
       uni.chooseImage({
         count: 1,
         success: (res) => {
-          uni.showToast({ title: '图片上传功能开发中', icon: 'none' })
+          uni.showToast({ title: this.texts.imageUploadInDev || '图片上传功能开发中', icon: 'none' })
         }
       })
     },
@@ -672,10 +672,10 @@ export default {
           }
         } catch (e) {
           console.error('发布评论失败:', e)
-          uni.showToast({ title: '发布失败', icon: 'none' })
+          uni.showToast({ title: this.texts.publishFailed || '发布失败', icon: 'none' })
         }
       } else {
-        uni.showToast({ title: '发布成功', icon: 'success' })
+        uni.showToast({ title: this.texts.publishSuccess || '发布成功', icon: 'success' })
       }
     },
 
@@ -718,9 +718,9 @@ export default {
           this.saveLocalComments()
         }
         
-        uni.showToast({ title: '回复成功', icon: 'success' })
+        uni.showToast({ title: this.texts.replySuccess || '回复成功', icon: 'success' })
       }
-      
+
       // 如果有真实的postId，调用接口
       if (this.postId && !String(this.postId).includes('mock') && String(this.postId) !== '1') {
         try {
@@ -759,17 +759,17 @@ export default {
                 href: postLink,
                 imageUrl: this.imageUrls[0] || '/static/images/3Dprinter.png',
                 success: () => {
-                  uni.showToast({ title: '分享成功', icon: 'success' })
+                  uni.showToast({ title: this.texts.shareSuccess || '分享成功', icon: 'success' })
                   this.postDetail.shareCount++
                 },
                 fail: (err) => {
                   console.error('分享失败:', err)
-                  uni.showToast({ title: '分享失败', icon: 'none' })
+                  uni.showToast({ title: this.texts.shareFailed || '分享失败', icon: 'none' })
                 }
               })
             } catch (e) {
               console.error('微信分享API调用失败:', e)
-              uni.showToast({ title: '分享功能暂不可用', icon: 'none' })
+              uni.showToast({ title: this.texts.shareNotAvailable || '分享功能暂不可用', icon: 'none' })
             }
           } else if (res.tapIndex === 1) {
             // 分享到朋友圈
@@ -784,17 +784,17 @@ export default {
                 href: postLink,
                 imageUrl: this.imageUrls[0] || '/static/images/3Dprinter.png',
                 success: () => {
-                  uni.showToast({ title: '分享成功', icon: 'success' })
+                  uni.showToast({ title: this.texts.shareSuccess || '分享成功', icon: 'success' })
                   this.postDetail.shareCount++
                 },
                 fail: (err) => {
                   console.error('分享失败:', err)
-                  uni.showToast({ title: '分享失败', icon: 'none' })
+                  uni.showToast({ title: this.texts.shareFailed || '分享失败', icon: 'none' })
                 }
               })
             } catch (e) {
               console.error('微信分享API调用失败:', e)
-              uni.showToast({ title: '分享功能暂不可用', icon: 'none' })
+              uni.showToast({ title: this.texts.shareNotAvailable || '分享功能暂不可用', icon: 'none' })
             }
           } else if (res.tapIndex === 2) {
             // 复制真实链接
@@ -802,13 +802,13 @@ export default {
               data: postLink,
               success: () => {
                 uni.showToast({
-                  title: '链接已复制',
+                  title: this.texts.linkCopied || '链接已复制',
                   icon: 'success'
                 })
               },
               fail: (err) => {
                 console.error('复制链接失败:', err)
-                uni.showToast({ title: '复制链接失败', icon: 'none' })
+                uni.showToast({ title: this.texts.copyLinkFailed || '复制链接失败', icon: 'none' })
               }
             })
           }
@@ -818,8 +818,8 @@ export default {
 
     async handleCommentDelete(commentId) {
       uni.showModal({
-        title: '确认删除',
-        content: '确定要删除这条评论吗？',
+        title: this.texts.confirmDelete || '确认删除',
+        content: this.texts.confirmDeleteComment || '确定要删除这条评论吗？',
         success: async (res) => {
           if (res.confirm) {
             const isMock = !this.postId || String(this.postId).includes('mock') || String(this.postId) === '1' || String(this.postId) === 'NaN' || String(this.postId) === 'undefined'
@@ -827,17 +827,17 @@ export default {
               try {
                 const result = await deleteComment(commentId)
                 if (result.code === 0) {
-                  uni.showToast({ title: '删除成功', icon: 'success' })
+                  uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
                   this.loadComments()
                   this.postDetail.commentCount--
                 }
               } catch (e) {
                 console.error('删除评论失败:', e)
-                uni.showToast({ title: '删除失败', icon: 'none' })
+                uni.showToast({ title: this.texts.deleteFailed || '删除失败', icon: 'none' })
               }
             } else {
               this.deleteCommentLocal(commentId)
-              uni.showToast({ title: '删除成功', icon: 'success' })
+              uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
             }
           }
         }
@@ -912,8 +912,8 @@ export default {
 
     async handleDeletePost() {
       uni.showModal({
-        title: '提示',
-        content: '确定要删除这篇作品吗？',
+        title: this.texts.tip || '提示',
+        content: this.texts.confirmDeletePost || '确定要删除这篇作品吗？',
         success: async (res) => {
           if (res.confirm) {
             try {
@@ -921,26 +921,26 @@ export default {
               if (!isMock) {
                 const result = await deletePost(this.postId)
                 if (result.code === 0 || result.code === 1) {
-                  uni.showToast({ title: '删除成功', icon: 'success' })
+                  uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
                   // 发送事件通知列表页刷新
                   uni.$emit('postDeleted', this.postId)
                   setTimeout(() => {
                     uni.navigateBack()
                   }, 1500)
                 } else {
-                  uni.showToast({ title: result.msg || '删除失败', icon: 'none' })
+                  uni.showToast({ title: result.msg || this.texts.deleteFailed || '删除失败', icon: 'none' })
                 }
               } else {
                 // 处理本地 mock 数据的删除
                 this.deleteLocalPost()
-                uni.showToast({ title: '删除成功', icon: 'success' })
+                uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
                 setTimeout(() => {
                   uni.navigateBack()
                 }, 1500)
               }
             } catch (e) {
               console.error('删除帖子失败:', e)
-              uni.showToast({ title: '删除失败', icon: 'none' })
+              uni.showToast({ title: this.texts.deleteFailed || '删除失败', icon: 'none' })
             }
           }
         }

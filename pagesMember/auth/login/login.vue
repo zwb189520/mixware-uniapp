@@ -185,12 +185,12 @@ export default {
       const error = urlParams.get('error')
       
       if (error) {
-        uni.showToast({ title: '授权失败', icon: 'none' })
+        uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
         return
       }
       
       if (code && state) {
-        uni.showLoading({ title: '登录中...' })
+        uni.showLoading({ title: this.texts.loggingIn || '登录中...' })
         try {
           if (state.startsWith('google_')) {
             googleCallback(code, state).then(result => {
@@ -200,7 +200,7 @@ export default {
           window.history.replaceState({}, document.title, window.location.pathname)
         } catch (err) {
           uni.hideLoading()
-          uni.showToast({ title: '登录失败', icon: 'none' })
+          uni.showToast({ title: this.texts.loginFailed || '登录失败', icon: 'none' })
         }
       }
       // #endif
@@ -529,11 +529,11 @@ export default {
                 this.handleOAuthResult(result)
               }, (err) => {
                 uni.hideLoading()
-                uni.showToast({ title: '授权失败', icon: 'none' })
+                uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
               })
             } else {
               uni.hideLoading()
-              uni.showToast({ title: '暂不支持Google登录', icon: 'none' })
+              uni.showToast({ title: this.texts.googleNotSupported || '暂不支持Google登录', icon: 'none' })
             }
           })
         }
@@ -549,21 +549,21 @@ export default {
     
     async handleAppleLogin() {
       uni.showLoading({
-        title: '正在登录...'
+        title: this.texts.loggingIn || '正在登录...'
       })
       
       try {
         // #ifdef H5
         if (typeof AppleID === 'undefined') {
           uni.hideLoading()
-          uni.showToast({ title: 'Apple登录暂不可用', icon: 'none' })
+          uni.showToast({ title: this.texts.appleNotAvailable || 'Apple登录暂不可用', icon: 'none' })
           return
         }
         try {
           const config = await getAppleConfig()
           if (config.code !== 1 && config.code !== 0) {
             uni.hideLoading()
-            uni.showToast({ title: '配置获取失败', icon: 'none' })
+            uni.showToast({ title: this.texts.configFetchFailed || '配置获取失败', icon: 'none' })
             return
           }
           AppleID.auth.init({
@@ -596,9 +596,9 @@ export default {
         } catch (err) {
           uni.hideLoading()
           if (err.error === 'user_cancelled_authorize') {
-            uni.showToast({ title: '用户取消授权', icon: 'none' })
+            uni.showToast({ title: this.texts.userCancelledAuth || '用户取消授权', icon: 'none' })
           } else {
-            uni.showToast({ title: '授权失败', icon: 'none' })
+            uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
           }
         }
         // #endif
@@ -641,21 +641,21 @@ export default {
                   this.handleOAuthResult(result)
                 } catch (err) {
                   uni.hideLoading()
-                  uni.showToast({ title: '登录失败', icon: 'none' })
+                  uni.showToast({ title: this.texts.loginFailed || '登录失败', icon: 'none' })
                 }
               },
               fail: () => {
                 uni.hideLoading()
-                uni.showToast({ title: '获取用户信息失败', icon: 'none' })
+                uni.showToast({ title: this.texts.getUserInfoFailed || '获取用户信息失败', icon: 'none' })
               }
             })
           },
           fail: (err) => {
             uni.hideLoading()
             if (err.code === 1000) {
-              uni.showToast({ title: '用户取消授权', icon: 'none' })
+              uni.showToast({ title: this.texts.userCancelledAuth || '用户取消授权', icon: 'none' })
             } else {
-              uni.showToast({ title: '授权失败', icon: 'none' })
+              uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
             }
           }
         })
@@ -682,7 +682,7 @@ export default {
           })
         }, 500)
       } else {
-        uni.showToast({ title: result.msg || '登录失败', icon: 'none' })
+        uni.showToast({ title: result.msg || this.texts.loginFailed || '登录失败', icon: 'none' })
       }
     }
   }

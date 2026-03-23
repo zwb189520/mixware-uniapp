@@ -606,7 +606,7 @@ export default {
     async handleScanResult(result) {
       console.log('扫码结果:', result)
       if (result) {
-        uni.showLoading({ title: '解析中...' })
+        uni.showLoading({ title: this.texts.parsing || '解析中...' })
         try {
           const res = await parseSnCode(result)
           uni.hideLoading()
@@ -756,7 +756,7 @@ export default {
               success: async (imgRes) => {
                 const imgPath = imgRes.tempFilePaths[0]
                 
-                uni.showToast({ title: '已选择图片', icon: 'none', duration: 1000 })
+                uni.showToast({ title: this.texts.imageSelected || '已选择图片', icon: 'none', duration: 1000 })
                 
                 // 选择STL文件
                 uni.chooseFile({
@@ -767,7 +767,7 @@ export default {
                     const stlPath = stlFile.path
                     const stlName = stlFile.name || 'model.stl'
                     
-                    uni.showToast({ title: '已选择STL文件', icon: 'none', duration: 1000 })
+                    uni.showToast({ title: this.texts.stlFileSelected || '已选择STL文件', icon: 'none', duration: 1000 })
                     
                     // 选择分类
                     const categories = ['日用居家', '玩具手办', '亲子互动', '学习探索', '其他', '高速打印']
@@ -776,7 +776,7 @@ export default {
                       success: async (sheetRes) => {
                         const selectedCategory = categories[sheetRes.tapIndex]
                         
-                        uni.showToast({ title: '已选择分类', icon: 'none', duration: 1000 })
+                        uni.showToast({ title: this.texts.categorySelected || '已选择分类', icon: 'none', duration: 1000 })
                         
                         // 输入模型名称
                         uni.showModal({
@@ -788,7 +788,7 @@ export default {
                             if (inputRes.confirm) {
                               const finalName = inputRes.content || stlName.replace('.stl', '').replace('.STL', '')
                               
-                              uni.showLoading({ title: '上传中...' })
+                              uni.showLoading({ title: this.texts.uploading || '上传中...' })
                               try {
                                 // 上传图片
                                 console.log('开始上传图片:', imgPath)
@@ -844,11 +844,11 @@ export default {
                                 })
                                 
                                 uni.hideLoading()
-                                uni.showToast({ title: '上传成功', icon: 'success' })
+                                uni.showToast({ title: this.texts.uploadSuccess || '上传成功', icon: 'success' })
                                 this.loadModels()
                               } catch (error) {
                                 uni.hideLoading()
-                                uni.showToast({ title: error.message || '上传失败', icon: 'none' })
+                                uni.showToast({ title: error.message || this.texts.uploadFailed || '上传失败', icon: 'none' })
                               }
                             }
                           }

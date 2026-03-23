@@ -123,7 +123,7 @@ export default {
     // 从后端加载打印记录
     async loadPrintRecord() {
       try {
-        uni.showLoading({ title: '加载中...' })
+        uni.showLoading({ title: this.texts.loading || '加载中...' })
         const res = await getPrintRecords(1, 20)
         uni.hideLoading()
         
@@ -143,7 +143,7 @@ export default {
       } catch (error) {
         uni.hideLoading()
         console.error('加载打印记录失败:', error)
-        uni.showToast({ title: '加载失败', icon: 'none' })
+        uni.showToast({ title: this.texts.loadFailed || '加载失败', icon: 'none' })
       }
     },
     

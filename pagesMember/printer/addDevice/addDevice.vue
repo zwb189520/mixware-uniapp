@@ -4,28 +4,28 @@
 <template>
   <view class="add-device-page">
     <safe-area />
-    <custom-navbar title="添加设备" @back="handleBack" />
+    <custom-navbar :title="texts.title || '添加设备'" @back="handleBack" />
     <view class="page-content">
       <view class="wifi-title-section">
-        <text class="wifi-title">连接WiFi</text>
+        <text class="wifi-title">{{ texts.connectWiFi || '连接WiFi' }}</text>
       </view>
       <view class="wifi-select-section" @click="handleSelectWiFi" :class="{ 'disabled': isScanning && scanStatus === 'scanning' }">
-        <text class="select-label">{{ selectedWiFi || '请选择WiFi' }}</text>
+        <text class="select-label">{{ selectedWiFi || (texts.selectWiFi || '请选择WiFi') }}</text>
         <text class="select-action">{{ 
-          scanStatus === 'scanning' ? '扫描中...' : 
-          scanStatus === 'stopped' ? '已停止，点击重新扫描' :
-          scanStatus === 'failed' ? '获取失败，点击重试' : 
-          wifiList.length > 0 ? '选择' : '无WiFi，点击重试'
+          scanStatus === 'scanning' ? (texts.scanning || '扫描中...') : 
+          scanStatus === 'stopped' ? (texts.stopped || '已停止，点击重新扫描') :
+          scanStatus === 'failed' ? (texts.failed || '获取失败，点击重试') : 
+          wifiList.length > 0 ? (texts.select || '选择') : (texts.noWiFiRetry || '无WiFi，点击重试')
         }}</text>
       </view>
       <view v-if="isScanning && scanStatus === 'scanning'" class="stop-scan-section" @click="stopScan">
-        <text class="stop-scan-text">停止扫描</text>
+        <text class="stop-scan-text">{{ texts.stopScan || '停止扫描' }}</text>
       </view>
       <view class="password-section">
         <input 
           class="password-input" 
           :type="showPassword ? 'text' : 'password'"
-          placeholder="请输入WiFi密码"
+          :placeholder="texts.enterWiFiPassword || '请输入WiFi密码'"
           v-model="wifiPassword"
         />
         <view class="eye-icon" @click="togglePassword">
@@ -33,10 +33,10 @@
         </view>
       </view>
       <view class="tips-section">
-        <text class="tips-text">请确保连接的家庭WiFi网络为2.4G网络</text>
+        <text class="tips-text">{{ texts.tips || '请确保连接的家庭WiFi网络为2.4G网络' }}</text>
       </view>
       <view class="button-section">
-        <button class="next-button" @click="handleNext" :disabled="isConnecting">{{ isConnecting ? '配网中...' : '下一步' }}</button>
+        <button class="next-button" @click="handleNext" :disabled="isConnecting">{{ isConnecting ? (texts.networking || '配网中...') : (texts.nextStep || '下一步') }}</button>
       </view>
     </view>
     <WiFiSelectorModal 
@@ -54,6 +54,7 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import WiFiSelectorModal from './components/WiFiSelectorModal.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
+import { useLanguageStore } from '@/stores/index.ts'
 import { connectToDevice, subscribeToWiFiList, sendWiFiConfig, subscribeToConfigResult, initWifi, getWifiList } from '@/utils/bluetooth.ts'
 // import { sendWiFiConfigByPlugin, subscribeToConfigResultByPlugin, closePluginBle } from '@/utils/bluetooth-ble.ts'
 
@@ -63,6 +64,14 @@ export default {
     CustomNavbar,
     WiFiSelectorModal,
     SafeArea
+  },
+  computed: {
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.addDevice || {}
+    }
   },
   data() {
     return {
@@ -123,7 +132,7 @@ export default {
     this.isScanning = true
     this.scanStatus = 'scanning'
     console.log('开始获取WiFi列表，设备ID:', this.bluetoothDeviceId)
-    uni.showLoading({ title: '获取WiFi列表...' })
+    uni.showLoading({ title: this.texts.gettingWiFiList || '获取WiFi列表...' })
     try {
       // 第1步：清除所有 BLE 特征値监听，避免旧监听干扰
       console.log('清除BLE特征値监听...')
@@ -189,7 +198,7 @@ export default {
           console.log('WiFi列表为空')
           this.scanStatus = 'success'
           uni.showToast({
-            title: '未发现可用的WiFi，请检查路由器是否开启',
+            title: this.texts.noWiFiFound || '未发现可用的WiFi，请检查路由器是否开启',
             icon: 'none'
           })
         } else {
@@ -205,7 +214,7 @@ export default {
         uni.hideLoading()
         
         uni.showToast({
-          title: '未能搜索到周边WiFi，请重试',
+          title: this.texts.searchWiFiFailed || '未能搜索到周边WiFi，请重试',
           icon: 'none'
         })
       }
@@ -216,7 +225,7 @@ export default {
       this.isScanning = true
       this.scanStatus = 'scanning'
       console.log('开始获取手机WiFi列表')
-      uni.showLoading({ title: '获取WiFi列表...' })
+      uni.showLoading({ title: this.texts.gettingWiFiList || '获取WiFi列表...' })
       
       try {
         console.log('正在初始化WiFi模块...')
@@ -267,7 +276,7 @@ export default {
       this.scanStatus = 'stopped'
       uni.hideLoading()
       uni.showToast({
-        title: '扫描已停止',
+        title: this.texts.scanStopped || '扫描已停止',
         icon: 'none'
       })
     },
@@ -354,7 +363,7 @@ export default {
     async handleNext() {
       if (!this.selectedWiFi) {
         uni.showToast({
-          title: '请选择WiFi',
+          title: this.texts.pleaseSelectWiFi || '请选择WiFi',
           icon: 'none'
         })
         return
@@ -362,14 +371,14 @@ export default {
       
       if (!this.wifiPassword) {
         uni.showToast({
-          title: '请输入WiFi密码',
+          title: this.texts.pleaseEnterPassword || '请输入WiFi密码',
           icon: 'none'
         })
         return
       }
       
       this.isConnecting = true
-      uni.showLoading({ title: '配网中...' })
+      uni.showLoading({ title: this.texts.networking || '配网中...' })
       
       try {
         console.log('=== 开始配网流程 ===')
@@ -380,7 +389,7 @@ export default {
           console.log('使用蓝牙配网模式，设备ID:', this.bluetoothDeviceId)
 
           // 检查蓝牙连接状态，如果已断开则重新连接
-          uni.showLoading({ title: '检查设备连接...' })
+          uni.showLoading({ title: this.texts.checkingDevice || '检查设备连接...' })
           try {
             await connectToDevice(this.bluetoothDeviceId)
             console.log('蓝牙设备连接/已连接')
@@ -401,12 +410,12 @@ export default {
               } catch (retryErr) {
                 uni.hideLoading()
                 this.isConnecting = false
-                uni.showToast({ title: '设备连接失败，请靠近设备后重试', icon: 'none' })
+                uni.showToast({ title: this.texts.deviceConnectFailed || '设备连接失败，请靠近设备后重试', icon: 'none' })
                 return
               }
             }
           }
-          uni.showLoading({ title: '配网中...' })
+          uni.showLoading({ title: this.texts.networking || '配网中...' })
 
           // 先订阅配网结果，在发送命令之前
           console.log('1. 开始订阅配网结果...')
@@ -434,7 +443,7 @@ export default {
             this._closeBluetooth()
             // closePluginBle()
             uni.showToast({
-              title: '配网成功',
+              title: this.texts.networkConfigSuccess || '配网成功',
               icon: 'success'
             })
             setTimeout(() => {
@@ -447,12 +456,12 @@ export default {
             // 密码错误时设备不回复会导致超时，两种情况提示相同
             const isTimeout = result.message && result.message.includes('超时')
             uni.showModal({
-              title: '配网失败',
+              title: this.texts.networkConfigFailed || '配网失败',
               content: isTimeout
-                ? '连接超时，请检查：\n1. WiFi密码是否正确\n2. 设备是否已上电\n3. 路由器是否为2.4G网络'
-                : '配网失败，请检查WiFi密码是否正确后重试',
+                ? (this.texts.connectionTimeout || '连接超时，请检查：\n1. WiFi密码是否正确\n2. 设备是否已上电\n3. 路由器是否为2.4G网络')
+                : (this.texts.networkConfigFailedRetry || '配网失败，请检查WiFi密码是否正确后重试'),
               showCancel: false,
-              confirmText: '我知道了',
+              confirmText: this.texts.confirm || '我知道了',
               confirmColor: '#FF5A00'
             })
           }
@@ -467,7 +476,7 @@ export default {
               uni.hideLoading()
               this.isConnecting = false
               uni.showToast({
-                title: 'WiFi连接成功',
+                title: this.texts.wifiConnectSuccess || 'WiFi连接成功',
                 icon: 'success'
               })
               setTimeout(() => {
@@ -481,7 +490,7 @@ export default {
               uni.hideLoading()
               this.isConnecting = false
               uni.showToast({
-                title: 'WiFi连接失败，请检查密码后重试',
+                title: this.texts.wifiConnectFailed || 'WiFi连接失败，请检查密码后重试',
                 icon: 'none'
               })
             }
@@ -492,7 +501,7 @@ export default {
         uni.hideLoading()
         this.isConnecting = false
         uni.showToast({
-          title: '配网失败，请重试',
+          title: this.texts.networkConfigFailedRetry || '配网失败，请重试',
           icon: 'none'
         })
       }

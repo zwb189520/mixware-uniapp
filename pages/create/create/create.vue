@@ -149,11 +149,11 @@ export default {
           navigate('/pages/create/createDetail/draw1/draw1')
           break
         case 'transform':
-          uni.showToast({ title: '功能开发中', icon: 'none' })
+          uni.showToast({ title: this.texts.featureInDev || '功能开发中', icon: 'none' })
           this.isNavigating = false
           break
         default:
-          uni.showToast({ title: `选择了${tool.text}`, icon: 'none' })
+          uni.showToast({ title: `${this.texts.selected || '选择了'}${tool.text}`, icon: 'none' })
           this.isNavigating = false
       }
     }

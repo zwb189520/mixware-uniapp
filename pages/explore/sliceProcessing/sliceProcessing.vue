@@ -154,7 +154,7 @@ export default {
       if (this.modelUrl) {
         this.startSliceTask()
       } else {
-        uni.showToast({ title: '模型文件不存在', icon: 'none' })
+        uni.showToast({ title: this.texts.modelFileNotFound || '模型文件不存在', icon: 'none' })
       }
       return
     }
@@ -184,7 +184,7 @@ export default {
     async startSliceTask() {
       console.log('【调试】startSliceTask 被调用, modelUrl:', this.modelUrl)
       if (!this.modelUrl) {
-        uni.showToast({ title: '模型文件不存在', icon: 'none' })
+        uni.showToast({ title: this.texts.modelFileNotFound || '模型文件不存在', icon: 'none' })
         return
       }
       
@@ -284,11 +284,12 @@ export default {
             } else if (data?.status === 'FAILED') {
               clearInterval(pollTimer)
               this.taskFailed = true // 标记任务失败
+              const errorMsg = data?.errorMessage || data?.message || ''
               uni.showModal({
-                title: '切片失败',
-                content: '模型切片处理失败，请稍后重试或联系客服',
+                title: this.texts.sliceFailed || '切片失败',
+                content: errorMsg || this.texts.sliceFailedContent || '模型切片处理失败，请稍后重试或联系客服',
                 showCancel: false,
-                confirmText: '确定'
+                confirmText: this.texts.confirm || '确定'
               })
               // 停止假进度
               if (this.timer) {
@@ -370,7 +371,8 @@ export default {
             }
           } else if (status === 'FAILED') {
             clearInterval(this.timer)
-            uni.showToast({ title: data?.errorMessage || '切片失败', icon: 'none' })
+            const errorMsg = data?.errorMessage || data?.message || ''
+            uni.showToast({ title: errorMsg || this.texts.sliceFailed || '切片失败', icon: 'none' })
           }
         } catch (error) {
           console.error('轮询切片状态失败:', error)
@@ -425,17 +427,17 @@ export default {
         if (this.modelUrl) {
           this.startSliceTask()
         } else {
-          uni.showToast({ title: '模型文件不存在', icon: 'none' })
+          uni.showToast({ title: this.texts.modelFileNotFound || '模型文件不存在', icon: 'none' })
         }
       } catch (error) {
         console.error('加载模型图片失败:', error)
-        uni.showToast({ title: '加载模型信息失败', icon: 'none' })
+        uni.showToast({ title: this.texts.loadModelInfoFailed || '加载模型信息失败', icon: 'none' })
       }
     },
     async sendPrintCommandAfterSlice() {
       console.log('开始发送打印命令')
       try {
-        uni.showLoading({ title: '正在发送打印指令...' })
+        uni.showLoading({ title: this.texts.sendingPrintCommand || '正在发送打印指令...' })
         
         // 获取设备ID
         let deviceId = ''
@@ -452,7 +454,7 @@ export default {
         
         if (!deviceId) {
           uni.hideLoading()
-          uni.showToast({ title: '请先添加设备', icon: 'none' })
+          uni.showToast({ title: this.texts.pleaseAddDevice || '请先添加设备', icon: 'none' })
           return
         }
         
@@ -462,7 +464,7 @@ export default {
         uni.hideLoading()
         
         if (res.code === 1 || res.code === 0) {
-          uni.showToast({ title: '打印指令已发送', icon: 'success' })
+          uni.showToast({ title: this.texts.printCommandSent || '打印指令已发送', icon: 'success' })
           // 使用原始尺寸（从preview3DDetail传入）
           const dimensionsStr = this.originalDimensions ? 
             `${this.originalDimensions.x.toFixed(1)}mm(X)*${this.originalDimensions.y.toFixed(1)}mm(Y)*${this.originalDimensions.z.toFixed(1)}mm(Z)` : 
@@ -473,12 +475,12 @@ export default {
             })
           }, 1500)
         } else {
-          uni.showToast({ title: res.msg || '发送失败', icon: 'none' })
+          uni.showToast({ title: res.msg || this.texts.sendFailed || '发送失败', icon: 'none' })
         }
       } catch (error) {
         uni.hideLoading()
         console.error('发送打印命令失败:', error)
-        uni.showToast({ title: '发送打印指令失败', icon: 'none' })
+        uni.showToast({ title: this.texts.sendPrintCommandFailed || '发送打印指令失败', icon: 'none' })
       }
     },
     

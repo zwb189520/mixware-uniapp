@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="preview-page">
     <safe-area class="fixed-top" />
     <custom-navbar class="fixed-top" :title="modelName" @back="handleBack" />
@@ -189,7 +189,7 @@ export default {
     this.modelId = options.id || ''
     
     if (!this.modelId || String(this.modelId) === 'NaN' || String(this.modelId) === 'undefined') {
-      uni.showToast({ title: '参数错误', icon: 'none' })
+      uni.showToast({ title: this.texts.paramError || '参数错误', icon: 'none' })
       setTimeout(() => uni.navigateBack(), 1500)
       return
     }
@@ -395,7 +395,7 @@ export default {
               this.isGenerating = false
               console.error('任务失败')
               this.stopPoll()
-              uni.showToast({ title: '模型生成失败', icon: 'none' })
+              uni.showToast({ title: this.texts.modelGenerateFailed || '模型生成失败', icon: 'none' })
               setTimeout(() => {
                 uni.navigateBack()
               }, 1500)
@@ -406,7 +406,7 @@ export default {
           if (this.pollCount >= this.maxPollCount) {
             console.error('轮询超时')
             this.stopPoll()
-            uni.showToast({ title: '生成超时，请稍后查看', icon: 'none' })
+            uni.showToast({ title: this.texts.generateTimeout || '生成超时，请稍后查看', icon: 'none' })
             setTimeout(() => {
               uni.navigateBack()
             }, 1500)
@@ -418,7 +418,7 @@ export default {
           console.error('轮询任务状态失败:', error)
           if (this.pollCount >= this.maxPollCount) {
             this.stopPoll()
-            uni.showToast({ title: '查询失败', icon: 'none' })
+            uni.showToast({ title: this.texts.queryFailed || '查询失败', icon: 'none' })
             setTimeout(() => {
               uni.navigateBack()
             }, 1500)
@@ -441,7 +441,7 @@ export default {
     
     async handleCancelGenerate() {
       try {
-        uni.showLoading({ title: '正在取消...' })
+        uni.showLoading({ title: this.texts.cancelling || '正在取消...' })
         const res = await cancelTask(this.modelId)
         uni.hideLoading()
         
@@ -449,16 +449,16 @@ export default {
           this.stopPoll()
           this.isGenerating = false
           this.loading = false
-          uni.showToast({ title: '已取消生成', icon: 'success' })
+          uni.showToast({ title: this.texts.generateCancelled || '已取消生成', icon: 'success' })
           setTimeout(() => {
             uni.navigateBack()
           }, 1500)
         } else {
-          uni.showToast({ title: res.msg || '取消失败', icon: 'none' })
+          uni.showToast({ title: res.msg || this.texts.cancelFailed || '取消失败', icon: 'none' })
         }
       } catch (error) {
         uni.hideLoading()
-        uni.showToast({ title: '取消失败', icon: 'none' })
+        uni.showToast({ title: this.texts.cancelFailed || '取消失败', icon: 'none' })
       }
     },
     

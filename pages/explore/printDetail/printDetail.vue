@@ -232,7 +232,7 @@ export default {
     handleImageError() { this.modelImage = '/static/images/logo.png' },
     showDeviceSelector() {
       if (this.deviceList.length === 0) {
-        uni.showToast({ title: '暂无可用设备', icon: 'none' })
+        uni.showToast({ title: this.texts.noAvailableDevice || '暂无可用设备', icon: 'none' })
         return
       }
       const itemList = this.deviceList.map(d => d.name)
@@ -266,67 +266,83 @@ export default {
       }
     },
     async handlePause() {
-      if (!this.deviceId) return this._toast('设备ID不存在')
+      if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
-        title: this.texts.pausePrint || '暂停打印', content: '确认暂停打印？',
+        title: this.texts.pausePrint || '暂停打印', content: this.texts.confirmPausePrint || '确认暂停打印？',
         success: async (res) => {
           if (!res.confirm) return
           try {
-            uni.showLoading({ title: '暂停中...' })
+            uni.showLoading({ title: this.texts.pausing || '暂停中...' })
             await sendPauseCommand(this.deviceId)
             uni.hideLoading()
             this.isPaused = true; this.isPrinting = false
-            this._toast('打印已暂停', 'success')
-          } catch (e) { uni.hideLoading(); this._toast(this.texts.pausePrintFailed || '暂停失败') }
+            this._toast(this.texts.printPaused || '打印已暂停', 'success')
+          } catch (e) {
+            uni.hideLoading()
+            const errorMsg = e?.message || e?.msg || this.texts.pausePrintFailed || '暂停失败'
+            this._toast(errorMsg)
+          }
         }
       })
     },
     async handleResume() {
-      if (!this.deviceId) return this._toast('设备ID不存在')
+      if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
-        title: this.texts.resumePrint || '恢复打印', content: '确认恢复打印？',
+        title: this.texts.resumePrint || '恢复打印', content: this.texts.confirmResumePrint || '确认恢复打印？',
         success: async (res) => {
           if (!res.confirm) return
           try {
-            uni.showLoading({ title: '恢复中...' })
+            uni.showLoading({ title: this.texts.resuming || '恢复中...' })
             await sendResumeCommand(this.deviceId)
             uni.hideLoading()
             this.isPaused = false; this.isPrinting = true
-            this._toast('打印已恢复', 'success')
-          } catch (e) { uni.hideLoading(); this._toast(this.texts.resumePrintFailed || '恢复失败') }
+            this._toast(this.texts.printResumed || '打印已恢复', 'success')
+          } catch (e) {
+            uni.hideLoading()
+            const errorMsg = e?.message || e?.msg || this.texts.resumePrintFailed || '恢复失败'
+            this._toast(errorMsg)
+          }
         }
       })
     },
     async handleCancel() {
-      if (!this.deviceId) return this._toast('设备ID不存在')
+      if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
-        title: '取消打印', content: '确认取消打印？此操作不可撤销。',
+        title: this.texts.cancelPrint || '取消打印', content: this.texts.confirmCancelPrint || '确认取消打印？此操作不可撤销。',
         success: async (res) => {
           if (!res.confirm) return
           try {
-            uni.showLoading({ title: '正在停止...' })
+            uni.showLoading({ title: this.texts.stopping || '正在停止...' })
             await sendStopCommand(this.deviceId)
             uni.hideLoading()
             this.isPrinting = false; this.isPaused = false
-            this._toast('已取消打印', 'success')
+            this._toast(this.texts.printCancelled || '已取消打印', 'success')
             setTimeout(() => uni.navigateBack(), 1500)
-          } catch (e) { uni.hideLoading(); this._toast('停止失败，请重试') }
+          } catch (e) {
+            uni.hideLoading()
+            const errorMsg = e?.message || e?.msg || this.texts.stopPrintFailed || '停止失败，请重试'
+            this._toast(errorMsg)
+          }
         }
       })
     },
     async handleRestart() {
-      if (!this.deviceId || !this.workId) return this._toast('缺少必要参数')
+      if (!this.deviceId || !this.workId) return this._toast(this.texts.missingRequiredParams || '缺少必要参数')
       uni.showModal({
-        title: this.texts.restartPrint || '重新打印', content: '确认重新开始打印？',
+        title: this.texts.restartPrint || '重新打印', content: this.texts.confirmRestartPrint || '确认重新开始打印？',
         success: async (res) => {
           if (!res.confirm) return
           try {
-            uni.showLoading({ title: '重启中...' })
+            uni.showLoading({ title: this.texts.restarting || '重启中...' })
             await sendRestartCommand(this.deviceId, this.workId)
             uni.hideLoading()
             this.isPaused = false; this.isPrinting = true; this.currentProgress = 0
-            this._toast('已重新开始打印', 'success')
-          } catch (e) { uni.hideLoading(); this._toast(this.texts.restartPrintFailed || '重启失败') }
+            this._toast(this.texts.printRestarted || '已重新开始打印', 'success')
+          } catch (e) {
+            uni.hideLoading()
+            const errorMsg = e?.message || e?.msg || this.texts.restartPrintFailed || '重启失败'
+            this._toast(errorMsg)
+          }
         }
       })
     },
