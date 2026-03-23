@@ -69,7 +69,7 @@
 // @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 import { getModelDetail, scaleAndSliceModel, getScaleAndSliceStatus } from '@/api/models.ts'
-import { sendPrintCommand } from '@/api/iot.ts'
+import { sendPrintCommand, getDeviceStatus } from '@/api/iot.ts'
 import { getDefaultDevice, getDeviceList } from '@/api/devices.ts'
 
 export default {
@@ -458,8 +458,33 @@ export default {
           return
         }
         
+        // 检查设备状态
+        const statusRes = await getDeviceStatus(deviceId)
+        console.log('设备状态:', statusRes)
+        const deviceStatus = statusRes.data?.status || statusRes.data
+        if (deviceStatus === 'PRINTING' || deviceStatus === 'PAUSED') {
+          uni.hideLoading()
+          uni.showModal({
+            title: '设备忙',
+            content: '设备正在打印中，请先停止当前任务',
+            showCancel: false,
+            confirmText: '确定'
+          })
+          return
+        }
+        if (deviceStatus === 'OFFLINE' || deviceStatus === 'offline') {
+          uni.hideLoading()
+          uni.showModal({
+            title: '设备离线',
+            content: '设备当前离线，请检查设备连接状态',
+            showCancel: false,
+            confirmText: '确定'
+          })
+          return
+        }
+        
         // 发送打印命令
-        const res = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl)
+        const res = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl, this.taskId)
         console.log('sendPrintCommand 响应:', res)
         uni.hideLoading()
         

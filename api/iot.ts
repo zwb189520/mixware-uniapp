@@ -17,8 +17,8 @@ export function sendStopCommand(deviceId) {
  * @param {string} gcodeUrl - GCode文件URL
  * @returns {Promise<Object>} 返回命令结果
  */
-export function sendPrintCommand(deviceId, modelId, action, gcodeUrl) {
-  return post('/iot/sendPrintCommand', { deviceId, modelId, action, gcodeUrl })
+export function sendPrintCommand(deviceId, modelId, action, gcodeUrl, taskId) {
+  return post('/iot/sendPrintCommand', { deviceId, modelId, action, gcodeUrl, taskId })
 }
 
 /**
@@ -64,4 +64,40 @@ export function getDeviceStatus(deviceId) {
  */
 export function getDeviceAuth(deviceId) {
   return get('/iot/auth', { deviceId })
+}
+
+/**
+ * 获取固件信息
+ * @param {string} deviceId - 设备 ID
+ * @returns {Promise<Object>} 返回固件信息
+ */
+export function getFirmwareInfo(deviceId) {
+  return get('/iot/firmware/info', { deviceId })
+}
+
+/**
+ * 发送暂停命令
+ * @param {string} deviceId - 设备 ID
+ * @returns {Promise<Object>} 返回命令结果
+ */
+export function sendPauseCommand(deviceId) {
+  return post(`/iot/sendPauseCommand/${deviceId}`, {})
+}
+
+/**
+ * 发送恢复命令
+ * @param {string} deviceId - 设备 ID
+ * @returns {Promise<Object>} 返回命令结果
+ */
+export function sendResumeCommand(deviceId) {
+  return post(`/iot/sendResumeCommand/${deviceId}`, {})
+}
+
+/**
+ * 发送重启命令
+ * @param {string} deviceId - 设备 ID
+ * @returns {Promise<Object>} 返回命令结果
+ */
+export function sendRestartCommand(deviceId) {
+  return post(`/iot/sendRestartCommand/${deviceId}`, {})
 }
