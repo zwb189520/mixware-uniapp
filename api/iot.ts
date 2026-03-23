@@ -10,34 +10,6 @@ export function sendStopCommand(deviceId) {
 }
 
 /**
- * 发送暂停命令
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回命令结果
- */
-export function sendPauseCommand(deviceId) {
-  return post(`/iot/sendPauseCommand/${deviceId}`, {})
-}
-
-/**
- * 发送恢复命令
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回命令结果
- */
-export function sendResumeCommand(deviceId) {
-  return post(`/iot/sendResumeCommand/${deviceId}`, {})
-}
-
-/**
- * 发送重启命令
- * @param {string} deviceId - 设备 ID
- * @param {string} modelId - 模型 ID
- * @returns {Promise<Object>} 返回命令结果
- */
-export function sendRestartCommand(deviceId, modelId) {
-  return post('/iot/sendRestartCommand', { deviceId, modelId })
-}
-
-/**
  * 发送打印命令
  * @param {string} deviceId - 设备 ID
  * @param {string} modelId - 模型 ID
@@ -92,62 +64,4 @@ export function getDeviceStatus(deviceId) {
  */
 export function getDeviceAuth(deviceId) {
   return get('/iot/auth', { deviceId })
-}
-
-/**
- * 获取固件信息
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回固件信息
- */
-export function getFirmwareInfo(deviceId) {
-  return get(`/iot/firmware/info/${deviceId}`)
-}
-
-/**
- * 下载固件
- * @param {string} deviceId - 设备 ID
- * @param {string} version - 固件版本
- * @returns {Promise<Object>} 返回下载链接
- */
-export function downloadFirmware(deviceId, version) {
-  return post(`/iot/firmware/download/${deviceId}`, { version })
-}
-
-/**
- * 安装固件
- * @param {string} deviceId - 设备 ID
- * @param {string} firmwareId - 固件 ID
- * @returns {Promise<Object>} 返回安装结果
- */
-export function installFirmware(deviceId, firmwareId) {
-  return post(`/iot/firmware/install/${deviceId}`, { firmwareId })
-}
-
-/**
- * 获取固件历史记录
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回历史记录
- */
-export function getFirmwareHistory(deviceId) {
-  return get(`/iot/firmware/history/${deviceId}`)
-}
-
-/**
- * 回滚固件
- * @param {string} deviceId - 设备 ID
- * @param {string} targetVersion - 目标版本
- * @returns {Promise<Object>} 返回回滚结果
- */
-export function rollbackFirmware(deviceId, targetVersion) {
-  return post(`/iot/firmware/rollback/${deviceId}`, { targetVersion })
-}
-
-/**
- * 验证固件
- * @param {string} deviceId - 设备 ID
- * @param {Object} firmwareData - 固件数据
- * @returns {Promise<Object>} 返回验证结果
- */
-export function validateFirmware(deviceId, firmwareData) {
-  return post(`/iot/firmware/validate/${deviceId}`, firmwareData)
 }
