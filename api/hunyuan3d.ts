@@ -21,6 +21,15 @@ export function getTaskStatus(taskId) {
 }
 
 /**
+ * 取消3D生成任务
+ * @param {string} taskId - 任务 ID
+ * @returns {Promise<Object>} 返回取消结果
+ */
+export function cancelTask(taskId) {
+  return post(`/hunyuan3d/cancel/${taskId}`)
+}
+
+/**
  * 图片转 3D 模型
  * @param {string} image - 图片文件路径
  * @param {string} prompt - 模型描述文本

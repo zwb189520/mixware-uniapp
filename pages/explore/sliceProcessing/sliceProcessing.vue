@@ -68,8 +68,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
-import { getModelDetail } from '@/api/models.ts'
-import { submitSliceTask, getSliceStatus } from '@/api/sliceService.ts'
+import { getModelDetail, scaleAndSliceModel, getScaleAndSliceStatus } from '@/api/models.ts'
 import { sendPrintCommand } from '@/api/iot.ts'
 import { getDefaultDevice, getDeviceList } from '@/api/devices.ts'
 
@@ -93,7 +92,8 @@ export default {
       materialWeight: '', // 材料重量
       originalDimensions: null, // 从preview3DDetail传入的原始尺寸
       realTaskCompleted: false, // 真实任务是否完成
-      fakeProgressCompleted: false // 假进度是否完成
+      fakeProgressCompleted: false, // 假进度是否完成
+      scalePercent: 100 // 缩放比例
     }
   },
   computed: {
@@ -117,6 +117,7 @@ export default {
     } catch (e) {
       this.modelImage = options.modelImage || ''
     }
+    this.scalePercent = parseFloat(options.scalePercent) || 100
     // 自定义模型没有预览图，使用默认图片（但如果传了有效图片则保留）
     if (!this.modelImage || this.modelImage.endsWith('.stl')) {
       this.modelImage = '/static/images/logo.png'
@@ -132,6 +133,10 @@ export default {
     } catch (e) {
       console.log('解析尺寸参数失败:', e)
     }
+    
+    // 接收缩放比例和设备ID
+    this.scalePercent = parseFloat(options.scalePercent) || 100
+    this.deviceId = options.deviceId || ''
     
     // 加载语言和初始化文本
     this.languageStore.loadLanguage()
@@ -183,14 +188,11 @@ export default {
       
       // 提交真实的切片任务到后端
       try {
-        const submitRes = await submitSliceTask({
-          modelFileUrl: this.modelUrl,
-          layerHeight: 0.2,
-          infillDensity: 20,
-          printTemperature: 200,
-          bedTemperature: 60,
-          printSpeed: 50,
-          printerConfig: 'fdmprinter.json'
+        const scaleFactor = this.scalePercent / 100
+        const submitRes = await scaleAndSliceModel({
+          modelIdOrUrl: this.modelUrl,
+          scaleFactor: scaleFactor,
+          deviceId: this.deviceId
         })
         
         if (submitRes.code === 1 || submitRes.code === 0) {
@@ -244,8 +246,8 @@ export default {
     async pollRealTaskStatus(taskId) {
       const pollTimer = setInterval(async () => {
         try {
-          const res = await getSliceStatus(taskId)
-          console.log('切片状态返回:', JSON.stringify(res))
+          const res = await getScaleAndSliceStatus(taskId)
+          console.log('缩放切片状态返回:', JSON.stringify(res))
           if (res.code === 1 || res.code === 0) {
             const data = res.data
             if (data?.status === 'COMPLETED') {
@@ -253,7 +255,7 @@ export default {
               this.realTaskCompleted = true
               this.gcodeUrl = data?.gcodeUrl || ''
               // 打印所有可能的字段名
-              console.log('切片完成数据:', JSON.stringify(data))
+              console.log('缩放切片完成数据:', JSON.stringify(data))
               console.log('dimensions:', data?.dimensions)
               console.log('modelDimensions:', data?.modelDimensions)
               console.log('size:', data?.size)
@@ -267,7 +269,7 @@ export default {
               this.checkBothCompleted()
             } else if (data?.status === 'FAILED') {
               clearInterval(pollTimer)
-              uni.showToast({ title: data?.errorMessage || '切片失败', icon: 'none' })
+              uni.showToast({ title: data?.errorMessage || '缩放切片失败', icon: 'none' })
             }
           }
         } catch (error) {
@@ -285,7 +287,7 @@ export default {
     async pollSliceStatus(taskId) {
       this.timer = setInterval(async () => {
         try {
-          const res = await getSliceStatus(taskId)
+          const res = await getScaleAndSliceStatus(taskId)
           if (res.code !== 1 && res.code !== 0) {
             console.error('查询切片状态失败:', res.msg)
             return

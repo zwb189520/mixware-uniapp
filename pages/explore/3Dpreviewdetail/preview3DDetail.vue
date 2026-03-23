@@ -62,6 +62,9 @@
         </view>
         <view v-if="loading" class="loading-overlay">
           <text class="loading-text">{{ texts.loading }}</text>
+          <view v-if="isGenerating" class="cancel-btn" @tap="handleCancelGenerate">
+            <text class="cancel-btn-text">取消生成</text>
+          </view>
         </view>
       </view>
     </view>
@@ -107,7 +110,7 @@
 import { sendPrintCommand } from '@/api/iot.ts'
 import { getModelDetail } from '@/api/models.ts'
 import { getDefaultDevice } from '@/api/devices.ts'
-import { getTaskStatus } from '@/api/hunyuan3d.ts'
+import { getTaskStatus, cancelTask } from '@/api/hunyuan3d.ts'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
 import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores/index.ts'
@@ -145,6 +148,8 @@ export default {
       showPreview: false,
       // 模型选中状态
       isModelSelected: true,
+      // 是否正在生成中（混元3D）
+      isGenerating: false,
       selectedModel: null,
       // 边界检测状态
       isOutOfBounds: false,
@@ -353,6 +358,7 @@ export default {
 
     async pollTaskStatus() {
       this.loading = true
+      this.isGenerating = true
       this.pollCount = 0
       
       const poll = async () => {
@@ -370,6 +376,7 @@ export default {
             
             if (this.isTaskCompleted(status)) {
               console.log('任务完成')
+              this.isGenerating = false
               let modelUrl = res.data.modelUrl
               if (!modelUrl && res.data.ResultFile3Ds && res.data.ResultFile3Ds.length > 0) {
                 modelUrl = res.data.ResultFile3Ds[0].Url
@@ -385,6 +392,7 @@ export default {
                 return
               }
             } else if (this.isTaskFailed(status)) {
+              this.isGenerating = false
               console.error('任务失败')
               this.stopPoll()
               uni.showToast({ title: '模型生成失败', icon: 'none' })
@@ -429,6 +437,29 @@ export default {
         this.pollTimer = null
       }
       this.pollCount = 0
+    },
+    
+    async handleCancelGenerate() {
+      try {
+        uni.showLoading({ title: '正在取消...' })
+        const res = await cancelTask(this.modelId)
+        uni.hideLoading()
+        
+        if (res.code === 1 || res.code === 0) {
+          this.stopPoll()
+          this.isGenerating = false
+          this.loading = false
+          uni.showToast({ title: '已取消生成', icon: 'success' })
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1500)
+        } else {
+          uni.showToast({ title: res.msg || '取消失败', icon: 'none' })
+        }
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({ title: '取消失败', icon: 'none' })
+      }
     },
     
     handleBack() {
@@ -999,7 +1030,7 @@ export default {
         const dimensionsParam = this.dimensions && this.dimensions.x ? encodeURIComponent(JSON.stringify(this.dimensions)) : ''
         
         uni.navigateTo({
-          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(this.modelUrl || '')}&dimensions=${dimensionsParam}`
+          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(this.modelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}`
         })
       } catch (error) {
         uni.hideLoading()
@@ -1160,6 +1191,19 @@ export default {
 }
 
 .loading-text {
+	font-size: 28rpx;
+	color: #fff;
+}
+
+.cancel-btn {
+	margin-top: 30rpx;
+	padding: 16rpx 40rpx;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 8rpx;
+	border: 1rpx solid rgba(255, 255, 255, 0.5);
+}
+
+.cancel-btn-text {
 	font-size: 28rpx;
 	color: #fff;
 }
