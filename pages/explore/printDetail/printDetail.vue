@@ -100,11 +100,6 @@
         </view>
       </view>
 
-      <!-- 临时测试按钮 -->
-      <view class="test-btn" @click="goToPrintComplete">
-        <text class="test-btn-text">测试：跳转打印完成页</text>
-      </view>
-
       <view class="bottom-safe"></view>
     </scroll-view>
   </view>
@@ -120,7 +115,8 @@ import {
   sendResumeCommand,
   sendRestartCommand,
   sendStopCommand,
-  getFirmwareInfo
+  getFirmwareInfo,
+  getDeviceStatus
 } from '@/api/iot.ts'
 
 export default {
@@ -145,7 +141,8 @@ export default {
       printTime: '',
       materialWeight: '',
       deviceList: [],
-      currentDevice: { id: '', name: '' }
+      currentDevice: { id: '', name: '' },
+      statusTimer: null // 状态轮询定时器
     }
   },
   computed: {
@@ -198,10 +195,14 @@ export default {
     this.languageStore.loadLanguage()
     if (this.deviceId) {
       this.loadFirmwareInfo()
+      this.startStatusPolling() // 开始轮询设备状态
     }
     this.$nextTick(() => {
       this.loadDeviceList()
     })
+  },
+  onUnload() {
+    this.stopStatusPolling() // 页面卸载时停止轮询
   },
   methods: {
     async loadDeviceList() {
@@ -315,7 +316,7 @@ export default {
             uni.showLoading({ title: this.texts.stopping || '正在停止...' })
             await sendStopCommand(this.deviceId)
             uni.hideLoading()
-            this.isPrinting = false; this.isPaused = false
+            this.isPaused = false; this.isPrinting = false
             this._toast(this.texts.printCancelled || '已取消打印', 'success')
             setTimeout(() => uni.navigateBack(), 1500)
           } catch (e) {
@@ -347,26 +348,68 @@ export default {
       })
     },
     _toast(title, icon = 'none') { uni.showToast({ title, icon }) },
-    async goToPrintComplete() {
-      console.log('跳转到打印完成页，workId:', this.workId)
-      
-      // 获取当前用户信息
-      let userAvatar = '/static/images/Default avatar.png'
-      let userName = '用户'
-      try {
-        const userInfo = uni.getStorageSync('userInfo')
-        if (userInfo) {
-          const user = JSON.parse(userInfo)
-          userAvatar = user.avatar || user.avatarUrl || '/static/images/Default avatar.png'
-          userName = user.nickname || user.username || user.name || '用户'
-        }
-      } catch (e) {
-        console.log('获取用户信息失败:', e)
+
+    // 开始轮询设备状态
+    startStatusPolling() {
+      if (!this.deviceId) return
+      this.fetchDeviceStatus() // 立即获取一次
+      this.statusTimer = setInterval(() => {
+        this.fetchDeviceStatus()
+      }, 60000) // 每60秒轮询一次
+    },
+
+    // 停止轮询
+    stopStatusPolling() {
+      if (this.statusTimer) {
+        clearInterval(this.statusTimer)
+        this.statusTimer = null
       }
-      
+    },
+
+    // 获取设备状态
+    async fetchDeviceStatus() {
+      if (!this.deviceId) return
+      try {
+        const res = await getDeviceStatus(this.deviceId)
+        if (res.code === 1 || res.code === 0) {
+          const data = res.data
+          // 更新设备状态
+          this.printerStatus = data?.printState || ''
+          // 根据真实状态更新 isPrinting 和 isPaused
+          const printState = data?.printState
+          this.isPrinting = printState === 'Printing'
+          this.isPaused = printState === 'Pausing'
+          // 检查是否完成（StandingBy 或 Idle 表示空闲/完成）
+          if (printState === 'StandingBy' || printState === 'Idle') {
+            this.currentProgress = 100
+            this.checkPrintComplete()
+          }
+        }
+      } catch (error) {
+        console.error('获取设备状态失败:', error)
+      }
+    },
+
+    // 更新进度时检查是否完成
+    updateProgress(progress) {
+      this.currentProgress = progress
+      if (progress >= 100) {
+        this.isPrinting = false
+        this.checkPrintComplete()
+      }
+    },
+    // 打印完成后跳转
+    goToPrintComplete() {
       uni.navigateTo({
-        url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '测试模型')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(this.printTime || '10分钟')}&material=${encodeURIComponent(this.materialWeight || '0.64g')}&size=${encodeURIComponent(this.modelDimensions || '10mm(X)*10mm(Y)*15mm(Z)')}&userAvatar=${encodeURIComponent(userAvatar)}&userName=${encodeURIComponent(userName)}`
+        url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(this.printTime || '')}&material=${encodeURIComponent(this.materialWeight || '')}&size=${encodeURIComponent(this.modelDimensions || '')}`
       })
+    },
+
+    // 监听打印完成（当进度达到100%且状态为空闲时）
+    checkPrintComplete() {
+      if (this.currentProgress >= 100 && !this.isPrinting && !this.isPaused) {
+        this.goToPrintComplete()
+      }
     }
   }
 }
@@ -641,22 +684,7 @@ export default {
 .stop-btn   { background: #FFF5F5; border-color: #ff4d4f; }
 .stop-btn   .ctrl-text { color: #ff4d4f; }
 
-/* 临时测试按钮 */
-.test-btn {
-  margin: 32rpx 24rpx;
-  height: 80rpx;
-  background: #2a7fff;
-  border-radius: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.test-btn:active { opacity: 0.8; }
-.test-btn-text {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #fff;
-}
+
 </style>
 
 
