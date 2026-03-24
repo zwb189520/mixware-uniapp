@@ -53,10 +53,10 @@
             },
             "icons" : {
                 "android" : {
-                    "hdpi" : "static/images/Default avatar.png",
-                    "xhdpi" : "static/images/Default avatar.png",
-                    "xxhdpi" : "static/images/Default avatar.png",
-                    "xxxhdpi" : "static/images/Default avatar.png"
+                    "hdpi" : "static/images/Default-avatar.png",
+                    "xhdpi" : "static/images/Default-avatar.png",
+                    "xxhdpi" : "static/images/Default-avatar.png",
+                    "xxxhdpi" : "static/images/Default-avatar.png"
                 }
             }
         }
