@@ -63,8 +63,8 @@
         </view>
       </view>
 
-      <!-- 打印进度卡片（打印中或暂停时） -->
-      <view v-if="isPrinting || isPaused" class="section-card">
+      <!-- 打印进度卡片（打印中、暂停或已完成时） -->
+      <view v-if="isPrinting || isPaused || currentProgress >= 100" class="section-card">
         <view class="card-header-row">
           <text class="section-title-text">{{ texts.progress }}</text>
           <text class="progress-pct">{{ currentProgress }}%</text>
@@ -95,6 +95,11 @@
             </view>
             <view class="ctrl-btn stop-btn" @click="handleCancel">
               <text class="ctrl-text">{{ texts.cancel }}</text>
+            </view>
+          </template>
+          <template v-if="currentProgress >= 100 && !isPrinting && !isPaused">
+            <view class="ctrl-btn complete-btn" @click="goToPrintComplete">
+              <text class="ctrl-text">打印完成</text>
             </view>
           </template>
         </view>
@@ -371,6 +376,7 @@ export default {
       if (!this.deviceId) return
       try {
         const res = await getDeviceStatus(this.deviceId)
+        console.log('设备状态返回:', res)
         if (res.code === 1 || res.code === 0) {
           const data = res.data
           // 更新设备状态
@@ -378,7 +384,7 @@ export default {
           // 根据真实状态更新 isPrinting 和 isPaused
           const printState = data?.printState
           this.isPrinting = printState === 'Printing'
-          this.isPaused = printState === 'Pausing'
+          this.isPaused = printState === 'Paused' || printState === 'Pausing'
           // 检查是否完成（StandingBy 或 Idle 表示空闲/完成）
           if (printState === 'StandingBy' || printState === 'Idle') {
             this.currentProgress = 100
@@ -683,6 +689,8 @@ export default {
 .restart-btn .ctrl-text { color: #FF5A00; }
 .stop-btn   { background: #FFF5F5; border-color: #ff4d4f; }
 .stop-btn   .ctrl-text { color: #ff4d4f; }
+.complete-btn { background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%); }
+.complete-btn .ctrl-text { color: #fff; }
 
 
 </style>
