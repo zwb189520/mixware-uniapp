@@ -215,41 +215,66 @@ export default {
       this.steps[0].completed = true
       this.steps[0].active = false
       this.steps[1].active = true
-      this.progress = 10
+      this.progress = 0
     },
     
     async pollRealTaskStatus(taskId) {
-      // 使用轮询查询任务状态
+      let fakeProgress = 0
+      let realCompleted = false
+      let realFailed = false
+      let gcodeUrl = ''
+      let dimensions = ''
+      let printTime = ''
+      let materialWeight = ''
+
+      // 假进度定时器，每50ms增加0.2%，独立运行到99%
+      const fakeTimer = setInterval(() => {
+        if (fakeProgress < 99 && !realFailed) {
+          fakeProgress = Math.min(99, fakeProgress + 0.5)
+          this.progress = Math.floor(fakeProgress)
+          // 根据假进度更新步骤
+          if (this.progress >= 30 && !this.steps[1].completed) {
+            this.steps[1].completed = true
+            this.steps[1].active = false
+            this.steps[2].active = true
+          }
+          if (this.progress >= 55 && !this.steps[2].completed) {
+            this.steps[2].completed = true
+            this.steps[2].active = false
+            this.steps[3].active = true
+          }
+          if (this.progress >= 80 && !this.steps[3].completed) {
+            this.steps[3].completed = true
+            this.steps[3].active = false
+            this.steps[4].active = true
+          }
+        }
+      }, 50)
+
+      // 使用轮询查询真实任务状态
       const poll = async () => {
         try {
           const res = await getScaleAndSliceStatus(taskId)
           console.log('轮询状态:', JSON.stringify(res))
 
           if (res.code !== 1 && res.code !== 0) {
-            console.error('查询状态失败:', res.msg)
+            setTimeout(poll, 2000)
             return
           }
 
           const data = res.data
           const status = data?.status
-          const progress = data?.progress || 0
-          console.log('状态:', status, '进度:', progress)
 
           if (status === 'COMPLETED') {
-            this.realTaskCompleted = true
-            this.progress = 100
-            this.steps[1].completed = true
-            this.steps[2].completed = true
-            this.steps[3].completed = true
-            this.steps[4].completed = true
-            this.steps[4].active = false
-            this.gcodeUrl = data?.gcodeUrl || ''
-            this.modelDimensions = data?.dimensions || ''
-            this.printTime = data?.printTime || ''
-            this.materialWeight = data?.materialWeight || ''
-            this.checkBothCompleted()
-            return
+            realCompleted = true
+            gcodeUrl = data?.gcodeUrl || ''
+            dimensions = data?.dimensions || ''
+            printTime = data?.printTime || ''
+            materialWeight = data?.materialWeight || ''
+            checkComplete()
           } else if (status === 'FAILED') {
+            realFailed = true
+            clearInterval(fakeTimer)
             this.taskFailed = true
             this.progress = 0
             const errorMsg = data?.errorMessage || ''
@@ -259,33 +284,37 @@ export default {
               showCancel: false,
               confirmText: this.texts.confirm || '确定'
             })
-            return
           } else {
-            // 更新进度和步骤
-            this.progress = Math.max(this.progress, 20 + progress * 0.7)
-            if (progress > 25 && !this.steps[1].completed) {
-              this.steps[1].completed = true
-              this.steps[1].active = false
-              this.steps[2].active = true
-            }
-            if (progress > 50 && !this.steps[2].completed) {
-              this.steps[2].completed = true
-              this.steps[2].active = false
-              this.steps[3].active = true
-            }
-            if (progress > 75 && !this.steps[3].completed) {
-              this.steps[3].completed = true
-              this.steps[3].active = false
-              this.steps[4].active = true
-            }
-            // 继续轮询
-            setTimeout(poll, 2000)
+            setTimeout(poll, 1500)
           }
         } catch (error) {
           console.error('轮询状态失败:', error)
-          setTimeout(poll, 3000)
+          setTimeout(poll, 2000)
         }
       }
+
+      // 检查是否完成（假进度和真进度都完成）
+      const checkComplete = () => {
+        if (realCompleted && fakeProgress >= 99) {
+          clearInterval(fakeTimer)
+          this.realTaskCompleted = true
+          this.progress = 100
+          this.steps[1].completed = true
+          this.steps[2].completed = true
+          this.steps[3].completed = true
+          this.steps[4].completed = true
+          this.steps[4].active = false
+          this.gcodeUrl = gcodeUrl
+          this.modelDimensions = dimensions
+          this.printTime = printTime
+          this.materialWeight = materialWeight
+          this.checkBothCompleted()
+        } else if (realCompleted) {
+          // 真实完成但假进度还没到99%，继续等待假进度
+          setTimeout(checkComplete, 200)
+        }
+      }
+
       poll()
     },
 
