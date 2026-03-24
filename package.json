@@ -12,6 +12,7 @@
     "@dcloudio/uni-components": "^3.0.0-alpha-3000020210521001",
     "@dcloudio/uni-ui": "^1.5.11",
     "crypto-js": "^4.2.0",
+    "form-data": "^4.0.5",
     "markdown-it": "^14.1.0",
     "pinia": "^2.1.7",
     "three": "^0.182.0",
