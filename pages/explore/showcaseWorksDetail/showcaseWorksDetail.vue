@@ -316,14 +316,14 @@ export default {
           this.checkUserInteractions()
         } else {
           uni.showToast({
-            title: '帖子不存在',
+            title: this.texts.postNotFound || '帖子不存在',
             icon: 'none'
           })
         }
       } catch (e) {
         console.error('加载帖子详情失败:', e)
         uni.showToast({
-          title: '加载失败',
+          title: this.texts.loadFailed || '加载失败',
           icon: 'none'
         })
       } finally {
@@ -494,7 +494,7 @@ export default {
       // 防止关注自己
       if (this.postDetail.userId && this.currentUserId && String(this.postDetail.userId) === String(this.currentUserId)) {
         uni.showToast({
-          title: '不能关注自己',
+          title: this.texts.cannotFollowSelf || '不能关注自己',
           icon: 'none'
         })
         return
@@ -511,7 +511,7 @@ export default {
       })
       
       uni.showToast({
-        title: this.postDetail.isFollowing ? '关注成功' : '取消关注',
+        title: this.postDetail.isFollowing ? (this.texts.followSuccess || '关注成功') : (this.texts.unfollowSuccess || '取消关注'),
         icon: 'success'
       })
       

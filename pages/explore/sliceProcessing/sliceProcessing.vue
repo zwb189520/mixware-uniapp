@@ -276,10 +276,10 @@ export default {
         (error) => {
           console.error('SSE连接错误:', error)
           uni.showModal({
-            title: '连接失败',
-            content: '无法建立实时连接，请检查网络后重试',
+            title: this.texts.connectionFailed || '连接失败',
+            content: this.texts.connectionFailedContent || '无法建立实时连接，请检查网络后重试',
             showCancel: false,
-            confirmText: '确定',
+            confirmText: this.texts.confirm || '确定',
             success: () => {
               uni.navigateBack()
             }
@@ -370,20 +370,20 @@ export default {
         if (deviceStatus === 'PRINTING' || deviceStatus === 'PAUSED') {
           uni.hideLoading()
           uni.showModal({
-            title: '设备忙',
-            content: '设备正在打印中，请先停止当前任务',
+            title: this.texts.deviceBusy || '设备忙',
+            content: this.texts.deviceBusyContent || '设备正在打印中，请先停止当前任务',
             showCancel: false,
-            confirmText: '确定'
+            confirmText: this.texts.confirm || '确定'
           })
           return
         }
         if (deviceStatus === 'OFFLINE' || deviceStatus === 'offline') {
           uni.hideLoading()
           uni.showModal({
-            title: '设备离线',
-            content: '设备当前离线，请检查设备连接状态',
+            title: this.texts.deviceOffline || '设备离线',
+            content: this.texts.deviceOfflineContent || '设备当前离线，请检查设备连接状态',
             showCancel: false,
-            confirmText: '确定'
+            confirmText: this.texts.confirm || '确定'
           })
           return
         }

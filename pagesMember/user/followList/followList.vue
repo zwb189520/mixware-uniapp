@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="follow-page">
     <safe-area />
     <custom-navbar :title="pageTitle" @back="handleBack" />
@@ -127,7 +127,7 @@ export default {
         const currentUserId = uni.getStorageSync('userInfo')?.userId || ''
         if (user.userId && currentUserId && String(user.userId) === String(currentUserId)) {
           uni.showToast({
-            title: '不能关注自己',
+            title: this.texts.cannotFollowSelf || '不能关注自己',
             icon: 'none'
           })
           return

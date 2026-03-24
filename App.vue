@@ -111,11 +111,11 @@
 							} else {
 								console.log(`${permission}权限请求失败`)
 								uni.showModal({
-									title: '提示',
-									content: desc + '权限被拒绝，可能影响部分功能使用',
+									title: this.texts.tip || '提示',
+									content: desc + (this.texts.permissionDenied || '权限被拒绝，可能影响部分功能使用'),
 									showCancel: true,
-									cancelText: '取消',
-									confirmText: '设置',
+									cancelText: this.texts.cancel || '取消',
+									confirmText: this.texts.settings || '设置',
 									success: (modalResult) => {
 										if (modalResult.confirm) {
 											plus.runtime.openSettings()

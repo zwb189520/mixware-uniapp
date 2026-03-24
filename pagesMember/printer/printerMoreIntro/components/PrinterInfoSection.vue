@@ -80,9 +80,9 @@ export default {
     },
     handleEditName() {
       uni.showModal({
-        title: '修改设备名称',
+        title: this.texts.editDeviceName || '修改设备名称',
         editable: true,
-        placeholderText: '请输入新的设备名称',
+        placeholderText: this.texts.enterNewDeviceName || '请输入新的设备名称',
         content: this.printerName,
         success: async (res) => {
           if (res.confirm && res.content.trim()) {
@@ -95,14 +95,14 @@ export default {
               await updateDeviceInfo(updateData)
               this.printerName = newName
               uni.showToast({
-                title: '修改成功',
+                title: this.texts.editSuccess || '修改成功',
                 icon: 'success'
               })
               // 刷新信息
               this.loadDeviceInfo()
             } catch (error) {
               uni.showToast({
-                title: '修改失败',
+                title: this.texts.editFailed || '修改失败',
                 icon: 'none'
               })
             }
@@ -112,9 +112,9 @@ export default {
     },
     handleEditRemark() {
       uni.showModal({
-        title: '修改备注',
+        title: this.texts.editRemark || '修改备注',
         editable: true,
-        placeholderText: '请输入设备备注',
+        placeholderText: this.texts.enterDeviceRemark || '请输入设备备注',
         content: this.printerRemark,
         success: async (res) => {
           if (res.confirm) {
@@ -127,13 +127,13 @@ export default {
               await updateDeviceInfo(updateData)
               this.printerRemark = newRemark
               uni.showToast({
-                title: '修改成功',
+                title: this.texts.editSuccess || '修改成功',
                 icon: 'success'
               })
               this.loadDeviceInfo()
             } catch (error) {
               uni.showToast({
-                title: '修改失败',
+                title: this.texts.editFailed || '修改失败',
                 icon: 'none'
               })
             }

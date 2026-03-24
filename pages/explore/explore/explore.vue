@@ -519,7 +519,7 @@ export default {
     async searchModels(keyword) {
       if (!keyword.trim()) {
         uni.showToast({
-          title: '请输入搜索关键词',
+          title: this.texts.pleaseEnterKeyword || '请输入搜索关键词',
           icon: 'none'
         })
         return
@@ -570,14 +570,14 @@ export default {
           })
         } else {
           uni.showToast({
-            title: '未找到相关结果',
+            title: this.texts.noResultsFound || '未找到相关结果',
             icon: 'none'
           })
         }
       } catch (error) {
         console.error('搜索失败:', error)
         uni.showToast({
-          title: '搜索失败，请稍后重试',
+          title: this.texts.searchFailed || '搜索失败，请稍后重试',
           icon: 'none'
         })
       } finally {
@@ -597,7 +597,7 @@ export default {
         fail: (err) => {
           console.error('扫码失败:', err)
           uni.showToast({
-            title: '扫码失败',
+            title: this.texts.scanFailed || '扫码失败',
             icon: 'none'
           })
         }
@@ -613,14 +613,14 @@ export default {
           
           if (res.data) {
             uni.showToast({
-              title: '解析成功',
+              title: this.texts.parseSuccess || '解析成功',
               icon: 'success',
               duration: 2000
             })
             console.log('SN码解析结果:', res.data)
           } else {
             uni.showToast({
-              title: '无效的SN码',
+              title: this.texts.invalidSnCode || '无效的SN码',
               icon: 'none'
             })
           }
@@ -628,7 +628,7 @@ export default {
           uni.hideLoading()
           console.error('解析SN码失败:', error)
           uni.showToast({
-            title: '解析失败',
+            title: this.texts.parseFailed || '解析失败',
             icon: 'none'
           })
         }
@@ -746,8 +746,8 @@ export default {
     async uploadModel() {
       // 步骤提示
       uni.showModal({
-        title: '上传步骤',
-        content: '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传',
+        title: this.texts.uploadSteps || '上传步骤',
+        content: this.texts.uploadStepsContent || '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传',
         success: async (modalRes) => {
           if (modalRes.confirm) {
             // 选择预览图片
@@ -780,7 +780,7 @@ export default {
                         
                         // 输入模型名称
                         uni.showModal({
-                          title: '模型名称',
+                          title: this.texts.modelName || '模型名称',
                           content: '',
                           placeholderText: stlName.replace('.stl', '').replace('.STL', ''),
                           editable: true,

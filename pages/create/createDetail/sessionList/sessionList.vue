@@ -164,7 +164,7 @@ export default {
       } catch (error) {
         console.error('创建会话失败:', error)
         uni.showToast({
-          title: '创建会话失败',
+          title: this.texts.createSessionFailed || '创建会话失败',
           icon: 'none'
         })
       }
@@ -203,7 +203,7 @@ export default {
       const session = this.sessionList[index]
       
       uni.showModal({
-        title: '提示',
+        title: this.texts.tip || '提示',
         content: this.texts.deleteConfirm,
         success: async (res) => {
           if (res.confirm) {

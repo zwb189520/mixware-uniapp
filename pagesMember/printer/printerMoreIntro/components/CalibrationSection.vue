@@ -56,7 +56,7 @@ export default {
   methods: {
     handleCalibration(type) {
       uni.showToast({
-        title: '开始校准',
+        title: this.texts.startCalibration || '开始校准',
         icon: 'none'
       })
     }

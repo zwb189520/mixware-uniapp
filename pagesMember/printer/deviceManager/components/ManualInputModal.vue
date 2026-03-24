@@ -113,7 +113,7 @@ export default {
     handleConfirm() {
       if (!this.inputValue.trim()) {
         uni.showToast({
-          title: '请输入内容',
+          title: this.texts.pleaseEnterContent || '请输入内容',
           icon: 'none'
         })
         return

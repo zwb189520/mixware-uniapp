@@ -102,7 +102,7 @@ const handleSubmit = () => {
   
   if (newPassword.value === oldPassword.value) {
     uni.showToast({
-      title: '新密码不能与旧密码相同',
+      title: texts.value.newPasswordSameAsOld || '新密码不能与旧密码相同',
       icon: 'none'
     })
     return

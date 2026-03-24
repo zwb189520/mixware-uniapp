@@ -249,7 +249,7 @@ export default {
           console.log('WiFi列表为空')
           this.scanStatus = 'success' // 扫描成功但列表为空
           uni.showToast({
-            title: '未发现可用的WiFi，请检查路由器是否开启',
+            title: this.texts.noWifiFound || '未发现可用的WiFi，请检查路由器是否开启',
             icon: 'none'
           })
         } else {
@@ -262,7 +262,7 @@ export default {
         this.scanStatus = 'failed'
         uni.hideLoading()
         uni.showToast({
-          title: '未能搜索到周边WiFi，请重试',
+          title: this.texts.wifiSearchFailed || '未能搜索到周边WiFi，请重试',
           icon: 'none'
         })
       }

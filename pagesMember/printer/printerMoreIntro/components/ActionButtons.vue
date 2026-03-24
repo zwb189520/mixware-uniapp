@@ -30,21 +30,21 @@ export default {
     async handleUnbind() {
       if (!this.deviceId) {
         uni.showToast({
-          title: '设备ID不存在',
+          title: this.texts.deviceIdNotFound || '设备ID不存在',
           icon: 'none'
         })
         return
       }
       
       uni.showModal({
-        title: '确认解除绑定',
-        content: '解除绑定后将无法控制此打印机，确定要继续吗？',
+        title: this.texts.confirmUnbind || '确认解除绑定',
+        content: this.texts.confirmUnbindContent || '解除绑定后将无法控制此打印机，确定要继续吗？',
         success: async (res) => {
           if (res.confirm) {
             try {
               await deleteDevice(this.deviceId)
               uni.showToast({
-                title: '已解除绑定',
+                title: this.texts.unbindSuccess || '已解除绑定',
                 icon: 'success'
               })
               setTimeout(() => {

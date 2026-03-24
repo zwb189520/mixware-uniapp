@@ -365,20 +365,20 @@ const saveImageToPhotosAlbum = (base64: string) => {
       uni.saveImageToPhotosAlbum({
         filePath: fileName,
         success: () => {
-          uni.showToast({ title: '已保存到相册', icon: 'success' })
+          uni.showToast({ title: texts.value.savedToAlbum || '已保存到相册', icon: 'success' })
           bitmap.clear()
         },
         fail: () => {
-          uni.showToast({ title: '保存到相册失败', icon: 'none' })
+          uni.showToast({ title: texts.value.saveToAlbumFailed || '保存到相册失败', icon: 'none' })
           bitmap.clear()
         }
       })
     }, () => {
-      uni.showToast({ title: '保存图片文件失败', icon: 'none' })
+      uni.showToast({ title: texts.value.saveImageFileFailed || '保存图片文件失败', icon: 'none' })
       bitmap.clear()
     })
   }, () => {
-    uni.showToast({ title: '解析图片数据失败', icon: 'none' })
+    uni.showToast({ title: texts.value.parseImageDataFailed || '解析图片数据失败', icon: 'none' })
     bitmap.clear()
   })
   // #endif
@@ -633,7 +633,7 @@ const uploadAndNavigateToPrint = async (stlContent: string) => {
   } catch (error) {
     uni.hideLoading()
     console.error('上传模型失败:', error)
-    uni.showToast({ title: '上传失败', icon: 'none' })
+    uni.showToast({ title: texts.value.uploadFailed || '上传失败', icon: 'none' })
   }
 }
 
@@ -667,7 +667,7 @@ const uploadAndNavigateApp = async (stlContent: string) => {
       console.log('modelUrl:', modelUrl)
       
       if (!modelUrl) {
-        uni.showToast({ title: '获取模型链接失败', icon: 'none' })
+        uni.showToast({ title: texts.value.getModelLinkFailed || '获取模型链接失败', icon: 'none' })
         return
       }
       
@@ -695,17 +695,17 @@ const uploadAndNavigateApp = async (stlContent: string) => {
           if (webviewContext.value) {
             webviewContext.value.show()
           }
-          uni.showToast({ title: '跳转失败', icon: 'none' })
+          uni.showToast({ title: texts.value.navigationFailed || '跳转失败', icon: 'none' })
         }
       })
     } else {
       console.error('上传失败，响应:', uploadRes)
-      uni.showToast({ title: '上传失败', icon: 'none' })
+      uni.showToast({ title: texts.value.uploadFailed || '上传失败', icon: 'none' })
     }
   } catch (err: any) {
     console.error('uploadAndNavigateApp 错误:', err)
     uni.hideLoading()
-    uni.showToast({ title: '上传失败: ' + (err.message || '未知错误'), icon: 'none' })
+    uni.showToast({ title: (texts.value.uploadFailed || '上传失败') + ': ' + (err.message || (texts.value.unknownError || '未知错误')), icon: 'none' })
   }
 }
 
@@ -736,7 +736,7 @@ const uploadAndNavigateH5 = async (stlContent: string) => {
       url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${h5ModelId}&name=${encodeURIComponent(h5ModelName)}&url=${encodeURIComponent(h5ModelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(h5ImageUrl)}`
     })
   } else {
-    uni.showToast({ title: '上传失败', icon: 'none' })
+    uni.showToast({ title: texts.value.uploadFailed || '上传失败', icon: 'none' })
   }
 }
 

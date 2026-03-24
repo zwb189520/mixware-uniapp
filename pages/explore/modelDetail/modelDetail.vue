@@ -595,7 +595,7 @@ export default {
 
     handleAuthorClick() {
       uni.showToast({
-        title: '查看作者主页',
+        title: this.texts.viewAuthorProfile || '查看作者主页',
         icon: 'none'
       })
     },

@@ -782,7 +782,7 @@ export default {
       console.log('居中按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
-          title: '请先选中模型',
+          title: this.texts.pleaseSelectModel || '请先选中模型',
           icon: 'none',
           duration: 1500
         })
@@ -797,7 +797,7 @@ export default {
           isReturn: false
         })
         uni.showToast({
-          title: '模型已居中',
+          title: this.texts.modelCentered || '模型已居中',
           icon: 'success',
           duration: 1000
         })
@@ -810,7 +810,7 @@ export default {
       console.log('旋转按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
-          title: '请先选中模型',
+          title: this.texts.pleaseSelectModel || '请先选中模型',
           icon: 'none',
           duration: 1500
         })
@@ -870,7 +870,7 @@ export default {
       console.log('复制按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
-          title: '请先选中模型',
+          title: this.texts.pleaseSelectModel || '请先选中模型',
           icon: 'none',
           duration: 1500
         })
@@ -885,7 +885,7 @@ export default {
           isReturn: false
         })
         uni.showToast({
-          title: '复制成功',
+          title: this.texts.copySuccess || '复制成功',
           icon: 'success',
           duration: 1000
         })
@@ -898,7 +898,7 @@ export default {
       console.log('适配按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
-          title: '请先选中模型',
+          title: this.texts.pleaseSelectModel || '请先选中模型',
           icon: 'none',
           duration: 1500
         })
@@ -928,7 +928,7 @@ export default {
           isReturn: false
         })
         uni.showToast({
-          title: '模型已适配',
+          title: this.texts.modelFitted || '模型已适配',
           icon: 'success',
           duration: 1000
         })
@@ -941,15 +941,15 @@ export default {
       console.log('删除按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
-          title: '请先选中模型',
+          title: this.texts.pleaseSelectModel || '请先选中模型',
           icon: 'none',
           duration: 1500
         })
         return
       }
       uni.showModal({
-        title: '确认删除',
-        content: '确定要删除当前模型吗？',
+        title: this.texts.confirmDelete || '确认删除',
+        content: this.texts.confirmDeleteModelContent || '确定要删除当前模型吗？',
         success: (res) => {
           if (res.confirm) {
             // #ifdef APP
@@ -966,7 +966,7 @@ export default {
             this.selectedModel = null
             this.isOutOfBounds = false
             uni.showToast({
-              title: '删除成功',
+              title: this.texts.deleteSuccess || '删除成功',
               icon: 'success',
               duration: 1000
             })
