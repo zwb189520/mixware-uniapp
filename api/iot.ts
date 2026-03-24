@@ -111,9 +111,15 @@ export function sendRestartCommand(deviceId) {
 export function connectSSE(onMessage, onError) {
   const BASE_URL = 'http://app.mixwarebot.cn:8080'
   const url = `${BASE_URL}/api/notify/sse/connect`
+  console.log('建立SSE连接:', url)
   const eventSource = new EventSource(url)
-  
+
+  eventSource.onopen = () => {
+    console.log('SSE连接已打开')
+  }
+
   eventSource.onmessage = (event) => {
+    console.log('SSE原始消息:', event.data)
     try {
       const data = JSON.parse(event.data)
       onMessage && onMessage(data)
@@ -121,7 +127,7 @@ export function connectSSE(onMessage, onError) {
       onMessage && onMessage(event.data)
     }
   }
-  
+
   eventSource.onerror = (error) => {
     console.error('SSE连接错误:', error)
     onError && onError(error)

@@ -68,7 +68,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
-import { getModelDetail, scaleAndSliceModel } from '@/api/models.ts'
+import { getModelDetail, scaleAndSliceModel, getScaleAndSliceStatus } from '@/api/models.ts'
 import { sendPrintCommand, getDeviceStatus, connectSSE } from '@/api/iot.ts'
 import { getDefaultDevice, getDeviceList } from '@/api/devices.ts'
 
@@ -192,13 +192,19 @@ export default {
         })
 
         
+        console.log('scaleAndSlice返回:', JSON.stringify(submitRes))
         if (submitRes.code === 1 || submitRes.code === 0) {
           const taskId = submitRes.data?.taskId
+          console.log('获取到taskId:', taskId)
 
           if (taskId) {
             this.taskId = taskId
             this.pollRealTaskStatus(taskId)
+          } else {
+            console.error('没有获取到taskId')
           }
+        } else {
+          console.error('scaleAndSlice返回错误:', submitRes.msg)
         }
       } catch (err) {
         console.error('提交切片任务失败:', err)
@@ -213,22 +219,23 @@ export default {
     },
     
     async pollRealTaskStatus(taskId) {
+      // 使用轮询查询任务状态
+      const poll = async () => {
+        try {
+          const res = await getScaleAndSliceStatus(taskId)
+          console.log('轮询状态:', JSON.stringify(res))
 
-      
-      // 建立SSE连接
-      this.eventSource = connectSSE(
-        (data) => {
-
-          // 只处理当前任务的消息
-          if (data.taskId && data.taskId !== taskId) {
+          if (res.code !== 1 && res.code !== 0) {
+            console.error('查询状态失败:', res.msg)
             return
           }
-          
+
+          const data = res.data
           const status = data?.status
           const progress = data?.progress || 0
-          
+          console.log('状态:', status, '进度:', progress)
+
           if (status === 'COMPLETED') {
-            this.eventSource.close()
             this.realTaskCompleted = true
             this.progress = 100
             this.steps[1].completed = true
@@ -237,25 +244,25 @@ export default {
             this.steps[4].completed = true
             this.steps[4].active = false
             this.gcodeUrl = data?.gcodeUrl || ''
-            this.modelDimensions = data?.dimensions || data?.modelDimensions || data?.size || ''
-            this.printTime = data?.printTime || data?.estimatedTime || ''
-            this.materialWeight = data?.materialWeight || data?.weight || ''
+            this.modelDimensions = data?.dimensions || ''
+            this.printTime = data?.printTime || ''
+            this.materialWeight = data?.materialWeight || ''
             this.checkBothCompleted()
+            return
           } else if (status === 'FAILED') {
-            this.eventSource.close()
             this.taskFailed = true
             this.progress = 0
-            const errorMsg = data?.errorMessage || data?.message || ''
+            const errorMsg = data?.errorMessage || ''
             uni.showModal({
               title: this.texts.sliceFailed || '切片失败',
               content: errorMsg || this.texts.sliceFailedContent || '模型切片处理失败，请稍后重试或联系客服',
               showCancel: false,
               confirmText: this.texts.confirm || '确定'
             })
-          } else if (status === 'PROCESSING' || status === 'PENDING') {
+            return
+          } else {
             // 更新进度和步骤
             this.progress = Math.max(this.progress, 20 + progress * 0.7)
-            // 根据进度更新步骤状态
             if (progress > 25 && !this.steps[1].completed) {
               this.steps[1].completed = true
               this.steps[1].active = false
@@ -271,21 +278,15 @@ export default {
               this.steps[3].active = false
               this.steps[4].active = true
             }
+            // 继续轮询
+            setTimeout(poll, 2000)
           }
-        },
-        (error) => {
-          console.error('SSE连接错误:', error)
-          uni.showModal({
-            title: this.texts.connectionFailed || '连接失败',
-            content: this.texts.connectionFailedContent || '无法建立实时连接，请检查网络后重试',
-            showCancel: false,
-            confirmText: this.texts.confirm || '确定',
-            success: () => {
-              uni.navigateBack()
-            }
-          })
+        } catch (error) {
+          console.error('轮询状态失败:', error)
+          setTimeout(poll, 3000)
         }
-      )
+      }
+      poll()
     },
 
     checkBothCompleted() {
