@@ -91,6 +91,7 @@ export default {
       realTaskCompleted: false, // 真实任务是否完成
 
       scalePercent: 100, // 缩放比例
+      addSupports: false, // 是否添加支撑结构
       taskFailed: false, // 任务是否失败
       eventSource: null // SSE连接实例
     }
@@ -130,9 +131,10 @@ export default {
       } catch (e) {}
     }
     
-    // 接收缩放比例和设备ID
+    // 接收缩放比例、设备ID和支撑选项
     this.scalePercent = parseFloat(options.scalePercent) || 100
     this.deviceId = options.deviceId || ''
+    this.addSupports = options.addSupports === 'true' || options.addSupports === true
     
     // 加载语言和初始化文本
     this.languageStore.loadLanguage()
@@ -188,7 +190,8 @@ export default {
         const submitRes = await scaleAndSliceModel({
           modelIdOrUrl: this.modelId,
           scaleFactor: scaleFactor,
-          deviceId: this.deviceId
+          deviceId: this.deviceId,
+          addSupports: this.addSupports
         })
 
         

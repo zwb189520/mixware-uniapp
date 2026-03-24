@@ -89,6 +89,17 @@
         />
       </view>
       
+      <!-- 支撑结构开关 -->
+      <view class="setting-item support-item" :class="{ 'disabled': !isModelSelected }">
+        <text class="setting-label">{{ texts.addSupports || '添加支撑结构' }}</text>
+        <switch 
+          :checked="addSupports" 
+          :disabled="!isModelSelected"
+          @change="onSupportChange"
+          color="#2a7fff"
+        />
+      </view>
+      
       <!-- 重置按钮 -->
       <button class="reset-btn" @tap="handleReset">
         <text class="reset-btn-text">{{ texts.reset }}</text>
@@ -144,6 +155,7 @@ export default {
       // 缩放相关
       modelScale: 1,
       scalePercent: 100,
+      addSupports: false,
       modelInfo: {},
       showPreview: false,
       // 模型选中状态
@@ -709,6 +721,9 @@ export default {
       this.modelScale = this.scalePercent / 100
       this.applyModelScale()
     },
+    onSupportChange(e) {
+      this.addSupports = e.detail.value
+    },
     // 应用模型缩放
     applyModelScale() {
       // #ifdef APP
@@ -1030,7 +1045,7 @@ export default {
         const dimensionsParam = this.dimensions && this.dimensions.x ? encodeURIComponent(JSON.stringify(this.dimensions)) : ''
         
         uni.navigateTo({
-          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(this.modelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}`
+          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(this.modelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}&addSupports=${this.addSupports}`
         })
       } catch (error) {
         uni.hideLoading()
@@ -1234,6 +1249,17 @@ export default {
 
 .setting-item {
 	margin-bottom: 32rpx;
+}
+
+.support-item {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.support-item .setting-label {
+	margin-bottom: 0;
 }
 
 .setting-label {
