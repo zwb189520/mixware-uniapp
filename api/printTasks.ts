@@ -21,7 +21,7 @@ export interface PrintTaskQuery {
 
 export function getPrintTasks(params: PrintTaskQuery) {
   return request({
-    url: '/api/print-tasks/list',
+    url: '/print-tasks/list',
     method: 'GET',
     data: params
   })
@@ -29,7 +29,7 @@ export function getPrintTasks(params: PrintTaskQuery) {
 
 export function getPrintTaskDetail(taskId: string) {
   return request({
-    url: `/api/print-tasks/${taskId}`,
+    url: `/print-tasks/${taskId}`,
     method: 'GET'
   })
 }
@@ -40,10 +40,10 @@ export function createPrintTask(data: {
   previewUrl?: string
   scaledModelUrl?: string
   sliceGcodeUrl?: string
-  deviceId?: number
+  deviceId?: string
 }) {
   return request({
-    url: '/api/print-tasks',
+    url: '/print-tasks',
     method: 'POST',
     data
   })
@@ -51,7 +51,7 @@ export function createPrintTask(data: {
 
 export function updatePrintTask(data: PrintTask) {
   return request({
-    url: '/api/print-tasks',
+    url: '/print-tasks',
     method: 'PUT',
     data
   })
@@ -59,7 +59,7 @@ export function updatePrintTask(data: PrintTask) {
 
 export function deletePrintTask(taskId: string) {
   return request({
-    url: `/api/print-tasks/${taskId}`,
+    url: `/print-tasks/${taskId}`,
     method: 'DELETE'
   })
 }

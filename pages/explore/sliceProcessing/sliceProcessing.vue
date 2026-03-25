@@ -423,15 +423,19 @@ export default {
         }
         
         // 创建打印任务记录
+        let printTaskId = ''
         try {
-          await createPrintTask({
+          const taskRes = await createPrintTask({
             modelId: parseInt(this.modelId) || 0,
             sourceModelUrl: this.modelUrl,
             previewUrl: this.modelImage,
             scaledModelUrl: this.modelUrl,
             sliceGcodeUrl: this.gcodeUrl,
-            deviceId: parseInt(deviceId) || 0
+            deviceId: deviceId
           })
+          if (taskRes.code === 1 && taskRes.data) {
+            printTaskId = taskRes.data.taskId || taskRes.data.id || ''
+          }
         } catch (e) {
           console.error('创建打印任务记录失败:', e)
         }
@@ -447,8 +451,9 @@ export default {
             `${this.originalDimensions.x.toFixed(1)}mm(X)*${this.originalDimensions.y.toFixed(1)}mm(Y)*${this.originalDimensions.z.toFixed(1)}mm(Z)` : 
             (this.modelDimensions || '')
           setTimeout(() => {
+            const workId = printTaskId || this.modelId
             uni.redirectTo({
-              url: `/pages/explore/printDetail/printDetail?workId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}&dimensions=${encodeURIComponent(dimensionsStr)}&printTime=${encodeURIComponent(this.printTime || '')}&materialWeight=${encodeURIComponent(this.materialWeight || '')}`
+              url: `/pages/explore/printDetail/printDetail?workId=${workId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}&dimensions=${encodeURIComponent(dimensionsStr)}&printTime=${encodeURIComponent(this.printTime || '')}&materialWeight=${encodeURIComponent(this.materialWeight || '')}`
             })
           }, 1500)
         } else {

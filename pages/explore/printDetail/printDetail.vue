@@ -182,28 +182,36 @@ export default {
       return 'text-idle'
     }
   },
-  onLoad(options) {
+  async onLoad(options) {
     this.workId = options.workId || ''
     console.log('printDetail onLoad options:', options)
     console.log('接收到的 workId:', this.workId)
     
-    try { this.modelName = options.modelName ? decodeURIComponent(options.modelName) : '' } catch { this.modelName = options.modelName || '' }
-    try { this.modelImage = options.modelImage ? decodeURIComponent(options.modelImage) : '' } catch { this.modelImage = options.modelImage || '' }
-    if (!this.modelImage) this.modelImage = '/static/images/logo.png'
-    try { this.gcodeUrl = options.gcodeUrl ? decodeURIComponent(options.gcodeUrl) : '' } catch { this.gcodeUrl = options.gcodeUrl || '' }
-    try { this.printerName = options.printerName ? decodeURIComponent(options.printerName) : '' } catch { this.printerName = options.printerName || '' }
-    try { this.modelDimensions = options.dimensions ? decodeURIComponent(options.dimensions) : '' } catch { this.modelDimensions = options.dimensions || '' }
-    try { this.printTime = options.printTime ? decodeURIComponent(options.printTime) : '' } catch { this.printTime = options.printTime || '' }
-    try { this.materialWeight = options.materialWeight ? decodeURIComponent(options.materialWeight) : '' } catch { this.materialWeight = options.materialWeight || '' }
-    this.deviceId = options.deviceId || ''
-    this.isPrinting = options.autoStart === 'true'
-    this.languageStore.loadLanguage()
-    if (this.deviceId) {
-      this.loadFirmwareInfo()
-      this.startStatusPolling() // 开始轮询设备状态
+    // 如果有完整参数，直接使用
+    if (options.modelName) {
+      try { this.modelName = decodeURIComponent(options.modelName) } catch { this.modelName = options.modelName || '' }
+      try { this.modelImage = decodeURIComponent(options.modelImage) } catch { this.modelImage = options.modelImage || '' }
+      if (!this.modelImage) this.modelImage = '/static/images/logo.png'
+      try { this.gcodeUrl = decodeURIComponent(options.gcodeUrl) } catch { this.gcodeUrl = options.gcodeUrl || '' }
+      try { this.printerName = decodeURIComponent(options.printerName) } catch { this.printerName = options.printerName || '' }
+      try { this.modelDimensions = decodeURIComponent(options.dimensions) } catch { this.modelDimensions = options.dimensions || '' }
+      try { this.printTime = decodeURIComponent(options.printTime) } catch { this.printTime = options.printTime || '' }
+      try { this.materialWeight = decodeURIComponent(options.materialWeight) } catch { this.materialWeight = options.materialWeight || '' }
+      this.deviceId = options.deviceId || ''
+      this.isPrinting = options.autoStart === 'true'
+    } else if (this.workId) {
+      // 只有 workId，从任务详情接口获取
+      this.deviceId = options.deviceId || ''
+      await this.loadWorkDetail()
     }
+    
+    this.languageStore.loadLanguage()
+    this.loadFirmwareInfo()
     this.$nextTick(() => {
-      this.loadDeviceList()
+      this.loadDeviceList().then(() => {
+        // 设备列表加载完成后再启动轮询
+        this.startStatusPolling()
+      })
     })
   },
   onUnload() {
@@ -354,9 +362,41 @@ export default {
     },
     _toast(title, icon = 'none') { uni.showToast({ title, icon }) },
 
+    // 加载任务详情
+    async loadWorkDetail() {
+      try {
+        uni.showLoading({ title: '加载中...' })
+        const { getPrintTaskDetail } = await import('@/api/printTasks.ts')
+        const res = await getPrintTaskDetail(this.workId)
+        uni.hideLoading()
+        if (res.code === 1 && res.data) {
+          const data = res.data
+          console.log('任务详情返回:', data)
+          this.modelName = data.modelName || ''
+          this.modelImage = data.previewUrl || '/static/images/logo.png'
+          this.gcodeUrl = data.sliceGcodeUrl || ''
+          this.deviceId = String(data.deviceId || data.device_id || '')
+          this.modelDimensions = data.dimensions || ''
+          this.printTime = data.printTime || ''
+          this.materialWeight = data.materialWeight || ''
+          this.isPrinting = data.status === 'printing'
+          this.isPaused = data.status === 'paused'
+          this.currentProgress = data.progress || 0
+          console.log('设置后的 deviceId:', this.deviceId)
+        }
+      } catch (e) {
+        uni.hideLoading()
+        console.error('加载任务详情失败:', e)
+        this._toast('加载任务详情失败')
+      }
+    },
+
     // 开始轮询设备状态
     startStatusPolling() {
-      if (!this.deviceId) return
+      if (!this.deviceId) {
+        console.log('deviceId 为空，不启动轮询')
+        return
+      }
       this.fetchDeviceStatus() // 立即获取一次
       this.statusTimer = setInterval(() => {
         this.fetchDeviceStatus()

@@ -688,18 +688,22 @@ const uploadAndNavigateApp = async (stlContent: string) => {
       const imageUrl = snapshotImageUrl.value || ''
 
       // 创建模型生成任务记录
+      let modelTaskId = ''
       try {
-        await createModelTask({
+        const taskRes = await createModelTask({
           sourceModelUrl: modelUrl,
           previewUrl: imageUrl,
           scaleFactor: 1
         })
+        if ((taskRes as any).code === 1 && (taskRes as any).data) {
+          modelTaskId = (taskRes as any).data.taskId || (taskRes as any).data.id || ''
+        }
       } catch (e) {
         console.error('创建模型任务记录失败:', e)
       }
 
       uni.navigateTo({
-        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(imageUrl)}`,
+        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelTaskId || modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(imageUrl)}`,
         success: () => {
           console.log('跳转成功')
         },
@@ -746,18 +750,22 @@ const uploadAndNavigateH5 = async (stlContent: string) => {
     const h5ImageUrl = snapshotImageUrl.value || ''
 
     // 创建模型生成任务记录
+    let modelTaskId = ''
     try {
-      await createModelTask({
-        sourceModelUrl: h5ModelUrl,
-        previewUrl: h5ImageUrl,
-        scaleFactor: 1
-      })
+      const taskRes = await createModelTask({
+          sourceModelUrl: h5ModelUrl,
+          previewUrl: h5ImageUrl,
+          scaleFactor: 1
+        })
+        if ((taskRes as any).code === 1 && (taskRes as any).data) {
+          modelTaskId = (taskRes as any).data.taskId || (taskRes as any).data.id || ''
+        }
     } catch (e) {
       console.error('创建模型任务记录失败:', e)
     }
 
     uni.navigateTo({
-      url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${h5ModelId}&name=${encodeURIComponent(h5ModelName)}&url=${encodeURIComponent(h5ModelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(h5ImageUrl)}`
+      url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelTaskId || h5ModelId}&name=${encodeURIComponent(h5ModelName)}&url=${encodeURIComponent(h5ModelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(h5ImageUrl)}`
     })
   } else {
     uni.showToast({ title: texts.value.uploadFailed || '上传失败', icon: 'none' })

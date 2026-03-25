@@ -150,12 +150,16 @@ export default {
           const jobId = res.data.taskId || res.data.JobId || res.data.RequestId
 
           // 创建模型生成任务记录
+          let modelTaskId = ''
           try {
-            await createModelTask({
+            const taskRes = await createModelTask({
               sourceModelUrl: '',
               previewUrl: '',
               scaleFactor: 1
             })
+            if ((taskRes as any).code === 1 && (taskRes as any).data) {
+              modelTaskId = (taskRes as any).data.taskId || (taskRes as any).data.id || ''
+            }
           } catch (e) {
             console.error('创建模型任务记录失败:', e)
           }

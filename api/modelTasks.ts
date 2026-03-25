@@ -18,7 +18,7 @@ export interface ModelTaskQuery {
 
 export function getModelTasks(params: ModelTaskQuery) {
   return request({
-    url: '/api/model-generate-tasks/list',
+    url: '/model-generate-tasks/list',
     method: 'GET',
     data: params
   })
@@ -26,7 +26,7 @@ export function getModelTasks(params: ModelTaskQuery) {
 
 export function getModelTaskDetail(taskId: string) {
   return request({
-    url: `/api/model-generate-tasks/${taskId}`,
+    url: `/model-generate-tasks/${taskId}`,
     method: 'GET'
   })
 }
@@ -37,7 +37,7 @@ export function createModelTask(data: {
   scaleFactor?: number
 }) {
   return request({
-    url: '/api/model-generate-tasks',
+    url: '/model-generate-tasks',
     method: 'POST',
     data
   })
@@ -45,7 +45,7 @@ export function createModelTask(data: {
 
 export function updateModelTask(data: ModelTask) {
   return request({
-    url: '/api/model-generate-tasks',
+    url: '/model-generate-tasks',
     method: 'PUT',
     data
   })
@@ -53,7 +53,7 @@ export function updateModelTask(data: ModelTask) {
 
 export function deleteModelTask(taskId: string) {
   return request({
-    url: `/api/model-generate-tasks/${taskId}`,
+    url: `/model-generate-tasks/${taskId}`,
     method: 'DELETE'
   })
 }

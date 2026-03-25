@@ -87,20 +87,18 @@ export default {
       if (this.loading) return
       this.loading = true
       try {
-        const userInfo = uni.getStorageSync('userInfo')
         const res = await getPrintTasks({
           current: this.current,
-          size: this.size,
-          userId: userInfo?.userId
+          size: this.size
         })
-        if ((res.code === 0 || res.code === 1) && res.data) {
-          const records = res.data.records || []
+        if (((res as any).code === 0 || (res as any).code === 1) && (res as any).data) {
+          const records = (res as any).data.records || []
           if (this.current === 1) {
             this.taskList = records
           } else {
             this.taskList = [...this.taskList, ...records]
           }
-          this.total = res.data.total || 0
+          this.total = (res as any).data.total || 0
         }
       } catch (error) {
         console.error('加载打印任务失败:', error)
@@ -117,7 +115,7 @@ export default {
     },
     handleTaskClick(task) {
       uni.navigateTo({
-        url: `/pages/explore/printDetail/printDetail?taskId=${task.taskId}`
+        url: `/pages/explore/printDetail/printDetail?workId=${task.taskId}&deviceId=${task.deviceId || ''}`
       })
     },
     getStatusClass(status) {
