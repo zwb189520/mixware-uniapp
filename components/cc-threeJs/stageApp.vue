@@ -2295,7 +2295,13 @@
 					const h = rect.height
 					const w = rect.width
 					if (h <= 0 || w <= 0) return 0
-					const d = camera.position.distanceTo(group.position)
+					// 使用选中的 group 或主 group
+					const targetGroup = instance.selectedGroup || group
+					// 获取模型实际中心位置（考虑模型当前的变换）
+					const box = new THREE.Box3().setFromObject(targetGroup)
+					const center = new THREE.Vector3()
+					box.getCenter(center)
+					const d = camera.position.distanceTo(center)
 					const fovRad = (camera.fov * Math.PI) / 180
 					// 屏幕高度对应世界高度 ≈ 2 * d * tan(fov/2)
 					const worldPerPixel = (2 * d * Math.tan(fovRad / 2)) / h
@@ -2364,10 +2370,21 @@
 						dragState.lastY = y
 						const scale = pixelToWorldScale()
 						
+						// 屏幕X轴在世界空间的投影：相机坐标系的X轴
+						// 屏幕Y轴在世界空间的投影：相机坐标系的Y轴（向下为正）
+						const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion)
+						const camDown = new THREE.Vector3(0, -1, 0).applyQuaternion(camera.quaternion)
+						
+						// 屏幕X右移 = 沿camRight方向，屏幕Y下移 = 沿camDown方向
+						const worldDelta = new THREE.Vector3()
+						worldDelta.addScaledVector(camRight, deltaPxX * scale)
+						worldDelta.addScaledVector(camDown, deltaPxY * scale)
+						
 						// 移动选中的 group，如果没有选中则移动主 group
 						const targetGroup = instance.selectedGroup || group
-						targetGroup.position.x += deltaPxX * scale
-						targetGroup.position.y -= deltaPxY * scale
+						targetGroup.position.x += worldDelta.x
+						targetGroup.position.y += worldDelta.y
+						// Z轴保持不变，模型始终在底部
 						
 						// 更新包围框位置和颜色
 						this.updateBoundingBox()
