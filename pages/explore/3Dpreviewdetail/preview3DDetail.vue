@@ -564,6 +564,16 @@ export default {
         y: Math.round(dimensions.y * 10) / 10,
         z: Math.round(dimensions.z * 10) / 10
       }
+
+      // 自动缩放：如果任一维度超过100mm，自动缩小到99mm
+      const maxDim = Math.max(this.dimensions.x, this.dimensions.y, this.dimensions.z)
+      if (maxDim > 100) {
+        const targetScale = 99 / maxDim
+        this.scalePercent = Math.floor(targetScale * 100)
+        this.modelScale = targetScale
+        this.applyModelScale()
+        uni.showToast({ title: '模型已自动缩放至99mm', icon: 'none' })
+      }
     },
     
     // 模型点击事件
