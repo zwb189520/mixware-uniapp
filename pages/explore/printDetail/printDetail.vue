@@ -360,7 +360,7 @@ export default {
       this.fetchDeviceStatus() // 立即获取一次
       this.statusTimer = setInterval(() => {
         this.fetchDeviceStatus()
-      }, 60000) // 每60秒轮询一次
+      }, 3000) // 每3秒轮询一次
     },
 
     // 停止轮询
