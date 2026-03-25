@@ -59,6 +59,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { uploadModelFile, uploadImage } from '@/api/upload'
+import { createModelTask } from '@/api/modelTasks.ts'
 import { useLanguageStore } from '@/stores'
 import { API } from '@/constants/index'
 
@@ -685,6 +686,18 @@ const uploadAndNavigateApp = async (stlContent: string) => {
       // #endif
       
       const imageUrl = snapshotImageUrl.value || ''
+
+      // 创建模型生成任务记录
+      try {
+        await createModelTask({
+          sourceModelUrl: modelUrl,
+          previewUrl: imageUrl,
+          scaleFactor: 1
+        })
+      } catch (e) {
+        console.error('创建模型任务记录失败:', e)
+      }
+
       uni.navigateTo({
         url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(imageUrl)}`,
         success: () => {
@@ -727,11 +740,22 @@ const uploadAndNavigateH5 = async (stlContent: string) => {
   
   if (h5UploadRes.code === 1 && h5UploadRes.data) {
     const h5ModelUrl = h5UploadRes.data.url || h5UploadRes.data.fileUrl
-    
+
     const h5ModelId = 'custom_' + Date.now()
     const h5ModelName = modelName.value || '未命名模型'
     const h5ImageUrl = snapshotImageUrl.value || ''
-    
+
+    // 创建模型生成任务记录
+    try {
+      await createModelTask({
+        sourceModelUrl: h5ModelUrl,
+        previewUrl: h5ImageUrl,
+        scaleFactor: 1
+      })
+    } catch (e) {
+      console.error('创建模型任务记录失败:', e)
+    }
+
     uni.navigateTo({
       url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${h5ModelId}&name=${encodeURIComponent(h5ModelName)}&url=${encodeURIComponent(h5ModelUrl)}&modelType=stl&dimensions=${encodeURIComponent(JSON.stringify({ x: 0, y: 0, z: 0 }))}&imageUrl=${encodeURIComponent(h5ImageUrl)}`
     })

@@ -71,6 +71,7 @@ import { useLanguageStore } from '@/stores/index.ts'
 import { getModelDetail, scaleAndSliceModel, getScaleAndSliceStatus } from '@/api/models.ts'
 import { sendPrintCommand, getDeviceStatus, connectSSE } from '@/api/iot.ts'
 import { getDefaultDevice, getDeviceList } from '@/api/devices.ts'
+import { createPrintTask } from '@/api/printTasks.ts'
 
 export default {
   data() {
@@ -421,10 +422,24 @@ export default {
           return
         }
         
+        // 创建打印任务记录
+        try {
+          await createPrintTask({
+            modelId: parseInt(this.modelId) || 0,
+            sourceModelUrl: this.modelUrl,
+            previewUrl: this.modelImage,
+            scaledModelUrl: this.modelUrl,
+            sliceGcodeUrl: this.gcodeUrl,
+            deviceId: parseInt(deviceId) || 0
+          })
+        } catch (e) {
+          console.error('创建打印任务记录失败:', e)
+        }
+
         // 发送打印命令
         const res = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl, this.taskId)
         uni.hideLoading()
-        
+
         if (res.code === 1 || res.code === 0) {
           uni.showToast({ title: this.texts.printCommandSent || '打印指令已发送', icon: 'success' })
           // 使用原始尺寸（从preview3DDetail传入）

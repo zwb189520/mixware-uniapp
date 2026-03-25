@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="chat-page">
     <safe-area />
     <custom-navbar :title="texts.chat" @back="handleBack" />
@@ -60,6 +60,7 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { textToModel } from '@/api/hunyuan3d.ts'
+import { createModelTask } from '@/api/modelTasks.ts'
 import { audioOffline } from '@/api/audio.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -147,6 +148,18 @@ export default {
         
         if ((res.code === 0 || res.code === 1) && res.data && (res.data.taskId || res.data.JobId || res.data.RequestId)) {
           const jobId = res.data.taskId || res.data.JobId || res.data.RequestId
+
+          // 创建模型生成任务记录
+          try {
+            await createModelTask({
+              sourceModelUrl: '',
+              previewUrl: '',
+              scaleFactor: 1
+            })
+          } catch (e) {
+            console.error('创建模型任务记录失败:', e)
+          }
+
           const aiMsg = {
             id: `ai-${Date.now()}`,
             role: 'assistant',
@@ -154,12 +167,12 @@ export default {
           }
           this.messages.push(aiMsg)
           this.scrollToBottom()
-          
+
           uni.showToast({
             title: this.texts.modelGenerating,
             icon: 'success'
           })
-          
+
           setTimeout(() => {
             uni.navigateTo({
               url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${jobId}&name=生成的3D模型&prompt=${encodeURIComponent(content)}&source=hunyuan3d`

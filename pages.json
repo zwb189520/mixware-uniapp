@@ -261,6 +261,18 @@
 					"style": {
 						"navigationStyle": "custom"
 					}
+				},
+				{
+					"path": "printTasks/printTasks",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "modelTasks/modelTasks",
+					"style": {
+						"navigationStyle": "custom"
+					}
 				}
 			]
 		},

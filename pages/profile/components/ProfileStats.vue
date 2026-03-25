@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="profile-stats">
     <view class="stats-grid">
       <view 
@@ -43,7 +43,9 @@ export default {
     updateStats() {
       this.stats = [
         { id: 1, name: this.texts.likes, icon: '/static/images/customIcon/like.png' },
-        { id: 2, name: this.texts.collections, icon: '/static/images/customIcon/collect.png' }
+        { id: 2, name: this.texts.collections, icon: '/static/images/customIcon/collect.png' },
+        { id: 3, name: this.texts.printTasks || '打印任务', icon: '/static/images/customIcon/print.png' },
+        { id: 4, name: this.texts.modelTasks || '模型任务', icon: '/static/images/customIcon/model.png' }
       ]
     },
     handleStatClick(stat) {
@@ -59,9 +61,13 @@ export default {
         uni.navigateTo({
           url: '/pagesMember/content/myFavorites/myFavorites'
         })
+      } else if (stat.id === 3) {
+        uni.navigateTo({
+          url: '/pagesMember/content/printTasks/printTasks'
+        })
       } else if (stat.id === 4) {
         uni.navigateTo({
-          url: '/pagesMember/content/myPrintConfigs/myPrintConfigs'
+          url: '/pagesMember/content/modelTasks/modelTasks'
         })
       }
     }
@@ -80,8 +86,8 @@ export default {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 40rpx;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
 }
 
 .stat-item {

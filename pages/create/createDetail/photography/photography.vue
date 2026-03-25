@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page">
     <safe-area />
     <custom-navbar :title="texts.photography" @back="handleBack" />
@@ -40,6 +40,7 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { imageToModel } from '@/api/hunyuan3d.ts'
+import { createModelTask } from '@/api/modelTasks.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -149,11 +150,23 @@ export default {
         
         if ((res.code === 0 || res.code === 1) && res.data && (res.data.JobId || res.data.taskId)) {
           const jobId = res.data.JobId || res.data.taskId
+
+          // 创建模型生成任务记录
+          try {
+            await createModelTask({
+              sourceModelUrl: this.uploadedImage,
+              previewUrl: this.uploadedImage,
+              scaleFactor: 1
+            })
+          } catch (e) {
+            console.error('创建模型任务记录失败:', e)
+          }
+
           uni.showToast({
             title: this.texts.modelGenerating,
             icon: 'success'
           })
-          
+
           setTimeout(() => {
 			  uni.navigateTo({
 			    url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${jobId}&name=生成的3D模型`
