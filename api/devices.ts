@@ -9,10 +9,21 @@ export function getDeviceList() {
   const userId = uni.getStorageSync('userId')
   if (!userId) return Promise.reject(new Error('未登录'))
   return getUserDevices(userId).then(res => {
+    const records = res.data?.records || []
     return {
       ...res,
       data: {
-        records: res.data || []
+        records: records.map(item => ({
+          id: item.deviceId,
+          deviceId: item.deviceId,
+          name: item.deviceName,
+          deviceName: item.deviceName,
+          bindTime: item.bindTime,
+          deviceState: item.deviceState,
+          deviceStatus: item.deviceState?.toUpperCase() === 'ONLINE' ? 1 : 0,
+          status: item.deviceState?.toUpperCase() === 'ONLINE' ? 1 : 0,
+          isDefault: item.isDefault
+        }))
       }
     }
   })
