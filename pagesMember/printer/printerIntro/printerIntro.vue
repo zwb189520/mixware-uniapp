@@ -52,7 +52,8 @@ export default {
       progress: 0,
       estimatedTime: '0分钟',
       showEncouragement: true,
-      deviceId: ''
+      deviceId: '',
+      statusTimer: null
     }
   },
   computed: {
@@ -63,21 +64,6 @@ export default {
       return this.languageStore?.texts?.printerIntro || {}
     }
   },
-  async mounted() {
-    this.languageStore.loadLanguage()
-    // 确保语言数据加载完成后再执行后续逻辑
-    await this.$nextTick()
-    try {
-      await this.loadDefaultDevice()
-      await this.loadDeviceStatus()
-    } catch (error) {
-      console.error('初始化设备信息失败:', error)
-      uni.showToast({
-        title: this.texts.connectionFailed || '加载设备信息失败',
-        icon: 'none'
-      })
-    }
-  },
   onLoad(options) {
     console.log('printerIntro页面接收到的options:', options)
     if (options.deviceId) {
@@ -85,9 +71,48 @@ export default {
       console.log('设置deviceId:', this.deviceId)
     }
   },
+  onShow() {
+    this.languageStore.loadLanguage()
+    this.initDevice()
+  },
+  onHide() {
+    this.stopStatusPolling()
+  },
+  onUnload() {
+    this.stopStatusPolling()
+  },
   methods: {
     handleBack() {
       uni.navigateBack()
+    },
+    async initDevice() {
+      try {
+        if (!this.deviceId) {
+          await this.loadDefaultDevice()
+        }
+        if (this.deviceId) {
+          await this.loadDeviceStatus()
+          this.startStatusPolling()
+        }
+      } catch (error) {
+        console.error('初始化设备信息失败:', error)
+        uni.showToast({
+          title: this.texts.connectionFailed || '加载设备信息失败',
+          icon: 'none'
+        })
+      }
+    },
+    startStatusPolling() {
+      this.stopStatusPolling()
+      this.statusTimer = setInterval(() => {
+        this.loadDeviceStatus()
+      }, 3000)
+    },
+    stopStatusPolling() {
+      if (this.statusTimer) {
+        clearInterval(this.statusTimer)
+        this.statusTimer = null
+      }
     },
     async loadDefaultDevice() {
       // 如果已经有deviceId了，就不需要再加载默认设备

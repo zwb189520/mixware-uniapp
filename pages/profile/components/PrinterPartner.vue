@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="printer-partner">
     <view class="partner-header">
       <view class="partner-title">
@@ -182,9 +182,11 @@ export default {
     async checkPrinterStatus() {
       try {
         const res = await getDeviceList()
+        console.log('PrinterPartner getDeviceList 返回:', JSON.stringify(res, null, 2))
         if (res.data && res.data.records && res.data.records.length > 0) {
           this.isBound = true
           this.printerList = res.data.records
+          console.log('设备列表:', this.printerList.map(p => ({ id: p.id || p.deviceId, deviceStatus: p.deviceStatus, status: p.status })))
         } else {
           this.isBound = false
           this.printerList = []
