@@ -394,7 +394,11 @@ export default {
 
     handleMore() {
       uni.showActionSheet({
-        itemList: ['分享', '举报', '收藏'],
+        itemList: [
+          this.texts.share || '分享',
+          this.texts.report || '举报',
+          this.texts.collect || '收藏'
+        ],
         success: (res) => {
           switch (res.tapIndex) {
             case 0:

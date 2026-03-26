@@ -1,14 +1,14 @@
 ﻿<template>
   <view class="firmware-section">
     <view class="section-title">
-      <text>固件设置</text>
+      <text>{{ texts.firmwareSettings || '固件设置' }}</text>
     </view>
     <view class="setting-item">
-      <text class="setting-label">当前固件版本</text>
+      <text class="setting-label">{{ texts.currentFirmwareVersion || '当前固件版本' }}</text>
       <text class="setting-value">{{ firmwareVersion }}</text>
     </view>
     <view class="setting-item">
-      <text class="setting-label">防抖功能</text>
+      <text class="setting-label">{{ texts.antiShake || '防抖功能' }}</text>
       <view class="switch-container" @click="toggleAntiShake">
         <view :class="['switch', { 'switch-active': antiShakeEnabled }]">
           <view class="switch-dot"></view>
@@ -20,8 +20,14 @@
 
 <script lang="ts">
 // @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+
 export default {
   name: 'FirmwareSettings',
+  computed: {
+    languageStore() { return useLanguageStore() },
+    texts() { return this.languageStore.texts.printer }
+  },
   props: {
     deviceInfo: {
       type: Object,

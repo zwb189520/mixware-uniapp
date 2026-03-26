@@ -1,12 +1,12 @@
 ﻿<template>
   <view class="maintenance-section">
     <view class="section-title">
-      <text>保养信息</text>
+      <text>{{ texts.maintenanceInfo || '保养信息' }}</text>
     </view>
     <view class="maintenance-items">
       <view class="maintenance-item">
         <view class="item-header">
-          <text class="item-label">耗材寿命</text>
+          <text class="item-label">{{ texts.filamentLife || '耗材寿命' }}</text>
           <text class="item-value">{{ filamentLife }}%</text>
         </view>
         <view class="progress-bar">
@@ -15,7 +15,7 @@
       </view>
       <view class="maintenance-item">
         <view class="item-header">
-          <text class="item-label">喷嘴寿命</text>
+          <text class="item-label">{{ texts.nozzleLife || '喷嘴寿命' }}</text>
           <text class="item-value">{{ nozzleLife }}%</text>
         </view>
         <view class="progress-bar">
@@ -24,13 +24,13 @@
       </view>
       <view class="maintenance-item">
         <view class="item-header">
-          <text class="item-label">上次清洁</text>
+          <text class="item-label">{{ texts.lastClean || '上次清洁' }}</text>
           <text class="item-value">{{ lastCleanDate }}</text>
         </view>
       </view>
       <view class="maintenance-item">
         <view class="item-header">
-          <text class="item-label">累计打印时长</text>
+          <text class="item-label">{{ texts.totalPrintTime || '累计打印时长' }}</text>
           <text class="item-value">{{ totalPrintTime }}</text>
         </view>
       </view>
@@ -40,8 +40,14 @@
 
 <script lang="ts">
 // @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+
 export default {
   name: 'MaintenanceSection',
+  computed: {
+    languageStore() { return useLanguageStore() },
+    texts() { return this.languageStore.texts.printer }
+  },
   props: {
     deviceInfo: {
       type: Object,
@@ -63,7 +69,7 @@ export default {
           // 处理打印总时长 (秒转小时)
           if (newVal.printStatsTotalDuration !== undefined) {
             const hours = (newVal.printStatsTotalDuration / 3600).toFixed(1)
-            this.totalPrintTime = hours + '小时'
+            this.totalPrintTime = hours + (this.texts.hours || '小时')
           }
           
           // 上次清洁时间可以用状态更新时间暂代，或者保持现有占位

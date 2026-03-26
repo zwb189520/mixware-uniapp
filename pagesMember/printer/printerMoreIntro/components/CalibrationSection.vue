@@ -1,7 +1,7 @@
 ﻿<template>
   <view class="calibration-section">
     <view class="section-title">
-      <text>校准功能</text>
+      <text>{{ texts.calibrationTitle || '校准功能' }}</text>
     </view>
     <view class="calibration-options">
       <view 
@@ -27,27 +27,35 @@
 
 <script lang="ts">
 // @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+
 export default {
   name: 'CalibrationSection',
-  data() {
-    return {
-      calibrationOptions: [
+  computed: {
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.printerMoreIntro || {}
+    },
+    calibrationOptions() {
+      return [
         {
           id: 'auto_level',
-          name: '自动调平',
-          desc: '自动检测并调整打印平台',
+          name: this.texts.autoLevel || '自动调平',
+          desc: this.texts.autoLevelDesc || '自动检测并调整打印平台',
           icon: 'loop'
         },
         {
           id: 'z_offset',
-          name: 'Z轴偏移',
-          desc: '调整喷嘴与打印平台距离',
+          name: this.texts.zOffset || 'Z轴偏移',
+          desc: this.texts.zOffsetDesc || '调整喷嘴与打印平台距离',
           icon: 'up'
         },
         {
           id: 'extruder',
-          name: '挤出机校准',
-          desc: '校准挤出机步进电机',
+          name: this.texts.extruderCalibration || '挤出机校准',
+          desc: this.texts.extruderCalibrationDesc || '校准挤出机步进电机',
           icon: 'gear'
         }
       ]

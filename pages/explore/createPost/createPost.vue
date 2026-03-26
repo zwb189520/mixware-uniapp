@@ -93,7 +93,7 @@
                   maxlength="20"
                 />
                 <view class="topic-add-btn" @mousedown.prevent="addTopic" @tap.stop="addTopic">
-                  <text class="confirm-text">确定</text>
+                  <text class="confirm-text">{{ texts.confirm || '确定' }}</text>
                 </view>
               </block>
             </view>

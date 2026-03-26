@@ -1,21 +1,21 @@
 ﻿<template>
   <view class="info-section">
     <view class="info-item" @click="handleEditName">
-      <text class="info-label">名称</text>
+      <text class="info-label">{{ texts.nameLabel || '名称' }}</text>
       <view class="value-wrapper">
         <text class="info-value">{{ printerName }}</text>
         <uni-icons type="compose" size="16" color="#999" class="edit-icon"></uni-icons>
       </view>
     </view>
     <view class="info-item" @click="handleEditRemark">
-      <text class="info-label">备注</text>
+      <text class="info-label">{{ texts.remarkLabel || '备注' }}</text>
       <view class="value-wrapper">
-        <text class="info-value">{{ printerRemark || '点击添加备注' }}</text>
+        <text class="info-value">{{ printerRemark || texts.clickToAddRemark || '点击添加备注' }}</text>
         <uni-icons type="compose" size="16" color="#999" class="edit-icon"></uni-icons>
       </view>
     </view>
     <view class="info-item">
-      <text class="info-label">SN</text>
+      <text class="info-label">{{ texts.snLabel || 'SN' }}</text>
       <text class="info-value">{{ printerSN }}</text>
     </view>
     <!-- <view class="info-item">
@@ -67,7 +67,7 @@ export default {
         const res = await getDeviceInfo(this.deviceId)
         if (res.data) {
           const info = res.data
-          this.printerName = info.deviceName || '未命名设备'
+          this.printerName = info.deviceName || this.texts.unnamedDevice || '未命名设备'
           this.printerRemark = info.remark || ''
           this.printerSN = info.snCode || '-'
           this.printerMAC = info.deviceId || '-' 

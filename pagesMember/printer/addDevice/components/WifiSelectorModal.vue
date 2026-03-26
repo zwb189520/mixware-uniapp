@@ -7,7 +7,7 @@
           <uni-icons type="close" size="24" color="#333" @click="handleClose"></uni-icons>
         </view>
         <view class="header-title">
-          <text>请选择要连接的WiFi</text>
+          <text>{{ texts.selectWiFiToConnect || '请选择要连接的WiFi' }}</text>
         </view>
         <view class="header-right">
           <uni-icons type="refreshempty" size="24" color="#FF5A00" @click="handleRefresh"></uni-icons>
@@ -16,7 +16,7 @@
       
       <!-- 2.4G提示 -->
       <view class="network-tips">
-        <text class="tips-text">该设备仅支持2.4GWiFi网络</text>
+        <text class="tips-text">{{ texts.onlySupport24G || '该设备仅支持2.4GWiFi网络' }}</text>
       </view>
       
       <!-- WiFi列表 -->
@@ -39,8 +39,14 @@
 
 <script lang="ts">
 // @ts-nocheck
+import { useLanguageStore } from '@/stores/index.ts'
+
 export default {
   name: 'WiFiSelectorModal',
+  computed: {
+    languageStore() { return useLanguageStore() },
+    texts() { return this.languageStore.texts.printer }
+  },
   props: {
     visible: {
       type: Boolean,

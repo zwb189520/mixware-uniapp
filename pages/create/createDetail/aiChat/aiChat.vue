@@ -35,7 +35,7 @@
 					</view>
 					<view v-if="msg.role !== 'user' && msg.showSaveBtn && msg.images && msg.images.length > 0" class="save-btn" @tap="saveImages(msg.images)">
 					<uni-icons type="download" size="16" color="#fff"></uni-icons>
-					<text>保存图片</text>
+					<text>{{ texts.saveImage || '保存图片' }}</text>
 				</view>
 				</view>
 			</view>
@@ -505,12 +505,12 @@
 			},
 
 			async generateImage(prompt) {
-				const aiMsg = {
-					id: `ai-${Date.now()}`,
-					role: 'assistant',
-					content: '正在生成图片...',
-					html: ''
-				}
+			const aiMsg = {
+				id: `ai-${Date.now()}`,
+				role: 'assistant',
+				content: this.texts.generatingImage || '正在生成图片...',
+				html: ''
+			}
 				this.chatStore.addMessage(aiMsg)
 				this.chatStore.setLoading(true)
 				this.scrollToBottom()
@@ -522,16 +522,16 @@
 						if (taskId) {
 							await this.pollImageTask(taskId, aiMsg)
 						} else {
-							aiMsg.content = '图片生成失败，请重试'
+							aiMsg.content = this.texts.imageGenerateFailed || '图片生成失败，请重试'
 							aiMsg.html = aiMsg.content
 						}
 					} else {
-						aiMsg.content = res.msg || '图片生成失败'
+						aiMsg.content = res.msg || this.texts.imageGenerateFailed || '图片生成失败'
 						aiMsg.html = aiMsg.content
 					}
 				} catch (error) {
 					console.error('生成图片失败:', error)
-					aiMsg.content = '图片生成失败，请重试'
+					aiMsg.content = this.texts.imageGenerateFailed || '图片生成失败，请重试'
 					aiMsg.html = aiMsg.content
 				} finally {
 					this.chatStore.setLoading(false)

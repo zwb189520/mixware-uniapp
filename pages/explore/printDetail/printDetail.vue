@@ -7,9 +7,9 @@
       <!-- 设备选择器 -->
       <view class="device-selector-section">
         <view class="device-selector" @click="showDeviceSelector">
-          <text class="device-label-text">设备名称</text>
+          <text class="device-label-text">{{ texts.deviceNameLabel || '设备名称' }}</text>
           <view class="device-right">
-            <text class="device-name">{{ currentDevice.name || '选择设备' }}</text>
+            <text class="device-name">{{ currentDevice.name || texts.selectDevice || '选择设备' }}</text>
             <uni-icons type="down" size="16" color="#666"></uni-icons>
           </view>
         </view>
@@ -18,7 +18,7 @@
       <!-- 打印机状态 -->
       <view class="status-section">
         <view class="status-row">
-          <text class="status-label">打印机状态</text>
+          <text class="status-label">{{ texts.printerStatusLabel || '打印机状态' }}</text>
           <view class="status-badge" :class="statusBadgeClass">
             <view class="status-dot" :class="statusDotClass"></view>
             <text class="status-badge-text">{{ displayStatus }}</text>
@@ -74,7 +74,7 @@
         </view>
         <view class="device-row" style="margin-top:16rpx;">
           <text class="device-label">{{ texts.estimatedTime }}</text>
-          <text class="device-value">{{ estimatedTime }} 分钟</text>
+          <text class="device-value">{{ estimatedTime }} {{ texts.minutes || '分钟' }}</text>
         </view>
         <!-- 控制按钮 -->
         <view class="print-actions">
@@ -99,12 +99,12 @@
           </template>
           <template v-if="currentProgress >= 100 && !isPrinting && !isPaused">
             <view class="ctrl-btn complete-btn" @click="goToPrintComplete">
-              <text class="ctrl-text">打印完成</text>
+              <text class="ctrl-text">{{ texts.printComplete || '打印完成' }}</text>
             </view>
           </template>
           <template v-if="!isPrinting && !isPaused && currentProgress < 100 && (printerStatus === 'Idle' || printerStatus === 'StandingBy' || !printerStatus)">
             <view class="ctrl-btn restart-btn" @click="handleRestart">
-              <text class="ctrl-text">重新打印</text>
+              <text class="ctrl-text">{{ texts.reprint || '重新打印' }}</text>
             </view>
           </template>
         </view>
@@ -159,14 +159,14 @@ export default {
     languageStore() { return useLanguageStore() },
     texts() { return this.languageStore.texts.explore },
     displayStatus() {
-      if (this.isPrinting) return '打印中'
-      if (this.isPaused) return '已暂停'
+      if (this.isPrinting) return this.texts.printing || '打印中'
+      if (this.isPaused) return this.texts.paused || '已暂停'
       const s = this.printerStatus
-      if (s === 'Printing') return '打印中'
-      if (s === 'Paused' || s === 'Pausing') return '已暂停'
+      if (s === 'Printing') return this.texts.printing || '打印中'
+      if (s === 'Paused' || s === 'Pausing') return this.texts.paused || '已暂停'
       if (s === 'StandingBy' || s === 'Idle') return this.texts.idle || '空闲'
       if (s === 'Busy') return this.texts.busy || '忙碌'
-      return s || '空闲'
+      return s || this.texts.idle || '空闲'
     },
     statusDotClass() {
       if (this.isPrinting) return 'dot-printing'
@@ -229,7 +229,7 @@ export default {
         const records = res?.data?.records ?? []
         this.deviceList = Array.isArray(records) ? records.map(device => ({
           id: device.id || device.deviceId,
-          name: device.deviceName || device.name || device.deviceId || '未命名设备'
+          name: device.deviceName || device.name || device.deviceId || this.texts.unnamedDevice || '未命名设备'
         })) : []
         
         if (this.deviceId) {
@@ -370,7 +370,7 @@ export default {
     // 加载任务详情
     async loadWorkDetail() {
       try {
-        uni.showLoading({ title: '加载中...' })
+        uni.showLoading({ title: this.texts.loading || '加载中...' })
         const { getPrintTaskDetail } = await import('@/api/printTasks.ts')
         const res = await getPrintTaskDetail(this.workId)
         uni.hideLoading()
@@ -392,7 +392,7 @@ export default {
       } catch (e) {
         uni.hideLoading()
         console.error('加载任务详情失败:', e)
-        this._toast('加载任务详情失败')
+        this._toast(this.texts.loadWorkDetailFailed || '加载任务详情失败')
       }
     },
 

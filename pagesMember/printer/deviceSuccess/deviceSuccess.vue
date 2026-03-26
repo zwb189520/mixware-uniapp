@@ -9,8 +9,8 @@
         <view class="loading-icon">
           <view class="loading-spinner"></view>
         </view>
-        <text class="status-title">正在绑定设备...</text>
-        <text class="status-subtitle">请稍候</text>
+        <text class="status-title">{{ texts.binding || '正在绑定设备...' }}</text>
+        <text class="status-subtitle">{{ texts.pleaseWait || '请稍候' }}</text>
       </view>
 
       <!-- 绑定成功 -->
@@ -30,11 +30,11 @@
         <view class="status-icon failed">
           <text class="icon-text">✕</text>
         </view>
-        <text class="status-title failed-color">绑定失败</text>
-        <text class="status-subtitle">设备绑定未成功，请检查网络后重试</text>
+        <text class="status-title failed-color">{{ texts.bindingFailed || '绑定失败' }}</text>
+        <text class="status-subtitle">{{ texts.bindingFailedHint || '设备绑定未成功，请检查网络后重试' }}</text>
         <view class="button-section">
-          <button class="retry-button" @click="retryBind">重新绑定</button>
-          <button class="home-button-outline" @click="handleGoHome">返回首页</button>
+          <button class="retry-button" @click="retryBind">{{ texts.retryBind || '重新绑定' }}</button>
+          <button class="home-button-outline" @click="handleGoHome">{{ texts.goHome || '返回首页' }}</button>
         </view>
       </view>
 
@@ -70,9 +70,9 @@ export default {
       return this.languageStore.texts.deviceSuccess
     },
     pageTitle() {
-      if (this.bindStatus === 'success') return '绑定成功'
-      if (this.bindStatus === 'failed') return '绑定失败'
-      return '正在绑定'
+      if (this.bindStatus === 'success') return this.texts.bindingSuccess || '绑定成功'
+      if (this.bindStatus === 'failed') return this.texts.bindingFailed || '绑定失败'
+      return this.texts.binding || '正在绑定'
     }
   },
   mounted() {

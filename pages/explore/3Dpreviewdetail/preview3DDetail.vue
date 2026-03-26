@@ -63,7 +63,7 @@
         <view v-if="loading" class="loading-overlay">
           <text class="loading-text">{{ texts.loading }}</text>
           <view v-if="isGenerating" class="cancel-btn" @tap="handleCancelGenerate">
-            <text class="cancel-btn-text">取消生成</text>
+            <text class="cancel-btn-text">{{ texts.cancelGenerate || '取消生成' }}</text>
           </view>
         </view>
       </view>
@@ -577,7 +577,7 @@ export default {
             this.applyModelScale()
           }, 500)
         })
-        uni.showToast({ title: '模型已自动缩放至99mm', icon: 'none' })
+        uni.showToast({ title: this.texts.autoScaled || '模型已自动缩放至99mm', icon: 'none' })
       }
     },
     
@@ -637,7 +637,7 @@ export default {
       this.isOutOfBounds = data.isOutOfBounds
       
       if (data.isOutOfBounds) {
-        this.boundaryMessage = '模型边缘超出边界，请调整'
+        this.boundaryMessage = this.texts.modelOutOfBounds || '模型边缘超出边界，请调整'
       } else {
         this.boundaryMessage = ''
       }
@@ -1066,7 +1066,7 @@ export default {
         uni.hideLoading()
         console.error('获取设备信息失败:', error)
         uni.showToast({
-          title: error.message || '获取设备信息失败，请检查打印机连接',
+          title: error.message || this.texts.getDeviceInfoFailed || '获取设备信息失败，请检查打印机连接',
           icon: 'none'
         })
       }

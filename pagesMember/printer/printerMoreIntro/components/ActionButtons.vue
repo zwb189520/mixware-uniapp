@@ -1,10 +1,10 @@
 ﻿<template>
   <view class="action-buttons">
     <view class="action-button" @click="handleReconfigure">
-      <text class="button-text">重新配网</text>
+      <text class="button-text">{{ texts.reconfigure || '重新配网' }}</text>
     </view>
     <view class="action-button unbind-button" @click="handleUnbind">
-      <text class="button-text">解除绑定</text>
+      <text class="button-text">{{ texts.unbind || '解除绑定' }}</text>
     </view>
   </view>
 </template>
@@ -12,6 +12,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { deleteDevice } from '@/api/devices.ts'
+import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'ActionButtons',
@@ -20,6 +21,10 @@ export default {
       type: String,
       default: ''
     }
+  },
+  computed: {
+    languageStore() { return useLanguageStore() },
+    texts() { return this.languageStore.texts.printer }
   },
   methods: {
     handleReconfigure() {
@@ -52,7 +57,7 @@ export default {
               }, 1500)
             } catch (error) {
               uni.showToast({
-                title: error.message || '解除绑定失败',
+                title: error.message || this.texts.unbindFailed || '解除绑定失败',
                 icon: 'none'
               })
             }

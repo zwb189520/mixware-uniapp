@@ -263,7 +263,7 @@ export default {
       
       try {
         uni.showLoading({
-          title: '发送中...'
+          title: this.texts.sending || '发送中...'
         })
         
         await sendVerificationCodeWithHandler(this.email)
@@ -288,7 +288,7 @@ export default {
       } catch (error) {
         uni.hideLoading()
         uni.showToast({
-          title: error.message || '发送验证码失败',
+          title: error.message || this.texts.sendCodeFailed || '发送验证码失败',
           icon: 'none'
         })
       }
@@ -373,7 +373,7 @@ export default {
 
       try {
         uni.showLoading({
-          title: '登录中...'
+          title: this.texts.loggingIn || '登录中...'
         })
         
         await loginByCodeWithHandler(this.email, this.code)
@@ -402,7 +402,7 @@ export default {
     async handlePasswordLogin() {
       try {
         uni.showLoading({
-          title: '登录中...'
+          title: this.texts.loggingIn || '登录中...'
         })
         
         await loginWithPassword(this.email, this.password)
@@ -439,7 +439,7 @@ export default {
     async handleRegister() {
       try {
         uni.showLoading({
-          title: '注册中...'
+          title: this.texts.registering || '注册中...'
         })
         
         await registerWithHandler({
@@ -502,7 +502,7 @@ export default {
     
     async handleGoogleLogin() {
       uni.showLoading({
-        title: '正在登录...'
+        title: this.texts.loggingIn || '正在登录...'
       })
       
       try {
@@ -663,7 +663,7 @@ export default {
       } catch (error) {
         uni.hideLoading()
         uni.showToast({
-          title: error.message || 'Apple登录失败',
+          title: error.message || this.texts.appleLoginFailed || 'Apple登录失败',
           icon: 'none'
         })
       }

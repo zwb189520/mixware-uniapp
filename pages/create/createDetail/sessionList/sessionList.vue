@@ -87,8 +87,8 @@ export default {
   },
   computed: {
     texts() {
-      return this.languageStore.texts.create || {
-        sessionList: '会话列表',
+      return this.languageStore.texts.create?.sessionList || {
+        title: '会话列表',
         newSession: '新建',
         noSessions: '暂无会话',
         createFirstSession: '创建第一个会话',
@@ -96,14 +96,21 @@ export default {
         deleteConfirm: '确定删除该会话吗？',
         deleteSuccess: '删除成功',
         deleteFailed: '删除失败',
-        loadFailed: '加载失败'
+        loadFailed: '加载失败',
+        createSessionFailed: '创建会话失败',
+        tip: '提示',
+        deleteSession: '删除会话',
+        justNow: '刚刚',
+        minutesAgo: '分钟前',
+        hoursAgo: '小时前',
+        daysAgo: '天前'
       }
     },
     loadingText() {
       return {
-        contentdown: '上拉加载更多',
-        contentrefresh: '加载中...',
-        contentnomore: '没有更多数据了'
+        contentdown: this.texts.contentdown || '上拉加载更多',
+        contentrefresh: this.texts.contentrefresh || '加载中...',
+        contentnomore: this.texts.contentnomore || '没有更多数据了'
       }
     }
   },
@@ -190,7 +197,7 @@ export default {
     showActionMenu(index) {
       const session = this.sessionList[index]
       uni.showActionSheet({
-        itemList: ['删除会话'],
+        itemList: [this.texts.deleteSession || '删除会话'],
         success: (res) => {
           if (res.tapIndex === 0) {
             this.deleteSession(index)
@@ -235,13 +242,13 @@ export default {
       const diff = now - date
       
       if (diff < 60000) {
-        return '刚刚'
+        return this.texts.justNow || '刚刚'
       } else if (diff < 3600000) {
-        return Math.floor(diff / 60000) + '分钟前'
+        return Math.floor(diff / 60000) + (this.texts.minutesAgo || '分钟前')
       } else if (diff < 86400000) {
-        return Math.floor(diff / 3600000) + '小时前'
+        return Math.floor(diff / 3600000) + (this.texts.hoursAgo || '小时前')
       } else if (diff < 604800000) {
-        return Math.floor(diff / 86400000) + '天前'
+        return Math.floor(diff / 86400000) + (this.texts.daysAgo || '天前')
       } else {
         return date.toLocaleDateString()
       }

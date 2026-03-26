@@ -21,7 +21,7 @@
       />
       <view v-if="showEncouragement" class="encouragement-text">
         <view class="encouragement-icon">🎉</view>
-        <text>你的创造正在诞生，快去打印机旁看看吧！</text>
+        <text>{{ texts.encouragementText || '你的创造正在诞生，快去打印机旁看看吧！' }}</text>
       </view>
     </view>
   </view>
@@ -50,7 +50,7 @@ export default {
     return {
       printerStatus: 'idle',
       progress: 0,
-      estimatedTime: '0分钟',
+      estimatedTime: '0' + (this.texts?.minutes || '分钟'),
       showEncouragement: true,
       deviceId: '',
       statusTimer: null

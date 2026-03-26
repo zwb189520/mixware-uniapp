@@ -91,7 +91,7 @@
           <textarea 
             class="popup-textarea"
             v-model="commentText"
-            :placeholder="replyTargetName ? '回复 ' + replyTargetName + '...' : '写点什么吧...'"
+            :placeholder="replyTargetName ? (texts.replyTo || '回复') + ' ' + replyTargetName + '...' : (texts.inputPlaceholder || '写点什么吧...')"
             :maxlength="1000"
             :focus="true"
             :show-confirm-bar="false"
@@ -106,7 +106,7 @@
             <image class="footer-icon" src="/static/images/icon/image.png" mode="aspectFit" @click="handleUploadImage" />
           </view>
           <view class="publish-btn" :class="{ 'active': commentText.trim() }" @click="handlePublish">
-            <text class="publish-text">发布</text>
+            <text class="publish-text">{{ texts.publish || '发布' }}</text>
           </view>
         </view>
       </view>
@@ -741,7 +741,11 @@ export default {
 
     async handleShare() {
       uni.showActionSheet({
-        itemList: ['分享到微信', '分享到朋友圈', '复制链接'],
+        itemList: [
+          this.texts.shareToWechat || '分享到微信',
+          this.texts.shareToMoments || '分享到朋友圈',
+          this.texts.copyLink || '复制链接'
+        ],
         success: async (res) => {
           // 生成真实的帖子链接
           const postLink = `${window.location.origin}/#/pages/explore/showcaseWorksDetail/showcaseWorksDetail?postId=${this.postId}`
@@ -889,21 +893,21 @@ export default {
     },
 
     handleMore() {
-      const isAuthor = String(this.postDetail.userId) === String(this.currentUserId) || 
+      const isAuthor = String(this.postDetail.userId) === String(this.currentUserId) ||
                        String(this.postDetail.userId) === 'local_user'
-      
-      const itemList = ['分享']
+
+      const itemList = [this.texts.share || '分享']
       if (isAuthor) {
-        itemList.push('删除')
+        itemList.push(this.texts.delete || '删除')
       }
 
       uni.showActionSheet({
         itemList,
         success: (res) => {
           const tapText = itemList[res.tapIndex]
-          if (tapText === '分享') {
+          if (tapText === (this.texts.share || '分享')) {
             this.handleShare()
-          } else if (tapText === '删除') {
+          } else if (tapText === (this.texts.delete || '删除')) {
             this.handleDeletePost()
           }
         }

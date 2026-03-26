@@ -398,7 +398,7 @@ const handleIconClick = () => {
 }
 
 const handleSave = () => {
-  if (modelName.value == '为模型取名' || modelName.value.trim() == '') {
+  if (modelName.value == (texts.value.placeholder || '为模型取名') || modelName.value.trim() == '') {
     isFocus.value = true
   } else {
     console.log('保存编辑')
@@ -507,7 +507,7 @@ const handleWebviewMessage = (evt: any) => {
   if (msg.action === 'modelDataForPrint') {
     const modelData = msg.data
     const modelId = modelData.id || ('custom_' + Date.now())
-    const modelNameVal = modelData.name || modelName.value || '未命名模型'
+    const modelNameVal = modelData.name || modelName.value || texts.value.unnamedModel || '未命名模型'
     const modelUrl = modelData.url || ''
     const modelType = modelData.modelType || 'stl'
     const dimensions = modelData.dimensions || { x: 0, y: 0, z: 0 }
@@ -571,7 +571,7 @@ const saveAndShareStl = (content: string) => {
           const filePath = entry.fullPath
           
           plus.share.sendWithSystem({
-            content: '分享模型',
+            content: texts.value.shareModel || '分享模型',
             href: filePath,
             pictures: [filePath]
           }, () => {
@@ -673,7 +673,7 @@ const uploadAndNavigateApp = async (stlContent: string) => {
       }
       
       const modelId = 'custom_' + Date.now()
-      const modelNameVal = modelName.value || '未命名模型'
+      const modelNameVal = modelName.value || texts.value.unnamedModel || '未命名模型'
       
       console.log('准备跳转，URL:', `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl`)
       
@@ -746,7 +746,7 @@ const uploadAndNavigateH5 = async (stlContent: string) => {
     const h5ModelUrl = h5UploadRes.data.url || h5UploadRes.data.fileUrl
 
     const h5ModelId = 'custom_' + Date.now()
-    const h5ModelName = modelName.value || '未命名模型'
+    const h5ModelName = modelName.value || texts.value.unnamedModel || '未命名模型'
     const h5ImageUrl = snapshotImageUrl.value || ''
 
     // 创建模型生成任务记录
