@@ -88,7 +88,7 @@ export default {
       this.loading = true
       try {
         const userInfo = uni.getStorageSync('userInfo')
-        const res = await getModelTasks({
+        const res: any = await getModelTasks({
           current: this.current,
           size: this.size,
           userId: userInfo?.userId

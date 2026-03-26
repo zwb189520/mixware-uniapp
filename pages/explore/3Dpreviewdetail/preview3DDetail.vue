@@ -571,7 +571,12 @@ export default {
         const targetScale = 99 / maxDim
         this.scalePercent = Math.floor(targetScale * 100)
         this.modelScale = targetScale
-        this.applyModelScale()
+        // 延迟执行缩放，确保模型已完全加载
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.applyModelScale()
+          }, 500)
+        })
         uni.showToast({ title: '模型已自动缩放至99mm', icon: 'none' })
       }
     },
