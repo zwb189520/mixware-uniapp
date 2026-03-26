@@ -430,9 +430,12 @@ export default {
           const printState = data?.printState
           this.isPrinting = printState === 'Printing'
           this.isPaused = printState === 'Paused' || printState === 'Pausing'
-          // 检查是否完成（StandingBy 或 Idle 表示空闲/完成）
-          if (printState === 'StandingBy' || printState === 'Idle') {
-            this.currentProgress = 100
+          // 更新进度
+          if (data?.progress !== undefined) {
+            this.currentProgress = data.progress
+          }
+          // 检查是否完成（必须进度100%且状态为空闲）
+          if (this.currentProgress >= 100 && (printState === 'StandingBy' || printState === 'Idle')) {
             this.checkPrintComplete()
           }
         }
