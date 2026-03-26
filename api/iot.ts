@@ -54,7 +54,7 @@ export function verifyCredential(deviceCredentialVerifyDTO) {
  * @returns {Promise<Object>} 返回设备状态
  */
 export function getDeviceStatus(deviceId) {
-  return get('/iot/status', { deviceId })
+  return get(`/iot/status/${deviceId}`)
 }
 
 /**

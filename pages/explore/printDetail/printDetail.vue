@@ -63,8 +63,8 @@
         </view>
       </view>
 
-      <!-- 打印进度卡片（打印中、暂停或已完成时） -->
-      <view v-if="isPrinting || isPaused || currentProgress >= 100" class="section-card">
+      <!-- 打印进度卡片（打印中、暂停、已完成或空闲时） -->
+      <view v-if="isPrinting || isPaused || currentProgress >= 100 || printerStatus === 'Idle' || printerStatus === 'StandingBy' || !printerStatus" class="section-card">
         <view class="card-header-row">
           <text class="section-title-text">{{ texts.progress }}</text>
           <text class="progress-pct">{{ currentProgress }}%</text>
@@ -102,6 +102,11 @@
               <text class="ctrl-text">打印完成</text>
             </view>
           </template>
+          <template v-if="!isPrinting && !isPaused && currentProgress < 100 && (printerStatus === 'Idle' || printerStatus === 'StandingBy' || !printerStatus)">
+            <view class="ctrl-btn restart-btn" @click="handleRestart">
+              <text class="ctrl-text">重新打印</text>
+            </view>
+          </template>
         </view>
       </view>
 
@@ -120,9 +125,9 @@ import {
   sendResumeCommand,
   sendRestartCommand,
   sendStopCommand,
-  getFirmwareInfo,
-  getDeviceStatus
+  getFirmwareInfo
 } from '@/api/iot.ts'
+import { getDeviceStatus } from '@/api/devices.ts'
 
 export default {
   components: { CustomNavbar },
