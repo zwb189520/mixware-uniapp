@@ -422,6 +422,7 @@ export default {
       try {
         const res = await getDeviceStatus(this.deviceId)
         console.log('设备状态返回:', res)
+        console.log('message内容:', res.data?.message)
         if (res.code === 1 || res.code === 0) {
           const data = res.data
           // 更新设备状态
@@ -430,9 +431,9 @@ export default {
           const printState = data?.printState
           this.isPrinting = printState === 'Printing'
           this.isPaused = printState === 'Paused' || printState === 'Pausing'
-          // 更新进度
-          if (data?.progress !== undefined) {
-            this.currentProgress = data.progress
+          // 从message字段解析温度和进度
+          if (data?.message) {
+            this.parseMessage(data.message, printState)
           }
           // 检查是否完成（必须进度100%且状态为空闲）
           if (this.currentProgress >= 100 && (printState === 'StandingBy' || printState === 'Idle')) {
@@ -441,6 +442,43 @@ export default {
         }
       } catch (error) {
         console.error('获取设备状态失败:', error)
+      }
+    },
+
+    // 解析设备上报的message
+    parseMessage(message, printState) {
+      try {
+        // 清理message中的换行和多余空格
+        const cleanMessage = message.replace(/\s+/g, ' ').trim()
+        const msgObj = JSON.parse(cleanMessage)
+        
+        // 提取温度（所有状态都显示）
+        if (msgObj.temperature !== undefined) {
+          this.currentTemp = Number(msgObj.temperature)
+        }
+        if (msgObj.target !== undefined) {
+          this.targetTemp = Number(msgObj.target)
+        }
+        
+        // 打印中状态才显示进度
+        if (printState === 'Printing') {
+          if (msgObj.progress !== undefined) {
+            // 进度是0-1的小数，转为百分比
+            this.currentProgress = Math.round(Number(msgObj.progress) * 100)
+          }
+        } else {
+          // 待机/空闲状态进度为0
+          this.currentProgress = 0
+        }
+        
+        console.log('解析message成功:', { 
+          state: printState, 
+          currentTemp: this.currentTemp, 
+          targetTemp: this.targetTemp, 
+          progress: this.currentProgress 
+        })
+      } catch (e) {
+        console.error('解析message失败:', message, e)
       }
     },
 
