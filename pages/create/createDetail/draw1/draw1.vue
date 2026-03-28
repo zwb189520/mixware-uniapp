@@ -79,8 +79,8 @@ interface ModelDimensions {
 }
 
 const languageStore = useLanguageStore()
-const url = ref('http://app.mixwarebot.cn/?token=uniapp_user_123')
-// const url = ref('http://192.168.0.43:8081/?token=uniapp_user_123')
+// const url = ref('http://app.mixwarebot.cn/?token=uniapp_user_123')
+const url = ref('http://192.168.0.43:8081/?token=uniapp_user_123')
 const statusBarHeight = ref(0)
 const postNumber = ref(0)
 const webviewContext = ref<any>(null)
@@ -274,9 +274,14 @@ const uploadSnapshotAndExportSTL = async (base64: string) => {
           try {
             const uploadRes = await uploadImage(fileName, 'model', 'custom') as any
             console.log('截图上传响应:', uploadRes)
-            if (uploadRes.code === 1 && uploadRes.data?.url) {
-              snapshotImageUrl.value = uploadRes.data.url
-              console.log('截图上传成功:', snapshotImageUrl.value)
+            if (uploadRes.code === 1 && uploadRes.data) {
+              const url = uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
+              if (url) {
+                snapshotImageUrl.value = url
+                console.log('截图上传成功:', snapshotImageUrl.value)
+              } else {
+                console.log('截图上传响应无URL字段:', uploadRes.data)
+              }
             } else {
               console.log('截图上传失败:', uploadRes)
             }
