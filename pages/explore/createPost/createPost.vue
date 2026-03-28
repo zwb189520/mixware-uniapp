@@ -253,21 +253,28 @@ export default {
       try {
         // 先上传图片
         const uploadedImageUrls = []
+        console.log('开始上传图片，本地图片数量:', this.postForm.imageUrls.length)
         for (const imageUrl of this.postForm.imageUrls) {
-          // 上传所有本地图片，包括blob和file://格式
-          if (imageUrl.startsWith('blob:') || imageUrl.startsWith('file://')) {
+          // 上传所有本地图片（非http开头的都是本地图片）
+          if (!imageUrl.startsWith('http')) {
+            console.log('上传图片:', imageUrl.substring(0, 50) + '...')
             const uploadRes = await uploadFile('/upload/image', imageUrl)
+            console.log('上传结果:', JSON.stringify(uploadRes))
             if (uploadRes.code === 1 && uploadRes.data) {
               let uploadedUrl = uploadRes.data.url || uploadRes.data.fileUrl
               if (!uploadedUrl && uploadRes.data.originalFileName) {
                 uploadedUrl = `http://app.mixwarebot.cn:9000/image/${uploadRes.data.originalFileName}`
               }
+              console.log('上传成功，URL:', uploadedUrl)
               uploadedImageUrls.push(uploadedUrl)
+            } else {
+              console.error('上传失败:', uploadRes)
             }
           } else {
             uploadedImageUrls.push(imageUrl)
           }
         }
+        console.log('上传完成，图片URL列表:', uploadedImageUrls)
         
         // 创建帖子数据
         let finalContent = this.postForm.content

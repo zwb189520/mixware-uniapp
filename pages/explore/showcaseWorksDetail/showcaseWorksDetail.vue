@@ -196,9 +196,17 @@ export default {
       return this.languageStore.texts.explore
     },
     imageUrls() {
-      return this.postDetail.imageUrls && this.postDetail.imageUrls.length > 0 
-        ? this.postDetail.imageUrls 
-        : []
+      if (!this.postDetail.imageUrls || this.postDetail.imageUrls.length === 0) {
+        return []
+      }
+      // 修复图片URL，将localhost替换为实际域名
+      return this.postDetail.imageUrls.map(url => {
+        if (!url) return '/static/images/logo.png'
+        if (url.includes('localhost:9000')) {
+          return url.replace('localhost:9000', '47.102.212.37:9000')
+        }
+        return url
+      })
     }
   },
   onLoad(options) {
