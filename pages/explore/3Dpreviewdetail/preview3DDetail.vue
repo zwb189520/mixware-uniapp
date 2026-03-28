@@ -487,13 +487,6 @@ export default {
           this.setModelColor(0x00ff00)
         }, 100)
       })
-      
-      // 如果没有涂鸦截图，截取3D预览图
-      if (!this.snapshotImageUrl) {
-        setTimeout(() => {
-          this.capturePreviewImage()
-        }, 500)
-      }
     },
     
     capturePreviewImage() {

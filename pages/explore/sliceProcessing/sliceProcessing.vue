@@ -275,6 +275,9 @@ export default {
             dimensions = data?.dimensions || ''
             printTime = data?.printTime || ''
             materialWeight = data?.materialWeight || ''
+            // 保存切片预计耗时和耗材
+            this.printTimeHms = data?.printTimeHms || ''
+            this.filamentLengthM = data?.filamentLengthM || 0
             checkComplete()
           } else if (status === 'FAILED') {
             realFailed = true
@@ -453,7 +456,7 @@ export default {
           setTimeout(() => {
             const workId = printTaskId || this.modelId
             uni.redirectTo({
-              url: `/pages/explore/printDetail/printDetail?workId=${workId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}&dimensions=${encodeURIComponent(dimensionsStr)}&printTime=${encodeURIComponent(this.printTime || '')}&materialWeight=${encodeURIComponent(this.materialWeight || '')}`
+              url: `/pages/explore/printDetail/printDetail?workId=${workId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(this.modelImage)}&autoStart=true&deviceId=${deviceId}&gcodeUrl=${encodeURIComponent(this.gcodeUrl || '')}&dimensions=${encodeURIComponent(dimensionsStr)}&printTime=${encodeURIComponent(this.printTime || '')}&materialWeight=${encodeURIComponent(this.materialWeight || '')}&printTimeHms=${encodeURIComponent(this.printTimeHms || '')}&filamentLengthM=${encodeURIComponent(this.filamentLengthM || 0)}`
             })
           }, 1500)
         } else {
