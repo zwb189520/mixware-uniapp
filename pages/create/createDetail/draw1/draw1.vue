@@ -437,6 +437,7 @@ const handlePrint = () => {
   console.log('去打印')
   isPrinting.value = true
   snapshotImageUrl.value = ''
+  uni.showLoading({ title: languageStore.texts.create.generating3D || '生成3D模型中...', mask: true })
   // 先截图
   sendMessage('snapshot')
 }
@@ -645,9 +646,9 @@ const uploadAndNavigateToPrint = async (stlContent: string) => {
 
 const uploadAndNavigateApp = async (stlContent: string) => {
   try {
-    // 等待截图上传完成（最多等5秒）
+    // 等待截图上传完成（最多等2秒）
     let waitCount = 0
-    while (!snapshotImageUrl.value && waitCount < 50) {
+    while (!snapshotImageUrl.value && waitCount < 20) {
       await new Promise(resolve => setTimeout(resolve, 100))
       waitCount++
     }
