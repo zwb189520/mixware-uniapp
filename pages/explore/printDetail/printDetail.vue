@@ -73,8 +73,16 @@
           <view class="progress-bar-fill" :style="{ width: currentProgress + `%` }"></view>
         </view>
         <view class="device-row" style="margin-top:16rpx;">
-          <text class="device-label">{{ texts.estimatedTime }}</text>
-          <text class="device-value">{{ estimatedTime }} {{ texts.minutes || '分钟' }}</text>
+          <text class="device-label">已打印时间</text>
+          <text class="device-value">{{ formatTime(estimatedPrintTimeSeconds) || '0分钟' }}</text>
+        </view>
+        <view class="device-row" style="margin-top:12rpx;">
+          <text class="device-label">预计总耗时</text>
+          <text class="device-value">{{ printTimeHms || '未知' }}</text>
+        </view>
+        <view class="device-row" style="margin-top:12rpx;">
+          <text class="device-label">预计耗材</text>
+          <text class="device-value">{{ filamentLengthM ? Number(filamentLengthM).toFixed(2) : '0.00' }} 米</text>
         </view>
         <!-- 控制按钮 -->
         <view class="print-actions">
@@ -143,9 +151,12 @@ export default {
       currentTemp: 0,
       targetTemp: 200,
       currentProgress: 0,
-      estimatedTime: 0,
+      estimatedPrintTimeSeconds: 0,
+      printTimeHms: '',
+      filamentLengthM: 0,
       isPrinting: false,
       isPaused: false,
+      isDownloading: false,
       gcodeUrl: '',
       modelDimensions: '',
       printTime: '',
@@ -159,11 +170,14 @@ export default {
     languageStore() { return useLanguageStore() },
     texts() { return this.languageStore.texts.explore },
     displayStatus() {
+      if (this.printerStatus === 'Offline') return '离线'
       if (this.isPrinting) return this.texts.printing || '打印中'
       if (this.isPaused) return this.texts.paused || '已暂停'
+      if (this.isDownloading) return '下载中'
       const s = this.printerStatus
       if (s === 'Printing') return this.texts.printing || '打印中'
       if (s === 'Paused' || s === 'Pausing') return this.texts.paused || '已暂停'
+      if (s === 'Downloading') return '下载中'
       if (s === 'StandingBy' || s === 'Idle') return this.texts.idle || '空闲'
       if (s === 'Busy') return this.texts.busy || '忙碌'
       return s || this.texts.idle || '空闲'
@@ -172,18 +186,24 @@ export default {
       if (this.isPrinting) return 'dot-printing'
       if (this.isPaused) return 'dot-paused'
       const s = this.printerStatus
+      if (this.printerStatus === 'Offline') return 'dot-offline'
       if (s === 'Printing') return 'dot-printing'
       if (s === 'Paused' || s === 'Pausing') return 'dot-paused'
+      if (s === 'Downloading') return 'dot-downloading'
       return 'dot-idle'
     },
     statusBadgeClass() {
+      if (this.printerStatus === 'Offline') return 'badge-offline'
       if (this.isPrinting) return 'badge-printing'
       if (this.isPaused) return 'badge-paused'
+      if (this.isDownloading) return 'badge-downloading'
       return 'badge-idle'
     },
     statusTextClass() {
+      if (this.printerStatus === 'Offline') return 'text-offline'
       if (this.isPrinting) return 'text-printing'
       if (this.isPaused) return 'text-paused'
+      if (this.isDownloading) return 'text-downloading'
       return 'text-idle'
     }
   },
@@ -202,6 +222,8 @@ export default {
       try { this.modelDimensions = decodeURIComponent(options.dimensions) } catch { this.modelDimensions = options.dimensions || '' }
       try { this.printTime = decodeURIComponent(options.printTime) } catch { this.printTime = options.printTime || '' }
       try { this.materialWeight = decodeURIComponent(options.materialWeight) } catch { this.materialWeight = options.materialWeight || '' }
+      try { this.printTimeHms = decodeURIComponent(options.printTimeHms) } catch { this.printTimeHms = options.printTimeHms || '' }
+      try { this.filamentLengthM = decodeURIComponent(options.filamentLengthM) } catch { this.filamentLengthM = options.filamentLengthM || 0 }
       this.deviceId = options.deviceId || ''
       this.isPrinting = options.autoStart === 'true'
     } else if (this.workId) {
@@ -431,9 +453,21 @@ export default {
           const printState = data?.printState
           this.isPrinting = printState === 'Printing'
           this.isPaused = printState === 'Paused' || printState === 'Pausing'
+          this.isDownloading = printState === 'Downloading'
+          // 设备离线处理
+          if (data?.deviceState === 'offline') {
+            this.printerStatus = 'Offline'
+          }
           // 从message字段解析温度和进度
           if (data?.message) {
             this.parseMessage(data.message, printState)
+          }
+          // 解析预计耗时和耗材
+          if (data?.printTimeHms !== undefined) {
+            this.printTimeHms = data.printTimeHms
+          }
+          if (data?.filamentLengthM !== undefined) {
+            this.filamentLengthM = data.filamentLengthM
           }
           // 检查是否完成（必须进度100%且状态为空闲）
           if (this.currentProgress >= 100 && (printState === 'StandingBy' || printState === 'Idle')) {
@@ -460,15 +494,26 @@ export default {
           this.targetTemp = Number(msgObj.target)
         }
         
-        // 打印中状态才显示进度
+        // 打印中状态才更新进度，待机/空闲保持当前进度（防止完成后跳回0%）
         if (printState === 'Printing') {
           if (msgObj.progress !== undefined) {
             // 进度是0-1的小数，转为百分比
             this.currentProgress = Math.round(Number(msgObj.progress) * 100)
           }
-        } else {
-          // 待机/空闲状态进度为0
-          this.currentProgress = 0
+        }
+        // 注意：不在else里重置进度，避免完成后跳转前显示0%
+        
+        // 解析打印持续时间（支持数字秒或字符串如 "4m 34"）
+        if (msgObj.print_duration !== undefined) {
+          if (typeof msgObj.print_duration === 'string' && msgObj.print_duration.includes('m')) {
+            this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.print_duration)
+          } else {
+            this.estimatedPrintTimeSeconds = Number(msgObj.print_duration)
+          }
+        }
+        // 解析total_duration（格式如 "22h 43m 42s"）
+        if (msgObj.total_duration !== undefined) {
+          this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.total_duration)
         }
         
         console.log('解析message成功:', { 
@@ -492,6 +537,7 @@ export default {
     },
     // 打印完成后跳转
     goToPrintComplete() {
+      this.stopStatusPolling() // 停止轮询
       uni.navigateTo({
         url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(this.printTime || '')}&material=${encodeURIComponent(this.materialWeight || '')}&size=${encodeURIComponent(this.modelDimensions || '')}`
       })
@@ -502,6 +548,30 @@ export default {
       if (this.currentProgress >= 100 && !this.isPrinting && !this.isPaused) {
         this.goToPrintComplete()
       }
+    },
+    
+    // 格式化时间（秒转分钟/小时）
+    formatTime(seconds) {
+      if (!seconds || seconds <= 0) return '0分钟'
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      const secs = Math.floor(seconds % 60)
+      if (hours > 0) return `${hours}小时${minutes}分${secs}秒`
+      if (minutes > 0) return `${minutes}分${secs}秒`
+      return `${secs}秒`
+    },
+    
+    // 解析时间字符串（如 "22h 43m 42s" 或 "2h 24m 5s"）转为秒
+    parseDuration(durationStr) {
+      if (!durationStr || typeof durationStr !== 'string') return 0
+      let totalSeconds = 0
+      const hourMatch = durationStr.match(/(\d+)h/)
+      const minMatch = durationStr.match(/(\d+)m/)
+      const secMatch = durationStr.match(/(\d+)s/)
+      if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600
+      if (minMatch) totalSeconds += parseInt(minMatch[1]) * 60
+      if (secMatch) totalSeconds += parseInt(secMatch[1])
+      return totalSeconds
     }
   }
 }
@@ -648,6 +718,7 @@ export default {
 .badge-printing { background: rgba(42,127,255,0.1); }
 .badge-paused   { background: rgba(246,166,35,0.1); }
 .badge-idle     { background: rgba(82,196,26,0.1); }
+.badge-offline  { background: rgba(153,153,153,0.1); }
 .status-dot {
   width: 12rpx;
   height: 12rpx;
@@ -656,6 +727,7 @@ export default {
 .dot-printing { background: #2a7fff; }
 .dot-paused   { background: #f6a623; }
 .dot-idle     { background: #52c41a; }
+.dot-offline  { background: #999; }
 .status-badge-text {
   font-size: 24rpx;
   font-weight: 600;
@@ -663,6 +735,7 @@ export default {
 .badge-printing .status-badge-text { color: #2a7fff; }
 .badge-paused   .status-badge-text { color: #f6a623; }
 .badge-idle     .status-badge-text { color: #52c41a; }
+.badge-offline  .status-badge-text { color: #999; }
 
 /* 设备行 */
 .device-row {

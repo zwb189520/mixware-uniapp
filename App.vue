@@ -212,4 +212,5 @@
 
 <style>
 	/* 全局样式 */
+	@import '@dcloudio/uni-ui/lib/uni-icons/uniicons.css';
 </style>
