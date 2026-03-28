@@ -62,8 +62,10 @@
         <!-- 关联模型 -->
         <view class="model-link-section" v-if="postDetail.modelId && postDetail.modelName" @click="goToModel(postDetail.modelId)">
           <view class="model-link-card">
-            <image class="model-icon" src="/static/images/icon/3d_model.png" mode="aspectFit" />
-            <text class="model-name-text">{{ postDetail.modelName }}</text>
+            <image class="model-preview" :src="modelImage || '/static/images/icon/3d_model.png'" mode="aspectFill" />
+            <view class="model-info">
+              <text class="model-name-text">{{ postDetail.modelName }}</text>
+            </view>
             <text class="model-link-arrow">></text>
           </view>
         </view>
@@ -143,6 +145,7 @@ import {
   checkLikeStatus,
   checkFollowStatus
 } from '@/api/community'
+import { getModelDetail } from '@/api/models'
 
 export default {
   components: {
@@ -235,6 +238,20 @@ export default {
     }
   },
   methods: {
+    async loadModelPreview(modelId) {
+      try {
+        const res = await getModelDetail(modelId)
+        if (res.code === 1 && res.data && res.data.previewUrl) {
+          let previewUrl = res.data.previewUrl
+          if (previewUrl.includes('localhost:9000')) {
+            previewUrl = previewUrl.replace('localhost:9000', '47.102.212.37:9000')
+          }
+          this.modelImage = previewUrl
+        }
+      } catch (e) {
+        console.error('加载模型预览图失败:', e)
+      }
+    },
     goToModel(modelId) {
       if (!modelId) return
       uni.navigateTo({
@@ -311,10 +328,13 @@ export default {
           this.description = (this.postDetail.content || '').replace(/#[^#\s]+#/g, '').trim()
           this.workTitle = this.postDetail.title || '作品详情'
           
-          if (this.postDetail.imageUrls && this.postDetail.imageUrls.length > 0) {
+          // 获取模型预览图
+          if (this.postDetail.modelId) {
+            this.loadModelPreview(this.postDetail.modelId)
+          } else if (this.postDetail.imageUrls && this.postDetail.imageUrls.length > 0) {
             this.modelImage = this.postDetail.imageUrls[0]
           } else {
-            this.modelImage = '/static/images/3Dprinter.png';
+            this.modelImage = '/static/images/3Dprinter.png'
           }
           
           this.checkUserInteractions()
@@ -1115,14 +1135,22 @@ export default {
   gap: 16rpx;
 }
 
-.model-icon {
-  width: 40rpx;
-  height: 40rpx;
+.model-preview {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
   flex-shrink: 0;
+  background: #f0f0f0;
+}
+
+.model-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .model-name-text {
-  flex: 1;
   font-size: 28rpx;
   color: #333;
   font-weight: 500;
