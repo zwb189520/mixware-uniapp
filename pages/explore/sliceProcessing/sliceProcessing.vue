@@ -468,10 +468,17 @@ export default {
 
         if (res.code === 1 || res.code === 0) {
           uni.showToast({ title: this.texts.printCommandSent || '打印指令已发送', icon: 'success' })
-          // 使用原始尺寸（从preview3DDetail传入）
-          const dimensionsStr = this.originalDimensions ? 
-            `${this.originalDimensions.x.toFixed(1)}mm(X)*${this.originalDimensions.y.toFixed(1)}mm(Y)*${this.originalDimensions.z.toFixed(1)}mm(Z)` : 
-            (this.modelDimensions || '')
+          // 使用缩放后的尺寸
+          let dimensionsStr = ''
+          if (this.originalDimensions) {
+            const scale = this.scalePercent / 100
+            const x = (this.originalDimensions.x * scale).toFixed(1)
+            const y = (this.originalDimensions.y * scale).toFixed(1)
+            const z = (this.originalDimensions.z * scale).toFixed(1)
+            dimensionsStr = `${x}mm(X)*${y}mm(Y)*${z}mm(Z)`
+          } else {
+            dimensionsStr = this.modelDimensions || ''
+          }
           setTimeout(() => {
             const workId = printTaskId || this.modelId
             uni.redirectTo({

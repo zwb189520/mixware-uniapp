@@ -77,7 +77,7 @@
           <text class="device-value">{{ formatTime(estimatedPrintTimeSeconds) || '0分钟' }}</text>
         </view>
         <view class="device-row" style="margin-top:12rpx;">
-          <text class="device-label">预计总耗时</text>
+          <text class="device-label">预计总耗时（约）</text>
           <text class="device-value">{{ printTimeHms || '未知' }}</text>
         </view>
         <view class="device-row" style="margin-top:12rpx;">
@@ -537,9 +537,11 @@ export default {
     },
     // 打印完成后跳转
     goToPrintComplete() {
-      this.stopStatusPolling() // 停止轮询
+      this.stopStatusPolling()
+      const printTimeStr = this.printTimeHms || this.printTime || ''
+      const materialStr = this.filamentLengthM ? `${Number(this.filamentLengthM).toFixed(2)}米` : (this.materialWeight || '')
       uni.navigateTo({
-        url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(this.printTime || '')}&material=${encodeURIComponent(this.materialWeight || '')}&size=${encodeURIComponent(this.modelDimensions || '')}`
+        url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(printTimeStr)}&material=${encodeURIComponent(materialStr)}&size=${encodeURIComponent(this.modelDimensions || '')}`
       })
     },
 
@@ -719,6 +721,7 @@ export default {
 .badge-paused   { background: rgba(246,166,35,0.1); }
 .badge-idle     { background: rgba(82,196,26,0.1); }
 .badge-offline  { background: rgba(153,153,153,0.1); }
+.badge-downloading { background: rgba(114,46,209,0.1); }
 .status-dot {
   width: 12rpx;
   height: 12rpx;
@@ -728,6 +731,7 @@ export default {
 .dot-paused   { background: #f6a623; }
 .dot-idle     { background: #52c41a; }
 .dot-offline  { background: #999; }
+.dot-downloading { background: #722ed1; }
 .status-badge-text {
   font-size: 24rpx;
   font-weight: 600;
@@ -736,6 +740,7 @@ export default {
 .badge-paused   .status-badge-text { color: #f6a623; }
 .badge-idle     .status-badge-text { color: #52c41a; }
 .badge-offline  .status-badge-text { color: #999; }
+.badge-downloading .status-badge-text { color: #722ed1; }
 
 /* 设备行 */
 .device-row {

@@ -270,7 +270,7 @@ export default {
       console.log('分享报告，modelId:', modelInfo.id)
       
       uni.navigateTo({
-        url: `/pages/explore/createPost/createPost?modelId=${encodeURIComponent(modelInfo.id)}&modelName=${encodeURIComponent(modelInfo.name)}&modelImage=${encodeURIComponent(modelInfo.image)}&printTime=${encodeURIComponent(this.printData.printTime)}&material=${encodeURIComponent(this.printData.material)}&size=${encodeURIComponent(this.printData.size)}`
+        url: `/pages/explore/createPost/createPost?modelId=${encodeURIComponent(modelInfo.id)}&modelName=${encodeURIComponent(modelInfo.name)}&modelImage=${encodeURIComponent(modelInfo.image)}&printTime=${encodeURIComponent(this.printData.printTime)}&material=${encodeURIComponent(this.printData.material)}&size=${encodeURIComponent(this.printData.size)}&from=printComplete`
       })
     }
   }

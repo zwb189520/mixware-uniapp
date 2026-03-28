@@ -45,7 +45,7 @@ export default {
   name: 'WiFiSelectorModal',
   computed: {
     languageStore() { return useLanguageStore() },
-    texts() { return this.languageStore.texts.printer }
+    texts() { return this.languageStore.texts.printerMoreIntro }
   },
   props: {
     visible: {

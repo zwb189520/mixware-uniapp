@@ -142,7 +142,8 @@ export default {
       newTopic: '',
       showTopicInput: false,
       selectedTopics: [],
-      languageStore: useLanguageStore()
+      languageStore: useLanguageStore(),
+      from: ''
     }
   },
   computed: {
@@ -155,6 +156,7 @@ export default {
   },
   onLoad(options) {
     this.languageStore.loadLanguage()
+    this.from = options.from || ''
     
     // 接收模型信息
     if (options.modelId) {
@@ -298,8 +300,11 @@ export default {
           uni.setStorageSync('needRefreshShowcase', this.postForm.modelId)
           
           setTimeout(() => {
-            // 返回到模型详情页
-            uni.navigateBack()
+            if (this.from === 'printComplete') {
+              uni.switchTab({ url: '/pages/explore/explore/explore' })
+            } else {
+              uni.navigateBack()
+            }
           }, 1500)
         }
       } catch (error) {
