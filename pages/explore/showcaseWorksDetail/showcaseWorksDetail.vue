@@ -122,10 +122,6 @@
           <image class="action-btn-icon" :src="postDetail.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" mode="aspectFit" />
           <text class="action-btn-text" :class="{ 'active-like': postDetail.isLiked }">{{ postDetail.likeCount || 0 }}</text>
         </view>
-        <view class="action-btn" @click="handleShare">
-          <image class="action-btn-icon" src="/static/images/icon/share.png" mode="aspectFit" />
-          <text class="action-btn-text">{{ postDetail.shareCount || 0 }}</text>
-        </view>
       </view>
     </view>
   </view>
@@ -739,87 +735,6 @@ export default {
       }
     },
 
-    async handleShare() {
-      uni.showActionSheet({
-        itemList: [
-          this.texts.shareToWechat || '分享到微信',
-          this.texts.shareToMoments || '分享到朋友圈',
-          this.texts.copyLink || '复制链接'
-        ],
-        success: async (res) => {
-          // 生成真实的帖子链接
-          const postLink = `${window.location.origin}/#/pages/explore/showcaseWorksDetail/showcaseWorksDetail?postId=${this.postId}`
-          
-          if (res.tapIndex === 0) {
-            // 分享到微信好友
-            try {
-              // 调用微信分享API（需要在微信环境下）
-              await uni.share({
-                provider: 'weixin',
-                scene: 'WXSceneSession',
-                type: 0,
-                title: this.workTitle,
-                summary: this.postDetail.content || this.texts.shareSummary,
-                href: postLink,
-                imageUrl: this.imageUrls[0] || '/static/images/3Dprinter.png',
-                success: () => {
-                  uni.showToast({ title: this.texts.shareSuccess || '分享成功', icon: 'success' })
-                  this.postDetail.shareCount++
-                },
-                fail: (err) => {
-                  console.error('分享失败:', err)
-                  uni.showToast({ title: this.texts.shareFailed || '分享失败', icon: 'none' })
-                }
-              })
-            } catch (e) {
-              console.error('微信分享API调用失败:', e)
-              uni.showToast({ title: this.texts.shareNotAvailable || '分享功能暂不可用', icon: 'none' })
-            }
-          } else if (res.tapIndex === 1) {
-            // 分享到朋友圈
-            try {
-              // 调用微信分享API（需要在微信环境下）
-              await uni.share({
-                provider: 'weixin',
-                scene: 'WXSceneTimeline',
-                type: 0,
-                title: this.workTitle,
-                summary: this.postDetail.content || this.texts.shareSummary,
-                href: postLink,
-                imageUrl: this.imageUrls[0] || '/static/images/3Dprinter.png',
-                success: () => {
-                  uni.showToast({ title: this.texts.shareSuccess || '分享成功', icon: 'success' })
-                  this.postDetail.shareCount++
-                },
-                fail: (err) => {
-                  console.error('分享失败:', err)
-                  uni.showToast({ title: this.texts.shareFailed || '分享失败', icon: 'none' })
-                }
-              })
-            } catch (e) {
-              console.error('微信分享API调用失败:', e)
-              uni.showToast({ title: this.texts.shareNotAvailable || '分享功能暂不可用', icon: 'none' })
-            }
-          } else if (res.tapIndex === 2) {
-            // 复制真实链接
-            uni.setClipboardData({
-              data: postLink,
-              success: () => {
-                uni.showToast({
-                  title: this.texts.linkCopied || '链接已复制',
-                  icon: 'success'
-                })
-              },
-              fail: (err) => {
-                console.error('复制链接失败:', err)
-                uni.showToast({ title: this.texts.copyLinkFailed || '复制链接失败', icon: 'none' })
-              }
-            })
-          }
-        }
-      })
-    },
-
     async handleCommentDelete(commentId) {
       uni.showModal({
         title: this.texts.confirmDelete || '确认删除',
@@ -896,20 +811,15 @@ export default {
       const isAuthor = String(this.postDetail.userId) === String(this.currentUserId) ||
                        String(this.postDetail.userId) === 'local_user'
 
-      const itemList = [this.texts.share || '分享']
-      if (isAuthor) {
-        itemList.push(this.texts.delete || '删除')
+      if (!isAuthor) {
+        uni.showToast({ title: this.texts.noPermission || '无操作权限', icon: 'none' })
+        return
       }
 
       uni.showActionSheet({
-        itemList,
+        itemList: [this.texts.delete || '删除'],
         success: (res) => {
-          const tapText = itemList[res.tapIndex]
-          if (tapText === (this.texts.share || '分享')) {
-            this.handleShare()
-          } else if (tapText === (this.texts.delete || '删除')) {
-            this.handleDeletePost()
-          }
+          this.handleDeletePost()
         }
       })
     },
