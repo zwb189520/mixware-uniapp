@@ -94,7 +94,10 @@ export default {
       scalePercent: 100, // 缩放比例
       addSupports: false, // 是否添加支撑结构
       taskFailed: false, // 任务是否失败
-      eventSource: null // SSE连接实例
+      eventSource: null, // SSE连接实例
+      fakeTimer: null, // 假进度定时器
+      pollTimer: null, // 轮询定时器
+      isPaused: false // 是否暂停
     }
   },
   computed: {
@@ -161,6 +164,7 @@ export default {
     await this.loadModelImages()
   },
   onUnload() {
+    this.clearAllTimers()
     if (this.eventSource) {
       this.eventSource.close()
     }
@@ -222,6 +226,16 @@ export default {
       this.progress = 0
     },
     
+    clearAllTimers() {
+      if (this.fakeTimer) {
+        clearInterval(this.fakeTimer)
+        this.fakeTimer = null
+      }
+      if (this.pollTimer) {
+        clearTimeout(this.pollTimer)
+        this.pollTimer = null
+      }
+    },
     async pollRealTaskStatus(taskId) {
       let fakeProgress = 0
       let realCompleted = false
@@ -232,7 +246,8 @@ export default {
       let materialWeight = ''
 
       // 假进度定时器，每50ms增加0.2%，独立运行到99%
-      const fakeTimer = setInterval(() => {
+      this.fakeTimer = setInterval(() => {
+        if (this.isPaused) return
         if (fakeProgress < 99 && !realFailed) {
           fakeProgress = Math.min(99, fakeProgress + 0.5)
           this.progress = Math.floor(fakeProgress)
@@ -257,12 +272,16 @@ export default {
 
       // 使用轮询查询真实任务状态
       const poll = async () => {
+        if (this.isPaused) {
+          this.pollTimer = setTimeout(poll, 500)
+          return
+        }
         try {
           const res = await getScaleAndSliceStatus(taskId)
           console.log('轮询状态:', JSON.stringify(res))
 
           if (res.code !== 1 && res.code !== 0) {
-            setTimeout(poll, 2000)
+            this.pollTimer = setTimeout(poll, 2000)
             return
           }
 
@@ -281,7 +300,7 @@ export default {
             checkComplete()
           } else if (status === 'FAILED') {
             realFailed = true
-            clearInterval(fakeTimer)
+            clearInterval(this.fakeTimer)
             this.taskFailed = true
             this.progress = 0
             const errorMsg = data?.errorMessage || ''
@@ -292,18 +311,18 @@ export default {
               confirmText: this.texts.confirm || '确定'
             })
           } else {
-            setTimeout(poll, 1500)
+            this.pollTimer = setTimeout(poll, 1500)
           }
         } catch (error) {
           console.error('轮询状态失败:', error)
-          setTimeout(poll, 2000)
+          this.pollTimer = setTimeout(poll, 2000)
         }
       }
 
       // 检查是否完成（假进度和真进度都完成）
       const checkComplete = () => {
         if (realCompleted && fakeProgress >= 99) {
-          clearInterval(fakeTimer)
+          clearInterval(this.fakeTimer)
           this.realTaskCompleted = true
           this.progress = 100
           this.steps[1].completed = true
@@ -474,15 +493,19 @@ export default {
       })
     },
     handleCancel() {
+      this.isPaused = true
       uni.showModal({
         title: this.texts.confirmCancel || '确认取消',
-        content: this.texts.cancelContent || '取消后将停止模型处理，是否确认？',
+        content: this.texts.cancelContent || '取消后将不自动打印，模型处理将在后台继续，是否确认？',
         success: (res) => {
           if (res.confirm) {
+            this.clearAllTimers()
             if (this.eventSource) {
               this.eventSource.close()
             }
             uni.navigateBack()
+          } else {
+            this.isPaused = false
           }
         }
       })
