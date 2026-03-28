@@ -23,8 +23,10 @@
     "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000320260310001",
     "@types/node": "^20.0.0",
     "@vue/language-server": "^2.2.0",
+    "confbox": "^0.1.8",
     "cross-env": "^7.0.3",
     "typescript": "^5.0.0",
+    "unimport": "^3.7.1",
     "vite": "5.2.8",
     "vue": "^3.4.21",
     "vue-tsc": "^2.0.0"

@@ -15,10 +15,12 @@ app.$mount()
 // #ifdef VUE3
 import { createSSRApp } from 'vue'
 import pinia from './stores'
+import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 export function createApp() {
   const app = createSSRApp(App)
   app.use(pinia)
+  app.component('UniIcons', UniIcons)
   return {
     app
   }
