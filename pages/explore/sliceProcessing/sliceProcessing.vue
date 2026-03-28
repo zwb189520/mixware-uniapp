@@ -144,8 +144,9 @@ export default {
     this.languageStore.loadLanguage()
     this.initializeTexts()
     
-    // 如果是自定义涂鸦模型（custom_ 开头），直接使用传入的 modelUrl
-    if (this.modelId.startsWith('custom_')) {
+    // 如果是自定义涂鸦模型（custom_ 开头）或任务ID（32位十六进制）且有modelUrl，直接使用modelUrl
+    const isTaskId = /^[a-f0-9]{32}$/.test(this.modelId)
+    if (this.modelId.startsWith('custom_') || (isTaskId && options.modelUrl)) {
       try {
         this.modelUrl = options.modelUrl ? decodeURIComponent(options.modelUrl) : ''
       } catch (e) {
@@ -193,7 +194,7 @@ export default {
         const scaleFactor = this.scalePercent / 100
 
         const submitRes = await scaleAndSliceModel({
-          modelIdOrUrl: this.modelId,
+          modelIdOrUrl: this.modelUrl,
           scaleFactor: scaleFactor,
           deviceId: this.deviceId,
           addSupports: this.addSupports
