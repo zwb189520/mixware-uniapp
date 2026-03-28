@@ -196,7 +196,7 @@
 import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
-import { getModelPage, addModel, deleteModel, likeModel, unlikeModel } from '@/api/models.ts'
+import { getModelPage, addModel, deleteModel, likeModel, unlikeModel, checkModelLike } from '@/api/models.ts'
 import { getHotExamples } from '@/api/session.ts'
 import { parseSnCode } from '@/api/devices.ts'
 import { useExploreStore } from '@/stores/index.ts'
@@ -294,6 +294,12 @@ export default {
     uni.$on('postDeleted', () => {
       this.loadModels()
     })
+    // 监听模型点赞状态变化
+    uni.$on('modelLikeChanged', (data) => {
+      if (data && data.modelId) {
+        this.exploreStore.updateModelLike(data.modelId, data.isLiked, data.likes)
+      }
+    })
   },
   onShow() {
     // 页面显示时更新TabBar语言
@@ -301,6 +307,7 @@ export default {
   },
   onUnload() {
     uni.$off('postDeleted')
+    uni.$off('modelLikeChanged')
   },
   methods: {
     onTouchStart(e) {
@@ -481,7 +488,7 @@ export default {
         author: model.username || model.nickname || model.userName || '',
         authorAvatar: model.authorAvatar ? fixImageUrl(model.authorAvatar) : '/static/images/Default avatar.png',
         likes: model.likeCount || 0,
-        isLiked: false,
+        isLiked: model.isLiked || false,
         viewCount: model.viewCount || 0,
         category: this.mapCategoryToTab(model.category)
       }))
@@ -499,6 +506,31 @@ export default {
       this.exploreStore.setDailyModels(this.dailyModels)
       this.exploreStore.setHotModels(this.hotModels)
       this.exploreStore.setCategoryModels(this.categoryModels)
+      
+      // 登录后获取真实点赞状态
+      if (uni.getStorageSync('isLoggedIn')) {
+        this.loadLikeStatus(formattedModels)
+      }
+    },
+    
+    async loadLikeStatus(models) {
+      try {
+        const checkPromises = models.map(model => 
+          checkModelLike(model.id).catch(() => ({ code: 0, data: false }))
+        )
+        const results = await Promise.all(checkPromises)
+        results.forEach((res, index) => {
+          if (res.code === 1) {
+            const model = models[index]
+            const newIsLiked = res.data === true
+            if (model.isLiked !== newIsLiked) {
+              this.exploreStore.updateModelLike(model.id, newIsLiked, model.likes)
+            }
+          }
+        })
+      } catch (e) {
+        console.warn('获取点赞状态失败:', e)
+      }
     },
     
     switchTab(tab) {
@@ -697,6 +729,11 @@ export default {
             title: item.isLiked ? this.texts.likeSuccess : this.texts.cancelLike,
             icon: 'success'
           })
+        } else if (res.code === 100003) {
+          // 状态不一致，自动纠正
+          const realIsLiked = res.msg && res.msg.includes('已点赞')
+          this.exploreStore.updateModelLike(item.id, realIsLiked, item.likes)
+          uni.showToast({ title: res.msg, icon: 'none' })
         }
       } catch (error) {
         console.error('点赞操作失败:', error)

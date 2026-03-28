@@ -62,6 +62,10 @@ export function unlikeModel(modelId) {
   return postWithQuery('/model-like/unlike', null, { modelId })
 }
 
+export function checkModelLike(modelId) {
+  return get('/model-like/check', { modelId })
+}
+
 /**
  * 获取模型分页列表
  * @param {Object} [params={}] - 查询参数

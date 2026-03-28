@@ -140,7 +140,7 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import { addFavorite, cancelFavorite, getFavoriteModels } from '@/api/userFavorite.ts'
-import { getModelDetail, deleteModel, likeModel, unlikeModel } from '@/api/models.ts'
+import { getModelDetail, getModelList, deleteModel, likeModel, unlikeModel, checkModelLike, getModelPage } from '@/api/models.ts'
 import { getPostList } from '@/api/community.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -237,12 +237,8 @@ export default {
     // 刷新晒物作品列表
     async refreshShowcaseWorks() {
       if (!this.modelId) return
-      this.checkFavoriteStatus()
+      await this.checkFavoriteStatus()
       await this.loadShowcaseWorks()
-      // 如果没有详情数据，则加载详情
-      if (!this.modelInfo.name) {
-        this.loadModelDetail(this.modelId)
-      }
     },
     async loadShowcaseWorks() {
       if (!this.modelId) return
@@ -285,7 +281,7 @@ export default {
       try {
         const res = await getFavoriteModels()
         if (res.code === 1 && res.data) {
-          const isCollected = res.data.some(item => item.modelId === String(this.modelId))
+          const isCollected = res.data.some(item => String(item.modelId) === String(this.modelId))
           this.modelInfo.isCollected = isCollected
           console.log('检查收藏状态:', isCollected)
         }
@@ -330,25 +326,45 @@ export default {
           category: data.category,
           copyright: data.copyright || data.Copyright,
           images: data.previewUrl ? [fixImageUrl(data.previewUrl)] : ['/static/images/3Dprinter.png'],
-          likes: data.likeCount || 0,
-          collections: data.collectCount || 0,
+          likes: data.likeCount || data.likeNum || this.modelInfo.likes || 0,
+          collections: data.collectCount || data.collectNum || this.modelInfo.collections || 0,
           isLiked: data.isLiked || false,
-          isCollected: false,
+          isCollected: this.modelInfo.isCollected || false,
           author: data.username || data.nickname || data.userName || '',
           authorAvatar: data.authorAvatar ? fixImageUrl(data.authorAvatar) : '/static/images/Default avatar.png',
           modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
         }
 
-        // 3. 只有登录了才去尝试获取收藏/点赞状态（失败了也不影响详情展示）
+        // 3. 获取正确的点赞数（从列表接口）和点赞状态
+        try {
+          const [pageRes, likeRes] = await Promise.all([
+            getModelPage({ current: 1, size: 1, name: data.name }).catch(() => null),
+            checkModelLike(id).catch(() => null)
+          ])
+          
+          if (pageRes && pageRes.code === 1 && pageRes.data && pageRes.data.records) {
+            const modelFromPage = pageRes.data.records.find(m => String(m.modelId) === String(id))
+            if (modelFromPage) {
+              this.modelInfo.likes = modelFromPage.likeCount || 0
+              this.modelInfo.isLiked = modelFromPage.isLiked || false
+            }
+          }
+          if (likeRes && likeRes.code === 1) {
+            this.modelInfo.isLiked = likeRes.data === true
+          }
+        } catch (e) {
+          console.warn('获取点赞信息失败:', e)
+        }
+        
+        // 4. 获取收藏状态
         if (isLoggedIn) {
           try {
             const favoriteRes = await getFavoriteModels().catch(() => null)
-            
             if (favoriteRes && favoriteRes.code === 1 && favoriteRes.data) {
               this.modelInfo.isCollected = favoriteRes.data.some(item => String(item.modelId) === String(id))
             }
           } catch (e) {
-            console.warn('获取用户交互状态失败:', e)
+            console.warn('获取收藏状态失败:', e)
           }
         }
         
@@ -466,6 +482,12 @@ export default {
             title: this.modelInfo.isLiked ? this.texts.likeSuccess : this.texts.cancelLike,
             icon: 'success'
           })
+          // 通知 explore 页面更新点赞状态
+          uni.$emit('modelLikeChanged', {
+            modelId: this.modelId,
+            isLiked: this.modelInfo.isLiked,
+            likes: this.modelInfo.likes
+          })
         }
       } catch (error) {
         // 网络错误回滚 UI
@@ -517,10 +539,13 @@ export default {
     },
     async updateModelCount() {
       try {
-        const res = await getModelDetail(this.modelId)
-        if (res.code === 1 && res.data) {
-          this.modelInfo.collections = res.data.collectCount || 0
-          this.modelInfo.likes = res.data.likeCount || 0
+        const res = await getModelPage({ current: 1, size: 100 })
+        if (res.code === 1 && res.data && res.data.records) {
+          const model = res.data.records.find(m => String(m.modelId) === String(this.modelId))
+          if (model) {
+            this.modelInfo.collections = model.collectCount || 0
+            this.modelInfo.likes = model.likeCount || 0
+          }
         }
       } catch (error) {
         console.error('更新模型数量失败:', error)
