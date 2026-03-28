@@ -16,11 +16,15 @@ app.$mount()
 import { createSSRApp } from 'vue'
 import pinia from './stores'
 import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
+import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
+import SafeArea from '@/components/safe-area/safe-area.vue'
 
 export function createApp() {
   const app = createSSRApp(App)
   app.use(pinia)
   app.component('UniIcons', UniIcons)
+  app.component('CustomNavbar', CustomNavbar)
+  app.component('SafeArea', SafeArea)
   return {
     app
   }
