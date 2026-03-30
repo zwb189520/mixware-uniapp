@@ -602,8 +602,9 @@ export default {
         }
       }
       
+      const modelImage = this.modelInfo.images[0] || ''
       uni.navigateTo({
-        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelName)}&url=${encodeURIComponent(modelUrl)}&dimensions=${encodeURIComponent(JSON.stringify(dimensions))}`
+        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelName)}&url=${encodeURIComponent(modelUrl)}&dimensions=${encodeURIComponent(JSON.stringify(dimensions))}&modelImage=${encodeURIComponent(modelImage)}`
       })
     },
 

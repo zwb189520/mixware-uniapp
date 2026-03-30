@@ -209,7 +209,7 @@ export default {
     this.modelName = options.name ? decodeURIComponent(options.name) : ''
     this.modelUrl = this.normalizeUrl(decodeURIComponent(options.url || ''))
     this.modelType = options.modelType || this.getModelTypeFromUrl(this.modelUrl)
-    this.snapshotImageUrl = options.imageUrl ? decodeURIComponent(options.imageUrl) : ''
+    this.snapshotImageUrl = options.modelImage ? decodeURIComponent(options.modelImage) : (options.imageUrl ? decodeURIComponent(options.imageUrl) : '')
     
     if (options.dimensions) {
       try {
