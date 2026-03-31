@@ -353,7 +353,7 @@ export default {
     },
 
     handleBack() {
-      uni.navigateBack()
+      this.handleCancel()
     },
     handleImageError() {
       this.modelImage = ''

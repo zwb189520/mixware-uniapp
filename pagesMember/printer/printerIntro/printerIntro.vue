@@ -187,7 +187,7 @@ export default {
             this.progress = Math.round(status.progress)
           }
           if (status.printTimeHms !== undefined) {
-            this.printTimeHms = status.printTimeHms
+            this.printTimeHms = this.addMinutesToTimeStr(status.printTimeHms, 3)
           }
           if (status.filamentLengthM !== undefined) {
             this.filamentLengthM = status.filamentLengthM
@@ -256,6 +256,20 @@ export default {
       if (hours > 0) return `${hours}小时${minutes}分${secs}秒`
       if (minutes > 0) return `${minutes}分${secs}秒`
       return `${secs}秒`
+    },
+
+    addMinutesToTimeStr(timeStr, minutesToAdd) {
+      if (!timeStr || typeof timeStr !== 'string') return timeStr
+      let totalMinutes = 0
+      const hourMatch = timeStr.match(/(\d+)\s*小时/)
+      const minMatch = timeStr.match(/(\d+)\s*分/)
+      if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60
+      if (minMatch) totalMinutes += parseInt(minMatch[1])
+      totalMinutes += minutesToAdd
+      const hours = Math.floor(totalMinutes / 60)
+      const mins = totalMinutes % 60
+      if (hours > 0) return `${hours}小时${mins}分`
+      return `${mins}分`
     }
   }
 }
