@@ -462,15 +462,18 @@ const handleWebviewMessage = (evt: any) => {
     console.log('接收3d快照数据成功, isPrinting:', isPrinting.value, 'hasSnapshot:', !!msg.snapshot)
     if (msg.snapshot) {
       if (isPrinting.value) {
-        // 打印模式：上传图片并保存URL
         console.log('开始上传截图')
         uploadSnapshotAndExportSTL(msg.snapshot)
       } else {
-        // 普通模式：保存到相册
         saveImageToPhotosAlbum(msg.snapshot)
       }
     } else {
       console.log('snapshot数据为空')
+      if (isPrinting.value) {
+        isPrinting.value = false
+        uni.hideLoading()
+        uni.showToast({ title: texts.value.noModelData || '请先绘制模型', icon: 'none' })
+      }
     }
   }
 
