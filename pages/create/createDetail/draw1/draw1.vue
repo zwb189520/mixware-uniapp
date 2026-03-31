@@ -396,6 +396,7 @@ const saveImageToPhotosAlbum = (base64: string) => {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+  // #endif
 }
 
 const handleIconClick = () => {

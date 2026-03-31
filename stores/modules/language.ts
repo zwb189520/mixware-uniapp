@@ -774,11 +774,19 @@ export const useLanguageStore = defineStore('language', {
           title: '打印机',
           encouragementText: '你的创造正在诞生，快去打印机旁看看吧！',
           connectionFailed: '设备连接失败，请检查网络',
-          idle: '睡觉',
-          printing: '工作中',
-          hungry: '饿了',
-          error: '生病了',
-          offline: '失联了'
+          printStatus: {
+            Initializing: '正在热身 🏃 (固件初始化)',
+            StandingBy: '打盹中 💤 (等待)',
+            Error: '生病啦 🤒 (固件灾难性报错)',
+            Downloading: '吃点东西 📥 (GCode下载中)',
+            Printing: '努力工作中 💪 (开始打印)',
+            Pausing: '歇一会儿 ⏸️ (打印暂停)',
+            Aborting: '不想干了 🛑 (打印取消)',
+            Loading: '进食中 🍜 (进料中)',
+            Unloading: '吐出来 🤮 (退料中)',
+            online: '在线 😊 (在线)',
+            offline: '失联了 😢 (离线)'
+          }
         },
         printerMoreIntro: {
           title: '打印机设置',
@@ -1967,11 +1975,19 @@ export const useLanguageStore = defineStore('language', {
           title: 'Printer',
           encouragementText: 'Your creation is being born, go check the printer!',
           connectionFailed: 'Device connection failed, please check network',
-          idle: 'Sleeping',
-          printing: 'Working',
-          hungry: 'Hungry',
-          error: 'Sick',
-          offline: 'Lost'
+          printStatus: {
+            Initializing: 'Warming up 🏃',
+            StandingBy: 'Napping 💤',
+            Error: 'Feeling sick 🤒',
+            Downloading: 'Having a snack 📥',
+            Printing: 'Working hard 💪',
+            Pausing: 'Taking a break ⏸️',
+            Aborting: 'Giving up 🛑',
+            Loading: 'Eating 🍜',
+            Unloading: 'Spitting out 🤮',
+            online: 'Online 😊',
+            offline: 'Lost 😢'
+          }
         },
         printerMoreIntro: {
           title: 'Printer Settings',

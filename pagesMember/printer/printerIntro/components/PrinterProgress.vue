@@ -1,19 +1,45 @@
 ﻿<template>
   <view class="progress-container">
-    <text class="progress-status">{{ progressStatusText }}</text>
-    
-    <view class="filament-container">
-      <view 
-        class="filament-line" 
-        :style="{ width: progress + '%' }"
-      >
-        <view class="filament-wave"></view>
+    <!-- 进度卡片 -->
+    <view class="progress-card">
+      <view class="progress-header">
+        <text class="progress-title">打印进度</text>
+        <text class="progress-percent">{{ progress }}%</text>
       </view>
-    </view>
-    
-    <view class="progress-info">
-      <text class="progress-text">{{ progress }}%</text>
-      <text class="progress-time">{{ estimatedTime }}</text>
+      
+      <!-- 进度条 -->
+      <view class="progress-bar-wrap">
+        <view class="progress-track">
+          <view class="progress-fill" :style="{ width: progress + '%' }">
+            <view class="progress-shine"></view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 统计信息 -->
+      <view class="stats-grid">
+        <view v-if="estimatedTime" class="stat-item">
+          <view class="stat-icon">⏱️</view>
+          <view class="stat-content">
+            <text class="stat-label">已打印</text>
+            <text class="stat-value">{{ estimatedTime }}</text>
+          </view>
+        </view>
+        <view v-if="printTimeHms" class="stat-item">
+          <view class="stat-icon">⏳</view>
+          <view class="stat-content">
+            <text class="stat-label">预计总耗时</text>
+            <text class="stat-value">{{ printTimeHms }}</text>
+          </view>
+        </view>
+        <view v-if="filamentLengthM > 0" class="stat-item">
+          <view class="stat-icon">🧵</view>
+          <view class="stat-content">
+            <text class="stat-label">预计耗材</text>
+            <text class="stat-value">{{ filamentLengthM.toFixed(2) }} 米</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 </template>
@@ -31,41 +57,24 @@ export default {
     },
     estimatedTime: {
       type: String,
-      default: '0分钟'
+      default: ''
+    },
+    printTimeHms: {
+      type: String,
+      default: ''
+    },
+    filamentLengthM: {
+      type: Number,
+      default: 0
     },
     status: {
       type: String,
-      default: 'idle'
+      default: 'StandingBy'
     }
   },
   computed: {
     languageStore() {
       return useLanguageStore()
-    },
-    progressStatusText() {
-      const texts = this.languageStore?.texts?.printerIntro || {}
-      
-      if (this.status === 'offline') {
-        return texts.offline || '失联了'
-      }
-      
-      if (this.status === 'error') {
-        return texts.error || '生病了'
-      }
-      
-      if (this.status === 'hungry') {
-        return texts.hungry || '饿了'
-      }
-      
-      if (this.progress >= 100) {
-        return texts.completed || '已完成'
-      }
-      
-      if (this.status === 'printing') {
-        return texts.printing || '工作中'
-      }
-      
-      return texts.idle || '睡觉'
     }
   }
 }
@@ -73,22 +82,44 @@ export default {
 
 <style scoped>
 .progress-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 50rpx 0;
   width: 100%;
+  padding: 40rpx 32rpx;
 }
 
-.progress-status {
-  font-size: 30rpx;
-  font-weight: 600;
+.progress-card {
+  background: linear-gradient(135deg, #FFF9F5 0%, #FFF 100%);
+  border-radius: 32rpx;
+  padding: 40rpx 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
+  border: 2rpx solid rgba(255, 107, 53, 0.1);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.progress-title {
+  font-size: 28rpx;
   color: #666;
-  margin-bottom: 28rpx;
+  font-weight: 500;
 }
 
-.filament-container {
-  width: 620rpx;
+.progress-percent {
+  font-size: 48rpx;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.progress-bar-wrap {
+  margin-bottom: 32rpx;
+}
+
+.progress-track {
   height: 16rpx;
   background: rgba(255, 107, 53, 0.1);
   border-radius: 8rpx;
@@ -96,60 +127,71 @@ export default {
   position: relative;
 }
 
-.filament-line {
+.progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #FF6B35 0%, #FF8E53 100%);
   border-radius: 8rpx;
   position: relative;
-  transition: width 0.5s ease;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.filament-wave {
+.progress-shine {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
     90deg,
-    transparent,
-    transparent 12rpx,
-    rgba(255, 255, 255, 0.25) 12rpx,
-    rgba(255, 255, 255, 0.25) 24rpx
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
   );
-  animation: wave 1.2s linear infinite;
+  animation: shine 2s ease-in-out infinite;
 }
 
-@keyframes wave {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(24rpx);
-  }
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-.progress-info {
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 160rpx;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 32rpx;
-  margin-top: 28rpx;
+  gap: 16rpx;
+  padding: 20rpx;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20rpx;
+  border: 2rpx solid rgba(255, 107, 53, 0.08);
 }
 
-.progress-text {
-  font-size: 42rpx;
-  font-weight: 700;
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.stat-icon {
+  font-size: 36rpx;
 }
 
-.progress-time {
-  font-size: 30rpx;
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 22rpx;
   color: #999;
-  font-weight: 500;
+  margin-bottom: 4rpx;
+}
+
+.stat-value {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 600;
 }
 </style>
 

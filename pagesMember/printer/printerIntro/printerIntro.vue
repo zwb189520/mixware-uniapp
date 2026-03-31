@@ -16,7 +16,9 @@
       <printer-image />
       <printer-progress 
         :progress="progress" 
-        :estimated-time="estimatedTime"
+        :estimated-time="formatTime(estimatedPrintTimeSeconds)"
+        :print-time-hms="printTimeHms"
+        :filament-length-m="filamentLengthM"
         :status="printerStatus"
       />
       <view v-if="showEncouragement" class="encouragement-text">
@@ -48,9 +50,12 @@ export default {
   },
   data() {
     return {
-      printerStatus: 'idle',
+      printerStatus: 'StandingBy',
       progress: 0,
-      estimatedTime: '0' + (this.texts?.minutes || '分钟'),
+      estimatedTime: '',
+      printTimeHms: '',
+      filamentLengthM: 0,
+      estimatedPrintTimeSeconds: 0,
       showEncouragement: true,
       deviceId: '',
       statusTimer: null
@@ -166,37 +171,31 @@ export default {
             return
           }
 
-          // 更加稳健的状态判定逻辑
           const deviceState = (status.deviceState || '').toLowerCase()
           const printState = status.printState || ''
           
-          // 判定逻辑（极简可视化映射）：
           if (deviceState === 'offline' || (status.deviceState === null && status.printState === null)) {
             this.printerStatus = 'offline'
-            this.progress = 0 // 失联时重置进度
+            this.progress = 0
             this.showEncouragement = false
             return
           }
           
-          // 只有在非离线状态下才判断打印细节
-          if (printState === 'Error') {
-            this.printerStatus = 'error'
-          } 
-          // ... 保持后续逻辑不变
-          else if (['Loading', 'Unloading', 'Pausing', 'Aborting'].includes(printState)) {
-            this.printerStatus = 'hungry'
-          }
-          else if (['Printing', 'Downloading', 'Initializing'].includes(printState)) {
-            this.printerStatus = 'printing'
-          }
-          else {
-            this.printerStatus = 'idle'
-          }
+          this.printerStatus = printState || 'online'
           
           if (status.progress !== undefined && this.printerStatus !== 'offline') {
             this.progress = Math.round(status.progress)
           }
-          this.showEncouragement = this.printerStatus === 'printing'
+          if (status.printTimeHms !== undefined) {
+            this.printTimeHms = status.printTimeHms
+          }
+          if (status.filamentLengthM !== undefined) {
+            this.filamentLengthM = status.filamentLengthM
+          }
+          if (status.message) {
+            this.parseMessage(status.message, status.printState)
+          }
+          this.showEncouragement = this.printerStatus === 'Printing'
         } else {
           this.printerStatus = 'offline'
           this.progress = 0
@@ -216,6 +215,47 @@ export default {
       uni.navigateTo({
         url: '/pagesMember/printer/printerMoreIntro/printerMoreIntro'
       })
+    },
+
+    parseMessage(message, printState) {
+      try {
+        const cleanMessage = message.replace(/\s+/g, ' ').trim()
+        const msgObj = JSON.parse(cleanMessage)
+        if (msgObj.print_duration !== undefined) {
+          if (typeof msgObj.print_duration === 'string' && msgObj.print_duration.includes('m')) {
+            this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.print_duration)
+          } else {
+            this.estimatedPrintTimeSeconds = Number(msgObj.print_duration)
+          }
+        }
+        if (msgObj.total_duration !== undefined) {
+          this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.total_duration)
+        }
+      } catch (e) {
+        console.error('解析message失败:', message, e)
+      }
+    },
+
+    parseDuration(durationStr) {
+      if (!durationStr || typeof durationStr !== 'string') return 0
+      let totalSeconds = 0
+      const hourMatch = durationStr.match(/(\d+)h/)
+      const minMatch = durationStr.match(/(\d+)m/)
+      const secMatch = durationStr.match(/(\d+)s/)
+      if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600
+      if (minMatch) totalSeconds += parseInt(minMatch[1]) * 60
+      if (secMatch) totalSeconds += parseInt(secMatch[1])
+      return totalSeconds
+    },
+
+    formatTime(seconds) {
+      if (!seconds || seconds <= 0) return '0分钟'
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      const secs = Math.floor(seconds % 60)
+      if (hours > 0) return `${hours}小时${minutes}分${secs}秒`
+      if (minutes > 0) return `${minutes}分${secs}秒`
+      return `${secs}秒`
     }
   }
 }

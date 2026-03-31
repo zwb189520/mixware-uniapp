@@ -1,7 +1,7 @@
 ﻿<template>
   <view class="status-container">
     <view class="status-icon">
-      <view :class="['status-dot', `status-${status}`]"></view>
+      <view :class="['status-dot', `status-${statusClass}`]"></view>
     </view>
     <text class="status-text">{{ statusText }}</text>
   </view>
@@ -16,8 +16,7 @@ export default {
   props: {
     status: {
       type: String,
-      default: 'idle',
-      validator: (value) => ['idle', 'printing', 'hungry', 'error', 'offline'].includes(value)
+      default: 'StandingBy'
     }
   },
   computed: {
@@ -25,15 +24,24 @@ export default {
       return useLanguageStore()
     },
     statusText() {
-      const texts = this.languageStore?.texts?.printerIntro || {}
+      const texts = this.languageStore?.texts?.printerIntro?.printStatus || {}
+      return texts[this.status] || this.status
+    },
+    statusClass() {
       const statusMap = {
-        idle: texts.idle || '睡觉',
-        printing: texts.printing || '工作中',
-        hungry: texts.hungry || '饿了',
-        error: texts.error || '生病了',
-        offline: texts.offline || '失联了'
+        'Printing': 'printing',
+        'Downloading': 'printing',
+        'Initializing': 'printing',
+        'Error': 'error',
+        'offline': 'offline',
+        'Pausing': 'idle',
+        'Aborting': 'idle',
+        'StandingBy': 'idle',
+        'Loading': 'idle',
+        'Unloading': 'idle',
+        'online': 'idle'
       }
-      return statusMap[this.status]
+      return statusMap[this.status] || 'idle'
     }
   }
 }
