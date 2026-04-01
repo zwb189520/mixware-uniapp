@@ -3,11 +3,12 @@
     <view class="header-wrapper">
       <safe-area />
       <custom-navbar :title="texts.title" @back="handleBack">
-        <template #right>
+        <!-- 打印机设置入口，暂时隐藏 -->
+        <!-- <template #right>
           <view class="more-btn" @click="handleMoreInfo">
             <uni-icons type="more-filled" size="24" color="#333"></uni-icons>
           </view>
-        </template>
+        </template> -->
       </custom-navbar>
     </view>
     <view class="content-container">
@@ -187,13 +188,17 @@ export default {
             this.progress = Math.round(status.progress)
           }
           if (status.printTimeHms !== undefined) {
-            this.printTimeHms = this.addMinutesToTimeStr(status.printTimeHms, 3)
+            this.printTimeHms = status.printTimeHms
           }
           if (status.filamentLengthM !== undefined) {
             this.filamentLengthM = status.filamentLengthM
           }
           if (status.message) {
             this.parseMessage(status.message, status.printState)
+          }
+          // 从message解析已打印时间
+          if (status.printTimeHms !== undefined && this.estimatedPrintTimeSeconds === 0) {
+            this.estimatedTime = status.printTimeHms
           }
           this.showEncouragement = this.printerStatus === 'Printing'
         } else {
@@ -221,6 +226,10 @@ export default {
       try {
         const cleanMessage = message.replace(/\s+/g, ' ').trim()
         const msgObj = JSON.parse(cleanMessage)
+        // 从message解析进度
+        if (msgObj.progress !== undefined && printState === 'Printing') {
+          this.progress = Math.round(Number(msgObj.progress) * 100)
+        }
         if (msgObj.print_duration !== undefined) {
           if (typeof msgObj.print_duration === 'string' && msgObj.print_duration.includes('m')) {
             this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.print_duration)

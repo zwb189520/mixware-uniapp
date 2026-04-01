@@ -32,7 +32,7 @@
             <image :src="printer.deviceImage || printer.image || '/static/images/3Dprinter.png'" mode="aspectFill" class="printer-img"></image>
           </view>
           <view class="printer-details">
-            <view class="printer-name">{{ printer.deviceName || printer.name || texts.my3DPrinter }}</view>
+            <view class="printer-name">{{ printer.deviceName || printer.name || printer.deviceId || texts.my3DPrinter }}</view>
             <view class="printer-status" :class="{ 'online': printer.deviceStatus === 1 || printer.status === 1, 'offline': printer.deviceStatus !== 1 && printer.status !== 1 }">
               {{ printer.deviceStatus === 1 || printer.status === 1 ? texts.online : texts.offline }}
             </view>
