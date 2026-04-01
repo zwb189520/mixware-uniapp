@@ -705,26 +705,7 @@ export default {
           const newIsLiked = !item.isLiked
           const newLikes = item.likes + (newIsLiked ? 1 : -1)
           this.exploreStore.updateModelLike(item.id, newIsLiked, newLikes)
-          
-          if (newIsLiked) {
-            const likeData = {
-              id: item.id,
-              title: item.name,
-              image: item.image,
-              time: new Date().toISOString()
-            }
-            let likesList = uni.getStorageSync('likesList') || []
-            const existIndex = likesList.findIndex(like => like.id === item.id)
-            if (existIndex === -1) {
-              likesList.unshift(likeData)
-              uni.setStorageSync('likesList', likesList)
-            }
-          } else {
-            let likesList = uni.getStorageSync('likesList') || []
-            likesList = likesList.filter(like => like.id !== item.id)
-            uni.setStorageSync('likesList', likesList)
-          }
-          
+
           uni.showToast({
             title: item.isLiked ? this.texts.likeSuccess : this.texts.cancelLike,
             icon: 'success'

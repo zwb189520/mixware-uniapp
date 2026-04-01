@@ -444,26 +444,6 @@ export default {
       // 乐观更新 UI
       this.modelInfo.isLiked = !this.modelInfo.isLiked
       this.modelInfo.likes += this.modelInfo.isLiked ? 1 : -1
-      
-      // 更新本地点赞列表 (模拟持久化)
-      if (this.modelInfo.isLiked) {
-        const likeData = {
-          id: this.modelId,
-          title: this.modelInfo.name,
-          image: this.modelInfo.images[0],
-          time: new Date().toISOString()
-        }
-        let likesList = uni.getStorageSync('likesList') || []
-        const existIndex = likesList.findIndex(item => String(item.id) === String(this.modelId))
-        if (existIndex === -1) {
-          likesList.unshift(likeData)
-          uni.setStorageSync('likesList', likesList)
-        }
-      } else {
-        let likesList = uni.getStorageSync('likesList') || []
-        likesList = likesList.filter(item => String(item.id) !== String(this.modelId))
-        uni.setStorageSync('likesList', likesList)
-      }
 
       try {
         const res = this.modelInfo.isLiked
