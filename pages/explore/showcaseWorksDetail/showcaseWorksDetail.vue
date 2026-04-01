@@ -237,6 +237,12 @@ export default {
       })
     }
   },
+  onShow() {
+    // 页面显示时重新加载帖子详情，确保点赞状态最新
+    if (this.postId) {
+      this.loadPostDetail()
+    }
+  },
   methods: {
     async loadModelPreview(modelId) {
       try {
@@ -269,11 +275,12 @@ export default {
       
       try {
         const res = await getPostDetail(String(this.postId))
-        console.log('getPostDetail 返回:', JSON.stringify(res))
-        
+
         if (res.code === 0 || res.code === 1) {
           const postData = res.data
-          console.log('后端返回的完整帖子数据:', JSON.stringify(postData))
+          // 统一点赞字段
+          postData.isLiked = postData.isLiked || postData.liked || false
+          postData.likeCount = postData.likeCount || postData.likes || 0
           // 过滤imageUrls中的无效路径（blob和file://）
           if (postData.imageUrls && Array.isArray(postData.imageUrls)) {
             const validImageUrls = postData.imageUrls.filter(imgUrl => 
@@ -290,14 +297,12 @@ export default {
           
           // 处理话题数据，确保是数组格式
           let topicsData = postData.topics || postData.tags || []
-          console.log('原始话题数据:', topicsData)
-          
+
           // 如果后端返回 null 或空，尝试从正文中解析 #话题#
           if ((!topicsData || (Array.isArray(topicsData) && topicsData.length === 0)) && postData.content) {
             const contentTopics = postData.content.match(/#([^#\s]+)#/g)
             if (contentTopics) {
               topicsData = contentTopics.map(t => t.replace(/#/g, ''))
-              console.log('从正文解析出话题:', topicsData)
             }
           }
 
@@ -319,7 +324,6 @@ export default {
           }
           // 移除重复并清理
           postData.topics = [...new Set(topicsData.map(t => String(t).trim()))].filter(t => t)
-          console.log('解析后话题数据:', postData.topics)
           
           this.postDetail = postData
           this.userName = this.postDetail.username
@@ -357,12 +361,18 @@ export default {
 
     async checkUserInteractions() {
       if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined') return
-      
+
       try {
-        // ✅ 改进：不要重复调用接口
-        // getPostDetail 已经返回了 isLiked 和 isFollowing
-        // 直接使用返回的数据，不需要再调用 checkLikeStatus 和 checkFollowStatus
-        
+        // 后端 getPostDetail 返回的 isLiked 不正确，需要调用 checkLikeStatus 获取真实状态
+        try {
+          const likeRes = await checkLikeStatus('POST', this.postId)
+          if (likeRes.code === 0 || likeRes.code === 1) {
+            this.postDetail.isLiked = likeRes.data
+          }
+        } catch (e) {
+          console.error('检查点赞状态失败:', e)
+        }
+
         // 只在需要时才调用关注状态检查（如果后端没有返回）
         if (this.postDetail.isFollowing === undefined && this.postDetail.userId && this.postDetail.userId !== 'local_user') {
           try {
@@ -494,14 +504,18 @@ export default {
     async handlePostLike() {
       this.postDetail.isLiked = !this.postDetail.isLiked
       this.postDetail.likeCount += this.postDetail.isLiked ? 1 : -1
-      
+
       const isMock = !this.postId || String(this.postId).includes('mock') || String(this.postId) === '1' || String(this.postId) === 'NaN' || String(this.postId) === 'undefined'
-      
+
       if (!isMock) {
         try {
           const res = await toggleLike('POST', this.postId)
-          if (res.code === 0) {
-            this.postDetail.isLiked = res.data
+          if (res.code === 0 || res.code === 1) {
+            // toggleLike 接口返回的 data 有问题，调用 checkLikeStatus 获取真实状态
+            const checkRes = await checkLikeStatus('POST', this.postId)
+            if (checkRes.code === 0 || checkRes.code === 1) {
+              this.postDetail.isLiked = checkRes.data
+            }
           }
         } catch (e) {
           console.error('点赞失败:', e)

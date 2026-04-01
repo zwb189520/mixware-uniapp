@@ -141,7 +141,7 @@ import SafeArea from '@/components/safe-area/safe-area.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import { addFavorite, cancelFavorite, getFavoriteModels } from '@/api/userFavorite.ts'
 import { getModelDetail, getModelList, deleteModel, likeModel, unlikeModel, checkModelLike, getModelPage } from '@/api/models.ts'
-import { getPostList } from '@/api/community.ts'
+import { getPostList, toggleLike, checkLikeStatus } from '@/api/community.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -262,12 +262,30 @@ export default {
               id: post.postId,
               image: post.imageUrls?.[0] || '/static/images/3Dprinter.png',
               likes: post.likeCount || 0,
+              isLiked: post.isLiked || false,
               userName: post.username,
               userAvatar: post.avatarUrl
             }))
+          // 后端返回的 isLiked 可能不正确，批量检查真实点赞状态
+          this.checkWorksLikeStatus()
         }
       } catch (error) {
         console.error('加载晒物作品失败:', error)
+      }
+    },
+
+    async checkWorksLikeStatus() {
+      // 批量检查每个帖子的点赞状态
+      for (const work of this.showcaseWorks) {
+        if (!work.id || String(work.id).includes('mock')) continue
+        try {
+          const res = await checkLikeStatus('POST', work.id)
+          if (res.code === 0 || res.code === 1) {
+            work.isLiked = res.data
+          }
+        } catch (e) {
+          // 忽略单个检查失败
+        }
       }
     },
     checkDescriptionLength() {
@@ -686,14 +704,18 @@ export default {
       work.isLiked = !work.isLiked
       work.likeCount += work.isLiked ? 1 : -1
       work.likes = work.likeCount
-      
+
       const isMock = !work.id || String(work.id).includes('mock') || String(work.id) === '1' || String(work.id) === 'NaN' || String(work.id) === 'undefined'
-      
+
       if (!isMock) {
         try {
           const res = await toggleLike('POST', work.id)
-          if (res.code === 0) {
-            work.isLiked = res.data
+          if (res.code === 0 || res.code === 1) {
+            // toggleLike 返回的 data 可能不正确，调用 checkLikeStatus 确认真实状态
+            const checkRes = await checkLikeStatus('POST', work.id)
+            if (checkRes.code === 0 || checkRes.code === 1) {
+              work.isLiked = checkRes.data
+            }
           }
         } catch (e) {
           console.error('点赞失败:', e)
