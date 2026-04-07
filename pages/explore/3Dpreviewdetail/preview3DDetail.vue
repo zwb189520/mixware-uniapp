@@ -122,6 +122,7 @@ import { sendPrintCommand } from '@/api/iot.ts'
 import { getModelDetail } from '@/api/models.ts'
 import { getDefaultDevice } from '@/api/devices.ts'
 import { getTaskStatus, cancelTask } from '@/api/hunyuan3d.ts'
+import { uploadModelFile } from '@/api/upload.ts'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
 import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores/index.ts'
@@ -268,6 +269,14 @@ export default {
         normalized = 'http://' + normalized
       }
       return normalized
+    },
+    base64ToArrayBuffer(base64) {
+      const binaryString = atob(base64)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+      return bytes.buffer
     },
 
     fixImageUrl(url) {
@@ -558,7 +567,7 @@ export default {
         z: Math.round(dimensions.z * 10) / 10
       }
 
-      // 自动缩放：如果任一维度超过100mm，自动缩小到99mm
+      // 自动缩放：如果任一维度超过100mm，自动缩小到99mm（仅后端通知，前端展示不变）
       const maxDim = Math.max(this.dimensions.x, this.dimensions.y, this.dimensions.z)
       if (maxDim > 100) {
         const targetScale = 99 / maxDim
@@ -570,7 +579,6 @@ export default {
             this.applyModelScale()
           }, 500)
         })
-        uni.showToast({ title: this.texts.autoScaled || '模型已自动缩放至99mm', icon: 'none' })
       }
     },
     
@@ -998,7 +1006,6 @@ export default {
       })
     },
     async handlePrint() {
-      // 检查是否超出边界
       if (this.isOutOfBounds) {
         uni.showToast({
           title: this.boundaryMessage || '模型边缘超出边界，请调整',
@@ -1014,9 +1021,80 @@ export default {
       }
       
       try {
-        uni.showLoading({
-          title: this.texts.gettingDeviceInfo || '获取设备信息...'
-        })
+        uni.showLoading({ title: this.texts.exportingModel || '导出模型中...' })
+        
+        let modifiedModelUrl = this.modelUrl
+        
+        // #ifdef APP-PLUS
+        if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+          console.log('开始调用 exportModifiedSTL')
+          const filePath = await this.$refs.preview3d.$refs.stageApp.call({
+            key: 'exportModifiedSTL',
+            args: [],
+            isReturn: true
+          })
+          console.log('exportModifiedSTL 返回文件路径:', filePath)
+          
+          if (filePath) {
+            try {
+              console.log('开始上传文件:', filePath)
+              const uploadRes = await uploadModelFile(filePath)
+              console.log('上传响应:', uploadRes)
+              if (uploadRes.code === 1 && uploadRes.data) {
+                modifiedModelUrl = uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
+                console.log('修改后的模型上传成功:', modifiedModelUrl)
+              }
+            } catch (err) {
+              console.error('上传失败:', err)
+            }
+          } else {
+            console.log('filePath 为空，跳过导出')
+          }
+        }
+        // #endif
+        
+        // #ifdef H5
+        if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+          const stlBase64 = await this.$refs.preview3d.$refs.stageApp.call({
+            key: 'exportModifiedSTL',
+            args: [],
+            isReturn: true
+          })
+          
+          if (stlBase64) {
+            const binaryString = atob(stlBase64)
+            const bytes = new Uint8Array(binaryString.length)
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i)
+            }
+            const blob = new Blob([bytes], { type: 'application/octet-stream' })
+            const formData = new FormData()
+            formData.append('file', blob, `modified_${Date.now()}.stl`)
+            
+            const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
+            const token = uni.getStorageSync('token')
+            
+            try {
+              const res = await fetch(baseUrl + '/upload/model', {
+                method: 'POST',
+                headers: {
+                  'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: formData
+              })
+              const data = await res.json()
+              if (data.code === 1 && data.data) {
+                modifiedModelUrl = data.data.url || data.data.fileUrl || data.data.path
+                console.log('修改后的模型上传成功:', modifiedModelUrl)
+              }
+            } catch (err) {
+              console.error('上传修改后的模型失败:', err)
+            }
+          }
+        }
+        // #endif
+        
+        uni.showLoading({ title: this.texts.gettingDeviceInfo || '获取设备信息...' })
         
         const deviceRes = await getDefaultDevice()
         console.log('默认设备响应:', deviceRes)
@@ -1036,24 +1114,18 @@ export default {
         
         uni.hideLoading()
         
-        // 跳转到切片处理页面，使用涂鸦截图或模型预览图
         let imageUrl = this.snapshotImageUrl
-        
-        // 如果没有涂鸦截图，使用模型详情中的previewUrl
         if (!imageUrl && this.modelInfo && this.modelInfo.previewUrl) {
           imageUrl = this.modelInfo.previewUrl
         }
-        
-        // 如果都没有，使用modelUrl（虽然可能是STL）
         if (!imageUrl) {
           imageUrl = this.modelUrl
         }
         
-        // 构建尺寸参数
         const dimensionsParam = this.dimensions && this.dimensions.x ? encodeURIComponent(JSON.stringify(this.dimensions)) : ''
         
         uni.navigateTo({
-          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(this.modelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}&addSupports=${this.addSupports}`
+          url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(modifiedModelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}&addSupports=${this.addSupports}`
         })
       } catch (error) {
         uni.hideLoading()
@@ -1206,29 +1278,58 @@ export default {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: rgba(26, 26, 26, 0.8);
+	background-color: rgba(26, 26, 26, 0.85);
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	z-index: 10;
+	backdrop-filter: blur(8rpx);
 }
 
 .loading-text {
-	font-size: 28rpx;
+	font-size: 32rpx;
 	color: #fff;
+	font-weight: 500;
+	margin-bottom: 40rpx;
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+}
+
+.loading-text::before {
+	content: '';
+	width: 40rpx;
+	height: 40rpx;
+	border: 4rpx solid rgba(255, 255, 255, 0.2);
+	border-top-color: #2a7fff;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }
 
 .cancel-btn {
-	margin-top: 30rpx;
-	padding: 16rpx 40rpx;
-	background-color: rgba(255, 255, 255, 0.2);
-	border-radius: 8rpx;
-	border: 1rpx solid rgba(255, 255, 255, 0.5);
+	padding: 20rpx 48rpx;
+	background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+	border-radius: 40rpx;
+	border: none;
+	box-shadow: 0 8rpx 24rpx rgba(238, 90, 90, 0.35);
+	transition: all 0.3s ease;
+}
+
+.cancel-btn:active {
+	transform: scale(0.95);
+	box-shadow: 0 4rpx 12rpx rgba(238, 90, 90, 0.25);
 }
 
 .cancel-btn-text {
 	font-size: 28rpx;
 	color: #fff;
+	font-weight: 500;
 }
 
 .fixed-top {

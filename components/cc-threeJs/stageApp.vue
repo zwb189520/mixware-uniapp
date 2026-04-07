@@ -166,6 +166,9 @@
 	import {
 		STLLoader
 	} from 'three/examples/jsm/loaders/STLLoader.js'
+	import {
+		STLExporter
+	} from 'three/examples/jsm/exporters/STLExporter.js'
 
 	import {
 		animation,
@@ -821,6 +824,150 @@
 						}
 					})
 					this.updateBoundingBox()
+				}
+			},
+			// 导出修改后的STL
+			async exportModifiedSTL() {
+				const exporter = new STLExporter()
+				const { group, modelGroups } = instance
+				
+				console.log('exportModifiedSTL - modelGroups:', modelGroups ? modelGroups.length : 0)
+				console.log('exportModifiedSTL - group children:', group ? group.children.length : 0)
+				
+				// 创建临时 group 合并所有模型
+				const tempGroup = new THREE.Group()
+				
+				if (modelGroups && modelGroups.length > 0) {
+					console.log('使用 modelGroups 导出，数量:', modelGroups.length)
+					modelGroups.forEach((g, idx) => {
+						console.log(`modelGroups[${idx}] children:`, g ? g.children.length : 0)
+						if (g && g.children.length > 0) {
+							g.traverse(child => {
+								if (child.isMesh) {
+									const clone = child.clone()
+									child.updateMatrixWorld(true)
+									clone.applyMatrix4(child.matrixWorld)
+									tempGroup.add(clone)
+								}
+							})
+						}
+					})
+				} else if (group && group.children.length > 0) {
+					console.log('使用 group 导出')
+					group.traverse(child => {
+						if (child.isMesh) {
+							const clone = child.clone()
+							child.updateMatrixWorld(true)
+							clone.applyMatrix4(child.matrixWorld)
+							tempGroup.add(clone)
+						}
+					})
+				}
+				
+				console.log('tempGroup children:', tempGroup.children.length)
+				
+				if (tempGroup.children.length === 0) {
+					return null
+				}
+				
+				// 导出为二进制 STL
+				let stlData = exporter.parse(tempGroup, { binary: true })
+				console.log('STL 导出结果类型:', typeof stlData, '构造函数:', stlData ? stlData.constructor?.name : 'null')
+				
+				// 处理不同类型的返回值
+				let uint8Array
+				if (stlData instanceof ArrayBuffer) {
+					uint8Array = new Uint8Array(stlData)
+				} else if (stlData instanceof Uint8Array) {
+					uint8Array = stlData
+				} else if (stlData?.buffer instanceof ArrayBuffer) {
+					// Buffer 类型
+					uint8Array = new Uint8Array(stlData.buffer)
+				} else if (typeof stlData === 'string') {
+					// ASCII STL
+					uint8Array = new TextEncoder().encode(stlData)
+				} else {
+					console.error('未知的 STL 数据类型:', stlData)
+					return null
+				}
+				
+				console.log('uint8Array 长度:', uint8Array.length)
+				
+				if (uint8Array.length === 0) {
+					console.error('STL 导出失败，数据为空')
+					return null
+				}
+				
+				// 直接保存文件并返回路径
+				const fileName = `modified_${Date.now()}.stl`
+				const filePath = `_doc/${fileName}`
+				
+				console.log('准备保存文件:', filePath)
+				
+				try {
+					// 将 Uint8Array 转为 Base64
+					const base64 = this.uint8ArrayToBase64(uint8Array)
+					console.log('导出 STL 成功，base64 长度:', base64 ? base64.length : 0)
+					
+					// 保存文件（使用 base64）
+					const savedPath = await this.saveBase64File(filePath, base64)
+					console.log('文件保存成功:', savedPath)
+					return savedPath
+				} catch (e) {
+					console.error('保存文件失败:', e)
+					return null
+				}
+			},
+			// 保存 Base64 文件
+			async saveBase64File(filePath, base64) {
+				console.log('saveBase64File 开始, filePath:', filePath, 'base64长度:', base64.length)
+				return new Promise((resolve, reject) => {
+					console.log('开始解析目录 _doc/')
+					plus.io.resolveLocalFileSystemURL('_doc/', (dirEntry) => {
+						console.log('目录解析成功')
+						const fileName = filePath.split('/').pop()
+						dirEntry.getFile(fileName, { create: true }, (fileEntry) => {
+							console.log('文件创建成功:', fileEntry.fullPath)
+							fileEntry.createWriter((writer) => {
+								console.log('开始写入文件')
+								writer.onwriteend = () => {
+									console.log('文件写入完成')
+									resolve(fileEntry.fullPath)
+								}
+								writer.onerror = (err) => {
+									console.error('文件写入失败:', err)
+									reject(err)
+								}
+								// 直接写入字符串
+								writer.write(base64)
+							}, (err) => {
+								console.error('创建Writer失败:', err)
+								reject(err)
+							})
+						}, (err) => {
+							console.error('创建文件失败:', err)
+							reject(err)
+						})
+					}, (err) => {
+						console.error('解析目录失败:', err)
+						reject(err)
+					})
+				})
+			},
+			// Uint8Array 转 Base64
+			uint8ArrayToBase64(uint8Array) {
+				let binary = ''
+				const len = uint8Array.length
+				for (let i = 0; i < len; i++) {
+					binary += String.fromCharCode(uint8Array[i])
+				}
+				try {
+					const base64 = btoa(binary)
+					console.log('uint8ArrayToBase64 成功, 输入长度:', len, '输出长度:', base64.length)
+					return base64
+				} catch (e) {
+					console.error('btoa 失败:', e)
+					return null
 				}
 			},
 			// 旋转模型 90 度（绕 Z 轴）

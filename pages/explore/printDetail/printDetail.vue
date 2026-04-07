@@ -395,7 +395,6 @@ export default {
         uni.showLoading({ title: this.texts.loading || '加载中...' })
         const { getPrintTaskDetail } = await import('@/api/printTasks.ts')
         const res = await getPrintTaskDetail(this.workId)
-        uni.hideLoading()
         if (res.code === 1 && res.data) {
           const data = res.data
           console.log('任务详情返回:', data)
@@ -410,7 +409,25 @@ export default {
           this.isPaused = data.status === 'paused'
           this.currentProgress = data.progress || 0
           console.log('设置后的 deviceId:', this.deviceId)
+          
+          // 如果没有 modelName，用 modelId 获取模型详情
+          if (!this.modelName && data.modelId) {
+            try {
+              const { getModelDetail } = await import('@/api/models.ts')
+              const modelRes = await getModelDetail(data.modelId)
+              if (modelRes.code === 1 && modelRes.data) {
+                this.modelName = modelRes.data.name || ''
+                if (!this.modelImage || this.modelImage === '/static/images/logo.png') {
+                  this.modelImage = modelRes.data.previewUrl || '/static/images/logo.png'
+                }
+                console.log('从模型详情获取名称:', this.modelName)
+              }
+            } catch (e) {
+              console.error('获取模型详情失败:', e)
+            }
+          }
         }
+        uni.hideLoading()
       } catch (e) {
         uni.hideLoading()
         console.error('加载任务详情失败:', e)
