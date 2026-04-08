@@ -532,7 +532,7 @@
 				}
 
 				// 8. 检测是否超过边界（100mm限制）
-				const isOutOfBounds = scaledSize.x > 100 || scaledSize.y > 100 || scaledSize.z > 100
+				const isOutOfBounds = scaledSize.x > 100.1 || scaledSize.y > 100.1 || scaledSize.z > 100.1
 				const bboxColor = isOutOfBounds ? 0xff0000 : 0x00aaff
 
 				// 9. 绘制 100mm³ 的辅助框
@@ -1030,7 +1030,7 @@
 				currentBox.getSize(size)
 				
 				// 检测是否超出 100mm³ 边界
-				const isOutOfBounds = size.x > 100 || size.y > 100 || size.z > 100
+				const isOutOfBounds = size.x > 100.1 || size.y > 100.1 || size.z > 100.1
 				
 				// 检测模型中心是否在平台范围内
 				const center = new THREE.Vector3()
@@ -1038,13 +1038,22 @@
 				const min = currentBox.min
 				const max = currentBox.max
 				
+				console.log('边界检测 - 尺寸:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2))
+				console.log('边界检测 - 位置 min:', min.x.toFixed(2), min.y.toFixed(2), min.z.toFixed(2))
+				console.log('边界检测 - 位置 max:', max.x.toFixed(2), max.y.toFixed(2), max.z.toFixed(2))
+				console.log('边界检测 - isOutOfBounds:', isOutOfBounds)
+				
 				const isOutsidePlatform = 
-					min.x < -50 || max.x > 50 ||
-					min.y < -50 || max.y > 50 ||
-					min.z < 0 || max.z > 100
+					min.x < -50.1 || max.x > 50.1 ||
+					min.y < -50.1 || max.y > 50.1 ||
+					min.z < -0.1 || max.z > 100.1
+				
+				console.log('边界检测 - isOutsidePlatform:', isOutsidePlatform)
 				
 				const finalIsOutOfBounds = isOutOfBounds || isOutsidePlatform
 				const finalColor = finalIsOutOfBounds ? 0xff0000 : 0x00aaff
+				
+				console.log('边界检测 - finalIsOutOfBounds:', finalIsOutOfBounds)
 				
 				// 更新模型颜色
 				if (finalIsOutOfBounds) {
