@@ -2,7 +2,8 @@
 import { put, post, get, del, putWithQuery } from './request'
 import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
-function _syncLoginToStore(userInfo, token) {
+// 为_syncLoginToStore函数添加类型定义
+function _syncLoginToStore(userInfo: UserInfo, token: string) {
   const userStore = useUserStore()
   userStore.setToken(token)
   userStore.setUserInfo(userInfo)
@@ -17,27 +18,47 @@ function _syncLoginToStore(userInfo, token) {
   uni.$emit('userLogin', userInfo)
 }
 
-export function updateUserInfo(userInfoDTO) {
+// 定义userInfoDTO的类型
+export interface UserInfoDTO {
+  userId?: number
+  id?: number
+  username?: string
+  nickname?: string
+  avatar?: string
+  email?: string
+  accountStatus?: number
+  birthday?: string
+}
+
+export function updateUserInfo(userInfoDTO: UserInfoDTO) {
   return put('/users/updateUserInfo', userInfoDTO)
 }
 
-export function updateUserStatus(userId, accountStatus) {
+export function updateUserStatus(userId: number, accountStatus: number) {
   return putWithQuery(`/users/status/${userId}`, {}, { accountStatus })
 }
 
-export function thirdPartyLogin(thirdPartyLoginDTO) {
+// 定义thirdPartyLoginDTO的类型
+export interface ThirdPartyLoginDTO {
+  email?: string
+  password?: string
+  verificationCode?: string
+  thirdPartyType?: number
+}
+
+export function thirdPartyLogin(thirdPartyLoginDTO: ThirdPartyLoginDTO) {
   return post('/users/thirdPartyLogin', thirdPartyLoginDTO)
 }
 
-export function sendVerificationCode(sendVerificationCodeDTO) {
+export function sendVerificationCode(sendVerificationCodeDTO: SendVerificationCodeDTO) {
   return post('/users/sendVerificationCode', sendVerificationCodeDTO)
 }
 
-export function register(registerDTO) {
+export function register(registerDTO: RegisterDTO) {
   return post('/users/register', registerDTO)
 }
 
-export function login(loginDTO) {
+export function login(loginDTO: LoginDTO) {
   return post('/users/login', loginDTO)
 }
 
@@ -45,15 +66,15 @@ export function logout() {
   return post('/users/logout', {})
 }
 
-export function getUserInfo(userId) {
+export function getUserInfo(userId: number) {
   return get(`/users/getUserInfo/${userId}`, {}, { cache: true, cacheTime: 10 * 60 * 1000 })
 }
 
-export function loginByCode(loginByCodeDTO) {
+export function loginByCode(loginByCodeDTO: LoginByCodeDTO) {
   return post('/users/loginByCode', loginByCodeDTO)
 }
 
-export function loginByCodeWithHandler(email, verificationCode) {
+export function loginByCodeWithHandler(email: string, verificationCode: string) {
   return post('/users/loginByCode', { email, verificationCode }).then(res => {
     if (!res.data) {
       throw new Error(res.msg || '????')
@@ -69,7 +90,7 @@ export function loginByCodeWithHandler(email, verificationCode) {
   })
 }
 
-export function createUser(userCreateDTO) {
+export function createUser(userCreateDTO: UserCreateDTO ) {
   return post('/users/create', userCreateDTO)
 }
 
@@ -89,19 +110,20 @@ export function getCurrentUserInfo() {
   return get('/users/me', {}, { cache: true, cacheTime: 5 * 60 * 1000 })
 }
 
-export function resetPassword(resetPasswordDTO) {
+export function resetPassword(resetPasswordDTO: ResetPasswordDTO) {
   return post('/users/resetPassword/reset', resetPasswordDTO)
 }
 
-export function sendResetPasswordCode(email) {
+export function sendResetPasswordCode(email: string) {
   return post('/users/resetPassword/sendCode', { email })
 }
 
-export function changePassword(changePasswordDTO) {
+export function changePassword(changePasswordDTO: ChangePasswordDTO) {
   return post('/users/changePassword', changePasswordDTO)
 }
 
-export function sendVerificationCodeWithHandler(email) {
+// 为sendVerificationCodeWithHandler函数参数添加类型注解
+export function sendVerificationCodeWithHandler(email: string) {
   const languageStore = useLanguageStore()
   const texts = languageStore.texts.login || {}
 
@@ -113,7 +135,7 @@ export function sendVerificationCodeWithHandler(email) {
   })
 }
 
-export function loginWithPassword(email, password) {
+export function loginWithPassword(email: string, password: string) {
   return post('/users/login', { email, password }).then(res => {
     if (!res.data) {
       throw new Error(res.msg || '?????')
@@ -129,7 +151,7 @@ export function loginWithPassword(email, password) {
   })
 }
 
-export function registerWithHandler(registerData) {
+export function registerWithHandler(registerData: RegisterDTO) {
   const languageStore = useLanguageStore()
   const texts = languageStore.texts.login || {}
 
@@ -155,11 +177,11 @@ export function registerWithHandler(registerData) {
   })
 }
 
-export function deleteUser(userId) {
+export function deleteUser(userId: number) {
   return del(`/users/deleteUser/${userId}`)
 }
 
-export function thirdPartyLoginWithHandler(platform, code, extraData = {}) {
+export function thirdPartyLoginWithHandler(platform: string, code: string, extraData = {}) {
   return post('/users/thirdPartyLogin', { platform, code, ...extraData }).then(res => {
     const { token, userId, username, avatarUrl } = res.data
 

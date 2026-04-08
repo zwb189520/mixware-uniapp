@@ -636,7 +636,6 @@ export default {
       })
     },
     async handleScanResult(result) {
-      console.log('扫码结果:', result)
       if (result) {
         uni.showLoading({ title: this.texts.parsing || '解析中...' })
         try {
@@ -726,25 +725,14 @@ export default {
     },
     
     goToSearchPage() {
-      console.log('点击搜索框，准备跳转到搜索页面，关键词:', this.keyword)
-      
-      // 检查是否已经在搜索页面，避免重复跳转
       const pages = getCurrentPages()
       const currentPageRoute = pages[pages.length - 1].route
       if (currentPageRoute === 'pages/explore/search/search') {
-        console.log('已在搜索页面，无需跳转')
         return
       }
       
       uni.navigateTo({
-        url: `/pages/explore/search/search?keyword=${encodeURIComponent(this.keyword || '')}`,
-        success: (res) => {
-          console.log('页面跳转成功:', res)
-        },
-        fail: (err) => {
-          console.error('页面跳转失败:', err)
-          console.error('尝试跳转的URL:', `/pages/explore/search/search?keyword=${encodeURIComponent(this.keyword || '')}`)
-        }
+        url: `/pages/explore/search/search?keyword=${encodeURIComponent(this.keyword || '')}`
       })
     },
     
@@ -809,33 +797,24 @@ export default {
                               uni.showLoading({ title: this.texts.uploading || '上传中...' })
                               try {
                                 // 上传图片
-                                console.log('开始上传图片:', imgPath)
                                 let imgUploadRes
                                 try {
                                   imgUploadRes = await uploadImages([imgPath])
-                                  console.log('图片上传结果:', imgUploadRes)
                                 } catch (uploadError) {
-                                  console.error('图片上传异常:', uploadError)
                                   throw new Error(`图片上传异常: ${uploadError.message}`)
                                 }
                                 
-                                // 检查上传结果格式
                                 if (!imgUploadRes || imgUploadRes.length === 0) {
                                   throw new Error('图片上传失败: 没有返回数据')
                                 }
                                 
                                 const imgResult = imgUploadRes[0]
-                                console.log('图片上传详细结果:', imgResult)
-                                
                                 if (!imgResult || (imgResult.code !== 1 && imgResult.code !== 200)) {
                                   throw new Error(`图片上传失败: ${imgResult?.msg || imgResult?.message || '未知错误'}`)
                                 }
                                 
                                 // 上传STL文件
-                                console.log('开始上传STL文件:', stlPath)
                                 const stlUploadRes = await uploadModelFile(stlPath)
-                                console.log('STL上传结果:', stlUploadRes)
-                                
                                 if (stlUploadRes.code !== 1 && stlUploadRes.code !== 200) {
                                   throw new Error(`STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`)
                                 }
@@ -847,9 +826,6 @@ export default {
                                 // 添加模型记录
                                 const previewUrl = imgUploadRes[0].data.files ? imgUploadRes[0].data.files[0].fileUrl : imgUploadRes[0].data
                                 const downloadUrl = stlUploadRes.data.fileUrl || stlUploadRes.data
-                                
-                                console.log('提取的previewUrl:', previewUrl)
-                                console.log('提取的downloadUrl:', downloadUrl)
                                 
                                 await addModel({
                                   name: finalName,

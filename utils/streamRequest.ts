@@ -1,7 +1,20 @@
-﻿// @ts-nocheck
-import { BASE_URL } from '../api/request.js'
+﻿import { BASE_URL } from '../api/request.js'
 
-const buildFullUrl = (url = '') => {
+interface StreamRequestOptions {
+	url?: string
+	method?: string
+	data?: Record<string, unknown>
+	headers?: Record<string, string>
+	onMessage?: (msg: string) => void
+	onError?: (err: unknown) => void
+	onComplete?: () => void
+}
+
+interface StreamRequestResult {
+	abort: () => void
+}
+
+const buildFullUrl = (url = ''): string => {
 	if (!url) return ''
 	if (url.startsWith('http')) return url
 	const base = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL
@@ -9,15 +22,15 @@ const buildFullUrl = (url = '') => {
 	return `${base}${path}`
 }
 
-const toQueryString = (params = {}) => {
+const toQueryString = (params: Record<string, unknown> = {}): string => {
 	return Object.keys(params)
-		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key] ?? '')}`)
+		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(String(params[key] ?? ''))}`)
 		.join('&')
 }
 
-const createSSEParser = (onMessage) => {
+const createSSEParser = (onMessage?: (msg: string) => void): ((chunk: string) => void) => {
 	let buffer = ''
-	return (chunk) => {
+	return (chunk: string) => {
 		if (!chunk) return
 		buffer += chunk
 		const parts = buffer.split(/\r?\n\r?\n/)
@@ -40,20 +53,20 @@ export const streamRequest = ({
 	method = 'POST',
 	data = {},
 	headers = {},
-	onMessage = () => {},
-	onError = () => {},
-	onComplete = () => {}
-} = {}) => {
+	onMessage,
+	onError,
+	onComplete
+}: StreamRequestOptions = {}): StreamRequestResult => {
 	const finalUrl = buildFullUrl(url)
 	if (!finalUrl) {
-		onError(new Error('无效的请求 URL'))
-		return {}
+		onError?.(new Error('无效的请求 URL'))
+		return { abort: () => {} }
 	}
 
 	const token = (() => {
 		try { return uni.getStorageSync('token') || '' } catch (e) { return '' }
 	})()
-	const requestHeaders = {
+	const requestHeaders: Record<string, string> = {
 		'Content-Type': 'application/json',
 		...headers
 	}
@@ -69,12 +82,12 @@ export const streamRequest = ({
 			: JSON.stringify(data)
 	)
 
-	const emitError = (err) => {
-		const errorMessage = err?.message || err?.toString() || ''
+	const emitError = (err: unknown): void => {
+		const errorMessage = (err as { message?: string })?.message || String(err) || ''
 		const isAbortError = 
 			errorMessage.includes('aborted') || 
 			errorMessage.includes('AbortError') ||
-			err?.name === 'AbortError' ||
+			(err as { name?: string })?.name === 'AbortError' ||
 			(err instanceof DOMException && err.name === 'AbortError')
 		
 		if (isAbortError) {
@@ -83,7 +96,7 @@ export const streamRequest = ({
 		}
 		
 		console.error('streamRequest error:', err)
-		onError(err instanceof Error ? err : new Error(err?.message || '请求失败'))
+		onError?.(err instanceof Error ? err : new Error(errorMessage || '请求失败'))
 	}
 
 	const parseChunk = createSSEParser(onMessage)
@@ -99,15 +112,15 @@ export const streamRequest = ({
 				lastLength = text.length
 				parseChunk(chunk)
 				if (xhr.readyState === 4) {
-					onComplete()
+					onComplete?.()
 				}
 			}
 		}
 
-		xhr.onerror = (e) => {
+		xhr.onerror = (e: unknown) => {
 			const isAbortError = 
-				e?.message?.includes('aborted') ||
-				e?.toString()?.includes('aborted')
+				(e as { message?: string })?.message?.includes('aborted') ||
+				String(e).includes('aborted')
 			
 			if (isAbortError) {
 				console.log('请求已中止')
@@ -143,7 +156,7 @@ export const streamRequest = ({
 			headers: requestHeaders,
 			body: isGet ? null : payload,
 			signal: controller.signal
-		}).then(async (res) => {
+		}).then(async (res: Response) => {
 			if (!res.ok) {
 				throw new Error(`HTTP ${res.status}`)
 			}
@@ -160,11 +173,11 @@ export const streamRequest = ({
 				const text = await res.text()
 				parseChunk(text)
 			}
-			onComplete()
-		}).catch((err) => {
+			onComplete?.()
+		}).catch((err: unknown) => {
 			const isAbortError = 
-				err?.name === 'AbortError' ||
-				err?.message?.includes('aborted') ||
+				(err as { name?: string })?.name === 'AbortError' ||
+				(err as { message?: string })?.message?.includes('aborted') ||
 				(err instanceof DOMException && err.name === 'AbortError')
 			
 			if (isAbortError) {
@@ -185,23 +198,23 @@ export const streamRequest = ({
 		method: upperMethod,
 		header: requestHeaders,
 		data,
-		success: (res) => {
+		success: (res: { data: unknown }) => {
 			try {
 				if (typeof res.data === 'string') {
 					parseChunk(res.data)
 				} else if (res.data) {
-					onMessage(JSON.stringify(res.data))
+					onMessage?.(JSON.stringify(res.data))
 				}
 			} catch (e) {
 				emitError(e)
 				return
 			}
-			onComplete()
+			onComplete?.()
 		},
 		fail: emitError
 	})
 
-	return {}
+	return { abort: () => {} }
 }
 
 export default streamRequest

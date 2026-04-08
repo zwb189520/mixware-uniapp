@@ -8,11 +8,22 @@ import { STORAGE } from '../../constants/index.ts'
  */
 const SECRET_KEY = 'mixware_app_secret_key_2024_v1_xor_encryption'
 
+interface UserInfo {
+  userId?: string | number
+  id?: string | number
+  userName?: string
+  nickname?: string
+  avatar?: string
+  email?: string
+  accountStatus?: number
+  birthday?: string
+}
+
 /**
  * 字符串转字节数组
  */
-function stringToBytes(str) {
-  const bytes = []
+function stringToBytes(str: string): number[] {
+  const bytes: number[] = []
   for (let i = 0; i < str.length; i++) {
     bytes.push(str.charCodeAt(i))
   }
@@ -22,17 +33,17 @@ function stringToBytes(str) {
 /**
  * 字节数组转字符串
  */
-function bytesToString(bytes) {
-  return String.fromCharCode.apply(null, bytes)
+function bytesToString(bytes: number[]): string {
+  return String.fromCharCode.apply(null, bytes as [number, ...number[]])
 }
 
 /**
  * XOR 加密/解密（对称加密）
  */
-function xorCipher(data, key) {
+function xorCipher(data: string, key: string): number[] {
   const dataBytes = stringToBytes(data)
   const keyBytes = stringToBytes(key)
-  const result = []
+  const result: number[] = []
   
   for (let i = 0; i < dataBytes.length; i++) {
     result.push(dataBytes[i] ^ keyBytes[i % keyBytes.length])
@@ -44,7 +55,7 @@ function xorCipher(data, key) {
 /**
  * Base64 编码（兼容 uni-app）
  */
-function base64Encode(str) {
+function base64Encode(str: string): string {
   try {
     return btoa(unescape(encodeURIComponent(str)))
   } catch (e) {
@@ -56,7 +67,7 @@ function base64Encode(str) {
 /**
  * Base64 解码（兼容 uni-app）
  */
-function base64Decode(str) {
+function base64Decode(str: string): string {
   try {
     return decodeURIComponent(escape(atob(str)))
   } catch (e) {
@@ -68,7 +79,7 @@ function base64Decode(str) {
 /**
  * Token 加密
  */
-function encryptToken(token) {
+function encryptToken(token: string): string {
   if (!token) return ''
   try {
     console.log('开始加密 Token...')
@@ -96,7 +107,7 @@ function encryptToken(token) {
 /**
  * Token 解密
  */
-function decryptToken(encrypted) {
+function decryptToken(encrypted: string): string {
   if (!encrypted) return ''
   try {
     console.log('开始解密 Token，加密字符串长度:', encrypted.length)
@@ -131,20 +142,20 @@ function decryptToken(encrypted) {
 }
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
+  state: (): { token: string; userInfo: UserInfo | null } => ({
     token: '',
     userInfo: null
   }),
   
   getters: {
-    isLoggedIn: (state) => !!state.token,
-    userId: (state) => state.userInfo?.userId || '',
-    userName: (state) => state.userInfo?.userName || '',
-    avatar: (state) => state.userInfo?.avatar || ''
+    isLoggedIn: (state): boolean => !!state.token,
+    userId: (state): string | number => state.userInfo?.userId || '',
+    userName: (state): string => state.userInfo?.userName || '',
+    avatar: (state): string => state.userInfo?.avatar || ''
   },
   
   actions: {
-    setToken(token) {
+    setToken(token: string): void {
       // ✅ 改进：使用 XOR + Base64 加密 Token
       console.log('=== setToken 被调用 ===')
       console.log('原始 Token 长度:', token ? token.length : 0)
@@ -164,24 +175,24 @@ export const useUserStore = defineStore('user', {
       }
     },
     
-    setUserInfo(userInfo) {
+    setUserInfo(userInfo: UserInfo): void {
       // 用户信息存内存 + 本地
       this.userInfo = userInfo
       uni.setStorageSync(STORAGE.USER_INFO_KEY, userInfo)
     },
     
-    logout() {
+    logout(): void {
       this.token = ''
       this.userInfo = null
       uni.removeStorageSync(STORAGE.TOKEN_KEY)
       uni.removeStorageSync(STORAGE.USER_INFO_KEY)
     },
     
-    initFromStorage() {
+    initFromStorage(): void {
       // ✅ 改进：恢复 Token（解密）和用户信息
       console.log('=== 开始初始化用户状态 ===')
       try {
-        const encrypted = uni.getStorageSync(STORAGE.TOKEN_KEY)
+        const encrypted = uni.getStorageSync(STORAGE.TOKEN_KEY) as string | undefined
         console.log('读取到的加密 Token:', encrypted ? '存在' : '不存在')
         
         if (encrypted) {
@@ -200,7 +211,7 @@ export const useUserStore = defineStore('user', {
           console.log('本地没有 Token，需要登录')
         }
         
-        const userInfo = uni.getStorageSync(STORAGE.USER_INFO_KEY)
+        const userInfo = uni.getStorageSync(STORAGE.USER_INFO_KEY) as UserInfo | undefined
         console.log('读取到的用户信息:', userInfo ? '存在' : '不存在')
         if (userInfo) {
           this.userInfo = userInfo

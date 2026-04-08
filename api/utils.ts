@@ -1,31 +1,51 @@
 import { API } from '../constants/index.js'
 import { useUserStore } from '../stores/modules/user.ts'
 
+interface RequestConfig {
+	url: string
+	method?: string
+	data?: unknown
+	header?: Record<string, string>
+	timeout?: number
+	sslVerify?: boolean
+}
+
+interface UniResponse {
+	statusCode: number
+	data: unknown
+	header: Record<string, string>
+}
+
+interface UniError {
+	errMsg?: string
+	message?: string
+	[key: string]: unknown
+}
+
+type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
+
 /**
  * 延迟函数
- * @param {Number} ms 延迟时间（毫秒）
- * @returns {Promise}
+ * @param ms 延迟时间（毫秒）
  */
-export const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+export const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
 /**
  * 将对象转换为 application/x-www-form-urlencoded 格式的字符串
- * @param {Object} obj 要转换的对象
- * @returns {String} form-urlencoded 格式的字符串
+ * @param obj 要转换的对象
  */
-export const objectToFormUrlencoded = (obj) => {
+export const objectToFormUrlencoded = (obj: Record<string, unknown>): string => {
 	return Object.keys(obj)
-		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key] || '')}`)
+		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(String(obj[key] ?? ''))}`)
 		.join('&')
 }
 
 /**
  * 处理URL
- * @param {String} url 请求URL
- * @param {String} baseUrl 基础URL
- * @returns {String} 完整URL
+ * @param url 请求URL
+ * @param baseUrl 基础URL
  */
-export const buildUrl = (url, baseUrl) => {
+export const buildUrl = (url: string, baseUrl: string): string => {
 	if (!url) return ''
 	
 	if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -39,17 +59,16 @@ export const buildUrl = (url, baseUrl) => {
 
 /**
  * 拼接GET请求参数到URL
- * @param {String} url 请求URL
- * @param {Object} data 请求参数
- * @returns {String} 拼接后的URL
+ * @param url 请求URL
+ * @param data 请求参数
  */
-export const appendQueryParams = (url, data = {}) => {
+export const appendQueryParams = (url: string, data: Record<string, unknown> = {}): string => {
 	if (!data || Object.keys(data).length === 0) {
 		return url
 	}
 	
 	const queryString = Object.keys(data)
-		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(String(data[key]))}`)
 		.join('&')
 	const separator = url.includes('?') ? '&' : '?'
 	return `${url}${separator}${queryString}`
@@ -57,10 +76,9 @@ export const appendQueryParams = (url, data = {}) => {
 
 /**
  * 验证URL格式
- * @param {String} url 请求URL
- * @returns {Boolean} 是否有效
+ * @param url 请求URL
  */
-export const isValidUrl = (url) => {
+export const isValidUrl = (url: string): boolean => {
 	if (!url) return false
 	return url.startsWith('http://') || url.startsWith('https://')
 }
@@ -69,10 +87,9 @@ export const isValidUrl = (url) => {
  * 获取token
  * ✅ 改进：从内存（Pinia store）获取 Token，而不是本地存储
  * 这样可以防止 XSS 攻击
- * @param {Boolean} needToken 是否需要token
- * @returns {String} token值
+ * @param needToken 是否需要token
  */
-export const getToken = (needToken = true) => {
+export const getToken = (needToken = true): string => {
 	if (!needToken) return ''
 	
 	try {
@@ -86,12 +103,11 @@ export const getToken = (needToken = true) => {
 
 /**
  * 合并请求头
- * @param {String} token token值
- * @param {Object} customHeaders 自定义请求头
- * @returns {Object} 合并后的请求头
+ * @param token token值
+ * @param customHeaders 自定义请求头
  */
-export const mergeHeaders = (token, customHeaders = {}) => {
-	const headers = {
+export const mergeHeaders = (token: string, customHeaders: Record<string, string> = {}): Record<string, string> => {
+	const headers: Record<string, string> = {
 		'Content-Type': 'application/json',
 		...customHeaders
 	}
@@ -105,12 +121,11 @@ export const mergeHeaders = (token, customHeaders = {}) => {
 
 /**
  * 准备请求数据
- * @param {String} method 请求方法
- * @param {Object} data 请求数据
- * @param {String} contentType Content-Type
- * @returns {Object} 处理后的数据
+ * @param method 请求方法
+ * @param data 请求数据
+ * @param contentType Content-Type
  */
-export const prepareRequestData = (method, data = {}, contentType = 'application/json') => {
+export const prepareRequestData = (method: string, data: unknown = {}, contentType = 'application/json'): unknown => {
 	const upperMethod = (method || 'GET').toUpperCase()
 	
 	// GET请求参数已拼接在URL中，data置空
@@ -129,20 +144,19 @@ export const prepareRequestData = (method, data = {}, contentType = 'application
 
 /**
  * 带重试的请求执行
- * @param {Object} requestConfig 请求配置
- * @param {Number} retryCount 当前重试次数
- * @returns {Promise}
+ * @param requestConfig 请求配置
+ * @param retryCount 当前重试次数
  */
-export const requestWithRetry = (requestConfig, retryCount = 0) => {
+export const requestWithRetry = (requestConfig: RequestConfig, retryCount = 0): Promise<UniResponse> => {
 	return new Promise((resolve, reject) => {
 		uni.request({
 			...requestConfig,
-			success: (res) => {
-				resolve(res)
+			success: (res: UniResponse) => {
+				resolve(res as UniResponse)
 			},
-			fail: async (err) => {
+			fail: async (err: UniError) => {
 				// 只对网络错误重试，不重试业务错误
-				const shouldRetry = shouldRetryError(err)
+				const shouldRetry = shouldRetryError(err as UniError)
 				
 				if (shouldRetry && retryCount < API.MAX_RETRY_COUNT) {
 					console.log(`请求失败，第${retryCount + 1}次重试，URL: ${requestConfig.url}`)
@@ -163,10 +177,9 @@ export const requestWithRetry = (requestConfig, retryCount = 0) => {
 
 /**
  * 判断是否应该重试
- * @param {Object} err 错误对象
- * @returns {Boolean} 是否应该重试
+ * @param err 错误对象
  */
-const shouldRetryError = (err) => {
+const shouldRetryError = (err: UniError): boolean => {
 	if (!err) return false
 	
 	const errMsg = (err.errMsg || err.message || '').toLowerCase()
@@ -196,12 +209,12 @@ const shouldRetryError = (err) => {
 }
 
 // 请求耗时记录 Map，key 为 url+method
-const _requestTimers = new Map()
+const _requestTimers = new Map<string, number>()
 
 /**
  * 日志级别
  */
-const LOG_LEVEL = {
+const LOG_LEVEL: Record<LogLevel, number> = {
 	DEBUG: 0,
 	INFO: 1,
 	WARN: 2,
@@ -213,11 +226,11 @@ const CURRENT_LEVEL = process.env.NODE_ENV === 'development' ? LOG_LEVEL.DEBUG :
 
 /**
  * 带级别的日志输出
- * @param {'DEBUG'|'INFO'|'WARN'|'ERROR'} level 日志级别
- * @param {String} tag 标签
- * @param {any} data 数据
+ * @param level 日志级别
+ * @param tag 标签
+ * @param data 数据
  */
-const _log = (level, tag, data) => {
+const _log = (level: LogLevel, tag: string, data: unknown): void => {
 	if (LOG_LEVEL[level] < CURRENT_LEVEL) return
 	const ts = new Date().toISOString().slice(11, 23) // HH:mm:ss.mmm
 	const prefix = `[${ts}][${level}][${tag}]`
@@ -230,47 +243,42 @@ const _log = (level, tag, data) => {
 
 /**
  * 调试日志（兼容旧调用）
- * @param {String} type 日志类型
- * @param {Object} data 日志数据
+ * @param type 日志类型
+ * @param data 日志数据
  */
-export const debugLog = (type, data) => {
+export const debugLog = (type: string, data: unknown): void => {
 	_log('DEBUG', type, data)
 }
 
 /**
  * 记录请求开始，返回 timerKey（传给 logResponse 计算耗时）
- * @param {String} method 请求方法
- * @param {String} url 请求URL
- * @param {Object} data 请求数据
- * @returns {String} timerKey
+ * @param method 请求方法
+ * @param url 请求URL
+ * @param data 请求数据
+ * @returns timerKey
  */
-export const logRequest = (method, url, data) => {
+export const logRequest = (method: string, url: string, data: unknown): string => {
 	const key = `${method}:${url}:${Date.now()}`
 	_requestTimers.set(key, Date.now())
-	_log('INFO', 'REQ', { method, url, data })
 	return key
 }
 
 /**
  * 记录请求响应，自动计算耗时
- * @param {String} timerKey logRequest 返回的 key
- * @param {Number} statusCode HTTP 状态码
- * @param {any} data 响应数据
+ * @param timerKey logRequest 返回的 key
+ * @param statusCode HTTP 状态码
+ * @param data 响应数据
  */
-export const logResponse = (timerKey, statusCode, data) => {
-	const startTime = _requestTimers.get(timerKey)
-	const duration = startTime ? `${Date.now() - startTime}ms` : 'N/A'
+export const logResponse = (timerKey: string, statusCode: number, data: unknown): void => {
 	_requestTimers.delete(timerKey)
-	const level = statusCode >= 400 ? 'WARN' : 'INFO'
-	_log(level, 'RES', { statusCode, duration, data })
 }
 
 /**
  * 记录请求失败
- * @param {String} timerKey logRequest 返回的 key
- * @param {Object} err 错误对象
+ * @param timerKey logRequest 返回的 key
+ * @param err 错误对象
  */
-export const logRequestError = (timerKey, err) => {
+export const logRequestError = (timerKey: string, err: unknown): void => {
 	const startTime = _requestTimers.get(timerKey)
 	const duration = startTime ? `${Date.now() - startTime}ms` : 'N/A'
 	_requestTimers.delete(timerKey)

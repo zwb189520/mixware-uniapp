@@ -2,113 +2,103 @@
 
 /**
  * 发送停止命令
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回命令结果
+ * @param deviceId - 设备 ID
  */
-export function sendStopCommand(deviceId) {
+export function sendStopCommand(deviceId: string): Promise<unknown> {
   return post(`/iot/sendStopCommand/${deviceId}`, {})
 }
 
 /**
  * 发送打印命令
- * @param {string} deviceId - 设备 ID
- * @param {string} modelId - 模型 ID
- * @param {string} action - 操作类型
- * @param {string} gcodeUrl - GCode文件URL
- * @returns {Promise<Object>} 返回命令结果
+ * @param deviceId - 设备 ID
+ * @param modelId - 模型 ID
+ * @param action - 操作类型
+ * @param gcodeUrl - GCode文件URL
+ * @param taskId - 任务 ID
  */
-export function sendPrintCommand(deviceId, modelId, action, gcodeUrl, taskId) {
+export function sendPrintCommand(deviceId: string, modelId: string, action: string, gcodeUrl: string, taskId: string): Promise<unknown> {
   return post('/iot/sendPrintCommand', { deviceId, modelId, action, gcodeUrl, taskId })
 }
 
 /**
  * 更新固件状态
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回更新结果
+ * @param deviceId - 设备 ID
  */
-export function updateFirmwareStatus(deviceId) {
+export function updateFirmwareStatus(deviceId: string): Promise<unknown> {
   return post('/iot/firmware/updateStatus', { deviceId })
 }
 
 /**
  * 检查固件版本
- * @param {Object} firmwareCheckRequestDTO - 固件检查请求数据
- * @returns {Promise<Object>} 返回检查结果
+ * @param firmwareCheckRequestDTO - 固件检查请求数据
  */
-export function checkFirmware(firmwareCheckRequestDTO) {
+export function checkFirmware(firmwareCheckRequestDTO: Record<string, unknown>): Promise<unknown> {
   return post('/iot/firmware/checkVersion', firmwareCheckRequestDTO)
 }
 
 /**
  * 验证设备凭证
- * @param {Object} deviceCredentialVerifyDTO - 设备凭证验证数据
- * @returns {Promise<Object>} 返回验证结果
+ * @param deviceCredentialVerifyDTO - 设备凭证验证数据
  */
-export function verifyCredential(deviceCredentialVerifyDTO) {
+export function verifyCredential(deviceCredentialVerifyDTO: Record<string, unknown>): Promise<unknown> {
   return post('/iot/auth/verify', deviceCredentialVerifyDTO)
 }
 
 /**
  * 获取设备状态
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回设备状态
+ * @param deviceId - 设备 ID
  */
-export function getDeviceStatus(deviceId) {
+export function getDeviceStatus(deviceId: string): Promise<unknown> {
   return get(`/iot/status/${deviceId}`)
 }
 
 /**
  * 获取设备认证信息
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回认证信息
+ * @param deviceId - 设备 ID
  */
-export function getDeviceAuth(deviceId) {
+export function getDeviceAuth(deviceId: string): Promise<unknown> {
   return get('/iot/auth', { deviceId })
 }
 
 /**
  * 获取固件信息
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回固件信息
+ * @param deviceId - 设备 ID
  */
-export function getFirmwareInfo(deviceId) {
+export function getFirmwareInfo(deviceId: string): Promise<unknown> {
   return get('/iot/firmware/info', { deviceId })
 }
 
 /**
  * 发送暂停命令
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回命令结果
+ * @param deviceId - 设备 ID
  */
-export function sendPauseCommand(deviceId) {
+export function sendPauseCommand(deviceId: string): Promise<unknown> {
   return post(`/iot/sendPauseCommand/${deviceId}`, {})
 }
 
 /**
  * 发送恢复命令
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回命令结果
+ * @param deviceId - 设备 ID
  */
-export function sendResumeCommand(deviceId) {
+export function sendResumeCommand(deviceId: string): Promise<unknown> {
   return post(`/iot/sendResumeCommand/${deviceId}`, {})
 }
 
 /**
  * 发送重启命令
- * @param {string} deviceId - 设备 ID
- * @returns {Promise<Object>} 返回命令结果
+ * @param deviceId - 设备 ID
  */
-export function sendRestartCommand(deviceId) {
+export function sendRestartCommand(deviceId: string): Promise<unknown> {
   return post(`/iot/sendRestartCommand/${deviceId}`, {})
 }
 
 /**
  * 建立SSE连接接收实时通知
- * @param {Function} onMessage - 收到消息时的回调函数
- * @param {Function} onError - 连接错误时的回调函数
- * @returns {EventSource} 返回EventSource实例
+ * @param onMessage - 收到消息时的回调函数
+ * @param onError - 连接错误时的回调函数
+ * @returns 返回EventSource实例
  */
-export function connectSSE(onMessage, onError) {
+export function connectSSE(onMessage?: (data: unknown) => void, onError?: (error: unknown) => void): EventSource {
   const BASE_URL = 'http://app.mixwarebot.cn:8080'
   const url = `${BASE_URL}/api/notify/sse/connect`
   console.log('建立SSE连接:', url)

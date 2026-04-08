@@ -1,45 +1,47 @@
 import { postWithQuery, get } from './request'
 import { streamRequest } from '../utils/streamRequest.ts'
 
+interface ChatCallbacks {
+  onMessage?: (msg: string) => void
+  onError?: (err: unknown) => void
+  onComplete?: () => void
+}
+
 /**
  * 流式聊天请求
- * @param {string} question - 用户提问
- * @param {string} sessionId - 会话 ID
- * @param {Object} callbacks - 回调函数对象
- * @param {Function} callbacks.onMessage - 消息回调
- * @param {Function} callbacks.onError - 错误回调
- * @param {Function} callbacks.onComplete - 完成回调
- * @returns {Object} 返回可中止的请求对象
+ * @param question - 用户提问
+ * @param sessionId - 会话 ID
+ * @param callbacks - 回调函数对象
  */
-export function chatStream(question, sessionId, callbacks) {
+export function chatStream(question: string, sessionId: string, callbacks?: ChatCallbacks): { abort: () => void } {
   const { onMessage, onError, onComplete } = callbacks || {}
 
-  return streamRequest({
+  const result = streamRequest({
     url: '/chat',
     method: 'POST',
     data: { question, sessionId },
     onMessage,
     onError,
     onComplete
-  })
+  }) as { abort: () => void }
+  
+  return result
 }
 
 /**
  * 停止聊天
- * @param {string} sessionId - 会话 ID
- * @returns {Promise<Object>} 返回停止结果
+ * @param sessionId - 会话 ID
  */
-export function stopChat(sessionId) {
+export function stopChat(sessionId: string): Promise<unknown> {
   return postWithQuery('/chat/stop', {}, { sessionId })
 }
 
 /**
  * 获取聊天历史记录
- * @param {string} conversationId - 对话 ID
- * @param {number} [current=1] - 当前页码
- * @param {number} [size=20] - 每页数量
- * @returns {Promise<Object>} 返回历史记录列表
+ * @param conversationId - 对话 ID
+ * @param current - 当前页码
+ * @param size - 每页数量
  */
-export function getChatHistory(conversationId, current = 1, size = 20) {
+export function getChatHistory(conversationId: string, current = 1, size = 20): Promise<unknown> {
   return get(`/chat/history/${conversationId}`, { current, size })
 }

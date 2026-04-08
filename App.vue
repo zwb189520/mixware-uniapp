@@ -32,8 +32,8 @@
 			languageStore() {
 				return useLanguageStore()
 			},
-			texts() {
-				return this.languageStore.texts.common || {}
+			texts(): Record<string, string> {
+				return (this.languageStore.texts.common || {}) as Record<string, string>
 			}
 		},
 		methods: {
@@ -87,7 +87,7 @@
 			/**
 			 * 请求权限
 			 */
-			async requestAppPlusPermission(permission, desc) {
+			async requestAppPlusPermission(permission: string, desc: string): Promise<boolean> {
 				// #ifdef APP-PLUS
 				try {
 					const result = await this.checkAndRequestPermission(permission, desc)
@@ -100,11 +100,11 @@
 				return true
 			},
 			
-			checkAndRequestPermission(permission, desc) {
+			checkAndRequestPermission(permission: string, desc: string): Promise<boolean> {
 				return new Promise((resolve, reject) => {
 					plus.android.requestPermissions(
 						[this.getAndroidPermission(permission)],
-						(resultObj) => {
+						(resultObj: { grantedPermissions: string[] }) => {
 							if (resultObj.grantedPermissions.length > 0) {
 								console.log(`${permission}权限请求成功`)
 								resolve(true)
@@ -116,7 +116,7 @@
 									showCancel: true,
 									cancelText: this.texts.cancel || '取消',
 									confirmText: this.texts.settings || '设置',
-									success: (modalResult) => {
+									success: (modalResult: { confirm: boolean }) => {
 										if (modalResult.confirm) {
 											plus.runtime.openSettings()
 										}
@@ -125,7 +125,7 @@
 								})
 							}
 						},
-						(error) => {
+						(error: { message: string }) => {
 							console.error(`权限请求失败: ${error.message}`)
 							reject(error)
 						}
@@ -133,8 +133,8 @@
 				})
 			},
 			
-			getAndroidPermission(permission) {
-				const permissionMap = {
+			getAndroidPermission(permission: string): string {
+				const permissionMap: Record<string, string> = {
 					bluetooth: "android.permission.BLUETOOTH",
 					camera: "android.permission.CAMERA",
 					storage: "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -151,17 +151,18 @@
 			/**
 			 * 检查OTA更新
 			 */
-			checkAppUpdate() {
-				checkUpdate(APP_VERSION).then((res: any) => {
-					if (res.code !== 0 || !res.data?.hasUpdate) return
+			checkAppUpdate(): void {
+				checkUpdate(APP_VERSION).then((res: unknown) => {
+					const typedRes = res as { code: number; data?: { hasUpdate: boolean; latestVersion: string; downloadUrl: string; remark?: string } }
+					if (typedRes.code !== 0 || !typedRes.data?.hasUpdate) return
 					
-					const { latestVersion, downloadUrl, remark } = res.data
+					const { latestVersion, downloadUrl, remark } = typedRes.data
 					
 					uni.showModal({
 						title: `${this.texts.newVersionFound || '发现新版本'} ${latestVersion}`,
-					content: remark || this.texts.updateAvailable || '有新版本可用，是否更新？',
-					confirmText: this.texts.updateNow || '立即更新',
-						success: (r) => {
+						content: remark || this.texts.updateAvailable || '有新版本可用，是否更新？',
+						confirmText: this.texts.updateNow || '立即更新',
+						success: (r: { confirm: boolean }) => {
 							if (!r.confirm) return
 							
 							// #ifdef APP-PLUS
@@ -173,8 +174,8 @@
 							// #endif
 							
 							// #ifdef MP
-						uni.showToast({ title: this.texts.pleaseGoToAppStore || '请前往应用商店更新', icon: 'none' })
-						// #endif
+							uni.showToast({ title: this.texts.pleaseGoToAppStore || '请前往应用商店更新', icon: 'none' })
+							// #endif
 						}
 					})
 				})
@@ -183,12 +184,12 @@
 			/**
 			 * 下载并安装更新包
 			 */
-			downloadAndInstall(url) {
+			downloadAndInstall(url: string): void {
 				uni.showLoading({ title: this.texts.downloading || '下载中...', mask: true })
 				
 				uni.downloadFile({
 					url,
-					success: (res) => {
+					success: (res: { statusCode: number; tempFilePath: string }) => {
 						uni.hideLoading()
 						if (res.statusCode !== 200) {
 							uni.showToast({ title: this.texts.downloadFailed || '下载失败', icon: 'none' })
@@ -196,7 +197,7 @@
 						}
 						plus.runtime.install(res.tempFilePath, {}, () => {
 							plus.runtime.restart()
-						}, (e: any) => {
+						}, (e: { message: string }) => {
 							uni.showToast({ title: (this.texts.installFailed || '安装失败') + ':' + e.message, icon: 'none' })
 						})
 					},
