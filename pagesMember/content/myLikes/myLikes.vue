@@ -43,10 +43,7 @@ const languageStore = useLanguageStore()
 const likesList = ref<LikeItem[]>([])
 const loading = ref(false)
 
-const texts = computed(() => ({
-  ...(languageStore?.texts?.myLikes || {}),
-  ...(languageStore?.texts?.myFavorites || {})
-}))
+const texts = computed(() => languageStore?.texts?.myLikes || {})
 
 const handleBack = () => {
   uni.navigateBack()
