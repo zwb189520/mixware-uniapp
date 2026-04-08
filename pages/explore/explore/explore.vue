@@ -197,6 +197,8 @@ import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import { getModelPage, addModel, deleteModel, likeModel, unlikeModel, checkModelLike } from '@/api/models.ts'
+import { uploadImages } from '@/api/upload.ts'
+import { uploadModelFile } from '@/api/upload.ts'
 import { getHotExamples } from '@/api/session.ts'
 import { parseSnCode } from '@/api/devices.ts'
 import { useExploreStore } from '@/stores/index.ts'
@@ -751,110 +753,133 @@ export default {
     
     async uploadModel() {
       // 步骤提示
-      uni.showModal({
+      const modalRes = await this.showModalPromise({
         title: this.texts.uploadSteps || '上传步骤',
-        content: this.texts.uploadStepsContent || '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传',
-        success: async (modalRes) => {
-          if (modalRes.confirm) {
-            // 选择预览图片
-            uni.chooseImage({
-              count: 1,
-              success: async (imgRes) => {
-                const imgPath = imgRes.tempFilePaths[0]
-                
-                uni.showToast({ title: this.texts.imageSelected || '已选择图片', icon: 'none', duration: 1000 })
-                
-                // 选择STL文件
-                uni.chooseFile({
-                  count: 1,
-                  type: 'all',
-                  success: async (res) => {
-                    const stlFile = res.tempFiles[0]
-                    const stlPath = stlFile.path
-                    const stlName = stlFile.name || 'model.stl'
-                    
-                    uni.showToast({ title: this.texts.stlFileSelected || '已选择STL文件', icon: 'none', duration: 1000 })
-                    
-                    // 选择分类
-                    const categories = ['日用居家', '玩具手办', '亲子互动', '学习探索', '其他', '高速打印']
-                    uni.showActionSheet({
-                      itemList: categories,
-                      success: async (sheetRes) => {
-                        const selectedCategory = categories[sheetRes.tapIndex]
-                        
-                        uni.showToast({ title: this.texts.categorySelected || '已选择分类', icon: 'none', duration: 1000 })
-                        
-                        // 输入模型名称
-                        uni.showModal({
-                          title: this.texts.modelName || '模型名称',
-                          content: '',
-                          placeholderText: stlName.replace('.stl', '').replace('.STL', ''),
-                          editable: true,
-                          success: async (inputRes) => {
-                            if (inputRes.confirm) {
-                              const finalName = inputRes.content || stlName.replace('.stl', '').replace('.STL', '')
-                              
-                              uni.showLoading({ title: this.texts.uploading || '上传中...' })
-                              try {
-                                // 上传图片
-                                let imgUploadRes
-                                try {
-                                  imgUploadRes = await uploadImages([imgPath])
-                                } catch (uploadError) {
-                                  throw new Error(`图片上传异常: ${uploadError.message}`)
-                                }
-                                
-                                if (!imgUploadRes || imgUploadRes.length === 0) {
-                                  throw new Error('图片上传失败: 没有返回数据')
-                                }
-                                
-                                const imgResult = imgUploadRes[0]
-                                if (!imgResult || (imgResult.code !== 1 && imgResult.code !== 200)) {
-                                  throw new Error(`图片上传失败: ${imgResult?.msg || imgResult?.message || '未知错误'}`)
-                                }
-                                
-                                // 上传STL文件
-                                const stlUploadRes = await uploadModelFile(stlPath)
-                                if (stlUploadRes.code !== 1 && stlUploadRes.code !== 200) {
-                                  throw new Error(`STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`)
-                                }
-                                
-                                // 获取用户信息
-                                const userInfo = uni.getStorageSync('userInfo')
-                                const userId = userInfo?.userId || userInfo?.id || ''
-                                
-                                // 添加模型记录
-                                const previewUrl = imgUploadRes[0].data.files ? imgUploadRes[0].data.files[0].fileUrl : imgUploadRes[0].data
-                                const downloadUrl = stlUploadRes.data.fileUrl || stlUploadRes.data
-                                
-                                await addModel({
-                                  name: finalName,
-                                  category: selectedCategory,
-                                  previewUrl: previewUrl,
-                                  downloadUrl: downloadUrl,
-                                  description: finalName,
-                                  userId: userId,
-                                  editableStatus: 'editable'
-                                })
-                                
-                                uni.hideLoading()
-                                uni.showToast({ title: this.texts.uploadSuccess || '上传成功', icon: 'success' })
-                                this.loadModels()
-                              } catch (error) {
-                                uni.hideLoading()
-                                uni.showToast({ title: error.message || this.texts.uploadFailed || '上传失败', icon: 'none' })
-                              }
-                            }
-                          }
-                        })
-                      }
-                    })
-                  }
-                })
-              }
-            })
-          }
+        content: this.texts.uploadStepsContent || '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传'
+      })
+      if (!modalRes.confirm) return
+
+      try {
+        // 选择预览图片
+        const imgRes = await this.chooseImagePromise({ count: 1 })
+        const imgPath = imgRes.tempFilePaths[0]
+        uni.showToast({ title: this.texts.imageSelected || '已选择图片', icon: 'none', duration: 1000 })
+
+        // 选择STL文件
+        const stlRes = await this.chooseFilePromise({ count: 1, type: 'all' })
+        const stlFile = stlRes.tempFiles[0]
+        const stlPath = stlFile.path
+        const stlName = stlFile.name || 'model.stl'
+        uni.showToast({ title: this.texts.stlFileSelected || '已选择STL文件', icon: 'none', duration: 1000 })
+
+        // 选择分类
+        const categories = ['日用居家', '玩具手办', '亲子互动', '学习探索', '其他', '高速打印']
+        const sheetRes = await this.showActionSheetPromise({ itemList: categories })
+        const selectedCategory = categories[sheetRes.tapIndex]
+        uni.showToast({ title: this.texts.categorySelected || '已选择分类', icon: 'none', duration: 1000 })
+
+        // 输入模型名称
+        const inputRes = await this.showModalPromise({
+          title: this.texts.modelName || '模型名称',
+          content: '',
+          placeholderText: stlName.replace('.stl', '').replace('.STL', ''),
+          editable: true
+        })
+        if (!inputRes.confirm) return
+        const finalName = inputRes.content || stlName.replace('.stl', '').replace('.STL', '')
+
+        // 开始上传
+        uni.showLoading({ title: this.texts.uploading || '上传中...' })
+
+        // 上传图片
+        const imgUploadRes = await uploadImages([imgPath])
+        if (!imgUploadRes || imgUploadRes.length === 0) {
+          throw new Error('图片上传失败: 没有返回数据')
         }
+        const imgResult = imgUploadRes[0]
+        if (!imgResult || (imgResult.code !== 1 && imgResult.code !== 200)) {
+          throw new Error(`图片上传失败: ${imgResult?.msg || imgResult?.message || '未知错误'}`)
+        }
+
+        // 上传STL文件
+        const stlUploadRes = await uploadModelFile(stlPath)
+        if (stlUploadRes.code !== 1 && stlUploadRes.code !== 200) {
+          throw new Error(`STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`)
+        }
+
+        // 获取用户信息
+        const userInfo = uni.getStorageSync('userInfo')
+        const userId = userInfo?.userId || userInfo?.id || ''
+
+        // 添加模型记录
+        const previewUrl = imgUploadRes[0].data.files ? imgUploadRes[0].data.files[0].fileUrl : imgUploadRes[0].data
+        const downloadUrl = stlUploadRes.data.fileUrl || stlUploadRes.data
+
+        await addModel({
+          name: finalName,
+          category: selectedCategory,
+          previewUrl: previewUrl,
+          downloadUrl: downloadUrl,
+          description: finalName,
+          userId: userId,
+          editableStatus: 'editable'
+        })
+
+        uni.hideLoading()
+        uni.showToast({ title: this.texts.uploadSuccess || '上传成功', icon: 'success' })
+        this.loadModels()
+      } catch (error) {
+        uni.hideLoading()
+        uni.showToast({ title: error.message || this.texts.uploadFailed || '上传失败', icon: 'none' })
+      }
+    },
+
+    // Promise 封装
+    showModalPromise(options) {
+      return new Promise((resolve) => {
+        uni.showModal({ ...options, success: resolve, fail: () => resolve({ cancel: true }) })
+      })
+    },
+    showActionSheetPromise(options) {
+      return new Promise((resolve, reject) => {
+        uni.showActionSheet({ ...options, success: resolve, fail: reject })
+      })
+    },
+    chooseImagePromise(options) {
+      return new Promise((resolve, reject) => {
+        uni.chooseImage({ ...options, success: resolve, fail: reject })
+      })
+    },
+    chooseFilePromise(options) {
+      return new Promise((resolve, reject) => {
+        // #ifdef H5
+        if (typeof uni.chooseFile === 'function') {
+          uni.chooseFile({ ...options, success: resolve, fail: reject })
+        } else {
+          // H5 降级使用 input
+          const input = document.createElement('input')
+          input.type = 'file'
+          input.accept = '.stl,.STL'
+          input.onchange = (e) => {
+            const file = e.target.files[0]
+            if (file) {
+              resolve({ tempFiles: [{ path: file, name: file.name }] })
+            } else {
+              reject(new Error('未选择文件'))
+            }
+          }
+          input.click()
+        }
+        // #endif
+        // #ifndef H5
+        if (typeof uni.chooseFile === 'function') {
+          uni.chooseFile({ ...options, success: resolve, fail: reject })
+        } else {
+          // APP 端使用 chooseImage 作为降级方案
+          uni.showToast({ title: 'APP端请使用文件管理器选择STL文件', icon: 'none' })
+          reject(new Error('APP端不支持文件选择'))
+        }
+        // #endif
       })
     }
   }
