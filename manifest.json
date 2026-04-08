@@ -86,9 +86,9 @@
             "splashscreen" : {
                 "androidStyle" : "default",
                 "android" : {
-                    "hdpi" : "static/images/logo.png",
-                    "xhdpi" : "static/images/logo.png",
-                    "xxhdpi" : "static/images/logo.png"
+                    "hdpi" : "static/images/app logo@300x - 副本.png",
+                    "xhdpi" : "static/images/app logo@300x - 副本.png",
+                    "xxhdpi" : "static/images/app logo@300x - 副本.png"
                 },
                 "iosStyle" : "default",
                 "ios" : {
@@ -119,7 +119,8 @@
                         "portrait7" : "static/images/logo.png",
                         "landscape7" : "static/images/logo.png"
                     }
-                }
+                },
+                "useOriginalMsgbox" : false
             }
         }
     },

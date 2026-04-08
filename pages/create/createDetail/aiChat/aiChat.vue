@@ -2,11 +2,6 @@
 	<view class="chat-page">
 		<safe-area />
 		<custom-navbar :title="languageStore.texts.create.aiChat" @back="goBack">
-			<template #right>
-				<view class="session-list-btn" @click="goToSessionList">
-					<uni-icons type="list" size="24" color="#333"></uni-icons>
-				</view>
-			</template>
 		</custom-navbar>
 		<scroll-view
 			class="message-list"

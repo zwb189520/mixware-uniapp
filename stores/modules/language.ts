@@ -976,7 +976,11 @@ export const useLanguageStore = defineStore('language', {
         myLikes: {
           title: '赞过',
           emptyText: '暂无赞过的内容',
-          noLikedContent: '暂无点赞内容'
+          noLikedContent: '暂无点赞内容',
+          daysAgo: '天前',
+          hoursAgo: '小时前',
+          minutesAgo: '分钟前',
+          justNow: '刚刚'
         },
         loginUserAgreement: {
           title: '用户协议',
@@ -1837,7 +1841,11 @@ export const useLanguageStore = defineStore('language', {
         myLikes: {
           title: 'My Likes',
           emptyText: 'No liked content yet',
-          noLikedContent: 'No liked content'
+          noLikedContent: 'No liked content',
+          daysAgo: ' days ago',
+          hoursAgo: ' hours ago',
+          minutesAgo: ' minutes ago',
+          justNow: 'Just now'
         },
         myWorks: {
           title: 'My Works Museum',
@@ -2200,7 +2208,7 @@ export const useLanguageStore = defineStore('language', {
       }
     },
     
-    setLanguage(lang) {
+    setLanguage(lang: string) {
       this.language = lang
       try {
         uni.setStorageSync('appLanguage', lang)
