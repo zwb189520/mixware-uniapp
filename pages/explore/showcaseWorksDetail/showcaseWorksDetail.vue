@@ -188,7 +188,9 @@ export default {
       replyTargetName: '',
       isPopupOpen: false,
       keyboardHeight: 0,
-      currentUserId: ''
+      currentUserId: '',
+      currentUserAvatar: '/static/images/Default avatar.png',
+      currentUserName: ''
     }
   },
   computed: {
@@ -268,6 +270,8 @@ export default {
     getCurrentUserId() {
       const userInfo = uni.getStorageSync('userInfo')
       this.currentUserId = userInfo?.userId || ''
+      this.currentUserAvatar = userInfo?.avatar || '/static/images/Default avatar.png'
+      this.currentUserName = userInfo?.nickname || userInfo?.username || (this.texts?.me || '我')
     },
 
     async loadPostDetail() {
@@ -677,8 +681,8 @@ export default {
         const newComment = {
           id: Date.now(),
           userId: this.currentUserId,
-          userName: this.texts.me || '我',
-          userAvatar: '/static/images/Default avatar.png',
+          userName: this.currentUserName || this.texts.me || '我',
+          userAvatar: this.currentUserAvatar || '/static/images/Default avatar.png',
           content: content,
           time: this.texts.justNow || '刚刚',
           likes: 0,
