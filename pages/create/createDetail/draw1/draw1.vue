@@ -58,6 +58,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { onShow, onHide } from '@dcloudio/uni-app'
 import { uploadModelFile, uploadImage } from '@/api/upload'
 import { createModelTask } from '@/api/modelTasks.ts'
 import { useLanguageStore } from '@/stores'
@@ -157,6 +158,21 @@ onUnmounted(() => {
       window.removeEventListener('message', handleH5Message)
     } catch (e) {
       console.error('移除 H5 消息监听失败:', e)
+    }
+  }
+})
+
+onShow(() => {
+  // 页面显示时强制设置为横屏
+  if (platform.value && platform.value != 'web') {
+    console.log('onShow 设置横屏')
+    plus.screen.lockOrientation('landscape-primary')
+    plus.navigator.setFullscreen(true)
+    
+    // 显示webview
+    if (webviewContext.value) {
+      console.log('onShow: 显示webview')
+      webviewContext.value.show()
     }
   }
 })
