@@ -13,11 +13,11 @@
         <view class="item-value"></view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      <view class="security-item" @click="handleThirdPartyBinding">
+      <!-- <view class="security-item" @click="handleThirdPartyBinding">
         <text class="item-label">{{ texts.thirdPartyBindingLabel }}</text>
         <view class="item-value"></view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
-      </view>
+      </view> -->
       <view class="security-item" @click="handleDeleteAccount">
         <text class="item-label">{{ texts.deleteAccount }}</text>
         <view class="item-value"></view>

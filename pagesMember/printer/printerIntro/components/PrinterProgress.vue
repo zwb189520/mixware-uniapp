@@ -3,7 +3,7 @@
     <!-- 进度卡片 -->
     <view class="progress-card">
       <view class="progress-header">
-        <text class="progress-title">打印进度</text>
+        <text class="progress-title">{{ texts.printProgress || '打印进度' }}</text>
         <text class="progress-percent">{{ progress }}%</text>
       </view>
       
@@ -21,21 +21,21 @@
         <view v-if="estimatedTime" class="stat-item">
           <view class="stat-icon">⏱️</view>
           <view class="stat-content">
-            <text class="stat-label">已打印</text>
+            <text class="stat-label">{{ texts.printed || '已打印' }}</text>
             <text class="stat-value">{{ estimatedTime }}</text>
           </view>
         </view>
         <view v-if="printTimeHms" class="stat-item">
           <view class="stat-icon">⏳</view>
           <view class="stat-content">
-            <text class="stat-label">预计总耗时</text>
+            <text class="stat-label">{{ texts.estimatedTotal || '预计总耗时' }}</text>
             <text class="stat-value">{{ printTimeHms }}</text>
           </view>
         </view>
         <view v-if="filamentLengthM > 0" class="stat-item">
           <view class="stat-icon">🧵</view>
           <view class="stat-content">
-            <text class="stat-label">预计耗材</text>
+            <text class="stat-label">{{ texts.estimatedFilament || '预计耗材' }}</text>
             <text class="stat-value">{{ filamentLengthM.toFixed(2) }} 米</text>
           </view>
         </view>
@@ -75,6 +75,9 @@ export default {
   computed: {
     languageStore() {
       return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore?.texts?.printerIntro || {}
     }
   }
 }

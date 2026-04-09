@@ -279,6 +279,15 @@ export const useLanguageStore = defineStore('language', {
           copy: '复制',
           fit: '适配',
           pleaseSelectModel: '请先选中模型',
+          printedTime: '已打印时间',
+          estimatedTotalTime: '预计总耗时（约）',
+          estimatedFilament: '预计耗材',
+          addSupports: '添加支撑结构',
+          downloading: '下载中',
+          printing: '打印中',
+          paused: '已暂停',
+          idle: '空闲',
+          busy: '忙碌',
           slicePreview: '模型打印预览',
           processingTips: '模型处理需要一定时间，可在',
           myPrintRecords: '我的-打印记录',
@@ -326,10 +335,6 @@ export const useLanguageStore = defineStore('language', {
           confirmDeletePost: '确定要删除这篇作品吗？',
           pause: '暂停',
           returnHome: '返回首页',
-          busy: '忙碌',
-          idle: '空闲',
-          printing: '打印中',
-          paused: '已暂停',
           unnamedDevice: '未命名设备',
           nozzleStatus: '喷头温度',
           currentTemp: '当前温度',
@@ -773,6 +778,10 @@ export const useLanguageStore = defineStore('language', {
         printerIntro: {
           title: '打印机',
           encouragementText: '你的创造正在诞生，快去打印机旁看看吧！',
+          printProgress: '打印进度',
+          printed: '已打印',
+          estimatedTotal: '预计总耗时',
+          estimatedFilament: '预计耗材',
           connectionFailed: '设备连接失败，请检查网络',
           printStatus: {
             Initializing: '正在热身 🏃 (固件初始化)',
@@ -852,6 +861,18 @@ export const useLanguageStore = defineStore('language', {
           private: '保密',
           uploadSuccessNoUrl: '上传成功但未返回URL',
           uploadAvatarFailed: '上传头像失败'
+        },
+        printTasks: {
+          title: '打印任务',
+          noTasks: '暂无打印任务',
+          goPrint: '快去打印吧',
+          loading: '加载中...'
+        },
+        modelTasks: {
+          title: '模型任务',
+          noTasks: '暂无模型任务',
+          goCreate: '快去创建模型吧',
+          loading: '加载中...'
         },
         accountSecurity: {
           title: '账户与安全',
@@ -1350,6 +1371,15 @@ export const useLanguageStore = defineStore('language', {
           copy: 'Copy',
           fit: 'Fit',
           pleaseSelectModel: 'Please select model first',
+          printedTime: 'Printed Time',
+          estimatedTotalTime: 'Est. Total Time',
+          estimatedFilament: 'Est. Filament',
+          addSupports: 'Add Support Structures',
+          downloading: 'Downloading',
+          printing: 'Printing',
+          paused: 'Paused',
+          idle: 'Idle',
+          busy: 'Busy',
           slicePreview: 'Model Print Preview',
           processingTips: 'Model processing takes time, you can check in',
           myPrintRecords: 'My-Print Records',
@@ -1397,10 +1427,6 @@ export const useLanguageStore = defineStore('language', {
           confirmDeletePost: 'Are you sure to delete this post?',
           pause: 'Pause',
           returnHome: 'Return Home',
-          busy: 'Busy',
-          idle: 'Idle',
-          printing: 'Printing',
-          paused: 'Paused',
           unnamedDevice: 'Unnamed Device',
           nozzleStatus: 'Nozzle Temperature',
           currentTemp: 'Current Temperature',
@@ -1899,6 +1925,18 @@ export const useLanguageStore = defineStore('language', {
           uploadSuccessNoUrl: 'Upload Success But No URL Returned',
           uploadAvatarFailed: 'Upload Avatar Failed'
         },
+        printTasks: {
+          title: 'Print Tasks',
+          noTasks: 'No Print Tasks',
+          goPrint: 'Go Print Now',
+          loading: 'Loading...'
+        },
+        modelTasks: {
+          title: 'Model Tasks',
+          noTasks: 'No Model Tasks',
+          goCreate: 'Go Create Now',
+          loading: 'Loading...'
+        },
         accountSecurity: {
           title: 'Account & Security',
           resetPasswordLabel: 'Reset Password',
@@ -1982,6 +2020,10 @@ export const useLanguageStore = defineStore('language', {
         printerIntro: {
           title: 'Printer',
           encouragementText: 'Your creation is being born, go check the printer!',
+          printProgress: 'Print Progress',
+          printed: 'Printed',
+          estimatedTotal: 'Est. Total',
+          estimatedFilament: 'Est. Filament',
           connectionFailed: 'Device connection failed, please check network',
           printStatus: {
             Initializing: 'Warming up 🏃',

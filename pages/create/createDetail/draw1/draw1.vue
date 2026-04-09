@@ -79,8 +79,8 @@ interface ModelDimensions {
 }
 
 const languageStore = useLanguageStore()
-const url = ref('http://app.mixwarebot.cn/?token=uniapp_user_123')
-// const url = ref('http://192.168.0.43:8081/?token=uniapp_user_123')
+// const url = ref('http://app.mixwarebot.cn/?token=uniapp_user_123')
+const url = ref('http://192.168.0.43:8081/?token=uniapp_user_123')
 const statusBarHeight = ref(0)
 const postNumber = ref(0)
 const webviewContext = ref<any>(null)

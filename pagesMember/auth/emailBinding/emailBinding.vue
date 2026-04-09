@@ -159,7 +159,11 @@ export default {
         })
         
         setTimeout(() => {
-          uni.navigateBack()
+          uni.clearStorage()
+          uni.$emit('userLogout')
+          uni.reLaunch({
+            url: '/pagesMember/auth/login/login'
+          })
         }, 1500)
       } catch (error) {
         uni.hideLoading()

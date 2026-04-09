@@ -73,15 +73,15 @@
           <view class="progress-bar-fill" :style="{ width: currentProgress + `%` }"></view>
         </view>
         <view class="device-row" style="margin-top:16rpx;">
-          <text class="device-label">已打印时间</text>
+          <text class="device-label">{{ texts.printedTime || '已打印时间' }}</text>
           <text class="device-value">{{ formatTime(estimatedPrintTimeSeconds) || '0分钟' }}</text>
         </view>
         <view class="device-row" style="margin-top:12rpx;">
-          <text class="device-label">预计总耗时（约）</text>
+          <text class="device-label">{{ texts.estimatedTotalTime || '预计总耗时（约）' }}</text>
           <text class="device-value">{{ printTimeHms || '未知' }}</text>
         </view>
         <view class="device-row" style="margin-top:12rpx;">
-          <text class="device-label">预计耗材</text>
+          <text class="device-label">{{ texts.estimatedFilament || '预计耗材' }}</text>
           <text class="device-value">{{ filamentLengthM ? Number(filamentLengthM).toFixed(2) : '0.00' }} 米</text>
         </view>
         <!-- 控制按钮 -->
@@ -173,11 +173,11 @@ export default {
       if (this.printerStatus === 'Offline') return '离线'
       if (this.isPrinting) return this.texts.printing || '打印中'
       if (this.isPaused) return this.texts.paused || '已暂停'
-      if (this.isDownloading) return '下载中'
+      if (this.isDownloading) return this.texts.downloading || '下载中'
       const s = this.printerStatus
       if (s === 'Printing') return this.texts.printing || '打印中'
       if (s === 'Paused' || s === 'Pausing') return this.texts.paused || '已暂停'
-      if (s === 'Downloading') return '下载中'
+      if (s === 'Downloading') return this.texts.downloading || '下载中'
       if (s === 'StandingBy' || s === 'Idle') return this.texts.idle || '空闲'
       if (s === 'Busy') return this.texts.busy || '忙碌'
       return s || this.texts.idle || '空闲'

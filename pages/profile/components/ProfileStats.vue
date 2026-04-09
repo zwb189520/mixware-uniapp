@@ -19,6 +19,7 @@
 <script lang="ts">
 // @ts-nocheck
 import { useLanguage } from '@/composables'
+import { useLanguageStore } from '@/stores'
 
 export default {
   name: 'ProfileStats',
@@ -29,23 +30,25 @@ export default {
   },
   setup() {
     const { texts } = useLanguage()
-    return { texts }
+    const languageStore = useLanguageStore()
+    return { texts, languageStore }
   },
   mounted() {
     this.updateStats()
   },
   watch: {
-    'texts'() {
+    'languageStore.texts'() {
       this.updateStats()
     }
   },
   methods: {
     updateStats() {
+      const allTexts = this.languageStore.texts
       this.stats = [
-        { id: 1, name: this.texts.likes, icon: '/static/images/customIcon/like.png' },
-        { id: 2, name: this.texts.collections, icon: '/static/images/customIcon/collect.png' },
-        { id: 3, name: this.texts.printTasks || '打印任务', icon: '/static/images/customIcon/print.png' },
-        { id: 4, name: this.texts.modelTasks || '模型任务', icon: '/static/images/customIcon/model.png' }
+        { id: 1, name: allTexts.profile?.likes || 'Likes', icon: '/static/images/customIcon/like.png' },
+        { id: 2, name: allTexts.profile?.collections || 'Collections', icon: '/static/images/customIcon/collect.png' },
+        { id: 3, name: allTexts.printTasks?.title || '打印任务', icon: '/static/images/customIcon/print.png' },
+        { id: 4, name: allTexts.modelTasks?.title || '模型任务', icon: '/static/images/customIcon/model.png' }
       ]
     },
     handleStatClick(stat) {
