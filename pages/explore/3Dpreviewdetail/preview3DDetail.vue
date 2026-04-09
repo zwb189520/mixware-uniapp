@@ -77,7 +77,7 @@
         <slider 
           :value="scalePercent" 
           :min="10" 
-          :max="100" 
+          :max="200" 
           :step="1" 
           :disabled="!isModelSelected"
           @change="onScaleChange"
@@ -106,7 +106,7 @@
       </button>
       
       <!-- 打印按钮 -->
-      <button class="next-btn" @tap="handlePrint">
+      <button class="next-btn" :class="{ disabled: isOutOfBounds }" @tap="handlePrint">
         <text class="next-btn-text">{{ texts.startPrint }}</text>
       </button>
 
@@ -592,12 +592,11 @@ export default {
         const targetScale = 99 / maxDim
         this.scalePercent = Math.floor(targetScale * 100)
         this.modelScale = targetScale
-        // 延迟执行缩放，确保模型已完全加载
-        this.$nextTick(() => {
-          setTimeout(() => {
-            this.applyModelScale()
-          }, 500)
-        })
+        this.isOutOfBounds = true
+        this.boundaryMessage = this.texts.modelTooLarge || '模型尺寸超过100mm，禁止打印'
+      } else {
+        this.isOutOfBounds = false
+        this.boundaryMessage = ''
       }
     },
     
@@ -1027,7 +1026,7 @@ export default {
     async handlePrint() {
       if (this.isOutOfBounds) {
         uni.showToast({
-          title: this.boundaryMessage || '模型边缘超出边界，请调整',
+          title: this.boundaryMessage || '模型尺寸超过100mm，禁止打印',
           icon: 'none',
           duration: 2000
         })

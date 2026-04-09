@@ -83,7 +83,7 @@ export default {
 <style scoped>
 .progress-container {
   width: 100%;
-  padding: 40rpx 32rpx;
+  padding: 20rpx 32rpx;
 }
 
 .progress-card {

@@ -331,7 +331,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20rpx 32rpx;
+  padding: 0rpx 32rpx;
   position: relative;
   z-index: 1;
 }
@@ -351,8 +351,8 @@ export default {
 }
 
 .encouragement-text {
-  margin-top: 60rpx;
-  padding: 32rpx 60rpx;
+  margin-top: 16rpx;
+  padding: 16rpx 32rpx;
   background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
   border-radius: 80rpx;
   position: relative;

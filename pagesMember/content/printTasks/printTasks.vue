@@ -19,7 +19,6 @@
             />
             <view class="task-info">
               <view class="task-header">
-                <text class="task-id">{{ texts.taskId || '任务ID' }}: {{ task.taskId }}</text>
                 <view class="task-status" :class="getStatusClass(task.status)">
                   {{ getStatusText(task.status) }}
                 </view>
