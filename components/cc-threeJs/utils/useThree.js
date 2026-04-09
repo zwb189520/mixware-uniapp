@@ -260,11 +260,16 @@ const centerAndScale = (scaleRatio = 1) => {
 	const size = new THREE.Vector3()
 	boundingBox.getSize(size)
 	
-	// 3. 自动适配逻辑：如果模型尺寸超过 100mm，强制缩小到 100mm 范围内
+	// 3. 自动适配逻辑：
+	// - 如果模型尺寸超过 100mm，强制缩小到 100mm 范围内
+	// - 如果模型尺寸小于 10mm，强制放大到 20-50mm 范围内
 	let autoScale = 1.0
 	const maxDim = Math.max(size.x, size.y, size.z)
 	if (maxDim > 100) {
 		autoScale = 100 / maxDim
+	} else if (maxDim < 10) {
+		// 模型太小，放大到 30mm 左右
+		autoScale = 30 / maxDim
 	}
 	
 	// 4. 应用最终缩放 (用户缩放 * 自动适配缩放)

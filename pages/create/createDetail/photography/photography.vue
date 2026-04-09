@@ -40,7 +40,7 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { imageToModel } from '@/api/hunyuan3d.ts'
-import { createModelTask } from '@/api/modelTasks.ts'
+import { createModelTask, updateModelTask } from '@/api/modelTasks.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -151,16 +151,20 @@ export default {
         if ((res.code === 0 || res.code === 1) && res.data && (res.data.JobId || res.data.taskId)) {
           const jobId = res.data.JobId || res.data.taskId
 
-          // 创建模型生成任务记录
-          let modelTaskId = ''
           try {
             const taskRes = await createModelTask({
               sourceModelUrl: this.uploadedImage,
               previewUrl: this.uploadedImage,
               scaleFactor: 1
             })
-            if ((taskRes as any).code === 1 && (taskRes as any).data) {
-              modelTaskId = (taskRes as any).data.taskId || (taskRes as any).data.id || ''
+            if ((taskRes as any).code === 1 && (taskRes as any).data?.taskId) {
+              await updateModelTask({
+                taskId: (taskRes as any).data.taskId,
+                jobId: jobId,
+                sourceModelUrl: this.uploadedImage,
+                previewUrl: this.uploadedImage,
+                scaleFactor: 1
+              })
             }
           } catch (e) {
             console.error('创建模型任务记录失败:', e)

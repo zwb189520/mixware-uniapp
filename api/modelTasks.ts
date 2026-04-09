@@ -2,12 +2,14 @@ import { request } from './request'
 
 export interface ModelTask {
   taskId: string
+  jobId?: string
   sourceModelUrl: string
   previewUrl: string
   scaleFactor: number
   status: string
   errorMsg: string
   createdAt: string
+  modelType?: string
 }
 
 export interface ModelTaskQuery {

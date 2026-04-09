@@ -44,6 +44,7 @@
 </template>
 
 <script lang="ts">
+// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { getModelTasks } from '@/api/modelTasks.ts'
@@ -57,7 +58,7 @@ export default {
   },
   data() {
     return {
-      taskList: [],
+      taskList: [] as any[],
       loading: false,
       current: 1,
       size: 20,
@@ -88,19 +89,26 @@ export default {
       this.loading = true
       try {
         const userInfo = uni.getStorageSync('userInfo')
+        console.log('用户信息:', userInfo)
+        console.log('userId:', userInfo?.userId)
         const res: any = await getModelTasks({
           current: this.current,
-          size: this.size,
-          userId: userInfo?.userId
+          size: this.size
         })
+        console.log('模型任务接口响应:', res)
         if ((res.code === 0 || res.code === 1) && res.data) {
           const records = res.data.records || []
+          console.log('任务记录:', records)
+          console.log('记录数:', records.length)
           if (this.current === 1) {
             this.taskList = records
           } else {
             this.taskList = [...this.taskList, ...records]
           }
           this.total = res.data.total || 0
+          console.log('总任务数:', this.total)
+        } else {
+          console.log('接口返回异常:', res)
         }
       } catch (error) {
         console.error('加载模型任务失败:', error)
@@ -116,27 +124,36 @@ export default {
       uni.navigateBack()
     },
     handleTaskClick(task) {
-      uni.navigateTo({
-        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?modelUrl=${encodeURIComponent(task.sourceModelUrl || '')}&previewUrl=${encodeURIComponent(task.previewUrl || '')}`
-      })
+      console.log('点击任务:', task)
+      console.log('sourceModelUrl:', task.sourceModelUrl)
+      const cleanUrl = (url: string) => url?.replace(/[`\s]/g, '').trim() || ''
+      const modelUrl = cleanUrl(task.sourceModelUrl)
+      console.log('清理后modelUrl:', modelUrl)
+      const url = modelUrl
+        ? `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${task.taskId}&modelUrl=${encodeURIComponent(modelUrl)}&name=${encodeURIComponent('生成的3D模型')}`
+        : `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${task.taskId}&name=${encodeURIComponent('生成的3D模型')}`
+      console.log('跳转URL:', url)
+      uni.navigateTo({ url })
     },
     getStatusClass(status) {
+      const s = status?.toLowerCase()
       const statusMap = {
         'pending': 'status-pending',
         'processing': 'status-processing',
         'completed': 'status-completed',
         'failed': 'status-failed'
       }
-      return statusMap[status] || 'status-default'
+      return statusMap[s] || 'status-default'
     },
     getStatusText(status) {
+      const s = status?.toLowerCase()
       const statusTextMap = {
         'pending': this.texts.statusPending || '待处理',
         'processing': this.texts.statusProcessing || '处理中',
         'completed': this.texts.statusCompleted || '已完成',
         'failed': this.texts.statusFailed || '失败'
       }
-      return statusTextMap[status] || status
+      return statusTextMap[s] || status
     },
     formatTime(time) {
       if (!time) return ''

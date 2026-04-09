@@ -488,11 +488,16 @@
 				const size = new THREE.Vector3()
 				boundingBox.getSize(size)
 				
-				// 3. 自动适配逻辑：如果模型尺寸超过 100mm，强制缩小到 100mm 范围内
+				// 3. 自动适配逻辑：
+				// - 如果模型尺寸超过 100mm，强制缩小到 100mm 范围内
+				// - 如果模型尺寸小于 10mm，强制放大到 30mm 左右
 				let autoScale = 1.0
 				const maxDim = Math.max(size.x, size.y, size.z)
 				if (maxDim > 100) {
 					autoScale = 100 / maxDim
+				} else if (maxDim < 10) {
+					// 模型太小，放大到 30mm 左右
+					autoScale = 30 / maxDim
 				}
 				
 				// 发送原始尺寸到主层
@@ -547,6 +552,9 @@
 					y: Math.round(Math.abs(scaledSize.y) * 10) / 10,
 					z: Math.round(Math.abs(scaledSize.z) * 10) / 10
 				}
+				
+				// 发送缩放后的尺寸到主层
+				this.$ownerInstance.callMethod('onModelDimensions', dimensions)
 				
 				// 检查是否选中模型
 				const isSelected = this.props.enableModelDrag

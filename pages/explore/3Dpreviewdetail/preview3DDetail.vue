@@ -143,7 +143,7 @@ export default {
       loading: false,
       pollTimer: null,
       pollCount: 0,
-      maxPollCount: 60,
+      maxPollCount: 120,
       statusBarHeight: 0,
       topBarHeightPx: 0,
       safeAreaBottom: 0,
@@ -208,7 +208,7 @@ export default {
     }
 
     this.modelName = options.name ? decodeURIComponent(options.name) : ''
-    this.modelUrl = this.normalizeUrl(decodeURIComponent(options.url || ''))
+    this.modelUrl = this.normalizeUrl(decodeURIComponent(options.modelUrl || options.url || ''))
     this.modelType = options.modelType || this.getModelTypeFromUrl(this.modelUrl)
     this.snapshotImageUrl = options.modelImage ? decodeURIComponent(options.modelImage) : (options.imageUrl ? decodeURIComponent(options.imageUrl) : '')
     
@@ -248,17 +248,12 @@ export default {
     
     if (this.modelUrl) {
 			  this.loading = true
-			  // 延迟显示Preview3D，确保容器有尺寸
 			  setTimeout(() => {
 			    this.showPreview = true
 			  }, 1000)
 			} else if (this.modelId) {
-			  // 判断是否为任务ID（32位十六进制字符串）
-			  if (/^[a-f0-9]{32}$/.test(this.modelId)) {
-			    this.pollTaskStatus()
-			  } else {
-			    this.loadModelDetail()
-			  }
+			  // 先查询一次任务状态
+			  this.checkTaskStatusOnce()
 			}
   },
   methods: {
@@ -315,11 +310,41 @@ export default {
     },
 
     isTaskCompleted(status) {
-      return status === 'completed' || status === 'success'
+      const s = status?.toLowerCase()
+      return s === 'completed' || s === 'success' || s === 'done'
     },
 
     isTaskFailed(status) {
-      return status === 'failed' || status === 'error'
+      const s = status?.toLowerCase()
+      return s === 'failed' || s === 'error'
+    },
+
+    async checkTaskStatusOnce() {
+      try {
+        this.loading = true
+        const res = await getTaskStatus(this.modelId)
+        if (res && res.data) {
+          const status = res.data.Status
+          if (this.isTaskCompleted(status) && res.data.ResultFile3Ds?.length > 0) {
+            // 任务已完成，直接显示模型
+            let modelUrl = (res.data.ResultFile3Ds[0].Url || res.data.ResultFile3Ds[0].url || '').trim().replace(/[`\s]/g, '')
+            if (modelUrl) {
+              this.modelUrl = modelUrl
+              this.modelType = this.getModelTypeFromUrl(modelUrl)
+              this.isGenerating = false
+              setTimeout(() => {
+                this.showPreview = true
+              }, 1000)
+              return
+            }
+          }
+        }
+        // 未完成或失败，开始轮询
+        this.pollTaskStatus()
+      } catch (error) {
+        console.error('查询任务状态失败:', error)
+        this.pollTaskStatus()
+      }
     },
 
     initStatusBarHeight() {
@@ -381,35 +406,38 @@ export default {
       this.loading = true
       this.isGenerating = true
       this.pollCount = 0
-      
+
       const poll = async () => {
         try {
           this.pollCount++
           console.log(`轮询任务状态 (${this.pollCount}/${this.maxPollCount}):`, this.modelId)
-          
+
           const res = await getTaskStatus(this.modelId)
           console.log('任务状态响应:', res)
-          
+
           if (res && res.data) {
             const status = res.data.Status
             const progress = res.data.progress || 0
             console.log('任务状态:', status, '进度:', progress + '%')
-            
+
             if (this.isTaskCompleted(status)) {
               console.log('任务完成')
               this.isGenerating = false
-              let modelUrl = res.data.modelUrl
-              if (!modelUrl && res.data.ResultFile3Ds && res.data.ResultFile3Ds.length > 0) {
-                modelUrl = res.data.ResultFile3Ds[0].Url
+              let modelUrl = null
+              if (res.data.ResultFile3Ds && res.data.ResultFile3Ds.length > 0) {
+                modelUrl = (res.data.ResultFile3Ds[0].Url || res.data.ResultFile3Ds[0].url || '').trim().replace(/[`\s]/g, '')
+              }
+              if (!modelUrl) {
+                modelUrl = res.data.modelUrl
               }
               if (modelUrl) {
                 this.modelUrl = modelUrl
                 this.modelType = this.getModelTypeFromUrl(modelUrl)
                 this.stopPoll()
-                
+
                 setTimeout(() => {
                   this.showPreview = true
-                },1000)
+                }, 1000)
                 return
               }
             } else if (this.isTaskFailed(status)) {
@@ -417,41 +445,32 @@ export default {
               console.error('任务失败')
               this.stopPoll()
               uni.showToast({ title: this.texts.modelGenerateFailed || '模型生成失败', icon: 'none' })
-              setTimeout(() => {
-                uni.navigateBack()
-              }, 1500)
               return
             }
           }
-          
+
           if (this.pollCount >= this.maxPollCount) {
             console.error('轮询超时')
             this.stopPoll()
-            uni.showToast({ title: this.texts.generateTimeout || '生成超时，请稍后查看', icon: 'none' })
-            setTimeout(() => {
-              uni.navigateBack()
-            }, 1500)
+            uni.showToast({ title: this.texts.generateTimeout || '查询次数已达上限，模型仍在生成中', icon: 'none' })
             return
           }
-          
-          this.pollTimer = setTimeout(poll, 2000)
+
+          this.pollTimer = setTimeout(poll, 60000)
         } catch (error) {
           console.error('轮询任务状态失败:', error)
           if (this.pollCount >= this.maxPollCount) {
             this.stopPoll()
             uni.showToast({ title: this.texts.queryFailed || '查询失败', icon: 'none' })
-            setTimeout(() => {
-              uni.navigateBack()
-            }, 1500)
           } else {
-            this.pollTimer = setTimeout(poll, 2000)
+            this.pollTimer = setTimeout(poll, 60000)
           }
         }
       }
-      
+
       poll()
     },
-    
+
     stopPoll() {
       if (this.pollTimer) {
         clearTimeout(this.pollTimer)
