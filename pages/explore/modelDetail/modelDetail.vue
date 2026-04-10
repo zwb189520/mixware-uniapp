@@ -81,7 +81,8 @@
                 <view class="print-details">
                   <text class="print-name">{{ model.name }}</text>
                   <text class="print-size">{{ texts.size }}：{{ model.size }}</text>
-                  <text class="print-time">{{ texts.printTime }}：{{ model.printTime }}</text>
+                  <text class="print-time">{{ texts.printTime }}：{{ model.printTime }}{{ texts.minutes || '分钟' }}</text>
+                  <text class="print-filament" v-if="model.filamentLength">{{ texts.filament || '耗材' }}：{{ model.filamentLength }}</text>
                 </view>
               </view>
             </view>
@@ -349,7 +350,7 @@ export default {
           isLiked: data.isLiked || false,
           isCollected: this.modelInfo.isCollected || false,
           author: data.username || data.nickname || data.userName || '',
-          authorAvatar: data.authorAvatar ? fixImageUrl(data.authorAvatar) : '/static/images/Default avatar.png',
+          authorAvatar: data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar ? fixImageUrl(data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar) : '/static/images/Default avatar.png',
           modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
         }
 
@@ -394,13 +395,19 @@ export default {
         } catch (e) {
         }
         
+        // 解析尺寸、打印时间和耗材长度
+        let dimensions = modelParam.dimensions || modelParam.size || modelParam.modelSize || ''
+        let printTimeMinutes = modelParam.print_time_minutes || modelParam.printTime || modelParam.printDuration || modelParam.estimatedTime || ''
+        let filamentLength = modelParam.filament_length_m || modelParam.filamentLength || ''
+        
         this.printModels = [{
                 id: id,
                 name: data.name || '',
                 image: fixImageUrl(data.previewUrl) || '/static/images/3Dprinter.png',
                 modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || ''),
-                size: modelParam.size || modelParam.modelSize || modelParam.dimensions || '',
-                printTime: this.formatPrintTime(modelParam.printTime || modelParam.printDuration || modelParam.estimatedTime || '')
+                size: dimensions,
+                printTime: this.formatPrintTime(printTimeMinutes),
+                filamentLength: filamentLength ? `${filamentLength}m` : ''
               }]
         this.checkDescriptionLength()
         this.loading = false; // 结束加载
@@ -1114,7 +1121,8 @@ export default {
 }
 
 .print-size,
-.print-time {
+.print-time,
+.print-filament {
   font-size: 28rpx;
   color: #888;
   font-weight: 500;
