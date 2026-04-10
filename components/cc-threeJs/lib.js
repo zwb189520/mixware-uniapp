@@ -1,9 +1,7 @@
 /********** 小程序端 *************/
 // #ifdef MP
 export * from 'three-platformize'
-import {
-	OrbitControls as OrbitControlsMP
-} from './utils/OrbitControls.js'
+import { OrbitControls as OrbitControlsMP } from './utils/OrbitControls.js'
 export { OrbitControlsMP as OrbitControls }
 // GLTFLoader
 export * from 'three-platformize/examples/jsm/loaders/GLTFLoader.js'
@@ -21,13 +19,10 @@ const $requestAnimationFrame = () => THREE.$requestAnimationFrame
 const $cancelAnimationFrame = () => THREE.$cancelAnimationFrame
 // #endif
 
-
 /********** APP、H5 *************/
 // #ifndef MP
 export * from 'three'
-import {
-	OrbitControls
-} from 'three/examples/jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 // GLTFLoader
 export * from 'three/examples/jsm/loaders/GLTFLoader.js'
 // RGBELoader
@@ -43,42 +38,21 @@ const $requestAnimationFrame = () => window.requestAnimationFrame
 const $cancelAnimationFrame = () => window.cancelAnimationFrame
 // #endif
 
-
-
 /********** 微信小程序 *************/
 // #ifdef MP-WEIXIN
-import {
-	WechatPlatform as Platform
-} from 'three-platformize/src/WechatPlatform'
+import { WechatPlatform as Platform } from 'three-platformize/src/WechatPlatform'
 // #endif
-
-
 
 /********** 抖音小程序 *************/
 // #ifdef MP-TOUTIAO
-import {
-	BytePlatform as Platform
-} from 'three-platformize/src/BytePlatform'
+import { BytePlatform as Platform } from 'three-platformize/src/BytePlatform'
 // #endif
-
 
 /********** 淘宝小程序 *************/
 // #ifdef MP-ALIPAY
-import {
-	TaobaoPlatform as Platform
-} from 'three-platformize/src/TaobaoPlatform'
+import { TaobaoPlatform as Platform } from 'three-platformize/src/TaobaoPlatform'
 // #endif
-
-
-
-
 
 const deviceInfo = uni.getDeviceInfo()
 const devicePixelRatio = Math.max(deviceInfo.devicePixelRatio || 1, 2)
-export {
-	OrbitControls,
-	Platform,
-	$requestAnimationFrame,
-	$cancelAnimationFrame,
-	devicePixelRatio
-}
+export { OrbitControls, Platform, $requestAnimationFrame, $cancelAnimationFrame, devicePixelRatio }

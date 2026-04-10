@@ -23,7 +23,9 @@
                   {{ getStatusText(task.status) }}
                 </view>
               </view>
-              <text class="task-scale" v-if="task.scaleFactor">{{ texts.scaleFactor || '缩放' }}: {{ task.scaleFactor }}x</text>
+              <text class="task-scale" v-if="task.scaleFactor"
+                >{{ texts.scaleFactor || '缩放' }}: {{ task.scaleFactor }}x</text
+              >
               <text class="task-time">{{ formatTime(task.createdAt) }}</text>
               <text v-if="task.errorMsg" class="task-error">{{ task.errorMsg }}</text>
             </view>
@@ -137,20 +139,20 @@ export default {
     getStatusClass(status) {
       const s = status?.toLowerCase()
       const statusMap = {
-        'pending': 'status-pending',
-        'processing': 'status-processing',
-        'completed': 'status-completed',
-        'failed': 'status-failed'
+        pending: 'status-pending',
+        processing: 'status-processing',
+        completed: 'status-completed',
+        failed: 'status-failed'
       }
       return statusMap[s] || 'status-default'
     },
     getStatusText(status) {
       const s = status?.toLowerCase()
       const statusTextMap = {
-        'pending': this.texts.statusPending || '待处理',
-        'processing': this.texts.statusProcessing || '处理中',
-        'completed': this.texts.statusCompleted || '已完成',
-        'failed': this.texts.statusFailed || '失败'
+        pending: this.texts.statusPending || '待处理',
+        processing: this.texts.statusProcessing || '处理中',
+        completed: this.texts.statusCompleted || '已完成',
+        failed: this.texts.statusFailed || '失败'
       }
       return statusTextMap[s] || status
     },
@@ -165,7 +167,7 @@ export default {
 <style scoped>
 .model-tasks-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .tasks-container {
@@ -225,27 +227,27 @@ export default {
 }
 
 .status-pending {
-  background-color: #FFF3E0;
-  color: #FF9800;
+  background-color: #fff3e0;
+  color: #ff9800;
 }
 
 .status-processing {
-  background-color: #E3F2FD;
-  color: #2196F3;
+  background-color: #e3f2fd;
+  color: #2196f3;
 }
 
 .status-completed {
-  background-color: #E8F5E9;
-  color: #4CAF50;
+  background-color: #e8f5e9;
+  color: #4caf50;
 }
 
 .status-failed {
-  background-color: #FFEBEE;
-  color: #F44336;
+  background-color: #ffebee;
+  color: #f44336;
 }
 
 .status-default {
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   color: #999;
 }
 
@@ -263,7 +265,7 @@ export default {
 
 .task-error {
   font-size: 22rpx;
-  color: #F44336;
+  color: #f44336;
   margin-top: 10rpx;
 }
 
@@ -289,7 +291,7 @@ export default {
 
 .empty-hint {
   font-size: 28rpx;
-  color: #FF6B35;
+  color: #ff6b35;
   margin-top: 20rpx;
   font-weight: bold;
 }

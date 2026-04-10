@@ -44,7 +44,7 @@ export default {
       uni.showModal({
         title: this.texts.prompt,
         content: this.texts.clearConfirm,
-        success: (res) => {
+        success: res => {
           if (res.confirm) {
             const messageListComponent = this.$refs.messageList
             if (messageListComponent) {
@@ -66,7 +66,7 @@ export default {
 <style scoped>
 .message-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .safe-area-top {

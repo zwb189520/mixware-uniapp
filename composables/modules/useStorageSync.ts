@@ -3,11 +3,11 @@
 /**
  * 通用的存储同步 Hook
  * 用于 Pinia Store 中的本地存储管理
- * 
+ *
  * @param {String} storageKey - 本地存储的 key
  * @param {Object} initialState - 初始状态对象
  * @returns {Object} 包含状态和方法的对象
- * 
+ *
  * @example
  * const { state, initFromStorage, saveToStorage, clearStorage } = useStorageSync('userData', {
  *   name: '',
@@ -60,7 +60,7 @@ export function useStorageSync(storageKey, initialState = {}) {
    * 更新状态并保存到本地存储
    * @param {Object} updates - 要更新的字段
    */
-  const updateAndSave = (updates) => {
+  const updateAndSave = updates => {
     state.value = { ...state.value, ...updates }
     saveToStorage()
   }

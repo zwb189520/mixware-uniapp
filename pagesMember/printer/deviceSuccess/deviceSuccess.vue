@@ -3,7 +3,6 @@
     <safe-area />
     <custom-navbar :title="pageTitle" @back="handleBack" />
     <view class="page-content">
-
       <!-- 加载中 -->
       <view v-if="bindStatus === 'loading'" class="status-section">
         <view class="loading-icon">
@@ -31,13 +30,18 @@
           <text class="icon-text">✕</text>
         </view>
         <text class="status-title failed-color">{{ texts.bindingFailed || '绑定失败' }}</text>
-        <text class="status-subtitle">{{ texts.bindingFailedHint || '设备绑定未成功，请检查网络后重试' }}</text>
+        <text class="status-subtitle">{{
+          texts.bindingFailedHint || '设备绑定未成功，请检查网络后重试'
+        }}</text>
         <view class="button-section">
-          <button class="retry-button" @click="retryBind">{{ texts.retryBind || '重新绑定' }}</button>
-          <button class="home-button-outline" @click="handleGoHome">{{ texts.goHome || '返回首页' }}</button>
+          <button class="retry-button" @click="retryBind">
+            {{ texts.retryBind || '重新绑定' }}
+          </button>
+          <button class="home-button-outline" @click="handleGoHome">
+            {{ texts.goHome || '返回首页' }}
+          </button>
         </view>
       </view>
-
     </view>
   </view>
 </template>
@@ -97,7 +101,11 @@ export default {
         })
         console.log('绑定API返回:', res)
         // code=1/200 绑定成功；其他已绑定的错误码也视为成功继续流程
-        const bindOk = res.code === 1 || res.code === 200 || res.code === 100508 || (res.msg && res.msg.includes('已绑定'))
+        const bindOk =
+          res.code === 1 ||
+          res.code === 200 ||
+          res.code === 100508 ||
+          (res.msg && res.msg.includes('已绑定'))
         if (bindOk) {
           console.log('绑定成功（或已绑定），开始获取设备信息...')
           let deviceInfo = null
@@ -149,7 +157,7 @@ export default {
           if (deviceInfo && (deviceInfo.code === 1 || deviceInfo.code === 200)) {
             uni.setStorageSync('currentDeviceInfo', deviceInfo.data)
             console.log('设备信息已存储到本地缓存:', deviceInfo.data)
-            
+
             // 设置为默认设备
             try {
               const setDefaultRes = await setDefaultDevice(this.printerId)
@@ -206,7 +214,7 @@ export default {
 <style scoped>
 .device-success-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .page-content {
@@ -262,14 +270,16 @@ export default {
 .loading-spinner {
   width: 100rpx;
   height: 100rpx;
-  border: 8rpx solid #FFE0D0;
-  border-top-color: #FF5A00;
+  border: 8rpx solid #ffe0d0;
+  border-top-color: #ff5a00;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 标题 */
@@ -282,8 +292,12 @@ export default {
   margin-bottom: 20rpx;
 }
 
-.success-color { color: #333; }
-.failed-color  { color: #FF3B30; }
+.success-color {
+  color: #333;
+}
+.failed-color {
+  color: #ff3b30;
+}
 
 .status-subtitle {
   display: block;
@@ -310,7 +324,7 @@ export default {
 .home-button {
   width: 100%;
   padding: 20rpx 60rpx;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   color: white;
   font-size: 32rpx;
   border: none;
@@ -321,7 +335,7 @@ export default {
 .retry-button {
   width: 100%;
   padding: 20rpx 60rpx;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   color: white;
   font-size: 32rpx;
   border: none;
@@ -333,11 +347,9 @@ export default {
   width: 100%;
   padding: 20rpx 60rpx;
   background-color: transparent;
-  color: #FF5A00;
+  color: #ff5a00;
   font-size: 32rpx;
-  border: 2rpx solid #FF5A00;
+  border: 2rpx solid #ff5a00;
   border-radius: 50rpx;
 }
 </style>
-
-

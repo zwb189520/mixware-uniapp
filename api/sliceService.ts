@@ -26,4 +26,3 @@ export function getSliceStatus(taskId) {
 export function cleanupSliceTask(taskId) {
   return postWithQuery('/curaengine/slice/cleanup', {}, { taskId })
 }
-

@@ -70,7 +70,7 @@ const handleDeleteAccount = () => {
     content: texts.value.deleteAccountContent,
     confirmText: texts.value.confirm,
     cancelText: texts.value.cancel,
-    success: (res) => {
+    success: res => {
       if (res.confirm) {
         performDeleteAccount()
       }
@@ -83,10 +83,10 @@ const performDeleteAccount = async () => {
     uni.showLoading({
       title: texts.value.deleting
     })
-    
+
     const id = uni.getStorageSync('id') || uni.getStorageSync('userId')
-    const response = await deleteUser(id) as any
-    
+    const response = (await deleteUser(id)) as any
+
     if (response.code === 200 || response.code === 0 || response.code === 1) {
       uni.showToast({
         title: texts.value.deleteSuccess,
@@ -120,7 +120,7 @@ const performDeleteAccount = async () => {
 <style scoped>
 .account-security-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .safe-area-top {
@@ -136,7 +136,7 @@ const performDeleteAccount = async () => {
   display: flex;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 1rpx solid #FFF9F5;
+  border-bottom: 1rpx solid #fff9f5;
 }
 
 .security-item:last-child {

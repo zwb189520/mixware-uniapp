@@ -4,8 +4,8 @@
       <text>{{ texts.calibrationTitle || '校准功能' }}</text>
     </view>
     <view class="calibration-options">
-      <view 
-        v-for="option in calibrationOptions" 
+      <view
+        v-for="option in calibrationOptions"
         :key="option.id"
         class="calibration-item"
         @click="handleCalibration(option.id)"
@@ -74,7 +74,7 @@ export default {
 
 <style scoped>
 .calibration-section {
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
@@ -116,7 +116,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FFF9F5 0%, #FFE8DC 100%);
+  background: linear-gradient(135deg, #fff9f5 0%, #ffe8dc 100%);
   border-radius: 16rpx;
   margin-right: 20rpx;
 }
@@ -143,5 +143,3 @@ export default {
   margin-left: 10rpx;
 }
 </style>
-
-

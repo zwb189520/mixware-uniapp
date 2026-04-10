@@ -1,87 +1,81 @@
-import * as THREE from 'three';
-import {
-	useFBO
-} from './Fbo.js';
-import {
-	DiscardMaterial
-} from '../materials/DiscardMaterial.js';
+import * as THREE from 'three'
+import { useFBO } from './Fbo.js'
+import { DiscardMaterial } from '../materials/DiscardMaterial.js'
 
-import {
-	useThreeJs
-} from '../../index.js'
-
+import { useThreeJs } from '../../index.js'
 
 class MeshTransmissionMaterialImpl extends THREE.MeshPhysicalMaterial {
-	constructor(samples = 6, transmissionSampler = false) {
-		super();
-		this.uniforms = {
-			chromaticAberration: {
-				value: 0.05
-			},
-			// Transmission must always be 0, unless transmissionSampler is being used
-			transmission: {
-				value: 0
-			},
-			// Instead a workaround is used, see below for reasons why
-			_transmission: {
-				value: 1
-			},
-			transmissionMap: {
-				value: null
-			},
-			// Roughness is 1 in THREE.MeshPhysicalMaterial but it makes little sense in a transmission material
-			roughness: {
-				value: 0
-			},
-			thickness: {
-				value: 0
-			},
-			thicknessMap: {
-				value: null
-			},
-			attenuationDistance: {
-				value: Infinity
-			},
-			attenuationColor: {
-				value: new THREE.Color('white')
-			},
-			anisotropicBlur: {
-				value: 0.1
-			},
-			time: {
-				value: 0
-			},
-			distortion: {
-				value: 0.0
-			},
-			distortionScale: {
-				value: 0.5
-			},
-			temporalDistortion: {
-				value: 0.0
-			},
-			buffer: {
-				value: null
-			}
-		};
-		this.onBeforeCompile = shader => {
-			shader.uniforms = {
-				...shader.uniforms,
-				...this.uniforms
-			};
+  constructor(samples = 6, transmissionSampler = false) {
+    super()
+    this.uniforms = {
+      chromaticAberration: {
+        value: 0.05
+      },
+      // Transmission must always be 0, unless transmissionSampler is being used
+      transmission: {
+        value: 0
+      },
+      // Instead a workaround is used, see below for reasons why
+      _transmission: {
+        value: 1
+      },
+      transmissionMap: {
+        value: null
+      },
+      // Roughness is 1 in THREE.MeshPhysicalMaterial but it makes little sense in a transmission material
+      roughness: {
+        value: 0
+      },
+      thickness: {
+        value: 0
+      },
+      thicknessMap: {
+        value: null
+      },
+      attenuationDistance: {
+        value: Infinity
+      },
+      attenuationColor: {
+        value: new THREE.Color('white')
+      },
+      anisotropicBlur: {
+        value: 0.1
+      },
+      time: {
+        value: 0
+      },
+      distortion: {
+        value: 0.0
+      },
+      distortionScale: {
+        value: 0.5
+      },
+      temporalDistortion: {
+        value: 0.0
+      },
+      buffer: {
+        value: null
+      }
+    }
+    this.onBeforeCompile = shader => {
+      shader.uniforms = {
+        ...shader.uniforms,
+        ...this.uniforms
+      }
 
-			// Fix for r153-r156 anisotropy chunks
-			// https://github.com/mrdoob/three.js/pull/26716
-			if (this.anisotropy > 0) shader.defines.USE_ANISOTROPY = '';
+      // Fix for r153-r156 anisotropy chunks
+      // https://github.com/mrdoob/three.js/pull/26716
+      if (this.anisotropy > 0) shader.defines.USE_ANISOTROPY = ''
 
-			// If the transmission sampler is active inject a flag
-			if (transmissionSampler) shader.defines.USE_SAMPLER = '';
-			// Otherwise we do use use .transmission and must therefore force USE_TRANSMISSION
-			// because threejs won't inject it for us
-			else shader.defines.USE_TRANSMISSION = '';
+      // If the transmission sampler is active inject a flag
+      if (transmissionSampler) shader.defines.USE_SAMPLER = ''
+      // Otherwise we do use use .transmission and must therefore force USE_TRANSMISSION
+      // because threejs won't inject it for us
+      else shader.defines.USE_TRANSMISSION = ''
 
-			// Head
-			shader.fragmentShader = /*glsl*/ `
+      // Head
+      shader.fragmentShader =
+        /*glsl*/ `
       uniform float chromaticAberration;         
       uniform float anisotropicBlur;      
       uniform float time;
@@ -169,11 +163,12 @@ class MeshTransmissionMaterialImpl extends THREE.MeshPhysicalMaterial {
               +0.2666667* snoise(2.0*m)
               +0.1333333* snoise(4.0*m)
               +0.0666667* snoise(8.0*m);
-      }\n` + shader.fragmentShader;
+      }\n` + shader.fragmentShader
 
-			// Remove transmission
-			shader.fragmentShader = shader.fragmentShader.replace(
-				'#include <transmission_pars_fragment>', /*glsl*/ `
+      // Remove transmission
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <transmission_pars_fragment>',
+        /*glsl*/ `
         #ifdef USE_TRANSMISSION
           // Transmission code is based on glTF-Sampler-Viewer
           // https://github.com/KhronosGroup/glTF-Sample-Viewer
@@ -249,11 +244,13 @@ class MeshTransmissionMaterialImpl extends THREE.MeshPhysicalMaterial {
             vec3 F = EnvironmentBRDF( n, v, specularColor, specularF90, roughness );
             return vec4( ( 1.0 - F ) * attenuatedColor * diffuseColor, transmittedLight.a );
           }
-        #endif\n`);
+        #endif\n`
+      )
 
-			// Add refraction
-			shader.fragmentShader = shader.fragmentShader.replace(
-				'#include <transmission_fragment>', /*glsl*/ `  
+      // Add refraction
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <transmission_fragment>',
+        /*glsl*/ `  
         // Improve the refraction to use the world pos
         material.transmission = _transmission;
         material.transmissionAlpha = 1.0;
@@ -302,166 +299,156 @@ class MeshTransmissionMaterialImpl extends THREE.MeshPhysicalMaterial {
           transmission.b += transmissionB;
         }
         transmission /= ${samples}.0;
-        totalDiffuse = mix( totalDiffuse, transmission.rgb, material.transmission );\n`);
-		};
-		Object.keys(this.uniforms).forEach(name => Object.defineProperty(this, name, {
-			get: () => this.uniforms[name].value,
-			set: v => this.uniforms[name].value = v
-		}));
-	}
+        totalDiffuse = mix( totalDiffuse, transmission.rgb, material.transmission );\n`
+      )
+    }
+    Object.keys(this.uniforms).forEach(name =>
+      Object.defineProperty(this, name, {
+        get: () => this.uniforms[name].value,
+        set: v => (this.uniforms[name].value = v)
+      })
+    )
+  }
 }
 
-
-const {
-	useLoop,
-	getInstance,
-	useDispose
-} = useThreeJs()
+const { useLoop, getInstance, useDispose } = useThreeJs()
 
 class MeshTransmissionMaterial {
-	constructor({
-		buffer,
-		transmissionSampler = false,
-		backside = false,
-		side = THREE.FrontSide,
-		transmission = 1,
-		thickness = 0,
-		backsideThickness = 0,
-		backsideEnvMapIntensity = 1,
-		samples = 10,
-		resolution,
-		backsideResolution,
-		background,
-		anisotropy,
-		anisotropicBlur,
-		...props
-	} = {}) {
+  constructor({
+    buffer,
+    transmissionSampler = false,
+    backside = false,
+    side = THREE.FrontSide,
+    transmission = 1,
+    thickness = 0,
+    backsideThickness = 0,
+    backsideEnvMapIntensity = 1,
+    samples = 10,
+    resolution,
+    backsideResolution,
+    background,
+    anisotropy,
+    anisotropicBlur,
+    ...props
+  } = {}) {
+    this.material = new MeshTransmissionMaterialImpl(samples, transmissionSampler)
+    this.discardMaterial = new DiscardMaterial()
+    this.fboBack = useFBO(backsideResolution || resolution)
+    this.fboMain = useFBO(resolution)
 
-		this.material = new MeshTransmissionMaterialImpl(samples, transmissionSampler);
-		this.discardMaterial = new DiscardMaterial();
-		this.fboBack = useFBO(backsideResolution || resolution);
-		this.fboMain = useFBO(resolution);
+    this.config = {
+      buffer,
+      transmissionSampler,
+      backside,
+      side,
+      transmission,
+      thickness,
+      backsideThickness,
+      backsideEnvMapIntensity,
+      samples,
+      resolution,
+      backsideResolution,
+      background,
+      anisotropy,
+      anisotropicBlur,
+      ...props
+    }
 
-		this.config = {
-			buffer,
-			transmissionSampler,
-			backside,
-			side,
-			transmission,
-			thickness,
-			backsideThickness,
-			backsideEnvMapIntensity,
-			samples,
-			resolution,
-			backsideResolution,
-			background,
-			anisotropy,
-			anisotropicBlur,
-			...props
-		};
+    this.oldBg = null
+    this.oldEnvMapIntensity = null
+    this.oldTone = null
+    this.parent = null
 
-		this.oldBg = null;
-		this.oldEnvMapIntensity = null;
-		this.oldTone = null;
-		this.parent = null;
+    this.updateMaterialProps()
 
-		this.updateMaterialProps();
+    useLoop(() => {
+      this.update()
+    })
+    useDispose(() => this.dispose())
+  }
 
-		useLoop(() => {
-			this.update()
-		})
-		useDispose(() => this.dispose())
-	}
+  updateMaterialProps() {
+    const {
+      buffer,
+      transmissionSampler,
+      transmission,
+      thickness,
+      side,
+      anisotropy,
+      anisotropicBlur,
+      ...props
+    } = this.config
+    // props
+    Object.assign(this.material, props, {
+      buffer: buffer || this.fboMain.texture,
+      _transmission: transmission,
+      anisotropicBlur: anisotropicBlur !== undefined ? anisotropicBlur : anisotropy,
+      transmission: transmissionSampler ? transmission : 0,
+      thickness: thickness,
+      side: side
+    })
+  }
 
-	updateMaterialProps() {
-		const {
-			buffer,
-			transmissionSampler,
-			transmission,
-			thickness,
-			side,
-			anisotropy,
-			anisotropicBlur,
-			...props
-		} = this.config;
-		// props
-		Object.assign(this.material, props, {
-			buffer: buffer || this.fboMain.texture,
-			_transmission: transmission,
-			anisotropicBlur: anisotropicBlur !== undefined ? anisotropicBlur : anisotropy,
-			transmission: transmissionSampler ? transmission : 0,
-			thickness: thickness,
-			side: side
-		});
-	}
+  update() {
+    if (!this.parent) return
 
-	update() {
-		if (!this.parent) return
+    const { renderer, scene, camera, clock } = getInstance()
+    this.material.time = clock.elapsedTime
 
-		const {
-			renderer,
-			scene,
-			camera,
-			clock
-		} = getInstance()
-		this.material.time = clock.elapsedTime;
+    if (this.material.buffer === this.fboMain.texture && !this.config.transmissionSampler) {
+      this.oldTone = renderer.toneMapping
+      this.oldBg = scene.background
+      this.oldEnvMapIntensity = this.material.envMapIntensity
 
-		if (this.material.buffer === this.fboMain.texture && !this.config.transmissionSampler) {
-			this.oldTone = renderer.toneMapping;
-			this.oldBg = scene.background;
-			this.oldEnvMapIntensity = this.material.envMapIntensity;
+      renderer.toneMapping = THREE.NoToneMapping
+      if (this.config.background) scene.background = this.config.background
 
-			renderer.toneMapping = THREE.NoToneMapping;
-			if (this.config.background) scene.background = this.config.background;
+      this.parent.material = this.discardMaterial
 
-			this.parent.material = this.discardMaterial;
+      if (this.config.backside) {
+        renderer.setRenderTarget(this.fboBack)
+        renderer.render(scene, camera)
 
-			if (this.config.backside) {
-				renderer.setRenderTarget(this.fboBack);
-				renderer.render(scene, camera);
+        this.parent.material = this.material
+        this.material.buffer = this.fboBack.texture
+        this.material.thickness = this.config.backsideThickness
+        this.material.side = THREE.BackSide
+        this.material.envMapIntensity = this.config.backsideEnvMapIntensity
+      }
 
-				this.parent.material = this.material;
-				this.material.buffer = this.fboBack.texture;
-				this.material.thickness = this.config.backsideThickness;
-				this.material.side = THREE.BackSide;
-				this.material.envMapIntensity = this.config.backsideEnvMapIntensity;
-			}
+      renderer.setRenderTarget(this.fboMain)
+      renderer.render(scene, camera)
 
-			renderer.setRenderTarget(this.fboMain);
-			renderer.render(scene, camera);
+      this.parent.material = this.material
+      this.material.thickness = this.config.thickness
+      this.material.side = this.config.side
+      this.material.buffer = this.fboMain.texture
+      this.material.envMapIntensity = this.oldEnvMapIntensity
 
-			this.parent.material = this.material;
-			this.material.thickness = this.config.thickness;
-			this.material.side = this.config.side;
-			this.material.buffer = this.fboMain.texture;
-			this.material.envMapIntensity = this.oldEnvMapIntensity;
+      scene.background = this.oldBg
+      renderer.setRenderTarget(null)
+      renderer.toneMapping = this.oldTone
+    }
+  }
 
-			scene.background = this.oldBg;
-			renderer.setRenderTarget(null);
-			renderer.toneMapping = this.oldTone;
-		}
-	}
+  setOption(key, value) {
+    this.config[key] = value
+    this.updateMaterialProps()
+  }
 
-	setOption(key, value) {
-		this.config[key] = value;
-		this.updateMaterialProps();
-	}
+  dispose() {
+    this.material.dispose()
+    this.discardMaterial.dispose()
+    this.fboBack.dispose()
+    this.fboMain.dispose()
+  }
 
-	dispose() {
-		this.material.dispose();
-		this.discardMaterial.dispose();
-		this.fboBack.dispose();
-		this.fboMain.dispose();
-	}
-
-	getMaterial(mesh) {
-		if (mesh) {
-			this.parent = mesh
-		}
-		return this.material;
-	}
+  getMaterial(mesh) {
+    if (mesh) {
+      this.parent = mesh
+    }
+    return this.material
+  }
 }
 
-export {
-	MeshTransmissionMaterial
-}
+export { MeshTransmissionMaterial }

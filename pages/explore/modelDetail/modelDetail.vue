@@ -12,8 +12,8 @@
     <scroll-view v-show="!loading" scroll-y class="content-scroll">
       <view class="model-info-container">
         <view class="carousel-section">
-          <swiper 
-            class="carousel" 
+          <swiper
+            class="carousel"
             :indicator-dots="true"
             :autoplay="false"
             :circular="true"
@@ -22,9 +22,9 @@
             @change="handleCarouselChange"
           >
             <swiper-item v-for="(image, index) in modelInfo.images" :key="index">
-              <image 
-                class="carousel-image" 
-                :src="fixBlobUrl(image)" 
+              <image
+                class="carousel-image"
+                :src="fixBlobUrl(image)"
                 mode="aspectFit"
                 lazy-load
                 @click="handleImageClick(index)"
@@ -39,13 +39,21 @@
             <text class="model-name">{{ modelInfo.name }}</text>
 
             <view class="author-info" @click="handleAuthorClick">
-              <image class="author-avatar" :src="fixBlobUrl(modelInfo.authorAvatar)" mode="aspectFill" lazy-load @error="handleImageError"/>
+              <image
+                class="author-avatar"
+                :src="fixBlobUrl(modelInfo.authorAvatar)"
+                mode="aspectFill"
+                lazy-load
+                @error="handleImageError"
+              />
               <text class="author-name">{{ modelInfo.author }}</text>
             </view>
           </view>
 
           <view v-if="modelInfo.description" class="model-description">
-            <text class="description-text" :class="{ 'expanded': isDescriptionExpanded }">{{ modelInfo.description }}</text>
+            <text class="description-text" :class="{ expanded: isDescriptionExpanded }">{{
+              modelInfo.description
+            }}</text>
             <text class="expand-btn" v-if="showExpandBtn" @click="toggleDescription">
               {{ isDescriptionExpanded ? texts.collapse : texts.expand }}
             </text>
@@ -65,15 +73,15 @@
           <view class="print-section">
             <text class="section-title">{{ texts.printInfo }}</text>
             <view class="print-list">
-              <view 
-                v-for="(model, index) in printModels" 
-                :key="index" 
+              <view
+                v-for="(model, index) in printModels"
+                :key="index"
                 class="print-item"
                 @click="handlePrintModelClick(model)"
               >
-                <image 
-                  class="print-image" 
-                  :src="model.image" 
+                <image
+                  class="print-image"
+                  :src="model.image"
                   mode="aspectFit"
                   lazy-load
                   @error="handleImageError"
@@ -81,8 +89,12 @@
                 <view class="print-details">
                   <text class="print-name">{{ model.name }}</text>
                   <text class="print-size">{{ texts.size }}：{{ model.size }}</text>
-                  <text class="print-time">{{ texts.printTime }}：{{ model.printTime }}{{ texts.minutes || '分钟' }}</text>
-                  <text class="print-filament" v-if="model.filamentLength">{{ texts.filament || '耗材' }}：{{ model.filamentLength }}</text>
+                  <text class="print-time"
+                    >{{ texts.printTime }}：{{ model.printTime }}{{ texts.minutes || '分钟' }}</text
+                  >
+                  <text class="print-filament" v-if="model.filamentLength"
+                    >{{ texts.filament || '耗材' }}：{{ model.filamentLength }}</text
+                  >
                 </view>
               </view>
             </view>
@@ -108,16 +120,36 @@
         </view>
       </view>
     </scroll-view>
-    
+
     <view class="toolbar-container">
       <view class="toolbar">
         <view class="toolbar-left">
-          <view class="toolbar-item" :class="{ 'liked': modelInfo.isLiked }" @click="handleLike">
-            <image class="toolbar-icon" :src="modelInfo.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" mode="aspectFit"/>
+          <view class="toolbar-item" :class="{ liked: modelInfo.isLiked }" @click="handleLike">
+            <image
+              class="toolbar-icon"
+              :src="
+                modelInfo.isLiked
+                  ? '/static/images/icon/like_active.png'
+                  : '/static/images/icon/like.png'
+              "
+              mode="aspectFit"
+            />
             <text class="toolbar-text">{{ modelInfo.likes }}</text>
           </view>
-          <view class="toolbar-item collected" :class="{ 'active': modelInfo.isCollected }" @click="handleCollect">
-            <image class="toolbar-icon" :src="modelInfo.isCollected ? '/static/images/icon/star_active.png' : '/static/images/icon/star.png'" mode="aspectFit"/>
+          <view
+            class="toolbar-item collected"
+            :class="{ active: modelInfo.isCollected }"
+            @click="handleCollect"
+          >
+            <image
+              class="toolbar-icon"
+              :src="
+                modelInfo.isCollected
+                  ? '/static/images/icon/star_active.png'
+                  : '/static/images/icon/star.png'
+              "
+              mode="aspectFit"
+            />
             <text class="toolbar-text">{{ modelInfo.collections }}</text>
           </view>
           <!-- <view class="toolbar-item delete-item" @click="handleDelete">
@@ -141,7 +173,15 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import { addFavorite, cancelFavorite, getFavoriteModels } from '@/api/userFavorite.ts'
-import { getModelDetail, getModelList, deleteModel, likeModel, unlikeModel, checkModelLike, getModelPage } from '@/api/models.ts'
+import {
+  getModelDetail,
+  getModelList,
+  deleteModel,
+  likeModel,
+  unlikeModel,
+  checkModelLike,
+  getModelPage
+} from '@/api/models.ts'
 import { getPostList, toggleLike, checkLikeStatus } from '@/api/community.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -204,14 +244,14 @@ export default {
         uni.navigateBack()
       }, 1500)
     }
-    
-    uni.$on('postDeleted', (deletedPostId) => {
+
+    uni.$on('postDeleted', deletedPostId => {
       if (this.modelId) {
         this.refreshShowcaseWorks()
       }
     })
-    
-    uni.$on('postCreated', (modelId) => {
+
+    uni.$on('postCreated', modelId => {
       if (modelId && String(modelId) === String(this.modelId)) {
         this.refreshShowcaseWorks()
       }
@@ -253,7 +293,7 @@ export default {
           current: 1,
           size: 100
         })
-        
+
         if (res.code === 0 || res.code === 1) {
           const records = res.data?.records || res.data || []
           this.showcaseWorks = records
@@ -321,20 +361,22 @@ export default {
         return
       }
 
-      this.loading = true; // 开始加载
+      this.loading = true // 开始加载
       try {
         const isLoggedIn = uni.getStorageSync('isLoggedIn')
-        
+
         // 1. 首先加载最核心的模型详情
         const detailRes = await getModelDetail(id)
         if (!detailRes || (detailRes.code !== 0 && detailRes.code !== 1)) {
           throw new Error(detailRes?.msg || '获取详情失败')
         }
-        
+
         const data = detailRes.data || {}
-        const fixImageUrl = (url) => {
+        const fixImageUrl = url => {
           if (!url) return ''
-          return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
+          return url
+            .replace('localhost:9000', '47.102.212.37:9000')
+            .replace('api/uploads/image', '9000/image')
         }
 
         // 2. 初始化基础信息（确保用户能看到东西）
@@ -344,13 +386,18 @@ export default {
           description: data.description || '',
           category: data.category,
           copyright: data.copyright || data.Copyright,
-          images: data.previewUrl ? [fixImageUrl(data.previewUrl)] : ['/static/images/3Dprinter.png'],
+          images: data.previewUrl
+            ? [fixImageUrl(data.previewUrl)]
+            : ['/static/images/3Dprinter.png'],
           likes: data.likeCount || data.likeNum || this.modelInfo.likes || 0,
           collections: data.collectCount || data.collectNum || this.modelInfo.collections || 0,
           isLiked: data.isLiked || false,
           isCollected: this.modelInfo.isCollected || false,
           author: data.username || data.nickname || data.userName || '',
-          authorAvatar: data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar ? fixImageUrl(data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar) : '/static/images/Default avatar.png',
+          authorAvatar:
+            data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar
+              ? fixImageUrl(data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar)
+              : '/static/images/Default avatar.png',
           modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
         }
 
@@ -360,7 +407,7 @@ export default {
             getModelPage({ current: 1, size: 1, name: data.name }).catch(() => null),
             checkModelLike(id).catch(() => null)
           ])
-          
+
           if (pageRes && pageRes.code === 1 && pageRes.data && pageRes.data.records) {
             const modelFromPage = pageRes.data.records.find(m => String(m.modelId) === String(id))
             if (modelFromPage) {
@@ -374,46 +421,55 @@ export default {
         } catch (e) {
           console.warn('获取点赞信息失败:', e)
         }
-        
+
         // 4. 获取收藏状态
         if (isLoggedIn) {
           try {
             const favoriteRes = await getFavoriteModels().catch(() => null)
             if (favoriteRes && favoriteRes.code === 1 && favoriteRes.data) {
-              this.modelInfo.isCollected = favoriteRes.data.some(item => String(item.modelId) === String(id))
+              this.modelInfo.isCollected = favoriteRes.data.some(
+                item => String(item.modelId) === String(id)
+              )
             }
           } catch (e) {
             console.warn('获取收藏状态失败:', e)
           }
         }
-        
+
         let modelParam = {}
         try {
           if (data.modelParam) {
-            modelParam = typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
+            modelParam =
+              typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
           }
-        } catch (e) {
-        }
-        
+        } catch (e) {}
+
         // 解析尺寸、打印时间和耗材长度
         let dimensions = modelParam.dimensions || modelParam.size || modelParam.modelSize || ''
-        let printTimeMinutes = modelParam.print_time_minutes || modelParam.printTime || modelParam.printDuration || modelParam.estimatedTime || ''
+        let printTimeMinutes =
+          modelParam.print_time_minutes ||
+          modelParam.printTime ||
+          modelParam.printDuration ||
+          modelParam.estimatedTime ||
+          ''
         let filamentLength = modelParam.filament_length_m || modelParam.filamentLength || ''
-        
-        this.printModels = [{
-                id: id,
-                name: data.name || '',
-                image: fixImageUrl(data.previewUrl) || '/static/images/3Dprinter.png',
-                modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || ''),
-                size: dimensions,
-                printTime: this.formatPrintTime(printTimeMinutes),
-                filamentLength: filamentLength ? `${filamentLength}m` : ''
-              }]
+
+        this.printModels = [
+          {
+            id: id,
+            name: data.name || '',
+            image: fixImageUrl(data.previewUrl) || '/static/images/3Dprinter.png',
+            modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || ''),
+            size: dimensions,
+            printTime: this.formatPrintTime(printTimeMinutes),
+            filamentLength: filamentLength ? `${filamentLength}m` : ''
+          }
+        ]
         this.checkDescriptionLength()
-        this.loading = false; // 结束加载
+        this.loading = false // 结束加载
         this.loadShowcaseWorks()
       } catch (error) {
-        this.loading = false; // 确保错误时也结束加载
+        this.loading = false // 确保错误时也结束加载
         uni.showToast({
           title: error.message || this.texts.loadFailed,
           icon: 'none'
@@ -440,7 +496,7 @@ export default {
           this.texts.report || '举报',
           this.texts.collect || '收藏'
         ],
-        success: (res) => {
+        success: res => {
           switch (res.tapIndex) {
             case 0:
               this.handleShare()
@@ -526,7 +582,7 @@ export default {
         } else {
           await cancelFavorite(this.modelId)
         }
-        
+
         uni.showToast({
           title: this.modelInfo.isCollected ? this.texts.collectSuccess : this.texts.cancelCollect,
           icon: 'success'
@@ -535,7 +591,7 @@ export default {
         // 回滚UI
         this.modelInfo.isCollected = !this.modelInfo.isCollected
         this.modelInfo.collections += this.modelInfo.isCollected ? 1 : -1
-        
+
         uni.showToast({
           title: error.message || this.texts.operationFailed,
           icon: 'none'
@@ -562,7 +618,7 @@ export default {
         withShareTicket: true
       })
     },
-    
+
     handleCreatePost() {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
@@ -577,7 +633,7 @@ export default {
       const modelId = this.modelInfo.id || this.modelId || ''
       const modelName = this.modelInfo.name || '3D模型'
       const modelUrl = this.modelInfo.modelFile || this.modelInfo.images[0] || ''
-      
+
       const ext = modelUrl.split('.').pop().toLowerCase()
       if (ext === 'gcode') {
         uni.showModal({
@@ -587,7 +643,7 @@ export default {
         })
         return
       }
-      
+
       // 获取尺寸信息
       const printModel = this.printModels[0] || {}
       const dimensions = {
@@ -595,7 +651,7 @@ export default {
         y: 0,
         z: 0
       }
-      
+
       // 解析尺寸信息
       if (printModel.size) {
         // 匹配格式：200mm × 150mm × 100mm
@@ -606,7 +662,7 @@ export default {
           dimensions.z = parseFloat(sizeMatch[3])
         }
       }
-      
+
       const modelImage = this.modelInfo.images[0] || ''
       uni.navigateTo({
         url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelName)}&url=${encodeURIComponent(modelUrl)}&dimensions=${encodeURIComponent(JSON.stringify(dimensions))}&modelImage=${encodeURIComponent(modelImage)}`
@@ -634,7 +690,7 @@ export default {
         icon: 'none'
       })
     },
-    
+
     async handleDelete() {
       if (!this.modelId) {
         uni.showToast({ title: this.texts.modelIdNotFound || '模型ID不存在', icon: 'none' })
@@ -645,7 +701,7 @@ export default {
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteModel || '确定要删除这个模型吗？删除后无法恢复。',
         confirmColor: '#FF0000',
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             uni.showLoading({ title: this.texts.deleting || '删除中...' })
             try {
@@ -662,7 +718,10 @@ export default {
               }
             } catch (error) {
               uni.hideLoading()
-              uni.showToast({ title: error.message || this.texts.deleteFailed || '删除失败', icon: 'none' })
+              uni.showToast({
+                title: error.message || this.texts.deleteFailed || '删除失败',
+                icon: 'none'
+              })
             }
           }
         }
@@ -676,7 +735,7 @@ export default {
         y: 0,
         z: 0
       }
-      
+
       if (model.size) {
         // 匹配格式：200mm × 150mm × 100mm
         const sizeMatch = model.size.match(/([\d.]+)mm[^\d]+([\d.]+)mm[^\d]+([\d.]+)mm/)
@@ -686,7 +745,7 @@ export default {
           dimensions.z = parseFloat(sizeMatch[3])
         }
       }
-      
+
       uni.navigateTo({
         url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${model.id}&name=${encodeURIComponent(model.name)}&url=${encodeURIComponent(model.modelFile || model.image)}&dimensions=${encodeURIComponent(JSON.stringify(dimensions))}`
       })
@@ -697,12 +756,12 @@ export default {
       const workId = work.id || `mock_${Date.now()}`
       const title = work.info || work.desc || work.title || this.modelInfo.name || ''
       const image = work.image || ''
-      
+
       uni.navigateTo({
         url: `/pages/explore/showcaseWorksDetail/showcaseWorksDetail?workId=${workId}&image=${encodeURIComponent(image)}&title=${encodeURIComponent(title)}`
       })
     },
-    
+
     async handleWorkLike(work) {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
@@ -712,7 +771,12 @@ export default {
       work.likeCount += work.isLiked ? 1 : -1
       work.likes = work.likeCount
 
-      const isMock = !work.id || String(work.id).includes('mock') || String(work.id) === '1' || String(work.id) === 'NaN' || String(work.id) === 'undefined'
+      const isMock =
+        !work.id ||
+        String(work.id).includes('mock') ||
+        String(work.id) === '1' ||
+        String(work.id) === 'NaN' ||
+        String(work.id) === 'undefined'
 
       if (!isMock) {
         try {
@@ -738,25 +802,25 @@ export default {
         }
       }
     },
-    
+
     getCategoryDisplayName(category) {
       // 如果传入的是中文分类，则返回对应语言的显示名称
       const categoryMap = {
-        '日用居家': this.texts.dailyUse,
-        '玩具手办': this.texts.toyFigure,
-        '时尚穿戴': this.texts.fashionWear,
-        '数码电器': this.texts.digitalDevice,
-        '建筑模型': this.texts.architecturalModel,
-        '艺术创意': this.texts.artCreative
+        日用居家: this.texts.dailyUse,
+        玩具手办: this.texts.toyFigure,
+        时尚穿戴: this.texts.fashionWear,
+        数码电器: this.texts.digitalDevice,
+        建筑模型: this.texts.architecturalModel,
+        艺术创意: this.texts.artCreative
       }
-      
+
       // 如果找到对应的分类翻译则返回，否则返回原始值或空字符串
       return categoryMap[category] || category || ''
     },
-    
+
     formatPrintTime(timeStr) {
       if (!timeStr) return ''
-      
+
       // 如果是英文环境，转换时间格式
       if (this.languageStore.language === 'en') {
         // 匹配中文时间格式：4小时30分钟
@@ -766,20 +830,20 @@ export default {
           const minutes = match[2]
           return `${hours}h ${minutes}m`
         }
-        
+
         // 匹配只有小时：4小时
         const hourMatch = timeStr.match(/(\d+)小时/)
         if (hourMatch) {
           return `${hourMatch[1]}h`
         }
-        
+
         // 匹配只有分钟：30分钟
         const minuteMatch = timeStr.match(/(\d+)分钟/)
         if (minuteMatch) {
           return `${minuteMatch[1]}m`
         }
       }
-      
+
       return timeStr
     }
   }
@@ -791,7 +855,7 @@ export default {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content-scroll {
@@ -823,7 +887,7 @@ export default {
 .carousel-image {
   width: 100%;
   height: 100%;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
 }
 
@@ -832,12 +896,12 @@ export default {
 }
 
 .model-header {
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
 }
 
 .model-name {
@@ -871,7 +935,7 @@ export default {
   width: 48rpx;
   height: 48rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ff5a00 0%, #ff8c00 100%);
   border: 3rpx solid #fff;
   box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
 }
@@ -893,7 +957,7 @@ export default {
 
 .stat-item:active {
   transform: scale(0.95);
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon {
@@ -906,7 +970,7 @@ export default {
 }
 
 .stat-item.collected.active .stat-text {
-  color: #FFD700;
+  color: #ffd700;
 }
 
 .stat-text {
@@ -918,10 +982,10 @@ export default {
 .model-description {
   margin-bottom: 24rpx;
   padding: 28rpx;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
 }
 
 .description-text {
@@ -948,7 +1012,7 @@ export default {
   color: #667eea;
   margin-top: 16rpx;
   padding: 8rpx 24rpx;
-  background: rgba(102,126,234,0.1);
+  background: rgba(102, 126, 234, 0.1);
   border-radius: 20rpx;
   font-weight: 600;
 }
@@ -958,7 +1022,7 @@ export default {
   flex-direction: column;
   gap: 0;
   margin-bottom: 24rpx;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
   padding: 24rpx 28rpx;
@@ -968,7 +1032,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 2rpx solid rgba(0,0,0,0.05);
+  border-bottom: 2rpx solid rgba(0, 0, 0, 0.05);
 }
 
 .detail-item:last-child {
@@ -1006,7 +1070,7 @@ export default {
   bottom: -8rpx;
   width: 60rpx;
   height: 4rpx;
-  background: linear-gradient(90deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(90deg, #ff5a00 0%, #ff8c00 100%);
   border-radius: 2rpx;
 }
 
@@ -1023,7 +1087,7 @@ export default {
   align-items: center;
   gap: 6rpx;
   padding: 10rpx 20rpx;
-  background: linear-gradient(135deg, #FF9500, #FF5A00);
+  background: linear-gradient(135deg, #ff9500, #ff5a00);
   border-radius: 30rpx;
   position: relative;
   overflow: hidden;
@@ -1076,7 +1140,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 28rpx;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
   transition: all 0.3s ease;
@@ -1094,7 +1158,7 @@ export default {
 .print-image {
   width: 150rpx;
   height: 150rpx;
-  background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
   border-radius: 20rpx;
   margin-right: 28rpx;
   flex-shrink: 0;
@@ -1144,7 +1208,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255,255,255,0.98);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
   border-top: none;
   padding: 16rpx 24rpx;
@@ -1194,7 +1258,7 @@ export default {
 }
 
 .toolbar-item.primary {
-  background: #FF5A00;
+  background: #ff5a00;
   color: #fff;
   width: 100%;
   padding: 28rpx 48rpx;
@@ -1202,7 +1266,7 @@ export default {
 }
 
 .toolbar-item.primary:active {
-  background: #CC4800;
+  background: #cc4800;
 }
 
 .toolbar-text {
@@ -1223,7 +1287,7 @@ export default {
 }
 
 .toolbar-item.collected.active .toolbar-text {
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 .delete-item {
@@ -1250,7 +1314,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #FFF9F5;
+  background: #fff9f5;
   z-index: 1000;
 }
 
@@ -1264,15 +1328,19 @@ export default {
 .spinner {
   width: 80rpx;
   height: 80rpx;
-  border: 6rpx solid rgba(255,90,0,0.2);
-  border-top: 6rpx solid #FF5A00;
+  border: 6rpx solid rgba(255, 90, 0, 0.2);
+  border-top: 6rpx solid #ff5a00;
   border-radius: 50%;
   animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-text {
@@ -1281,4 +1349,3 @@ export default {
   font-weight: 600;
 }
 </style>
-

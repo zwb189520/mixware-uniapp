@@ -2,13 +2,18 @@
   <view class="profile-user-info">
     <view class="user-main" @click="handleLogin">
       <view class="user-avatar">
-        <image v-if="isLoggedIn && userInfo.avatar" :src="userInfo.avatar" mode="aspectFill" lazy-load />
+        <image
+          v-if="isLoggedIn && userInfo.avatar"
+          :src="userInfo.avatar"
+          mode="aspectFill"
+          lazy-load
+        />
         <image v-else :src="userInfo.avatar" mode="aspectFill" lazy-load />
       </view>
       <view class="user-details">
         <text class="username">{{ isLoggedIn ? userInfo.nickname : texts.loginRegister }}</text>
         <text v-if="!isLoggedIn" class="login-hint">{{ texts.clickToLogin }}</text>
-        
+
         <view v-if="isLoggedIn" class="user-stats-row">
           <view class="stat-item" @click.stop="goToFollowList('following')">
             <text class="stat-number">{{ followingCount }}</text>
@@ -47,49 +52,49 @@ export default {
   },
   setup() {
     const { isLoggedIn, checkLoginStatus, setUserInfo } = useUser()
-    
-    return { 
+
+    return {
       texts: computed(() => useLanguageStore().texts.profile),
-      isLoggedIn, 
+      isLoggedIn,
       checkLoginStatus,
       setUserInfo
     }
   },
   mounted() {
     this.loadUserInfo()
-    
+
     uni.$on('userLogin', () => {
       this.loadUserInfo()
     })
-    
-    uni.$on('profileUpdate', (userInfo) => {
+
+    uni.$on('profileUpdate', userInfo => {
       this.userInfo = userInfo
     })
-    
+
     uni.$on('userLogout', () => {
       this.resetUserInfo()
     })
   },
-  
+
   onShow() {
     this.loadUserInfo()
     if (this.isLoggedIn) {
       this.loadFollowStats()
     }
-    
+
     // 监听关注状态变化，更新关注统计
     uni.$on('followStatusChanged', () => {
       this.loadFollowStats()
     })
   },
-  
+
   beforeDestroy() {
     // 移除事件监听
     uni.$off('userLogin')
     uni.$off('profileUpdate')
     uni.$off('userLogout')
   },
-  
+
   methods: {
     handleLogin() {
       if (!this.isLoggedIn) {
@@ -102,13 +107,13 @@ export default {
         })
       }
     },
-    
+
     loadUserInfo() {
       this.checkLoginStatus()
-      
+
       if (this.isLoggedIn) {
         const storedUserInfo = uni.getStorageSync('userInfo') || {}
-        
+
         if (storedUserInfo && Object.keys(storedUserInfo).length > 0) {
           let avatarUrl = storedUserInfo.avatar || '/static/images/Default avatar.png'
           if (avatarUrl.startsWith('blob:')) {
@@ -116,7 +121,7 @@ export default {
             storedUserInfo.avatar = avatarUrl
             this.setUserInfo(storedUserInfo)
           }
-          
+
           this.userInfo = { ...storedUserInfo }
           this.loadFollowStats()
         } else {
@@ -126,17 +131,17 @@ export default {
         this.resetUserInfo()
       }
     },
-    
+
     async loadFollowStats() {
       const userId = this.userInfo.userId || uni.getStorageSync('userInfo')?.userId
       if (!userId) return
-      
+
       try {
         const [followingRes, followersRes] = await Promise.all([
           getFollowingList(userId),
           getFollowersList(userId)
         ])
-        
+
         if (followingRes.code === 0) {
           this.followingCount = followingRes.data?.length || 0
         }
@@ -147,16 +152,16 @@ export default {
         console.error('加载关注统计失败:', e)
       }
     },
-    
+
     goToFollowList(tab) {
       const userId = this.userInfo.userId || uni.getStorageSync('userInfo')?.userId
       if (!userId) return
-      
+
       uni.navigateTo({
         url: `/pagesMember/user/followList/followList?userId=${userId}&tab=${tab}`
       })
     },
-    
+
     resetUserInfo() {
       this.checkLoginStatus()
       this.userInfo = {
@@ -248,7 +253,7 @@ export default {
 .stat-number {
   font-size: 24rpx;
   font-weight: 600;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 .stat-label {
@@ -262,5 +267,3 @@ export default {
   background: #e0e0e0;
 }
 </style>
-
-

@@ -121,11 +121,13 @@ export function processModelData(modelData) {
     thumb = modelData.image
   }
 
-  const dimensions = modelData.dimensions ? {
-    x: modelData.dimensions.x || modelData.dimensions.width || 0,
-    y: modelData.dimensions.y || modelData.dimensions.height || 0,
-    z: modelData.dimensions.z || modelData.dimensions.depth || 0
-  } : { x: 0, y: 0, z: 0 }
+  const dimensions = modelData.dimensions
+    ? {
+        x: modelData.dimensions.x || modelData.dimensions.width || 0,
+        y: modelData.dimensions.y || modelData.dimensions.height || 0,
+        z: modelData.dimensions.z || modelData.dimensions.depth || 0
+      }
+    : { x: 0, y: 0, z: 0 }
 
   return {
     downloadUrl,
@@ -148,10 +150,10 @@ function extractFileType(url) {
     const urlWithoutQuery = url.split('?')[0]
     const ext = urlWithoutQuery.split('.').pop().toLowerCase()
     const typeMap = {
-      'glb': 'glb',
-      'gltf': 'gltf',
-      'obj': 'obj',
-      'stl': 'stl'
+      glb: 'glb',
+      gltf: 'gltf',
+      obj: 'obj',
+      stl: 'stl'
     }
     return typeMap[ext] || ''
   } catch (e) {
@@ -176,4 +178,3 @@ export function scaleAndSliceModel(data) {
 export function getScaleAndSliceStatus(taskId) {
   return get(`/models/scaleAndSlice/status/${taskId}`)
 }
-

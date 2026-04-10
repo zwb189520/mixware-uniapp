@@ -5,15 +5,28 @@
       <text class="panel-title">{{ texts.rotate || '旋转' }}</text>
       <text class="close-btn" @tap="handleClose">×</text>
     </view>
-    
+
     <view class="rotation-item">
       <view class="axis-label">X</view>
       <view class="rotation-control">
         <text class="angle-text">{{ rotationX }}°</text>
-        <view class="ruler-container" @touchstart="(e) => onRulerTouchStart('x', e)" @touchmove="(e) => onRulerTouchMove('x', e)" @touchend="onRulerTouchEnd">
+        <view
+          class="ruler-container"
+          @touchstart="e => onRulerTouchStart('x', e)"
+          @touchmove="e => onRulerTouchMove('x', e)"
+          @touchend="onRulerTouchEnd"
+        >
           <view class="ruler-wrapper" :style="{ transform: `translateX(${-rulerOffsetX}px)` }">
             <view class="ruler-line">
-              <view v-for="i in 361" :key="i" class="ruler-tick" :class="{ 'major': (i - 181) % 10 === 0, 'minor': (i - 181) % 5 === 0 && (i - 181) % 10 !== 0 }">
+              <view
+                v-for="i in 361"
+                :key="i"
+                class="ruler-tick"
+                :class="{
+                  major: (i - 181) % 10 === 0,
+                  minor: (i - 181) % 5 === 0 && (i - 181) % 10 !== 0
+                }"
+              >
                 <text v-if="(i - 181) % 10 === 0" class="tick-label">{{ i - 181 }}</text>
               </view>
             </view>
@@ -22,15 +35,28 @@
         </view>
       </view>
     </view>
-    
+
     <view class="rotation-item">
       <view class="axis-label">Y</view>
       <view class="rotation-control">
         <text class="angle-text">{{ rotationY }}°</text>
-        <view class="ruler-container" @touchstart="(e) => onRulerTouchStart('y', e)" @touchmove="(e) => onRulerTouchMove('y', e)" @touchend="onRulerTouchEnd">
+        <view
+          class="ruler-container"
+          @touchstart="e => onRulerTouchStart('y', e)"
+          @touchmove="e => onRulerTouchMove('y', e)"
+          @touchend="onRulerTouchEnd"
+        >
           <view class="ruler-wrapper" :style="{ transform: `translateX(${-rulerOffsetY}px)` }">
             <view class="ruler-line">
-              <view v-for="i in 361" :key="i" class="ruler-tick" :class="{ 'major': (i - 181) % 10 === 0, 'minor': (i - 181) % 5 === 0 && (i - 181) % 10 !== 0 }">
+              <view
+                v-for="i in 361"
+                :key="i"
+                class="ruler-tick"
+                :class="{
+                  major: (i - 181) % 10 === 0,
+                  minor: (i - 181) % 5 === 0 && (i - 181) % 10 !== 0
+                }"
+              >
                 <text v-if="(i - 181) % 10 === 0" class="tick-label">{{ i - 181 }}</text>
               </view>
             </view>
@@ -39,15 +65,28 @@
         </view>
       </view>
     </view>
-    
+
     <view class="rotation-item">
       <view class="axis-label">Z</view>
       <view class="rotation-control">
         <text class="angle-text">{{ rotationZ }}°</text>
-        <view class="ruler-container" @touchstart="(e) => onRulerTouchStart('z', e)" @touchmove="(e) => onRulerTouchMove('z', e)" @touchend="onRulerTouchEnd">
+        <view
+          class="ruler-container"
+          @touchstart="e => onRulerTouchStart('z', e)"
+          @touchmove="e => onRulerTouchMove('z', e)"
+          @touchend="onRulerTouchEnd"
+        >
           <view class="ruler-wrapper" :style="{ transform: `translateX(${-rulerOffsetZ}px)` }">
             <view class="ruler-line">
-              <view v-for="i in 361" :key="i" class="ruler-tick" :class="{ 'major': (i - 181) % 10 === 0, 'minor': (i - 181) % 5 === 0 && (i - 181) % 10 !== 0 }">
+              <view
+                v-for="i in 361"
+                :key="i"
+                class="ruler-tick"
+                :class="{
+                  major: (i - 181) % 10 === 0,
+                  minor: (i - 181) % 5 === 0 && (i - 181) % 10 !== 0
+                }"
+              >
                 <text v-if="(i - 181) % 10 === 0" class="tick-label">{{ i - 181 }}</text>
               </view>
             </view>
@@ -115,10 +154,22 @@ export default {
       this[`rulerOffset${axis.toUpperCase()}`] = newOffset
       const value = Math.round(newOffset - 180)
       this[`rotation${axis.toUpperCase()}`] = value
-      this.$emit('rotationChanging', { axis, value, x: this.rotationX, y: this.rotationY, z: this.rotationZ })
+      this.$emit('rotationChanging', {
+        axis,
+        value,
+        x: this.rotationX,
+        y: this.rotationY,
+        z: this.rotationZ
+      })
     },
     onRulerTouchEnd() {
-      this.$emit('rotationChange', { axis: this.currentAxis, value: this[`rotation${this.currentAxis.toUpperCase()}`], x: this.rotationX, y: this.rotationY, z: this.rotationZ })
+      this.$emit('rotationChange', {
+        axis: this.currentAxis,
+        value: this[`rotation${this.currentAxis.toUpperCase()}`],
+        x: this.rotationX,
+        y: this.rotationY,
+        z: this.rotationZ
+      })
     },
     handleReset() {
       this.rotationX = 0
@@ -282,4 +333,3 @@ export default {
   z-index: 10;
 }
 </style>
-

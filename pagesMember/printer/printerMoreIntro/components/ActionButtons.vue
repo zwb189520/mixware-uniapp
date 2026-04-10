@@ -23,15 +23,19 @@ export default {
     }
   },
   computed: {
-    languageStore() { return useLanguageStore() },
-    texts() { return this.languageStore.texts.printer }
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.printer
+    }
   },
   methods: {
     handleReconfigure() {
-        uni.navigateTo({
-          url: '/pagesMember/printer/addDevice/addDevice'
-        })
-      },
+      uni.navigateTo({
+        url: '/pagesMember/printer/addDevice/addDevice'
+      })
+    },
     async handleUnbind() {
       if (!this.deviceId) {
         uni.showToast({
@@ -40,11 +44,11 @@ export default {
         })
         return
       }
-      
+
       uni.showModal({
         title: this.texts.confirmUnbind || '确认解除绑定',
         content: this.texts.confirmUnbindContent || '解除绑定后将无法控制此打印机，确定要继续吗？',
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             try {
               await deleteDevice(this.deviceId)
@@ -82,7 +86,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   border-radius: 48rpx;
   border: 2rpx solid rgba(255, 107, 53, 0.2);
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.1);
@@ -96,12 +100,12 @@ export default {
 }
 
 .unbind-button {
-  background: linear-gradient(135deg, #FFF9F5 0%, #FFE8DC 100%);
-  border-color: #FF6B35;
+  background: linear-gradient(135deg, #fff9f5 0%, #ffe8dc 100%);
+  border-color: #ff6b35;
 }
 
 .unbind-button .button-text {
-  color: #FF6B35;
+  color: #ff6b35;
 }
 
 .button-text {
@@ -110,5 +114,3 @@ export default {
   font-weight: 600;
 }
 </style>
-
-

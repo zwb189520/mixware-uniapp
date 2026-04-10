@@ -11,7 +11,7 @@
         </button>
       </view>
     </view>
-    
+
     <view v-if="!isBound" class="partner-unbound" @click="handleFindPartner">
       <view class="partner-content">
         <uni-icons type="search" size="24" color="#666"></uni-icons>
@@ -19,22 +19,36 @@
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
     </view>
-    
+
     <view v-else>
-      <view 
-        v-for="(printer, index) in printerList" 
+      <view
+        v-for="(printer, index) in printerList"
         :key="printer.id || printer.deviceId || index"
-        class="intro-entry" 
+        class="intro-entry"
         @click="handlePrinterIntro(printer)"
       >
         <view class="intro-content">
           <view class="printer-icon">
-            <image :src="printer.deviceImage || printer.image || '/static/images/3Dprinter.png'" mode="aspectFill" class="printer-img"></image>
+            <image
+              :src="printer.deviceImage || printer.image || '/static/images/3Dprinter.png'"
+              mode="aspectFill"
+              class="printer-img"
+            ></image>
           </view>
           <view class="printer-details">
-            <view class="printer-name">{{ printer.deviceName || printer.name || printer.deviceId || texts.my3DPrinter }}</view>
-            <view class="printer-status" :class="{ 'online': printer.deviceStatus === 1 || printer.status === 1, 'offline': printer.deviceStatus !== 1 && printer.status !== 1 }">
-              {{ printer.deviceStatus === 1 || printer.status === 1 ? texts.online : texts.offline }}
+            <view class="printer-name">{{
+              printer.deviceName || printer.name || printer.deviceId || texts.my3DPrinter
+            }}</view>
+            <view
+              class="printer-status"
+              :class="{
+                online: printer.deviceStatus === 1 || printer.status === 1,
+                offline: printer.deviceStatus !== 1 && printer.status !== 1
+              }"
+            >
+              {{
+                printer.deviceStatus === 1 || printer.status === 1 ? texts.online : texts.offline
+              }}
             </view>
           </view>
           <view class="printer-actions">
@@ -46,18 +60,18 @@
           </view>
         </view>
       </view>
-      
+
       <view class="add-printer-btn" @click="handleFindPartner">
         <uni-icons type="plus" size="20" color="#FF5A00"></uni-icons>
         <text class="add-text">{{ texts.addPrinter }}</text>
       </view>
     </view>
-    
+
     <!-- 添加打印机弹框 -->
-    <AddPrinterModal 
-      :visible="showAddPrinter" 
-      @select-printer="onSelectPrinter" 
-      @cancel="onCancelAddPrinter" 
+    <AddPrinterModal
+      :visible="showAddPrinter"
+      @select-printer="onSelectPrinter"
+      @cancel="onCancelAddPrinter"
     />
   </view>
 </template>
@@ -132,27 +146,27 @@ export default {
       uni.showModal({
         title: this.texts.unbindConfirmation,
         content: this.texts.unbindContent,
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             try {
               const result = await deleteDevice(deviceId)
               console.log('解绑结果:', result)
-              
+
               // 重置蓝牙适配器
               try {
                 await closeBluetooth()
                 console.log('蓝牙适配器已关闭')
-                
+
                 // 等待500ms让系统完全释放资源
                 await new Promise(resolve => setTimeout(resolve, 500))
-                
+
                 // 重新初始化蓝牙适配器
                 await import('@/utils/bluetooth').then(module => module.initBluetooth())
                 console.log('蓝牙适配器已重新初始化')
               } catch (bluetoothError) {
                 console.error('重置蓝牙适配器失败:', bluetoothError)
               }
-              
+
               uni.showToast({
                 title: this.texts.unbindSuccess,
                 icon: 'success'
@@ -170,12 +184,12 @@ export default {
       })
     },
     async onSelectPrinter(printerId) {
-        // 跳转到配网页面
-        uni.navigateTo({
-          url: `/pagesMember/printer/addDevice/addDevice?deviceId=${printerId}`
-        })
-        this.showAddPrinter = false
-      },
+      // 跳转到配网页面
+      uni.navigateTo({
+        url: `/pagesMember/printer/addDevice/addDevice?deviceId=${printerId}`
+      })
+      this.showAddPrinter = false
+    },
     onCancelAddPrinter() {
       this.showAddPrinter = false
     },
@@ -186,7 +200,14 @@ export default {
         if (res.data && res.data.records && res.data.records.length > 0) {
           this.isBound = true
           this.printerList = res.data.records
-          console.log('设备列表:', this.printerList.map(p => ({ id: p.id || p.deviceId, deviceStatus: p.deviceStatus, status: p.status })))
+          console.log(
+            '设备列表:',
+            this.printerList.map(p => ({
+              id: p.id || p.deviceId,
+              deviceStatus: p.deviceStatus,
+              status: p.status
+            }))
+          )
         } else {
           this.isBound = false
           this.printerList = []
@@ -203,7 +224,7 @@ export default {
 
 <style scoped>
 .printer-partner {
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
@@ -242,7 +263,7 @@ export default {
 
 .manage-btn {
   padding: 6rpx 18rpx;
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
   border-radius: 8rpx;
   border: none;
   margin: 0;
@@ -340,7 +361,7 @@ export default {
 
 .printer-status.offline {
   background-color: #fff2f0;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 .printer-actions {
@@ -360,14 +381,14 @@ export default {
 
 .unbind-text {
   font-size: 22rpx;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 .intro-entry {
-  border: 2rpx solid #FF5A00;
+  border: 2rpx solid #ff5a00;
   border-radius: 16rpx;
   padding: 20rpx;
-  background: linear-gradient(135deg, #FFF9F5 0%, #FFE8DC 100%);
+  background: linear-gradient(135deg, #fff9f5 0%, #ffe8dc 100%);
   transition: all 0.3s ease;
 }
 
@@ -381,7 +402,7 @@ export default {
 }
 
 .add-printer-btn {
-  border: 2rpx dashed #FF5A00;
+  border: 2rpx dashed #ff5a00;
   border-radius: 16rpx;
   padding: 30rpx;
   display: flex;
@@ -400,7 +421,6 @@ export default {
 
 .add-text {
   font-size: 28rpx;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 </style>
-

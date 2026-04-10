@@ -2,12 +2,12 @@
   <view class="page">
     <safe-area />
     <custom-navbar :title="texts.photography" @back="handleBack" />
-    
+
     <view class="main-view-container">
       <view class="main-view-header">
         <text class="main-view-title">{{ texts.mainView }}</text>
       </view>
-      
+
       <view class="upload-frame" @click="!uploadedImage ? handleUpload() : handleImageClick()">
         <view v-if="!uploadedImage" class="upload-content">
           <uni-icons type="plusempty" size="60" color="#ccc"></uni-icons>
@@ -20,15 +20,21 @@
           </view>
         </view>
       </view>
-      
+
       <view class="generate-section">
-        <button 
-          class="generate-3d-btn" 
-          :class="{ 'btn-disabled': !uploadedImage || isGenerating }" 
+        <button
+          class="generate-3d-btn"
+          :class="{ 'btn-disabled': !uploadedImage || isGenerating }"
           :disabled="!uploadedImage || isGenerating"
           @click="handleGenerate3D"
         >
-          <text>{{ isGenerating ? texts.generating : (uploadedImage ? texts.generate3DModel : texts.pleaseUpload) }}</text>
+          <text>{{
+            isGenerating
+              ? texts.generating
+              : uploadedImage
+                ? texts.generate3DModel
+                : texts.pleaseUpload
+          }}</text>
         </button>
       </view>
     </view>
@@ -72,7 +78,7 @@ export default {
     handleMore() {
       uni.showActionSheet({
         itemList: [this.texts.share, this.texts.report, this.texts.help],
-        success: (res) => {
+        success: res => {
           switch (res.tapIndex) {
             case 0:
               uni.showShareMenu()
@@ -89,10 +95,10 @@ export default {
     },
     handleUpload() {
       uni.chooseImage({
-        count:1,
+        count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
-        success: (res) => {
+        success: res => {
           const tempFilePaths = res.tempFilePaths[0]
           this.uploadedImage = tempFilePaths
           uni.showToast({
@@ -100,7 +106,7 @@ export default {
             icon: 'success'
           })
         },
-        fail: (err) => {
+        fail: err => {
           uni.showToast({
             title: this.texts.uploadFailed,
             icon: 'none'
@@ -108,17 +114,17 @@ export default {
         }
       })
     },
-    
+
     handleImageClick() {
       uni.showActionSheet({
         itemList: [this.texts.viewLargeImage, this.texts.changeImage],
-        success: (res) => {
+        success: res => {
           if (res.tapIndex === 0) {
             uni.previewImage({
               urls: [this.uploadedImage],
               current: this.uploadedImage
             })
-          } else if (res.tapIndex ===1) {
+          } else if (res.tapIndex === 1) {
             setTimeout(() => {
               this.handleUpload()
             }, 100)
@@ -126,7 +132,7 @@ export default {
         }
       })
     },
-    
+
     async handleGenerate3D() {
       if (!this.uploadedImage) {
         uni.showToast({
@@ -135,19 +141,19 @@ export default {
         })
         return
       }
-      
+
       this.isGenerating = true
-      
+
       try {
         uni.showLoading({
           title: this.texts.generating3D
         })
-        
+
         const res = await imageToModel(this.uploadedImage, '')
         console.log('完整响应数据:', res)
-        
+
         uni.hideLoading()
-        
+
         if ((res.code === 0 || res.code === 1) && res.data && (res.data.JobId || res.data.taskId)) {
           const jobId = res.data.JobId || res.data.taskId
 
@@ -176,10 +182,10 @@ export default {
           })
 
           setTimeout(() => {
-			  uni.navigateTo({
-			    url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${jobId}&name=生成的3D模型`
-			  })
-			}, 1500)
+            uni.navigateTo({
+              url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${jobId}&name=生成的3D模型`
+            })
+          }, 1500)
         } else {
           console.log('响应数据不符合预期:', res)
           uni.showToast({
@@ -205,7 +211,7 @@ export default {
 <style scoped>
 .page {
   height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .safe-area-top {
@@ -227,7 +233,7 @@ export default {
 }
 
 .upload-frame {
-  background: #FFF9F5;
+  background: #fff9f5;
   border: 2rpx dashed #ddd;
   border-radius: 16rpx;
   height: 400rpx;
@@ -238,8 +244,8 @@ export default {
 }
 
 .upload-frame:active {
-  background: #FFF9F5;
-  border-color: #FF5A00;
+  background: #fff9f5;
+  border-color: #ff5a00;
 }
 
 .upload-content {
@@ -261,7 +267,7 @@ export default {
 .generate-3d-btn {
   width: 100%;
   height: 88rpx;
-  background: #7ED321;
+  background: #7ed321;
   color: white;
   border: none;
   border-radius: 16rpx;
@@ -307,4 +313,3 @@ export default {
   font-size: 28rpx;
 }
 </style>
-

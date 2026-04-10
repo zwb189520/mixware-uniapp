@@ -78,7 +78,7 @@ const handlePrintFailureChange = (e: any) => {
 <style scoped>
 .message-settings-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content {
@@ -110,7 +110,7 @@ const handlePrintFailureChange = (e: any) => {
   font-size: 28rpx;
   color: #333;
   font-weight: 400;
-} 
+}
 
 .setting-desc {
   display: block;

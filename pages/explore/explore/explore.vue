@@ -2,9 +2,9 @@
   <view class="page-container">
     <!-- 顶部背景 -->
     <view class="header" :class="{ 'header-hidden': isSticky }">
-      <image class="bg-img" src="/static/images/explore-bg.png" mode="aspectFill"/>
+      <image class="bg-img" src="/static/images/explore-bg.png" mode="aspectFill" />
       <view class="banner">
-        <image class="logo" src="/static/images/logo.png" mode="aspectFit"/>
+        <image class="logo" src="/static/images/logo.png" mode="aspectFit" />
         <text class="welcome">{{ texts.welcome }}</text>
       </view>
     </view>
@@ -15,14 +15,14 @@
       <view class="sticky-bar">
         <!-- 固定空白区域 -->
         <view class="fixed-spacer"></view>
-        
+
         <!-- 搜索栏组件 -->
         <SearchBar
           :placeholder="texts.searchModel"
           :keyword="keyword"
           @search-click="handleSearchClick"
         />
-        
+
         <!-- 操作按钮 -->
         <!-- <view class="action-btns">
           <view class="action-btn upload-btn" @tap="uploadModel">
@@ -33,10 +33,18 @@
         <!-- 滑动标签 -->
         <view class="tabs-wrapper">
           <!-- 未展开状态：横向滚动Tab -->
-          <view class="tabs-container" :style="{ visibility: showTabsModal ? 'hidden' : 'visible' }">
-            <scroll-view scroll-x class="tabs-scroll" :show-scrollbar="false" :scroll-into-view="'tab-' + activeIndex">
+          <view
+            class="tabs-container"
+            :style="{ visibility: showTabsModal ? 'hidden' : 'visible' }"
+          >
+            <scroll-view
+              scroll-x
+              class="tabs-scroll"
+              :show-scrollbar="false"
+              :scroll-into-view="'tab-' + activeIndex"
+            >
               <view class="tabs">
-                <text 
+                <text
                   :id="'tab-' + index"
                   class="item"
                   v-for="(item, index) in tabs"
@@ -52,7 +60,7 @@
               <uni-icons type="down" size="20" color="#333"></uni-icons>
             </view>
           </view>
-          
+
           <!-- 展开状态：显示所有频道 -->
           <view v-if="showTabsModal" class="tabs-expanded">
             <view class="expanded-header" @tap="toggleTabsModal">
@@ -60,9 +68,9 @@
               <text class="channel-hint">{{ texts.channelHint }}</text>
               <uni-icons type="up" size="20" color="#333"></uni-icons>
             </view>
-            
+
             <view class="modal-tabs">
-              <view 
+              <view
                 class="modal-tab-item"
                 v-for="(item, index) in tabs"
                 :key="item.value"
@@ -74,15 +82,19 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 下拉刷新区域 -->
-        <view 
-          class="refresh-container" 
+        <view
+          class="refresh-container"
           :style="{ height: refreshHeight + 'px', opacity: refreshOpacity }"
         >
           <view class="refresh-content">
             <!-- 步骤1: 下拉中 -->
-            <view v-if="refreshStep === 1" class="refresh-arrow" :class="{ 'rotate': pullDistance > 40 }"></view>
+            <view
+              v-if="refreshStep === 1"
+              class="refresh-arrow"
+              :class="{ rotate: pullDistance > 40 }"
+            ></view>
             <!-- 步骤2: 松开刷新 -->
             <view v-else-if="refreshStep === 2" class="refresh-arrow rotate"></view>
             <!-- 步骤3: 刷新中 -->
@@ -93,18 +105,18 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 滑动容器 -->
-      <swiper 
-        class="swiper" 
+      <swiper
+        class="swiper"
         :current="activeIndex"
         @change="activeIndex = $event.detail.current"
         :class="{ 'is-sticky': isSticky }"
       >
         <swiper-item>
-          <scroll-view 
-            scroll-y 
-            class="content-scroll" 
+          <scroll-view
+            scroll-y
+            class="content-scroll"
             :show-scrollbar="false"
             @scrolltolower="loadMore"
             @touchstart="onTouchStart"
@@ -112,26 +124,28 @@
             @touchend="onTouchEnd"
             @scroll="handleScroll"
           >
-            
             <!-- 瀑布流布局组件 -->
-        <view v-if="!loading && !dailyLeftList.length && !dailyRightList.length" class="empty-tip">
-          {{ texts.noContent }}
-        </view>
-        <WaterfallLayout
-          v-else
-          :left-list="dailyLeftList"
-          :right-list="dailyRightList"
-          :slide-direction="slideDirection"
-          @card-click="handleModelClick"
-          @like-click="toggleLike"
-          @author-click="handleAuthorClick"
-        />
+            <view
+              v-if="!loading && !dailyLeftList.length && !dailyRightList.length"
+              class="empty-tip"
+            >
+              {{ texts.noContent }}
+            </view>
+            <WaterfallLayout
+              v-else
+              :left-list="dailyLeftList"
+              :right-list="dailyRightList"
+              :slide-direction="slideDirection"
+              @card-click="handleModelClick"
+              @like-click="toggleLike"
+              @author-click="handleAuthorClick"
+            />
           </scroll-view>
         </swiper-item>
         <swiper-item>
-          <scroll-view 
-            scroll-y 
-            class="content-scroll" 
+          <scroll-view
+            scroll-y
+            class="content-scroll"
             :show-scrollbar="false"
             @scrolltolower="loadMore"
             @touchstart="onTouchStart"
@@ -140,26 +154,26 @@
             @scroll="handleScroll"
           >
             <!-- 骨架屏 -->
-        
-        <!-- 瀑布流布局组件 -->
-        <view v-if="!loading && !hotLeftList.length && !hotRightList.length" class="empty-tip">
-          {{ texts.noContent }}
-        </view>
-        <WaterfallLayout
-          v-else
-          :left-list="hotLeftList"
-          :right-list="hotRightList"
-          :slide-direction="slideDirection"
-          @card-click="handleModelClick"
-          @like-click="toggleLike"
-          @author-click="handleAuthorClick"
-        />
+
+            <!-- 瀑布流布局组件 -->
+            <view v-if="!loading && !hotLeftList.length && !hotRightList.length" class="empty-tip">
+              {{ texts.noContent }}
+            </view>
+            <WaterfallLayout
+              v-else
+              :left-list="hotLeftList"
+              :right-list="hotRightList"
+              :slide-direction="slideDirection"
+              @card-click="handleModelClick"
+              @like-click="toggleLike"
+              @author-click="handleAuthorClick"
+            />
           </scroll-view>
         </swiper-item>
         <swiper-item>
-          <scroll-view 
-            scroll-y 
-            class="content-scroll" 
+          <scroll-view
+            scroll-y
+            class="content-scroll"
             :show-scrollbar="false"
             @scrolltolower="loadMore"
             @touchstart="onTouchStart"
@@ -168,26 +182,27 @@
             @scroll="handleScroll"
           >
             <!-- 骨架屏 -->
-        
-        <!-- 瀑布流布局组件 -->
-        <view v-if="!loading && !categoryLeftList.length && !categoryRightList.length" class="empty-tip">
-          {{ texts.noContent }}
-        </view>
-        <WaterfallLayout
-          v-else
-          :left-list="categoryLeftList"
-          :right-list="categoryRightList"
-          :slide-direction="slideDirection"
-          @card-click="handleModelClick"
-          @like-click="toggleLike"
-          @author-click="handleAuthorClick"
-        />
+
+            <!-- 瀑布流布局组件 -->
+            <view
+              v-if="!loading && !categoryLeftList.length && !categoryRightList.length"
+              class="empty-tip"
+            >
+              {{ texts.noContent }}
+            </view>
+            <WaterfallLayout
+              v-else
+              :left-list="categoryLeftList"
+              :right-list="categoryRightList"
+              :slide-direction="slideDirection"
+              @card-click="handleModelClick"
+              @like-click="toggleLike"
+              @author-click="handleAuthorClick"
+            />
           </scroll-view>
         </swiper-item>
       </swiper>
     </view>
-
-
   </view>
 </template>
 
@@ -196,7 +211,14 @@
 import SearchBar from './components/SearchBar.vue'
 import CategoryTabs from './components/CategoryTabs.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
-import { getModelPage, addModel, deleteModel, likeModel, unlikeModel, checkModelLike } from '@/api/models.ts'
+import {
+  getModelPage,
+  addModel,
+  deleteModel,
+  likeModel,
+  unlikeModel,
+  checkModelLike
+} from '@/api/models.ts'
 import { uploadImages } from '@/api/upload.ts'
 import { uploadModelFile } from '@/api/upload.ts'
 import { getHotExamples } from '@/api/session.ts'
@@ -236,7 +258,7 @@ export default {
       categoryLeftList,
       categoryRightList
     } = storeToRefs(exploreStore)
-    
+
     return {
       exploreStore,
       languageStore,
@@ -291,13 +313,13 @@ export default {
     this.languageStore.loadLanguage()
     this.loadModels()
     this.loadHotTags()
-    
+
     // 监听帖子删除事件
     uni.$on('postDeleted', () => {
       this.loadModels()
     })
     // 监听模型点赞状态变化
-    uni.$on('modelLikeChanged', (data) => {
+    uni.$on('modelLikeChanged', data => {
       if (data && data.modelId) {
         this.exploreStore.updateModelLike(data.modelId, data.isLiked, data.likes)
       }
@@ -328,7 +350,7 @@ export default {
       const absDiffX = Math.abs(diffX)
       const absDiffY = Math.abs(diffY)
       this.pullDistance = diffY
-      
+
       // 还没确定方向时，判断主方向
       if (!this.isHorizontalSwipe && !this.isPulling) {
         if (absDiffX > absDiffY && absDiffX > 10) {
@@ -340,16 +362,16 @@ export default {
           this.isPulling = true
         }
       }
-      
+
       if (this.isHorizontalSwipe) {
         return
       }
-      
+
       if (diffY > 0 && this.isPulling) {
         this.isSticky = false
         this.refreshHeight = Math.min(diffY, 100)
         this.refreshOpacity = Math.min(diffY / 80, 1)
-        
+
         if (diffY > 40) {
           this.refreshStep = 2
           this.refreshingText = this.texts.releaseToRefresh
@@ -358,7 +380,7 @@ export default {
           this.refreshingText = this.texts.pullToRefresh
         }
       }
-      
+
       if (diffY < 0 && this.isPulling) {
         this.refreshHeight = 0
         this.refreshOpacity = 0
@@ -387,7 +409,7 @@ export default {
         this.isPulling = false
         return
       }
-      
+
       if (this.refreshHeight > 40) {
         this.refreshing = true
         this.refreshStep = 3
@@ -416,15 +438,16 @@ export default {
         this.refreshingText = ''
       }, 800)
     },
-    loadMore() {
-    },
+    loadMore() {},
     async loadHotTags() {
       if (!uni.getStorageSync('isLoggedIn')) return
       try {
         const res = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
-            this.exploreStore.setHotTags(res.data.map(item => item.title || item.describe || '').filter(tag => tag.trim()))
+            this.exploreStore.setHotTags(
+              res.data.map(item => item.title || item.describe || '').filter(tag => tag.trim())
+            )
           }
         }
       } catch (error) {
@@ -439,7 +462,7 @@ export default {
           current: params.current || 1,
           size: params.size || 100
         })
-        
+
         if (res.code === 1 && res.data && res.data.records) {
           this.assignModelsToTabs(res.data.records)
         }
@@ -449,29 +472,29 @@ export default {
         this.exploreStore.setLoading(false)
       }
     },
-    
+
     // 映射API分类到tab分类 - 优化移动端显示
     mapCategoryToTab(apiCategory) {
       if (!apiCategory) return 'daily'
-      
+
       const categoryMap = {
-        '日用居家': 'daily',
-        '玩具手办': 'hot', 
-        '亲子互动': 'category',
-        '学习探索': 'category',
-        '其他': 'category',
-        '高速打印': 'category'
+        日用居家: 'daily',
+        玩具手办: 'hot',
+        亲子互动: 'category',
+        学习探索: 'category',
+        其他: 'category',
+        高速打印: 'category'
       }
-      
+
       return categoryMap[apiCategory] || 'daily'
     },
-    
+
     assignModelsToTabs(models) {
       if (!models.length) {
         return
       }
-      
-      const fixImageUrl = (url) => {
+
+      const fixImageUrl = url => {
         if (!url) return '/static/images/logo.png'
         if (url.includes('localhost:9000')) {
           return url.replace('localhost:9000', '47.102.212.37:9000')
@@ -481,43 +504,45 @@ export default {
         }
         return url
       }
-      
+
       const formattedModels = models.map(model => ({
         id: model.modelId,
         name: model.name || '未命名模型',
         desc: model.name || model.description || '暂无描述',
         image: fixImageUrl(model.previewUrl),
         author: model.username || '',
-        authorAvatar: model.avatarUrl ? fixImageUrl(model.avatarUrl) : '/static/images/Default avatar.png',
+        authorAvatar: model.avatarUrl
+          ? fixImageUrl(model.avatarUrl)
+          : '/static/images/Default avatar.png',
         likes: model.likeCount || 0,
         isLiked: model.isLiked || false,
         viewCount: model.viewCount || 0,
         category: this.mapCategoryToTab(model.category)
       }))
-      
+
       const tabData = {
         daily: formattedModels.filter(m => m.category === 'daily'),
         hot: formattedModels.filter(m => m.category === 'hot' || m.viewCount > 1000),
         category: formattedModels.filter(m => m.category !== 'daily' && m.category !== 'hot')
       }
-      
+
       this.dailyModels = tabData.daily
       this.hotModels = tabData.hot
       this.categoryModels = tabData.category
-      
+
       this.exploreStore.setDailyModels(this.dailyModels)
       this.exploreStore.setHotModels(this.hotModels)
       this.exploreStore.setCategoryModels(this.categoryModels)
-      
+
       // 登录后获取真实点赞状态
       if (uni.getStorageSync('isLoggedIn')) {
         this.loadLikeStatus(formattedModels)
       }
     },
-    
+
     async loadLikeStatus(models) {
       try {
-        const checkPromises = models.map(model => 
+        const checkPromises = models.map(model =>
           checkModelLike(model.id).catch(() => ({ code: 0, data: false }))
         )
         const results = await Promise.all(checkPromises)
@@ -534,11 +559,11 @@ export default {
         console.warn('获取点赞状态失败:', e)
       }
     },
-    
+
     switchTab(tab) {
       const tabs = ['daily', 'hot', 'category']
       const tabIndex = tabs.indexOf(tab)
-      if(tabIndex !== -1) {
+      if (tabIndex !== -1) {
         this.activeIndex = tabIndex
       }
       this.exploreStore.setCurrentTab(tab)
@@ -546,7 +571,7 @@ export default {
         uni.pageScrollTo({ scrollTop: 0, duration: 0 })
       })
     },
-    handleSearch() { 
+    handleSearch() {
       this.searchModels(this.keyword)
       this.exploreStore.setShowSearch(false)
     },
@@ -558,7 +583,7 @@ export default {
         })
         return
       }
-      
+
       this.exploreStore.setLoading(true)
       try {
         const res = await getModelPage({
@@ -566,13 +591,15 @@ export default {
           size: 20,
           name: keyword
         })
-        
+
         if (res.code === 1 && res.data && res.data.records) {
-          const fixImageUrl = (url) => {
+          const fixImageUrl = url => {
             if (!url) return '/static/images/logo.png'
-            return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
+            return url
+              .replace('localhost:9000', '47.102.212.37:9000')
+              .replace('api/uploads/image', '9000/image')
           }
-          
+
           const formattedModels = res.data.records.map(model => ({
             id: model.modelId,
             name: model.name || '未命名模型',
@@ -585,7 +612,7 @@ export default {
             viewCount: model.viewCount || 0,
             category: this.mapCategoryToTab(model.category)
           }))
-          
+
           if (this.currentTab === 'daily') {
             this.dailyModels = formattedModels
             this.exploreStore.setDailyModels(formattedModels)
@@ -596,7 +623,7 @@ export default {
             this.categoryModels = formattedModels
             this.exploreStore.setCategoryModels(formattedModels)
           }
-          
+
           uni.showToast({
             title: `找到 ${formattedModels.length} 个相关结果`,
             icon: 'success',
@@ -622,13 +649,13 @@ export default {
       uni.scanCode({
         onlyFromCamera: true,
         scanType: ['qrCode', 'barCode'],
-        success: (res) => {
+        success: res => {
           console.log('扫码成功:', res)
           if (res.result) {
             this.handleScanResult(res.result)
           }
         },
-        fail: (err) => {
+        fail: err => {
           console.error('扫码失败:', err)
           uni.showToast({
             title: this.texts.scanFailed || '扫码失败',
@@ -643,7 +670,7 @@ export default {
         try {
           const res = await parseSnCode(result)
           uni.hideLoading()
-          
+
           if (res.data) {
             uni.showToast({
               title: this.texts.parseSuccess || '解析成功',
@@ -667,13 +694,12 @@ export default {
         }
       }
     },
-    handleCamera() {
-    },
+    handleCamera() {},
     handleTagClick(tag) {
       this.exploreStore.setKeyword(tag)
       this.searchModels(tag)
     },
-    handleModelClick(item) { 
+    handleModelClick(item) {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
@@ -684,8 +710,7 @@ export default {
         url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
       })
     },
-    handleAuthorClick(item) {
-    },
+    handleAuthorClick(item) {},
     async toggleLike(item) {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({
@@ -699,9 +724,7 @@ export default {
       }
 
       try {
-        const res = item.isLiked
-          ? await unlikeModel(item.id)
-          : await likeModel(item.id)
+        const res = item.isLiked ? await unlikeModel(item.id) : await likeModel(item.id)
         if (res.code === 1) {
           const newIsLiked = !item.isLiked
           const newLikes = item.likes + (newIsLiked ? 1 : -1)
@@ -725,37 +748,39 @@ export default {
         })
       }
     },
-    
+
     goToSearchPage() {
       const pages = getCurrentPages()
       const currentPageRoute = pages[pages.length - 1].route
       if (currentPageRoute === 'pages/explore/search/search') {
         return
       }
-      
+
       uni.navigateTo({
         url: `/pages/explore/search/search?keyword=${encodeURIComponent(this.keyword || '')}`
       })
     },
-    
+
     handleSearchClick() {
       this.goToSearchPage()
     },
-    
+
     selectTab(index) {
       this.activeIndex = index
       this.showTabsModal = false
     },
-    
+
     toggleTabsModal() {
       this.showTabsModal = !this.showTabsModal
     },
-    
+
     async uploadModel() {
       // 步骤提示
       const modalRes = await this.showModalPromise({
         title: this.texts.uploadSteps || '上传步骤',
-        content: this.texts.uploadStepsContent || '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传'
+        content:
+          this.texts.uploadStepsContent ||
+          '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传'
       })
       if (!modalRes.confirm) return
 
@@ -763,20 +788,32 @@ export default {
         // 选择预览图片
         const imgRes = await this.chooseImagePromise({ count: 1 })
         const imgPath = imgRes.tempFilePaths[0]
-        uni.showToast({ title: this.texts.imageSelected || '已选择图片', icon: 'none', duration: 1000 })
+        uni.showToast({
+          title: this.texts.imageSelected || '已选择图片',
+          icon: 'none',
+          duration: 1000
+        })
 
         // 选择STL文件
         const stlRes = await this.chooseFilePromise({ count: 1, type: 'all' })
         const stlFile = stlRes.tempFiles[0]
         const stlPath = stlFile.path
         const stlName = stlFile.name || 'model.stl'
-        uni.showToast({ title: this.texts.stlFileSelected || '已选择STL文件', icon: 'none', duration: 1000 })
+        uni.showToast({
+          title: this.texts.stlFileSelected || '已选择STL文件',
+          icon: 'none',
+          duration: 1000
+        })
 
         // 选择分类
         const categories = ['日用居家', '玩具手办', '亲子互动', '学习探索', '其他', '高速打印']
         const sheetRes = await this.showActionSheetPromise({ itemList: categories })
         const selectedCategory = categories[sheetRes.tapIndex]
-        uni.showToast({ title: this.texts.categorySelected || '已选择分类', icon: 'none', duration: 1000 })
+        uni.showToast({
+          title: this.texts.categorySelected || '已选择分类',
+          icon: 'none',
+          duration: 1000
+        })
 
         // 输入模型名称
         const inputRes = await this.showModalPromise({
@@ -804,7 +841,9 @@ export default {
         // 上传STL文件
         const stlUploadRes = await uploadModelFile(stlPath)
         if (stlUploadRes.code !== 1 && stlUploadRes.code !== 200) {
-          throw new Error(`STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`)
+          throw new Error(
+            `STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`
+          )
         }
 
         // 获取用户信息
@@ -812,7 +851,9 @@ export default {
         const userId = userInfo?.userId || userInfo?.id || ''
 
         // 添加模型记录
-        const previewUrl = imgUploadRes[0].data.files ? imgUploadRes[0].data.files[0].fileUrl : imgUploadRes[0].data
+        const previewUrl = imgUploadRes[0].data.files
+          ? imgUploadRes[0].data.files[0].fileUrl
+          : imgUploadRes[0].data
         const downloadUrl = stlUploadRes.data.fileUrl || stlUploadRes.data
 
         await addModel({
@@ -830,13 +871,16 @@ export default {
         this.loadModels()
       } catch (error) {
         uni.hideLoading()
-        uni.showToast({ title: error.message || this.texts.uploadFailed || '上传失败', icon: 'none' })
+        uni.showToast({
+          title: error.message || this.texts.uploadFailed || '上传失败',
+          icon: 'none'
+        })
       }
     },
 
     // Promise 封装
     showModalPromise(options) {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         uni.showModal({ ...options, success: resolve, fail: () => resolve({ cancel: true }) })
       })
     },
@@ -860,7 +904,7 @@ export default {
           const input = document.createElement('input')
           input.type = 'file'
           input.accept = '.stl,.STL'
-          input.onchange = (e) => {
+          input.onchange = e => {
             const file = e.target.files[0]
             if (file) {
               resolve({ tempFiles: [{ path: file, name: file.name }] })
@@ -889,7 +933,7 @@ export default {
 <style scoped>
 .page-container {
   height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content-scroll {
@@ -939,32 +983,37 @@ export default {
   width: 140rpx;
   height: 140rpx;
   margin-bottom: 24rpx;
-  filter: drop-shadow(0 8rpx 16rpx rgba(0,0,0,0.15));
+  filter: drop-shadow(0 8rpx 16rpx rgba(0, 0, 0, 0.15));
   /* animation: float 3s ease-in-out infinite; */
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10rpx); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10rpx);
+  }
 }
 
 .welcome {
   font-size: 28rpx;
   color: #fff;
   font-weight: 600;
-  text-shadow: 0 4rpx 12rpx rgba(0,0,0,0.2);
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
   letter-spacing: 1rpx;
 }
 
 .main-card {
-  background: #FFF9F5;
+  background: #fff9f5;
   border-top-left-radius: 40rpx;
   border-top-right-radius: 40rpx;
   margin-top: -30rpx;
   padding-top: 24rpx;
   position: relative;
   z-index: 1;
-  box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.08);
+  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   height: calc(100vh - 290rpx);
   display: flex;
@@ -984,13 +1033,13 @@ export default {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #FFF9F5;
+  background: #fff9f5;
   padding-bottom: 8rpx;
 }
 
 .fixed-spacer {
   height: 20rpx;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .refresh-container {
@@ -1012,8 +1061,8 @@ export default {
 .refresh-spinner {
   width: 56rpx;
   height: 56rpx;
-  border: 5rpx solid rgba(255,90,0,0.15);
-  border-top: 5rpx solid #FF5A00;
+  border: 5rpx solid rgba(255, 90, 0, 0.15);
+  border-top: 5rpx solid #ff5a00;
   border-radius: 50%;
   margin-bottom: 12rpx;
 }
@@ -1027,7 +1076,7 @@ export default {
   height: 0;
   border-left: 16rpx solid transparent;
   border-right: 16rpx solid transparent;
-  border-bottom: 24rpx solid #FF5A00;
+  border-bottom: 24rpx solid #ff5a00;
   margin-bottom: 12rpx;
   transition: transform 0.2s;
 }
@@ -1040,7 +1089,7 @@ export default {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: #FF5A00;
+  background: #ff5a00;
   color: white;
   display: flex;
   align-items: center;
@@ -1051,13 +1100,13 @@ export default {
 
 .refresh-text {
   font-size: 24rpx;
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 600;
 }
 
 .tabs-wrapper {
   position: relative;
-  background: #FFF9F5;
+  background: #fff9f5;
   z-index: 10;
 }
 
@@ -1093,7 +1142,7 @@ export default {
 }
 
 .item.active {
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 700;
 }
 
@@ -1105,7 +1154,7 @@ export default {
   transform: translateX(-50%);
   width: 40rpx;
   height: 6rpx;
-  background: linear-gradient(90deg, #FF5A00 0%, #FF8A00 100%);
+  background: linear-gradient(90deg, #ff5a00 0%, #ff8a00 100%);
   border-radius: 3rpx;
 }
 
@@ -1122,7 +1171,7 @@ export default {
   justify-content: center;
   gap: 20rpx;
   padding: 20rpx 32rpx;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .action-btn {
@@ -1140,7 +1189,7 @@ export default {
 }
 
 .upload-btn {
-  background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+  background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);
 }
 
 .tabs-expanded {
@@ -1149,7 +1198,7 @@ export default {
   left: 0;
   right: 0;
   padding: 24rpx 32rpx;
-  background: #FFF9F5;
+  background: #fff9f5;
   z-index: 100;
   animation: fadeIn 0.3s ease-out;
 }
@@ -1191,7 +1240,7 @@ export default {
 
 .modal-tab-item {
   padding: 12rpx 10rpx;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 16rpx;
   text-align: center;
   transition: all 0.3s;
@@ -1199,8 +1248,8 @@ export default {
 }
 
 .modal-tab-item.active {
-  background: rgba(255,90,0,0.1);
-  border: 2rpx solid #FF5A00;
+  background: rgba(255, 90, 0, 0.1);
+  border: 2rpx solid #ff5a00;
 }
 
 .tab-text {
@@ -1210,13 +1259,13 @@ export default {
 }
 
 .modal-tab-item.active .tab-text {
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 700;
 }
 
 .explore-more {
   padding: 24rpx;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 16rpx;
   text-align: left;
 }
@@ -1227,21 +1276,24 @@ export default {
   font-weight: 600;
 }
 
-  .empty-tip {
-    text-align: center;
-    padding: 60rpx 0;
-    font-size: 28rpx;
-    color: #999;
-  }
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  font-size: 28rpx;
+  color: #999;
+}
 
-  .swiper {
+.swiper {
   flex: 1;
   height: auto;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
-

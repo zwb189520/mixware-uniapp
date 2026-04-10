@@ -5,7 +5,7 @@
         <view class="decoration-circle decoration-circle-1"></view>
         <view class="decoration-circle decoration-circle-2"></view>
       </view>
-      
+
       <view class="modal-header">
         <view class="header-left">
           <text class="modal-icon">📝</text>
@@ -15,11 +15,11 @@
           <text>×</text>
         </view>
       </view>
-      
+
       <view class="modal-body">
         <view class="input-wrapper">
           <text class="input-icon">🔖</text>
-          <input 
+          <input
             class="input-field"
             v-model="inputValue"
             :placeholder="displayPlaceholder"
@@ -27,13 +27,13 @@
             @confirm="handleConfirm"
           />
         </view>
-        
+
         <view v-if="displayHint" class="input-hint">
           <view class="hint-icon">💡</view>
           <text class="hint-text">{{ displayHint }}</text>
         </view>
       </view>
-      
+
       <view class="modal-footer">
         <button class="modal-btn cancel-btn" @click="handleCancel">
           <text>{{ displayCancelText }}</text>
@@ -267,7 +267,7 @@ export default {
 }
 
 .input-wrapper:focus-within {
-  border-color: #FF5A00;
+  border-color: #ff5a00;
   background: #fff;
 }
 
@@ -336,10 +336,7 @@ export default {
 }
 
 .modal-btn.confirm-btn {
-  background: linear-gradient(135deg, #FF5A00, #FF8C00);
+  background: linear-gradient(135deg, #ff5a00, #ff8c00);
   color: #fff;
 }
 </style>
-
-
-

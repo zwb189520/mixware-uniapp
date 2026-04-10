@@ -34,17 +34,17 @@
         <text class="section-title">{{ texts.section8Title }}</text>
         <text class="section-content">{{ texts.section8Content }}</text>
       </view>
-      
+
       <view class="agreement-section">
         <text class="section-title">{{ texts.section9Title }}</text>
         <text class="section-content">{{ texts.section9Content }}</text>
       </view>
-      
+
       <view class="agreement-section">
         <text class="section-title">{{ texts.section10Title }}</text>
         <text class="section-content">{{ texts.section10Content }}</text>
       </view>
-      
+
       <view class="agreement-section">
         <text class="section-title">{{ texts.section11Title }}</text>
         <text class="section-content">{{ texts.section11Content }}</text>
@@ -85,7 +85,7 @@ export default {
 <style scoped>
 .mixware-agreement-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content {
@@ -114,5 +114,3 @@ export default {
   line-height: 1.8;
 }
 </style>
-
-

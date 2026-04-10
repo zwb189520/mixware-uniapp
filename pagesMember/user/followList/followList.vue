@@ -2,17 +2,17 @@
   <view class="follow-page">
     <safe-area />
     <custom-navbar :title="pageTitle" @back="handleBack" />
-    
+
     <view class="tabs">
-      <view 
-        class="tab-item" 
+      <view
+        class="tab-item"
         :class="{ active: activeTab === 'following' }"
         @click="switchTab('following')"
       >
         <text class="tab-text">{{ texts.following }} {{ followingCount }}</text>
       </view>
-      <view 
-        class="tab-item" 
+      <view
+        class="tab-item"
         :class="{ active: activeTab === 'followers' }"
         @click="switchTab('followers')"
       >
@@ -21,9 +21,9 @@
     </view>
 
     <scroll-view class="user-list" scroll-y>
-      <view 
-        v-for="user in currentList" 
-        :key="user.userId" 
+      <view
+        v-for="user in currentList"
+        :key="user.userId"
         class="user-item"
         @click="goToUserProfile(user.userId)"
       >
@@ -32,17 +32,19 @@
           <text class="user-name">{{ user.username }}</text>
           <text class="user-desc">{{ user.bio || texts.noDescription }}</text>
         </view>
-        <view 
-          class="follow-btn" 
+        <view
+          class="follow-btn"
           :class="{ followed: user.isFollowing }"
           @click.stop="handleFollowToggle(user)"
         >
           <text class="follow-text">{{ user.isFollowing ? texts.followed : texts.follow }}</text>
         </view>
       </view>
-      
+
       <view v-if="currentList.length === 0" class="empty-state">
-        <text class="empty-text">{{ activeTab === 'following' ? texts.noFollowing : texts.noFollowers }}</text>
+        <text class="empty-text">{{
+          activeTab === 'following' ? texts.noFollowing : texts.noFollowers
+        }}</text>
       </view>
     </scroll-view>
   </view>
@@ -86,7 +88,7 @@ export default {
     this.userId = options.userId || uni.getStorageSync('userInfo')?.userId || ''
     this.activeTab = options.tab || 'following'
     this.languageStore.loadLanguage()
-    
+
     if (this.userId) {
       this.loadFollowingList()
       this.loadFollowersList()
@@ -132,12 +134,12 @@ export default {
           })
           return
         }
-        
+
         const res = await toggleFollow(user.userId)
         if (res.code === 0) {
           const isFollowing = res.data
           user.isFollowing = isFollowing
-          
+
           // 如果当前是关注列表，取消关注后从列表中移除该用户
           if (this.activeTab === 'following' && !isFollowing) {
             const index = this.followingList.findIndex(u => u.userId === user.userId)
@@ -146,17 +148,17 @@ export default {
               this.followingCount--
             }
           }
-          
+
           // 如果当前是粉丝列表，更新关注状态即可
           if (this.activeTab === 'followers') {
             // 重新加载粉丝列表以确保数据一致性
             this.loadFollowersList()
           }
-          
+
           // 重新加载关注列表和粉丝数，确保数据准确
           this.loadFollowingList()
           this.loadFollowersList()
-          
+
           uni.showToast({
             title: isFollowing ? this.texts.followSuccess : this.texts.unfollowSuccess,
             icon: 'success'
@@ -184,7 +186,7 @@ export default {
 <style scoped>
 .follow-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
   display: flex;
   flex-direction: column;
 }
@@ -211,7 +213,7 @@ export default {
   transform: translateX(-50%);
   width: 60rpx;
   height: 4rpx;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ff5a00 0%, #ff8c00 100%);
   border-radius: 2rpx;
 }
 
@@ -222,7 +224,7 @@ export default {
 }
 
 .tab-item.active .tab-text {
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 600;
 }
 
@@ -269,7 +271,7 @@ export default {
 .follow-btn {
   padding: 12rpx 32rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ff5a00 0%, #ff8c00 100%);
 }
 
 .follow-btn.followed {
@@ -296,6 +298,3 @@ export default {
   color: #999;
 }
 </style>
-
-
-

@@ -1,10 +1,6 @@
 ﻿<template>
   <view class="printer-image-container">
-    <image 
-      class="printer-image" 
-      :src="printerImage" 
-      mode="aspectFit"
-    />
+    <image class="printer-image" :src="printerImage" mode="aspectFit" />
   </view>
 </template>
 
@@ -34,7 +30,12 @@ export default {
   position: absolute;
   width: 480rpx;
   height: 480rpx;
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.12) 0%, rgba(255, 142, 83, 0.04) 50%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 53, 0.12) 0%,
+    rgba(255, 142, 83, 0.04) 50%,
+    transparent 70%
+  );
   border-radius: 50%;
   animation: glow 3s ease-in-out infinite;
 }
@@ -50,13 +51,24 @@ export default {
 }
 
 @keyframes glow {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.15); opacity: 0.9; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.9;
+  }
 }
 
 @keyframes rotate-border {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .printer-image {
@@ -69,9 +81,12 @@ export default {
 }
 
 @keyframes float-printer {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15rpx); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15rpx);
+  }
 }
 </style>
-
-

@@ -2,8 +2,13 @@
   <view class="chat-page">
     <safe-area />
     <custom-navbar :title="texts.chat" @back="handleBack" />
-    
-    <scroll-view class="message-list" scroll-y :scroll-with-animation="true" :scroll-into-view="scrollIntoView">
+
+    <scroll-view
+      class="message-list"
+      scroll-y
+      :scroll-with-animation="true"
+      :scroll-into-view="scrollIntoView"
+    >
       <view
         v-for="(msg, index) in messages"
         :key="msg.id"
@@ -16,19 +21,23 @@
           <text class="bubble-text">{{ msg.content }}</text>
         </view>
       </view>
-      
+
       <view :id="bottomAnchorId" class="bottom-anchor"></view>
     </scroll-view>
 
     <view class="input-bar">
-      <view 
+      <view
         class="voice-btn"
         :class="{ recording: isRecording }"
         @touchstart="startRecord"
         @touchend="stopRecord"
         @touchcancel="cancelRecord"
       >
-        <uni-icons :type="isRecording ? 'mic-filled' : 'mic'" size="22" :color="isRecording ? '#FF5A00' : '#666'"></uni-icons>
+        <uni-icons
+          :type="isRecording ? 'mic-filled' : 'mic'"
+          size="22"
+          :color="isRecording ? '#FF5A00' : '#666'"
+        ></uni-icons>
       </view>
       <input
         class="input"
@@ -40,17 +49,10 @@
         :disabled="isGenerating"
         :adjust-position="false"
       />
-      <button
-        v-if="isGenerating"
-        class="stop-btn"
-        @tap="handleStop"
-      >{{ texts.stop }}</button>
-      <button
-        v-else
-        class="send-btn"
-        :disabled="!promptText.trim()"
-        @tap="handleGenerate3D"
-      >{{ texts.send }}</button>
+      <button v-if="isGenerating" class="stop-btn" @tap="handleStop">{{ texts.stop }}</button>
+      <button v-else class="send-btn" :disabled="!promptText.trim()" @tap="handleGenerate3D">
+        {{ texts.send }}
+      </button>
     </view>
   </view>
 </template>
@@ -98,7 +100,7 @@ export default {
     handleMore() {
       uni.showActionSheet({
         itemList: [this.texts.share, this.texts.report, this.texts.help],
-        success: (res) => {
+        success: res => {
           switch (res.tapIndex) {
             case 0:
               uni.showShareMenu()
@@ -122,9 +124,9 @@ export default {
         })
         return
       }
-      
+
       this.isGenerating = true
-      
+
       const userMsg = {
         id: `user-${Date.now()}`,
         role: 'user',
@@ -133,20 +135,24 @@ export default {
       this.messages.push(userMsg)
       this.promptText = ''
       this.scrollToBottom()
-      
+
       try {
         uni.showLoading({
           title: this.texts.generating3D
         })
-        
+
         const res = await textToModel(content)
-        
+
         uni.hideLoading()
-        
+
         console.log('文生模型响应:', res)
         console.log('响应数据详情:', JSON.stringify(res))
-        
-        if ((res.code === 0 || res.code === 1) && res.data && (res.data.taskId || res.data.JobId || res.data.RequestId)) {
+
+        if (
+          (res.code === 0 || res.code === 1) &&
+          res.data &&
+          (res.data.taskId || res.data.JobId || res.data.RequestId)
+        ) {
           const jobId = res.data.taskId || res.data.JobId || res.data.RequestId
 
           try {
@@ -189,7 +195,7 @@ export default {
         } else {
           const errorMsg = res.data?.message || res.msg || this.texts.generateFailed
           console.error('生成失败:', errorMsg, '完整响应:', res)
-          
+
           const aiMsg = {
             id: `ai-${Date.now()}`,
             role: 'assistant',
@@ -197,7 +203,7 @@ export default {
           }
           this.messages.push(aiMsg)
           this.scrollToBottom()
-          
+
           uni.showToast({
             title: errorMsg,
             icon: 'none'
@@ -205,7 +211,7 @@ export default {
         }
       } catch (error) {
         uni.hideLoading()
-        
+
         const aiMsg = {
           id: `ai-${Date.now()}`,
           role: 'assistant',
@@ -213,7 +219,7 @@ export default {
         }
         this.messages.push(aiMsg)
         this.scrollToBottom()
-        
+
         uni.showToast({
           title: error.message || this.texts.generate3DFailed,
           icon: 'none'
@@ -229,7 +235,7 @@ export default {
     initRecorder() {
       if (!this.recorderManager) {
         this.recorderManager = uni.getRecorderManager()
-        this.recorderManager.onStop(async (res) => {
+        this.recorderManager.onStop(async res => {
           if (res.duration < 500) {
             uni.showToast({ title: this.texts.recordingTooShort || '录音时间太短', icon: 'none' })
             return
@@ -244,7 +250,10 @@ export default {
                 this.handleGenerate3D()
               }
             } else {
-              uni.showToast({ title: result.msg || this.texts.recognitionFailed || '识别失败', icon: 'none' })
+              uni.showToast({
+                title: result.msg || this.texts.recognitionFailed || '识别失败',
+                icon: 'none'
+              })
             }
           } catch (err) {
             uni.hideLoading()
@@ -287,195 +296,193 @@ export default {
 
 <style scoped>
 .chat-page {
-	display: flex;
-	flex-direction: column;
-	height: 100vh;
-	position: relative;
-	background: #FFF9F5;
-	overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  background: #fff9f5;
+  overflow: hidden;
 }
 
 .chat-page::before {
-	content: '';
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: #FFF9F5;
-	z-index: -1;
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff9f5;
+  z-index: -1;
 }
 
 .message-list {
-	flex: 1;
-	padding: 12px 12px 80px;
-	box-sizing: border-box;
-	background: transparent;
-	overflow-y: auto;
+  flex: 1;
+  padding: 12px 12px 80px;
+  box-sizing: border-box;
+  background: transparent;
+  overflow-y: auto;
 }
 
 .message-row {
-	display: flex;
-	margin-bottom: 12px;
+  display: flex;
+  margin-bottom: 12px;
 }
 
 .message-row.from-user {
-	flex-direction: row-reverse;
+  flex-direction: row-reverse;
 }
 
 .avatar {
-	width: 36px;
-	height: 36px;
-	border-radius: 18px;
-	background: #FF5A00;
-	color: #fff;
-	font-size: 14px;
-	font-weight: 600;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin: 0 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background: #ff5a00;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 8px;
 }
 
 .from-user .avatar {
-	background: #7ED321;
+  background: #7ed321;
 }
 
 .bubble {
-	max-width: 75%;
-	padding: 10px 12px;
-	border-radius: 12px;
-	background: #ffffff;
-	font-size: 15px;
-	line-height: 1.5;
-	color: #222;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-	white-space: pre-wrap;
+  max-width: 75%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #222;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  white-space: pre-wrap;
 }
 
 .from-user .bubble {
-	background: #7ED321;
-	color: #fff;
+  background: #7ed321;
+  color: #fff;
 }
 
 .bottom-anchor {
-	height: 1px;
+  height: 1px;
 }
 
 .input-bar {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	display: flex;
-	align-items: center;
-	padding: 10px 12px;
-	background: #ffffff;
-	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
-	gap: 8px;
-	z-index: 2;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: #ffffff;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  gap: 8px;
+  z-index: 2;
 }
 
 .input {
-	flex: 1;
-	height: 40px;
-	padding: 0 12px;
-	border: 1px solid #e5e7eb;
-	border-radius: 20px;
-	background: #f8fafc;
-	font-size: 14px;
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #f8fafc;
+  font-size: 14px;
 }
 
 .send-btn,
 .stop-btn {
-	width: 68px;
-	height: 40px;
-	line-height: 40px;
-	padding: 0;
-	border-radius: 20px;
-	font-size: 14px;
-	margin: 0;
+  width: 68px;
+  height: 40px;
+  line-height: 40px;
+  padding: 0;
+  border-radius: 20px;
+  font-size: 14px;
+  margin: 0;
 }
 
 .send-btn::after,
 .stop-btn::after {
-	border: none;
+  border: none;
 }
 
 .send-btn {
-	background: #FF5A00;
-	color: #fff;
+  background: #ff5a00;
+  color: #fff;
 }
 
 .send-btn:disabled {
-	opacity: 0.6;
+  opacity: 0.6;
 }
 
 .voice-btn {
-	width: 40px;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 50%;
-	background: #f5f5f5;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f5f5f5;
 }
 
 .voice-btn.recording {
-	background: #fff0e6;
+  background: #fff0e6;
 }
 
 .stop-btn {
-	background: #FFD600;
-	color: #fff;
+  background: #ffd600;
+  color: #fff;
 }
 
 .loading-session {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 
 .loading-text {
-	font-size: 14px;
-	color: #999;
+  font-size: 14px;
+  color: #999;
 }
 
 .examples-section {
-	padding: 12px;
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .example-card {
-	background: #ffffff;
-	border: 1px solid #e5e7eb;
-	border-radius: 12px;
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	transition: all 0.3s;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.3s;
 }
 
 .example-card:active {
-	background: #f8fafc;
-	transform: scale(0.98);
+  background: #f8fafc;
+  transform: scale(0.98);
 }
 
 .example-title {
-	font-size: 15px;
-	font-weight: 600;
-	color: #FF5A00;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ff5a00;
 }
 
 .example-desc {
-	font-size: 14px;
-	color: #666;
-	line-height: 1.5;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
 }
 </style>
-
-

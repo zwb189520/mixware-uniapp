@@ -16,7 +16,11 @@ export const useChatStore = defineStore('chat', () => {
   const currentSessionIndex = ref(-1)
 
   // 使用通用 Hook 管理存储
-  const { state: storageState, initFromStorage, saveToStorage } = useStorageSync('chatData', {
+  const {
+    state: storageState,
+    initFromStorage,
+    saveToStorage
+  } = useStorageSync('chatData', {
     sessionId: '',
     sessionTitle: '',
     sessionDescribe: '',
@@ -165,4 +169,3 @@ export const useChatStore = defineStore('chat', () => {
     initFromStorage
   }
 })
-

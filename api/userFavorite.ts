@@ -33,4 +33,3 @@ export function getFavoriteModels() {
 export function getFavoriteGroups() {
   return get('/favorite-groups/list')
 }
-

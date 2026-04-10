@@ -7,7 +7,7 @@
         success: () => {
           resolve(true)
         },
-        fail: (error) => {
+        fail: error => {
           console.error('蓝牙权限申请失败:', error)
           wx.showModal({
             title: '需要蓝牙权限',
@@ -15,7 +15,7 @@
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: (res) => {
+                success: res => {
                   resolve(res.authSetting['scope.bluetooth'] || false)
                 }
               })
@@ -41,7 +41,7 @@ export function checkLocationPermission() {
         success: () => {
           resolve(true)
         },
-        fail: (error) => {
+        fail: error => {
           console.error('位置权限申请失败:', error)
           wx.showModal({
             title: '需要位置权限',
@@ -49,7 +49,7 @@ export function checkLocationPermission() {
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: (res) => {
+                success: res => {
                   resolve(res.authSetting['scope.userLocation'] || false)
                 }
               })

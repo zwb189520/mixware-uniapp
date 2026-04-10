@@ -1,33 +1,27 @@
 import * as THREE from 'three'
-import {
-	shaderMaterial
-} from '../core/shaderMaterial.js'
-import {
-	shaderStructs,
-	shaderIntersectFunction,
-	MeshBVHUniformStruct
-} from 'three-mesh-bvh' //     "three-mesh-bvh": "^0.7.0",
+import { shaderMaterial } from '../core/shaderMaterial.js'
+import { shaderStructs, shaderIntersectFunction, MeshBVHUniformStruct } from 'three-mesh-bvh' //     "three-mesh-bvh": "^0.7.0",
 
-const getVersion = () => parseInt(THREE.REVISION.replace(/\D+/g, ''));
-const version = getVersion();
-
-
+const getVersion = () => parseInt(THREE.REVISION.replace(/\D+/g, ''))
+const version = getVersion()
 
 // Author: N8Programs
-const MeshRefractionMaterial = /* @__PURE__ */ shaderMaterial({
-	envMap: null,
-	bounces: 3,
-	ior: 2.4,
-	correctMips: true,
-	aberrationStrength: 0.01,
-	fresnel: 0,
-	bvh: /* @__PURE__ */ new MeshBVHUniformStruct(),
-	color: /* @__PURE__ */ new THREE.Color('white'),
-	opacity: 1,
-	resolution: /* @__PURE__ */ new THREE.Vector2(),
-	viewMatrixInverse: /* @__PURE__ */ new THREE.Matrix4(),
-	projectionMatrixInverse: /* @__PURE__ */ new THREE.Matrix4()
-}, /*glsl*/ `
+const MeshRefractionMaterial = /* @__PURE__ */ shaderMaterial(
+  {
+    envMap: null,
+    bounces: 3,
+    ior: 2.4,
+    correctMips: true,
+    aberrationStrength: 0.01,
+    fresnel: 0,
+    bvh: /* @__PURE__ */ new MeshBVHUniformStruct(),
+    color: /* @__PURE__ */ new THREE.Color('white'),
+    opacity: 1,
+    resolution: /* @__PURE__ */ new THREE.Vector2(),
+    viewMatrixInverse: /* @__PURE__ */ new THREE.Matrix4(),
+    projectionMatrixInverse: /* @__PURE__ */ new THREE.Matrix4()
+  },
+  /*glsl*/ `
   uniform mat4 viewMatrixInverse;
 
   varying vec3 vWorldPosition;
@@ -55,7 +49,8 @@ const MeshRefractionMaterial = /* @__PURE__ */ shaderMaterial({
     vWorldPosition = (modelMatrix * transformedPosition).xyz;
     vNormal = normalize((viewMatrixInverse * vec4(normalMatrix * transformedNormal.xyz, 0.0)).xyz);
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * transformedPosition;
-  }`, /*glsl*/ `
+  }`,
+  /*glsl*/ `
   #define ENVMAP_TYPE_CUBE_UV
   precision highp isampler2D;
   precision highp usampler2D;
@@ -168,8 +163,7 @@ const MeshRefractionMaterial = /* @__PURE__ */ shaderMaterial({
 
     #include <tonemapping_fragment>
     #include <${version >= 154 ? 'colorspace_fragment' : 'encodings_fragment'}>
-  }`);
+  }`
+)
 
-export {
-	MeshRefractionMaterial
-};
+export { MeshRefractionMaterial }

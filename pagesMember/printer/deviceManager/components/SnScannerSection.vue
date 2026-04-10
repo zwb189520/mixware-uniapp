@@ -3,62 +3,62 @@
     <view class="section-title">
       <text>{{ texts.scanDevice || '扫码添加设备' }}</text>
     </view>
-    
+
     <view class="scanner-content">
       <view class="scanner-info">
         <text class="info-text">{{ texts.scanQrCode || '扫描设备上的二维码或条形码' }}</text>
         <text class="info-desc">{{ texts.scanHint || '将设备SN码对准扫描框' }}</text>
       </view>
-      
+
       <view class="scanner-actions">
         <button class="scan-btn primary" @click="handleScan">
           <uni-icons type="scan" size="24" color="#fff"></uni-icons>
           <text class="btn-text">{{ texts.startScan || '开始扫描' }}</text>
         </button>
-        
+
         <button class="scan-btn secondary" @click="handleManualInput">
           <uni-icons type="plusempty" size="24" color="#2c3e50"></uni-icons>
           <text class="btn-text">{{ texts.manualInput || '手动输入' }}</text>
         </button>
       </view>
     </view>
-    
+
     <view v-if="scanResult" class="scan-result">
       <view class="result-header">
         <text class="result-title">{{ texts.scanResult || '扫描结果' }}</text>
         <text class="result-clear" @click="clearResult">{{ texts.clear || '清除' }}</text>
       </view>
-      
+
       <view class="result-content">
         <view class="result-item">
           <text class="result-label">{{ texts.snCode || 'SN码' }}:</text>
           <text class="result-value">{{ scanResult.snCode }}</text>
         </view>
-        
+
         <view v-if="scanResult.deviceName" class="result-item">
           <text class="result-label">{{ texts.deviceName || '设备名称' }}:</text>
           <text class="result-value">{{ scanResult.deviceName }}</text>
         </view>
-        
+
         <view v-if="scanResult.deviceType" class="result-item">
           <text class="result-label">{{ texts.deviceType || '设备类型' }}:</text>
           <text class="result-value">{{ getDeviceTypeText(scanResult.deviceType) }}</text>
         </view>
       </view>
-      
+
       <view class="result-actions">
         <button class="result-btn add-btn" @click="handleAddDevice">
           <text class="btn-icon">➕</text>
           <text class="btn-text">{{ texts.addDevice || '添加设备' }}</text>
         </button>
-        
+
         <button class="result-btn rescan-btn" @click="handleRescan">
           <text class="btn-icon">🔄</text>
           <text class="btn-text">{{ texts.rescan || '重新扫描' }}</text>
         </button>
       </view>
     </view>
-    
+
     <ManualInputModal
       v-if="showManualInput"
       :visible="showManualInput"
@@ -110,7 +110,7 @@ onMounted(() => {
 
 const handleScan = async () => {
   if (isScanning.value) return
-  
+
   isScanning.value = true
   try {
     const result = await scanCode()
@@ -140,12 +140,12 @@ const processSnCode = async (snCode: string) => {
     })
     return
   }
-  
+
   uni.showLoading({ title: texts.value.parsing || '解析中...' })
   try {
     const res = await uni.$http.post('/devices/parseSnCode', { snCode })
     uni.hideLoading()
-    
+
     if (res.code === 0) {
       scanResult.value = {
         snCode: snCode,
@@ -184,7 +184,7 @@ const handleRescan = () => {
 
 const handleAddDevice = async () => {
   if (!scanResult.value) return
-  
+
   uni.showLoading({ title: texts.value.adding || '添加中...' })
   try {
     const res = await uni.$http.post('/devices/bind', {
@@ -192,7 +192,7 @@ const handleAddDevice = async () => {
       snCode: scanResult.value.snCode
     })
     uni.hideLoading()
-    
+
     if (res.code === 0) {
       uni.showToast({
         title: texts.value.addSuccess || '添加成功',
@@ -226,10 +226,10 @@ const scanCode = (): Promise<ScanCodeResult | null> => {
     uni.scanCode({
       onlyFromCamera: true,
       scanType: ['qrCode', 'barCode'],
-      success: (res) => {
+      success: res => {
         resolve(res as ScanCodeResult)
       },
-      fail: (err) => {
+      fail: err => {
         if (err.errMsg && err.errMsg.includes('cancel')) {
           resolve(null)
         } else {
@@ -243,9 +243,9 @@ const scanCode = (): Promise<ScanCodeResult | null> => {
 const getDeviceTypeText = (type: string): string => {
   const typeMap: Record<string, string> = {
     '3D_PRINTER': '3D打印机',
-    'LASER_CUTTER': '激光切割机',
-    'CNC_MACHINE': 'CNC机床',
-    'OTHER': '其他设备'
+    LASER_CUTTER: '激光切割机',
+    CNC_MACHINE: 'CNC机床',
+    OTHER: '其他设备'
   }
   return typeMap[type] || '未知设备'
 }
@@ -284,7 +284,7 @@ const getDeviceTypeText = (type: string): string => {
   content: '';
   width: 8rpx;
   height: 32rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   border-radius: 4rpx;
   margin-right: 16rpx;
 }
@@ -343,12 +343,12 @@ const getDeviceTypeText = (type: string): string => {
 }
 
 .scan-btn.primary {
-  background: linear-gradient(135deg, #FF5A00, #FF8C00);
+  background: linear-gradient(135deg, #ff5a00, #ff8c00);
   color: #ffffff;
 }
 
 .scan-btn.secondary {
-  background: #4A90E2;
+  background: #4a90e2;
   color: #fff;
 }
 
@@ -386,7 +386,7 @@ const getDeviceTypeText = (type: string): string => {
 .result-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #7ED321;
+  color: #7ed321;
 }
 
 .result-clear {
@@ -462,7 +462,7 @@ const getDeviceTypeText = (type: string): string => {
 }
 
 .add-btn {
-  background: linear-gradient(135deg, #FF5A00, #FF8C00);
+  background: linear-gradient(135deg, #ff5a00, #ff8c00);
   color: #fff;
 }
 

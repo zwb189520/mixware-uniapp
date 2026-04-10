@@ -13,7 +13,11 @@ interface ChatCallbacks {
  * @param sessionId - 会话 ID
  * @param callbacks - 回调函数对象
  */
-export function chatStream(question: string, sessionId: string, callbacks?: ChatCallbacks): { abort: () => void } {
+export function chatStream(
+  question: string,
+  sessionId: string,
+  callbacks?: ChatCallbacks
+): { abort: () => void } {
   const { onMessage, onError, onComplete } = callbacks || {}
 
   const result = streamRequest({
@@ -24,7 +28,7 @@ export function chatStream(question: string, sessionId: string, callbacks?: Chat
     onError,
     onComplete
   }) as { abort: () => void }
-  
+
   return result
 }
 

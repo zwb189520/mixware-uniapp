@@ -2,7 +2,7 @@
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
-    
+
     <!-- 评论统计和排序 -->
     <view class="comment-header">
       <text class="comment-count">{{ comments.length }} {{ texts.comments }}</text>
@@ -10,35 +10,32 @@
         <text class="sort-text">{{ sortText }}</text>
         <uni-icons type="down" size="14" color="#666"></uni-icons>
       </view>
-      
+
       <!-- 排序下拉菜单 -->
       <view v-if="showSortMenu" class="sort-menu">
-        <view 
-          v-for="(item, index) in sortOptions" 
+        <view
+          v-for="(item, index) in sortOptions"
           :key="index"
           class="sort-menu-item"
-          :class="{ 'active': sortType === item.value }"
+          :class="{ active: sortType === item.value }"
           @click="selectSort(item)"
         >
           <text class="sort-menu-text">{{ item.label }}</text>
-          <uni-icons v-if="sortType === item.value" type="checkmarkempty" size="16" color="#FF5A00"></uni-icons>
+          <uni-icons
+            v-if="sortType === item.value"
+            type="checkmarkempty"
+            size="16"
+            color="#FF5A00"
+          ></uni-icons>
         </view>
       </view>
     </view>
-    
+
     <scroll-view scroll-y class="content-scroll">
       <view class="comment-list">
-        <view 
-          v-for="comment in comments" 
-          :key="comment.id" 
-          class="comment-item"
-        >
+        <view v-for="comment in comments" :key="comment.id" class="comment-item">
           <view class="comment-main">
-            <image 
-              class="comment-avatar" 
-              :src="comment.userAvatar" 
-              mode="aspectFill"
-            />
+            <image class="comment-avatar" :src="comment.userAvatar" mode="aspectFill" />
             <view class="comment-content">
               <view class="comment-header-info">
                 <text class="comment-username">{{ comment.userName }}</text>
@@ -46,25 +43,29 @@
               </view>
               <text class="comment-text">{{ comment.content }}</text>
               <view class="comment-actions">
-                <text 
+                <text
                   class="action-text-only"
                   @click="handleReplyClick(comment.id, comment.userName)"
                 >
                   {{ texts.reply }}
                 </text>
-                <view 
+                <view
                   class="action-item"
-                  :class="{ 'liked': comment.isLiked }"
+                  :class="{ liked: comment.isLiked }"
                   @click="handleLikeClick(comment.id)"
                 >
-                  <image 
-                    class="action-icon-img" 
-                    :src="comment.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" 
-                    mode="aspectFit" 
+                  <image
+                    class="action-icon-img"
+                    :src="
+                      comment.isLiked
+                        ? '/static/images/icon/like_active.png'
+                        : '/static/images/icon/like.png'
+                    "
+                    mode="aspectFit"
                   />
                   <text class="action-text">{{ comment.likes }}</text>
                 </view>
-                <view 
+                <view
                   v-if="currentUserId === comment.userId || currentUserId === postAuthorId"
                   class="action-item delete-btn"
                   @click="handleDeleteClick(comment.id)"
@@ -75,18 +76,10 @@
               </view>
             </view>
           </view>
-          
+
           <view v-if="comment.replies && comment.replies.length > 0" class="comment-replies">
-            <view 
-              v-for="reply in comment.replies" 
-              :key="reply.id" 
-              class="reply-item"
-            >
-              <image 
-                class="reply-avatar" 
-                :src="reply.userAvatar" 
-                mode="aspectFill"
-              />
+            <view v-for="reply in comment.replies" :key="reply.id" class="reply-item">
+              <image class="reply-avatar" :src="reply.userAvatar" mode="aspectFill" />
               <view class="reply-content">
                 <view class="reply-header">
                   <text class="reply-username">{{ reply.userName }}</text>
@@ -94,25 +87,29 @@
                 </view>
                 <text class="reply-text">{{ reply.content }}</text>
                 <view class="reply-actions">
-                  <text 
+                  <text
                     class="action-text-only"
                     @click="handleReplyClick(reply.id, reply.userName)"
                   >
                     {{ texts.reply }}
                   </text>
-                  <view 
+                  <view
                     class="action-item"
-                    :class="{ 'liked': reply.isLiked }"
+                    :class="{ liked: reply.isLiked }"
                     @click="handleLikeClick(reply.id)"
                   >
-                    <image 
-                      class="action-icon-img" 
-                      :src="reply.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" 
-                      mode="aspectFit" 
+                    <image
+                      class="action-icon-img"
+                      :src="
+                        reply.isLiked
+                          ? '/static/images/icon/like_active.png'
+                          : '/static/images/icon/like.png'
+                      "
+                      mode="aspectFit"
                     />
                     <text class="action-text">{{ reply.likes }}</text>
                   </view>
-                  <view 
+                  <view
                     v-if="currentUserId === reply.userId || currentUserId === postAuthorId"
                     class="action-item delete-btn"
                     @click="handleDeleteClick(reply.id)"
@@ -135,13 +132,27 @@
       </view>
     </view>
 
-    <view v-if="isPopupOpen" class="popup-mask" @tap="closeCommentPopup" @touchmove.stop.prevent="moveHandle">
-      <view class="comment-popup" :style="{ bottom: keyboardHeight + 'px' }" @tap.stop @touchmove.stop.prevent="moveHandle">
+    <view
+      v-if="isPopupOpen"
+      class="popup-mask"
+      @tap="closeCommentPopup"
+      @touchmove.stop.prevent="moveHandle"
+    >
+      <view
+        class="comment-popup"
+        :style="{ bottom: keyboardHeight + 'px' }"
+        @tap.stop
+        @touchmove.stop.prevent="moveHandle"
+      >
         <view class="popup-body">
-          <textarea 
+          <textarea
             class="popup-textarea"
             v-model="commentText"
-            :placeholder="replyTargetName ? texts.replyTo + ' ' + replyTargetName + '...' : texts.inputPlaceholder"
+            :placeholder="
+              replyTargetName
+                ? texts.replyTo + ' ' + replyTargetName + '...'
+                : texts.inputPlaceholder
+            "
             :maxlength="1000"
             :focus="true"
             :show-confirm-bar="false"
@@ -153,9 +164,14 @@
         </view>
         <view class="popup-footer">
           <view class="footer-left">
-            <image class="footer-icon" src="/static/images/icon/image.png" mode="aspectFit" @click="handleUploadImage" />
+            <image
+              class="footer-icon"
+              src="/static/images/icon/image.png"
+              mode="aspectFit"
+              @click="handleUploadImage"
+            />
           </view>
-          <view class="publish-btn" :class="{ 'active': commentText.trim() }" @click="handlePublish">
+          <view class="publish-btn" :class="{ active: commentText.trim() }" @click="handlePublish">
             <text class="publish-text">{{ texts.publish }}</text>
           </view>
         </view>
@@ -217,7 +233,7 @@ export default {
     this.postAuthorId = options.postAuthorId || ''
     this.languageStore.loadLanguage()
     this.getCurrentUserId()
-    
+
     if (this.postId) {
       this.loadComments()
     } else {
@@ -235,7 +251,8 @@ export default {
     },
 
     async loadComments() {
-      if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined') return
+      if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined')
+        return
 
       try {
         const res = await getPostComments(this.postId)
@@ -313,12 +330,12 @@ export default {
       const minute = 60 * 1000
       const hour = 60 * minute
       const day = 24 * hour
-      
+
       if (diff < minute) return this.texts.justNow
       if (diff < hour) return Math.floor(diff / minute) + this.texts.minutesAgo
       if (diff < day) return Math.floor(diff / hour) + this.texts.hoursAgo
       if (diff < 7 * day) return Math.floor(diff / day) + this.texts.daysAgo
-      
+
       const date = new Date(timestamp)
       return `${date.getMonth() + 1}-${date.getDate()}`
     },
@@ -370,7 +387,7 @@ export default {
       uni.showModal({
         title: this.texts.deleteConfirm,
         content: this.texts.deleteContent,
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             try {
               const result = await deleteComment(commentId)
@@ -452,7 +469,7 @@ export default {
           content: content,
           parentCommentId: parentId
         })
-        
+
         if (res.code === 0 || res.code === 1) {
           this.loadComments()
         }
@@ -476,7 +493,7 @@ export default {
     handleUploadImage() {
       uni.chooseImage({
         count: 1,
-        success: (res) => {
+        success: res => {
           uni.showToast({ title: this.texts.imageUploadInDev, icon: 'none' })
         }
       })
@@ -533,7 +550,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .comment-header {
@@ -602,7 +619,7 @@ export default {
 }
 
 .sort-menu-item.active .sort-menu-text {
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 600;
 }
 
@@ -720,7 +737,7 @@ export default {
 }
 
 .action-item.liked .action-text {
-  color: #FF69B4;
+  color: #ff69b4;
 }
 
 .comment-replies {
@@ -802,7 +819,7 @@ export default {
 .comment-input-trigger {
   height: 72rpx;
   padding: 0 24rpx;
-  background: #FFF9F5;
+  background: #fff9f5;
   border-radius: 36rpx;
   display: flex;
   align-items: center;
@@ -885,7 +902,7 @@ export default {
 }
 
 .publish-btn.active {
-  background: #00C853;
+  background: #00c853;
 }
 
 .publish-text {
@@ -898,6 +915,3 @@ export default {
   color: #fff;
 }
 </style>
-
-
-

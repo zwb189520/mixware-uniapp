@@ -147,4 +147,3 @@ export function deleteDevice(deviceId) {
 export function batchDeleteDevices(deviceIds) {
   return del('/devices/batch', deviceIds)
 }
-

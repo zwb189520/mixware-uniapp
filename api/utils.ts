@@ -2,24 +2,24 @@ import { API } from '../constants/index.js'
 import { useUserStore } from '../stores/modules/user.ts'
 
 interface RequestConfig {
-	url: string
-	method?: string
-	data?: unknown
-	header?: Record<string, string>
-	timeout?: number
-	sslVerify?: boolean
+  url: string
+  method?: string
+  data?: unknown
+  header?: Record<string, string>
+  timeout?: number
+  sslVerify?: boolean
 }
 
 interface UniResponse {
-	statusCode: number
-	data: unknown
-	header: Record<string, string>
+  statusCode: number
+  data: unknown
+  header: Record<string, string>
 }
 
 interface UniError {
-	errMsg?: string
-	message?: string
-	[key: string]: unknown
+  errMsg?: string
+  message?: string
+  [key: string]: unknown
 }
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
@@ -35,9 +35,9 @@ export const delay = (ms: number): Promise<void> => new Promise(resolve => setTi
  * @param obj 要转换的对象
  */
 export const objectToFormUrlencoded = (obj: Record<string, unknown>): string => {
-	return Object.keys(obj)
-		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(String(obj[key] ?? ''))}`)
-		.join('&')
+  return Object.keys(obj)
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(String(obj[key] ?? ''))}`)
+    .join('&')
 }
 
 /**
@@ -46,15 +46,15 @@ export const objectToFormUrlencoded = (obj: Record<string, unknown>): string => 
  * @param baseUrl 基础URL
  */
 export const buildUrl = (url: string, baseUrl: string): string => {
-	if (!url) return ''
-	
-	if (url.startsWith('http://') || url.startsWith('https://')) {
-		return url
-	}
-	
-	const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-	const cleanPath = url.startsWith('/') ? url : '/' + url
-	return cleanBaseUrl + cleanPath
+  if (!url) return ''
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+
+  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+  const cleanPath = url.startsWith('/') ? url : '/' + url
+  return cleanBaseUrl + cleanPath
 }
 
 /**
@@ -63,15 +63,15 @@ export const buildUrl = (url: string, baseUrl: string): string => {
  * @param data 请求参数
  */
 export const appendQueryParams = (url: string, data: Record<string, unknown> = {}): string => {
-	if (!data || Object.keys(data).length === 0) {
-		return url
-	}
-	
-	const queryString = Object.keys(data)
-		.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(String(data[key]))}`)
-		.join('&')
-	const separator = url.includes('?') ? '&' : '?'
-	return `${url}${separator}${queryString}`
+  if (!data || Object.keys(data).length === 0) {
+    return url
+  }
+
+  const queryString = Object.keys(data)
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(String(data[key]))}`)
+    .join('&')
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}${queryString}`
 }
 
 /**
@@ -79,8 +79,8 @@ export const appendQueryParams = (url: string, data: Record<string, unknown> = {
  * @param url 请求URL
  */
 export const isValidUrl = (url: string): boolean => {
-	if (!url) return false
-	return url.startsWith('http://') || url.startsWith('https://')
+  if (!url) return false
+  return url.startsWith('http://') || url.startsWith('https://')
 }
 
 /**
@@ -90,15 +90,15 @@ export const isValidUrl = (url: string): boolean => {
  * @param needToken 是否需要token
  */
 export const getToken = (needToken = true): string => {
-	if (!needToken) return ''
-	
-	try {
-		const userStore = useUserStore()
-		return userStore.token || ''
-	} catch (e) {
-		console.error('获取 token 失败:', e)
-		return ''
-	}
+  if (!needToken) return ''
+
+  try {
+    const userStore = useUserStore()
+    return userStore.token || ''
+  } catch (e) {
+    console.error('获取 token 失败:', e)
+    return ''
+  }
 }
 
 /**
@@ -106,17 +106,20 @@ export const getToken = (needToken = true): string => {
  * @param token token值
  * @param customHeaders 自定义请求头
  */
-export const mergeHeaders = (token: string, customHeaders: Record<string, string> = {}): Record<string, string> => {
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...customHeaders
-	}
-	
-	if (token) {
-		headers['Authorization'] = `Bearer ${token}`
-	}
-	
-	return headers
+export const mergeHeaders = (
+  token: string,
+  customHeaders: Record<string, string> = {}
+): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...customHeaders
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  return headers
 }
 
 /**
@@ -125,21 +128,25 @@ export const mergeHeaders = (token: string, customHeaders: Record<string, string
  * @param data 请求数据
  * @param contentType Content-Type
  */
-export const prepareRequestData = (method: string, data: unknown = {}, contentType = 'application/json'): unknown => {
-	const upperMethod = (method || 'GET').toUpperCase()
-	
-	// GET请求参数已拼接在URL中，data置空
-	if (upperMethod === 'GET') {
-		return {}
-	}
-	
-	// POST/PUT请求处理
-	if (contentType.includes('application/json')) {
-		return typeof data === 'string' ? data : JSON.stringify(data || {})
-	}
-	
-	// form-urlencoded格式
-	return data
+export const prepareRequestData = (
+  method: string,
+  data: unknown = {},
+  contentType = 'application/json'
+): unknown => {
+  const upperMethod = (method || 'GET').toUpperCase()
+
+  // GET请求参数已拼接在URL中，data置空
+  if (upperMethod === 'GET') {
+    return {}
+  }
+
+  // POST/PUT请求处理
+  if (contentType.includes('application/json')) {
+    return typeof data === 'string' ? data : JSON.stringify(data || {})
+  }
+
+  // form-urlencoded格式
+  return data
 }
 
 /**
@@ -147,32 +154,35 @@ export const prepareRequestData = (method: string, data: unknown = {}, contentTy
  * @param requestConfig 请求配置
  * @param retryCount 当前重试次数
  */
-export const requestWithRetry = (requestConfig: RequestConfig, retryCount = 0): Promise<UniResponse> => {
-	return new Promise((resolve, reject) => {
-		uni.request({
-			...requestConfig,
-			success: (res: UniResponse) => {
-				resolve(res as UniResponse)
-			},
-			fail: async (err: UniError) => {
-				// 只对网络错误重试，不重试业务错误
-				const shouldRetry = shouldRetryError(err as UniError)
-				
-				if (shouldRetry && retryCount < API.MAX_RETRY_COUNT) {
-					console.log(`请求失败，第${retryCount + 1}次重试，URL: ${requestConfig.url}`)
-					await delay(API.RETRY_DELAY * (retryCount + 1))
-					try {
-						const result = await requestWithRetry(requestConfig, retryCount + 1)
-						resolve(result)
-					} catch (retryErr) {
-						reject(retryErr)
-					}
-				} else {
-					reject(err)
-				}
-			}
-		})
-	})
+export const requestWithRetry = (
+  requestConfig: RequestConfig,
+  retryCount = 0
+): Promise<UniResponse> => {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      ...requestConfig,
+      success: (res: UniResponse) => {
+        resolve(res as UniResponse)
+      },
+      fail: async (err: UniError) => {
+        // 只对网络错误重试，不重试业务错误
+        const shouldRetry = shouldRetryError(err as UniError)
+
+        if (shouldRetry && retryCount < API.MAX_RETRY_COUNT) {
+          console.log(`请求失败，第${retryCount + 1}次重试，URL: ${requestConfig.url}`)
+          await delay(API.RETRY_DELAY * (retryCount + 1))
+          try {
+            const result = await requestWithRetry(requestConfig, retryCount + 1)
+            resolve(result)
+          } catch (retryErr) {
+            reject(retryErr)
+          }
+        } else {
+          reject(err)
+        }
+      }
+    })
+  })
 }
 
 /**
@@ -180,32 +190,28 @@ export const requestWithRetry = (requestConfig: RequestConfig, retryCount = 0): 
  * @param err 错误对象
  */
 const shouldRetryError = (err: UniError): boolean => {
-	if (!err) return false
-	
-	const errMsg = (err.errMsg || err.message || '').toLowerCase()
-	
-	// 网络超时、连接失败、DNS 失败等才重试
-	const retryableErrors = [
-		'timeout',
-		'connect',
-		'network',
-		'econnrefused',
-		'enotfound',
-		'enetunreach'
-	]
-	
-	// 用户主动取消、请求被拦截等不重试
-	const nonRetryableErrors = [
-		'abort',
-		'cancel',
-		'intercepted'
-	]
-	
-	if (nonRetryableErrors.some(keyword => errMsg.includes(keyword))) {
-		return false
-	}
-	
-	return retryableErrors.some(keyword => errMsg.includes(keyword))
+  if (!err) return false
+
+  const errMsg = (err.errMsg || err.message || '').toLowerCase()
+
+  // 网络超时、连接失败、DNS 失败等才重试
+  const retryableErrors = [
+    'timeout',
+    'connect',
+    'network',
+    'econnrefused',
+    'enotfound',
+    'enetunreach'
+  ]
+
+  // 用户主动取消、请求被拦截等不重试
+  const nonRetryableErrors = ['abort', 'cancel', 'intercepted']
+
+  if (nonRetryableErrors.some(keyword => errMsg.includes(keyword))) {
+    return false
+  }
+
+  return retryableErrors.some(keyword => errMsg.includes(keyword))
 }
 
 // 请求耗时记录 Map，key 为 url+method
@@ -215,10 +221,10 @@ const _requestTimers = new Map<string, number>()
  * 日志级别
  */
 const LOG_LEVEL: Record<LogLevel, number> = {
-	DEBUG: 0,
-	INFO: 1,
-	WARN: 2,
-	ERROR: 3
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3
 }
 
 // 当前最低输出级别：dev 输出 DEBUG 及以上，prod 只输出 WARN 及以上
@@ -231,14 +237,19 @@ const CURRENT_LEVEL = process.env.NODE_ENV === 'development' ? LOG_LEVEL.DEBUG :
  * @param data 数据
  */
 const _log = (level: LogLevel, tag: string, data: unknown): void => {
-	if (LOG_LEVEL[level] < CURRENT_LEVEL) return
-	const ts = new Date().toISOString().slice(11, 23) // HH:mm:ss.mmm
-	const prefix = `[${ts}][${level}][${tag}]`
-	switch (level) {
-		case 'ERROR': console.error(prefix, data); break
-		case 'WARN':  console.warn(prefix, data);  break
-		default:      console.log(prefix, data)
-	}
+  if (LOG_LEVEL[level] < CURRENT_LEVEL) return
+  const ts = new Date().toISOString().slice(11, 23) // HH:mm:ss.mmm
+  const prefix = `[${ts}][${level}][${tag}]`
+  switch (level) {
+    case 'ERROR':
+      console.error(prefix, data)
+      break
+    case 'WARN':
+      console.warn(prefix, data)
+      break
+    default:
+      console.log(prefix, data)
+  }
 }
 
 /**
@@ -247,7 +258,7 @@ const _log = (level: LogLevel, tag: string, data: unknown): void => {
  * @param data 日志数据
  */
 export const debugLog = (type: string, data: unknown): void => {
-	_log('DEBUG', type, data)
+  _log('DEBUG', type, data)
 }
 
 /**
@@ -258,9 +269,9 @@ export const debugLog = (type: string, data: unknown): void => {
  * @returns timerKey
  */
 export const logRequest = (method: string, url: string, data: unknown): string => {
-	const key = `${method}:${url}:${Date.now()}`
-	_requestTimers.set(key, Date.now())
-	return key
+  const key = `${method}:${url}:${Date.now()}`
+  _requestTimers.set(key, Date.now())
+  return key
 }
 
 /**
@@ -270,7 +281,7 @@ export const logRequest = (method: string, url: string, data: unknown): string =
  * @param data 响应数据
  */
 export const logResponse = (timerKey: string, statusCode: number, data: unknown): void => {
-	_requestTimers.delete(timerKey)
+  _requestTimers.delete(timerKey)
 }
 
 /**
@@ -279,8 +290,8 @@ export const logResponse = (timerKey: string, statusCode: number, data: unknown)
  * @param err 错误对象
  */
 export const logRequestError = (timerKey: string, err: unknown): void => {
-	const startTime = _requestTimers.get(timerKey)
-	const duration = startTime ? `${Date.now() - startTime}ms` : 'N/A'
-	_requestTimers.delete(timerKey)
-	_log('ERROR', 'REQ_FAIL', { duration, err })
+  const startTime = _requestTimers.get(timerKey)
+  const duration = startTime ? `${Date.now() - startTime}ms` : 'N/A'
+  _requestTimers.delete(timerKey)
+  _log('ERROR', 'REQ_FAIL', { duration, err })
 }

@@ -2,18 +2,13 @@
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.slicePreview" @back="handleBack" />
-    
+
     <scroll-view scroll-y class="content-scroll">
       <!-- 模型图片 -->
       <view class="model-image-section">
-        <image 
-          class="model-image" 
-          :src="modelImage" 
-          mode="aspectFit"
-          @error="handleImageError"
-        />
+        <image class="model-image" :src="modelImage" mode="aspectFit" @error="handleImageError" />
       </view>
-      
+
       <!-- 进度条 -->
       <view class="progress-section">
         <view class="progress-bar">
@@ -21,15 +16,15 @@
         </view>
         <text class="progress-text">{{ progress.toFixed(1) }}%</text>
       </view>
-      
+
       <!-- 处理步骤和状态 -->
       <view class="status-box">
         <view class="steps-section">
-          <view 
-            v-for="(step, index) in steps" 
+          <view
+            v-for="(step, index) in steps"
             :key="index"
             class="step-item"
-            :class="{ 'completed': step.completed, 'active': step.active }"
+            :class="{ completed: step.completed, active: step.active }"
           >
             <view class="step-icon">
               <text v-if="step.completed" class="check-icon">✓</text>
@@ -39,10 +34,8 @@
             <text class="step-text">{{ step.text }}</text>
           </view>
         </view>
-        
-
       </view>
-      
+
       <!-- 提示信息 -->
       <view class="tips-section">
         <text class="tips-text">
@@ -52,7 +45,7 @@
         </text>
       </view>
     </scroll-view>
-    
+
     <!-- 底部按钮区域 -->
     <view class="bottom-section">
       <view class="print-hint">
@@ -109,7 +102,6 @@ export default {
     }
   },
   async onLoad(options) {
-
     this.modelId = options.modelId || ''
     try {
       this.modelName = options.modelName ? decodeURIComponent(options.modelName) : ''
@@ -127,23 +119,22 @@ export default {
       this.modelImage = '/static/images/logo.png'
     }
 
-    
     // 接收从preview3DDetail传入的尺寸
     if (options.dimensions) {
       try {
         this.originalDimensions = JSON.parse(decodeURIComponent(options.dimensions))
       } catch (e) {}
     }
-    
+
     // 接收缩放比例、设备ID和支撑选项
     this.scalePercent = parseFloat(options.scalePercent) || 100
     this.deviceId = options.deviceId || ''
     this.addSupports = options.addSupports === 'true' || options.addSupports === true
-    
+
     // 加载语言和初始化文本
     this.languageStore.loadLanguage()
     this.initializeTexts()
-    
+
     // 如果是自定义涂鸦模型（custom_ 开头）或任务ID（32位十六进制）且有modelUrl，直接使用modelUrl
     const isTaskId = /^[a-f0-9]{32}$/.test(this.modelId)
     if (this.modelId.startsWith('custom_') || (isTaskId && options.modelUrl)) {
@@ -160,7 +151,7 @@ export default {
       }
       return
     }
-    
+
     // 加载模型详情获取图片和模型URL，完成后开始切片
     await this.loadModelImages()
   },
@@ -174,21 +165,39 @@ export default {
     initializeTexts() {
       // 初始化步骤文本
       this.steps = [
-        { text: this.texts.pendingTaskGenerated || '待打印任务已生成', completed: false, active: true },
-        { text: this.texts.printTimeAnalyzed || '打印时间已分析完成', completed: false, active: false },
-        { text: this.texts.modelConsumptionAnalyzed || '模型消耗克数已分析完成', completed: false, active: false },
-        { text: this.texts.modelDimensionsAnalyzed || '模型尺寸已分析完成', completed: false, active: false },
-        { text: this.texts.processingComplete || '模型处理完成，准备打印', completed: false, active: false }
+        {
+          text: this.texts.pendingTaskGenerated || '待打印任务已生成',
+          completed: false,
+          active: true
+        },
+        {
+          text: this.texts.printTimeAnalyzed || '打印时间已分析完成',
+          completed: false,
+          active: false
+        },
+        {
+          text: this.texts.modelConsumptionAnalyzed || '模型消耗克数已分析完成',
+          completed: false,
+          active: false
+        },
+        {
+          text: this.texts.modelDimensionsAnalyzed || '模型尺寸已分析完成',
+          completed: false,
+          active: false
+        },
+        {
+          text: this.texts.processingComplete || '模型处理完成，准备打印',
+          completed: false,
+          active: false
+        }
       ]
-      
     },
     async startSliceTask() {
-
       if (!this.modelUrl) {
         uni.showToast({ title: this.texts.modelFileNotFound || '模型文件不存在', icon: 'none' })
         return
       }
-      
+
       // 提交真实的切片任务到后端
       try {
         const scaleFactor = this.scalePercent / 100
@@ -200,7 +209,6 @@ export default {
           addSupports: this.addSupports
         })
 
-        
         console.log('scaleAndSlice返回:', JSON.stringify(submitRes))
         if (submitRes.code === 1 || submitRes.code === 0) {
           const taskId = submitRes.data?.taskId
@@ -219,14 +227,14 @@ export default {
         console.error('提交切片任务失败:', err)
         return
       }
-      
+
       // 初始化进度显示
       this.steps[0].completed = true
       this.steps[0].active = false
       this.steps[1].active = true
       this.progress = 0
     },
-    
+
     clearAllTimers() {
       if (this.fakeTimer) {
         clearInterval(this.fakeTimer)
@@ -307,7 +315,10 @@ export default {
             const errorMsg = data?.errorMessage || ''
             uni.showModal({
               title: this.texts.sliceFailed || '切片失败',
-              content: errorMsg || this.texts.sliceFailedContent || '模型切片处理失败，请稍后重试或联系客服',
+              content:
+                errorMsg ||
+                this.texts.sliceFailedContent ||
+                '模型切片处理失败，请稍后重试或联系客服',
               showCancel: false,
               confirmText: this.texts.confirm || '确定'
             })
@@ -358,7 +369,7 @@ export default {
     handleImageError() {
       this.modelImage = ''
     },
-    
+
     async loadModelImages() {
       try {
         const res = await getModelDetail(this.modelId)
@@ -367,24 +378,26 @@ export default {
         if (!res || (res.code !== 0 && res.code !== 1)) {
           throw new Error(res?.msg || '获取详情失败')
         }
-        
+
         const data = res.data || {}
 
         // 使用与modelDetail.vue完全相同的fixImageUrl函数
-        const fixImageUrl = (url) => {
+        const fixImageUrl = url => {
           if (!url) return ''
-          return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
+          return url
+            .replace('localhost:9000', '47.102.212.37:9000')
+            .replace('api/uploads/image', '9000/image')
         }
-        
+
         // 将previewUrl放入images数组中，与modelDetail.vue保持一致
         const images = data.previewUrl ? [fixImageUrl(data.previewUrl)] : []
-        
+
         if (images.length > 0) {
           this.modelImage = images[0]
         } else {
           this.modelImage = '/static/images/logo.png'
         }
-        
+
         // 获取模型文件URL
         this.modelUrl = data.downloadUrl || data.modelFile || data.modelUrl || ''
 
@@ -401,7 +414,7 @@ export default {
     async sendPrintCommandAfterSlice() {
       try {
         uni.showLoading({ title: this.texts.sendingPrintCommand || '正在发送打印指令...' })
-        
+
         // 获取设备ID
         let deviceId = ''
         const deviceRes = await getDefaultDevice()
@@ -414,13 +427,13 @@ export default {
             deviceId = devices[0].deviceId
           }
         }
-        
+
         if (!deviceId) {
           uni.hideLoading()
           uni.showToast({ title: this.texts.pleaseAddDevice || '请先添加设备', icon: 'none' })
           return
         }
-        
+
         // 检查设备状态
         const statusRes = await getDeviceStatus(deviceId)
         const deviceStatus = statusRes.data?.status || statusRes.data
@@ -444,7 +457,7 @@ export default {
           })
           return
         }
-        
+
         // 创建打印任务记录
         let printTaskId = ''
         try {
@@ -491,10 +504,13 @@ export default {
         }
       } catch (error) {
         uni.hideLoading()
-        uni.showToast({ title: this.texts.sendPrintCommandFailed || '发送打印指令失败', icon: 'none' })
+        uni.showToast({
+          title: this.texts.sendPrintCommandFailed || '发送打印指令失败',
+          icon: 'none'
+        })
       }
     },
-    
+
     goToPrintRecords() {
       uni.navigateTo({
         url: '/pagesMember/printRecords/printRecords'
@@ -505,7 +521,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmCancel || '确认取消',
         content: this.texts.cancelContent || '取消后将不自动打印，模型处理将在后台继续，是否确认？',
-        success: (res) => {
+        success: res => {
           if (res.confirm) {
             this.clearAllTimers()
             if (this.eventSource) {
@@ -640,7 +656,9 @@ export default {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .step-text {
@@ -718,7 +736,7 @@ export default {
 .cancel-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ff5a00 0%, #ff8c00 100%);
   border: none;
   border-radius: 44rpx;
   display: flex;
@@ -738,4 +756,3 @@ export default {
   opacity: 0.85;
 }
 </style>
-

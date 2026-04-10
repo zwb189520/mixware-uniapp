@@ -7,25 +7,27 @@ import { computed, onMounted } from 'vue'
  */
 export function useLanguage() {
   const languageStore = useLanguageStore()
-  
+
   const language = computed(() => languageStore.language)
-  const texts = computed(() => languageStore.texts.profile || languageStore.texts.settings || languageStore.texts)
-  const languageLabel = computed(() => languageStore.language === 'en' ? 'English' : '中文')
-  
+  const texts = computed(
+    () => languageStore.texts.profile || languageStore.texts.settings || languageStore.texts
+  )
+  const languageLabel = computed(() => (languageStore.language === 'en' ? 'English' : '中文'))
+
   const loadLanguage = () => {
     languageStore.loadLanguage()
   }
-  
-  const setLanguage = (lang) => {
+
+  const setLanguage = lang => {
     languageStore.setLanguage(lang)
   }
-  
+
   const showLanguageSelector = () => {
     const options = ['中文', 'English']
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       uni.showActionSheet({
         itemList: options,
-        success: (res) => {
+        success: res => {
           if (typeof res.tapIndex === 'number') {
             const lang = res.tapIndex === 1 ? 'en' : 'zh'
             setLanguage(lang)
@@ -35,11 +37,11 @@ export function useLanguage() {
       })
     })
   }
-  
+
   onMounted(() => {
     loadLanguage()
   })
-  
+
   return {
     language,
     texts,

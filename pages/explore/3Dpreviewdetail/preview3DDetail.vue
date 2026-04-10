@@ -37,8 +37,8 @@
           @rotationChanging="onRotationChanging"
           @rotationChange="onRotationChange"
         />
-        
-        <Preview3D 
+
+        <Preview3D
           v-if="showPreview && modelUrl"
           ref="preview3d"
           :modelurl="modelUrl"
@@ -56,7 +56,7 @@
           @boundaryCheck="onBoundaryCheck"
           @scaleUpdate="onScaleUpdate"
         ></Preview3D>
-        
+
         <view v-if="!modelUrl" class="empty-state">
           <text class="empty-text">{{ texts.noModel }}</text>
         </view>
@@ -72,13 +72,13 @@
       <text class="dimensions-text">{{ dimensionsText }}</text>
     </view>
     <view class="settings-section">
-      <view class="setting-item" :class="{ 'disabled': !isModelSelected }">
+      <view class="setting-item" :class="{ disabled: !isModelSelected }">
         <text class="setting-label">{{ texts.scale }} {{ scalePercent }}%</text>
-        <slider 
-          :value="scalePercent" 
-          :min="10" 
-          :max="200" 
-          :step="1" 
+        <slider
+          :value="scalePercent"
+          :min="10"
+          :max="200"
+          :step="1"
           :disabled="!isModelSelected"
           @change="onScaleChange"
           @changing="onScaleChanging"
@@ -88,30 +88,30 @@
           block-size="20"
         />
       </view>
-      
+
       <!-- 支撑结构开关 -->
-      <view class="setting-item support-item" :class="{ 'disabled': !isModelSelected }">
+      <view class="setting-item support-item" :class="{ disabled: !isModelSelected }">
         <text class="setting-label">{{ texts.addSupports || '添加支撑结构' }}</text>
-        <switch 
-          :checked="addSupports" 
+        <switch
+          :checked="addSupports"
           :disabled="!isModelSelected"
           @change="onSupportChange"
           color="#2a7fff"
         />
       </view>
-      
+
       <!-- 重置按钮 -->
       <button class="reset-btn" @tap="handleReset">
         <text class="reset-btn-text">{{ texts.reset }}</text>
       </button>
-      
+
       <!-- 打印按钮 -->
       <button class="next-btn" :class="{ disabled: isOutOfBounds }" @tap="handlePrint">
         <text class="next-btn-text">{{ texts.startPrint }}</text>
       </button>
 
       <!-- 底部空白区域 -->
-      <view :style="{ height: (safeAreaBottom + 40) + 'px' }"></view>
+      <view :style="{ height: safeAreaBottom + 40 + 'px' }"></view>
     </view>
   </view>
 </template>
@@ -187,7 +187,13 @@ export default {
       }
     },
     dimensionsText() {
-      if (this.isModelSelected && this.dimensions && this.dimensions.x && this.dimensions.y && this.dimensions.z) {
+      if (
+        this.isModelSelected &&
+        this.dimensions &&
+        this.dimensions.x &&
+        this.dimensions.y &&
+        this.dimensions.z
+      ) {
         const factor = this.scalePercent / 100
         const x = (this.dimensions.x * factor).toFixed(1)
         const y = (this.dimensions.y * factor).toFixed(1)
@@ -200,7 +206,7 @@ export default {
   onLoad(options) {
     this.languageStore.loadLanguage()
     this.modelId = options.id || ''
-    
+
     if (!this.modelId || String(this.modelId) === 'NaN' || String(this.modelId) === 'undefined') {
       uni.showToast({ title: this.texts.paramError || '参数错误', icon: 'none' })
       setTimeout(() => uni.navigateBack(), 1500)
@@ -210,8 +216,12 @@ export default {
     this.modelName = options.name ? decodeURIComponent(options.name) : ''
     this.modelUrl = this.normalizeUrl(decodeURIComponent(options.modelUrl || options.url || ''))
     this.modelType = options.modelType || this.getModelTypeFromUrl(this.modelUrl)
-    this.snapshotImageUrl = options.modelImage ? decodeURIComponent(options.modelImage) : (options.imageUrl ? decodeURIComponent(options.imageUrl) : '')
-    
+    this.snapshotImageUrl = options.modelImage
+      ? decodeURIComponent(options.modelImage)
+      : options.imageUrl
+        ? decodeURIComponent(options.imageUrl)
+        : ''
+
     if (options.dimensions) {
       try {
         const parsedDimensions = JSON.parse(decodeURIComponent(options.dimensions))
@@ -224,9 +234,17 @@ export default {
         console.error('解析尺寸参数失败:', e)
       }
     }
-    
-    console.log('解析后的页面参数:', { id: this.modelId, name: this.modelName, url: this.modelUrl, modelType: this.modelType, dimensions: this.dimensions, hasUrl: !!this.modelUrl, urlLength: this.modelUrl?.length })
-    
+
+    console.log('解析后的页面参数:', {
+      id: this.modelId,
+      name: this.modelName,
+      url: this.modelUrl,
+      modelType: this.modelType,
+      dimensions: this.dimensions,
+      hasUrl: !!this.modelUrl,
+      urlLength: this.modelUrl?.length
+    })
+
     const ext = this.modelUrl.split('.').pop().toLowerCase()
     if (ext === 'gcode') {
       uni.showModal({
@@ -239,22 +257,22 @@ export default {
       })
       return
     }
-    
+
     this.initStatusBarHeight()
-    
+
     const systemInfo = uni.getSystemInfoSync()
     const safeAreaBottom = systemInfo.safeAreaInsets ? systemInfo.safeAreaInsets.bottom : 0
     this.safeAreaBottom = safeAreaBottom
-    
+
     if (this.modelUrl) {
-			  this.loading = true
-			  setTimeout(() => {
-			    this.showPreview = true
-			  }, 1000)
-			} else if (this.modelId) {
-			  // 先查询一次任务状态
-			  this.checkTaskStatusOnce()
-			}
+      this.loading = true
+      setTimeout(() => {
+        this.showPreview = true
+      }, 1000)
+    } else if (this.modelId) {
+      // 先查询一次任务状态
+      this.checkTaskStatusOnce()
+    }
   },
   methods: {
     normalizeUrl(url) {
@@ -276,7 +294,9 @@ export default {
 
     fixImageUrl(url) {
       if (!url) return ''
-      return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
+      return url
+        .replace('localhost:9000', '47.102.212.37:9000')
+        .replace('api/uploads/image', '9000/image')
     },
 
     parseDimensions(data) {
@@ -290,7 +310,8 @@ export default {
       }
       if (data.modelParam) {
         try {
-          const modelParam = typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
+          const modelParam =
+            typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
           const sizeStr = modelParam.size || modelParam.modelSize || modelParam.dimensions || ''
           if (sizeStr) {
             const sizeMatch = sizeStr.match(/([\d.]+)mm[^\d]+([\d.]+)mm[^\d]+([\d.]+)mm/)
@@ -327,7 +348,9 @@ export default {
           const status = res.data.Status
           if (this.isTaskCompleted(status) && res.data.ResultFile3Ds?.length > 0) {
             // 任务已完成，直接显示模型
-            let modelUrl = (res.data.ResultFile3Ds[0].Url || res.data.ResultFile3Ds[0].url || '').trim().replace(/[`\s]/g, '')
+            let modelUrl = (res.data.ResultFile3Ds[0].Url || res.data.ResultFile3Ds[0].url || '')
+              .trim()
+              .replace(/[`\s]/g, '')
             if (modelUrl) {
               this.modelUrl = modelUrl
               this.modelType = this.getModelTypeFromUrl(modelUrl)
@@ -375,23 +398,28 @@ export default {
           const data = res.data
           this.modelInfo = data
           this.modelName = data.name || this.modelName
-          
-          this.modelUrl = this.fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
+
+          this.modelUrl = this.fixImageUrl(
+            data.downloadUrl || data.modelFile || data.modelUrl || ''
+          )
           this.modelType = this.getModelTypeFromUrl(this.modelUrl)
-          
+
           if (!this.dimensions.x) {
             const dimensions = this.parseDimensions(data)
             if (dimensions) {
               this.dimensions = dimensions
             }
           }
-          
+
           setTimeout(() => {
             this.showPreview = true
           }, 1000)
         }
       } catch (error) {
-        console.error('获取模型详情失败:', error instanceof Error ? error.message : (error ? JSON.stringify(error) : '未知错误'))
+        console.error(
+          '获取模型详情失败:',
+          error instanceof Error ? error.message : error ? JSON.stringify(error) : '未知错误'
+        )
         if (error.message.includes(this.texts.modelNotExist)) {
           uni.showToast({ title: this.texts.modelNotExist, icon: 'none' })
         } else {
@@ -425,7 +453,9 @@ export default {
               this.isGenerating = false
               let modelUrl = null
               if (res.data.ResultFile3Ds && res.data.ResultFile3Ds.length > 0) {
-                modelUrl = (res.data.ResultFile3Ds[0].Url || res.data.ResultFile3Ds[0].url || '').trim().replace(/[`\s]/g, '')
+                modelUrl = (res.data.ResultFile3Ds[0].Url || res.data.ResultFile3Ds[0].url || '')
+                  .trim()
+                  .replace(/[`\s]/g, '')
               }
               if (!modelUrl) {
                 modelUrl = res.data.modelUrl
@@ -444,7 +474,10 @@ export default {
               this.isGenerating = false
               console.error('任务失败')
               this.stopPoll()
-              uni.showToast({ title: this.texts.modelGenerateFailed || '模型生成失败', icon: 'none' })
+              uni.showToast({
+                title: this.texts.modelGenerateFailed || '模型生成失败',
+                icon: 'none'
+              })
               return
             }
           }
@@ -452,7 +485,10 @@ export default {
           if (this.pollCount >= this.maxPollCount) {
             console.error('轮询超时')
             this.stopPoll()
-            uni.showToast({ title: this.texts.generateTimeout || '查询次数已达上限，模型仍在生成中', icon: 'none' })
+            uni.showToast({
+              title: this.texts.generateTimeout || '查询次数已达上限，模型仍在生成中',
+              icon: 'none'
+            })
             return
           }
 
@@ -478,13 +514,13 @@ export default {
       }
       this.pollCount = 0
     },
-    
+
     async handleCancelGenerate() {
       try {
         uni.showLoading({ title: this.texts.cancelling || '正在取消...' })
         const res = await cancelTask(this.modelId)
         uni.hideLoading()
-        
+
         if (res.code === 1 || res.code === 0) {
           this.stopPoll()
           this.isGenerating = false
@@ -501,14 +537,14 @@ export default {
         uni.showToast({ title: this.texts.cancelFailed || '取消失败', icon: 'none' })
       }
     },
-    
+
     handleBack() {
       uni.navigateBack()
     },
     onModelLoaded() {
       this.loading = false
       console.log('=== 模型加载完成 ===')
-      
+
       // 初始状态设置为绿色（选中）
       this.$nextTick(() => {
         setTimeout(() => {
@@ -516,7 +552,7 @@ export default {
         }, 100)
       })
     },
-    
+
     capturePreviewImage() {
       // #ifdef H5
       try {
@@ -532,7 +568,7 @@ export default {
       }
       // #endif
     },
-    
+
     async uploadPreviewImage(dataUrl: string) {
       // #ifdef H5
       try {
@@ -545,17 +581,19 @@ export default {
         }
         const byteArray = new Uint8Array(byteNumbers)
         const blob = new Blob([byteArray], { type: 'image/png' })
-        
+
         const formData = new FormData()
         formData.append('file', blob, 'preview.png')
         formData.append('type', 'model')
         formData.append('id', this.modelId)
-        
+
         const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
         const res = await fetch(baseUrl + '/upload/image', {
           method: 'POST',
           headers: {
-            'Authorization': uni.getStorageSync('token') ? `Bearer ${uni.getStorageSync('token')}` : ''
+            Authorization: uni.getStorageSync('token')
+              ? `Bearer ${uni.getStorageSync('token')}`
+              : ''
           },
           body: formData
         })
@@ -572,7 +610,10 @@ export default {
     },
     onModelLoadError(error) {
       this.loading = false
-      console.error('模型加载失败:', error instanceof Error ? error.message : (error ? JSON.stringify(error) : '未知错误'))
+      console.error(
+        '模型加载失败:',
+        error instanceof Error ? error.message : error ? JSON.stringify(error) : '未知错误'
+      )
       uni.showToast({ title: this.texts.modelLoadFailed, icon: 'none' })
     },
     onModelDimensions(dimensions) {
@@ -599,11 +640,11 @@ export default {
         this.boundaryMessage = ''
       }
     },
-    
+
     // 模型点击事件
     onModelClick(event) {
       console.log('模型被点击:', event)
-      
+
       if (event.isSame === false) {
         // 点击了不同模型：renderjs 已经处理了颜色和包围框
         // 这里只需保持 isModelSelected = true
@@ -612,7 +653,7 @@ export default {
         this.isOutOfBounds = false
         return
       }
-      
+
       // 点击同一个模型：切换选中/取消选中
       this.isModelSelected = !this.isModelSelected
       if (this.isModelSelected) {
@@ -649,19 +690,19 @@ export default {
         })
       }
     },
-    
+
     // 边界检测事件
     onBoundaryCheck(data) {
       console.log('边界检测:', data)
       this.isOutOfBounds = data.isOutOfBounds
-      
+
       if (data.isOutOfBounds) {
         this.boundaryMessage = this.texts.modelOutOfBounds || '模型边缘超出边界，请调整'
       } else {
         this.boundaryMessage = ''
       }
     },
-    
+
     // 缩放更新事件
     onScaleUpdate(data) {
       console.log('缩放更新:', data)
@@ -670,11 +711,11 @@ export default {
         this.modelScale = data.scalePercent / 100
       }
     },
-    
+
     // 设置模型颜色
     async setModelColor(color) {
       console.log('设置模型颜色:', color)
-      
+
       // #ifdef APP
       // APP端通过call方法调用renderjs中的方法
       if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
@@ -690,7 +731,7 @@ export default {
         }
       }
       // #endif
-      
+
       // #ifndef APP
       // H5和小程序端直接操作
       if (this.$refs.preview3d) {
@@ -706,12 +747,12 @@ export default {
       }
       // #endif
     },
-    
+
     // 实际设置颜色的辅助方法
     _doSetColor(target, color) {
       if (!target) return
       let found = false
-      target.traverse((child) => {
+      target.traverse(child => {
         if (child.isMesh && child.material) {
           found = true
           console.log('找到mesh:', child.name || 'unnamed')
@@ -738,10 +779,10 @@ export default {
       if (!url) return ''
       const ext = url.split('.').pop().toLowerCase()
       const typeMap = {
-        'glb': 'glb',
-        'gltf': 'gltf',
-        'obj': 'obj',
-        'stl': 'stl'
+        glb: 'glb',
+        gltf: 'gltf',
+        obj: 'obj',
+        stl: 'stl'
       }
       return typeMap[ext] || ''
     },
@@ -769,29 +810,29 @@ export default {
         })
       }
       // #endif
-      
+
       // #ifndef APP
       if (this.$refs.preview3d && typeof this.$refs.preview3d.centerAndScale === 'function') {
         this.$refs.preview3d.centerAndScale(this.modelScale)
       }
       // #endif
     },
-    
+
     // 重置模型位置和缩放
     handleReset() {
       console.log('=== 重置按钮被点击 ===')
-      
+
       // 重置数据
       this.scalePercent = 100
       this.modelScale = 1
-      
+
       // 重置旋转面板
       this.currentRotation = { x: 0, y: 0, z: 0 }
       this.showRotationPanel = false
       if (this.$refs.rotationPanel && typeof this.$refs.rotationPanel.setRotation === 'function') {
         this.$refs.rotationPanel.setRotation(0, 0, 0)
       }
-      
+
       if (this.$refs.preview3d) {
         // 调用组件的重置方法
         if (typeof this.$refs.preview3d.resetModel === 'function') {
@@ -814,7 +855,7 @@ export default {
         }
       }
     },
-    
+
     // 安全调用缩放方法
     safeApplyScale() {
       try {
@@ -825,7 +866,7 @@ export default {
         console.warn('缩放应用失败:', error)
       }
     },
-    
+
     // 居中
     handleCenter() {
       console.log('居中按钮被点击')
@@ -837,7 +878,7 @@ export default {
         })
         return
       }
-      
+
       // #ifdef APP
       if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
         this.$refs.preview3d.$refs.stageApp.call({
@@ -853,7 +894,7 @@ export default {
       }
       // #endif
     },
-    
+
     // 旋转
     handleRotate() {
       console.log('旋转按钮被点击')
@@ -868,7 +909,7 @@ export default {
       // 打开旋转面板
       this.showRotationPanel = true
     },
-    
+
     // 旋转面板：旋转变化中（实时预览）
     onRotationChanging(data) {
       // #ifdef APP
@@ -881,7 +922,7 @@ export default {
       }
       // #endif
     },
-    
+
     // 旋转面板：旋转确认
     onRotationChange(data) {
       this.currentRotation = { x: data.x, y: data.y, z: data.z }
@@ -895,7 +936,7 @@ export default {
       }
       // #endif
     },
-    
+
     // 旋转面板：重置旋转
     onRotationReset() {
       this.currentRotation = { x: 0, y: 0, z: 0 }
@@ -913,7 +954,7 @@ export default {
       }
       // #endif
     },
-    
+
     // 复制
     handleCopy() {
       console.log('复制按钮被点击')
@@ -925,7 +966,7 @@ export default {
         })
         return
       }
-      
+
       // #ifdef APP
       if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
         this.$refs.preview3d.$refs.stageApp.call({
@@ -941,7 +982,7 @@ export default {
       }
       // #endif
     },
-    
+
     // 适配
     handleFit() {
       console.log('适配按钮被点击')
@@ -953,7 +994,7 @@ export default {
         })
         return
       }
-      
+
       // #ifdef APP
       // 原功能：自动适配模型
       // if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
@@ -968,7 +1009,7 @@ export default {
       //     duration: 1000
       //   })
       // }
-      
+
       // 新功能：和center一样，居中模型
       if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
         this.$refs.preview3d.$refs.stageApp.call({
@@ -984,7 +1025,7 @@ export default {
       }
       // #endif
     },
-    
+
     // 删除
     handleDelete() {
       console.log('删除按钮被点击')
@@ -999,7 +1040,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteModelContent || '确定要删除当前模型吗？',
-        success: (res) => {
+        success: res => {
           if (res.confirm) {
             // #ifdef APP
             if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
@@ -1032,17 +1073,17 @@ export default {
         })
         return
       }
-      
+
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
-      
+
       try {
         uni.showLoading({ title: this.texts.exportingModel || '导出模型中...' })
-        
+
         let modifiedModelUrl = this.modelUrl
-        
+
         // #ifdef APP-PLUS
         if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
           console.log('开始调用 exportModifiedSTL')
@@ -1052,14 +1093,15 @@ export default {
             isReturn: true
           })
           console.log('exportModifiedSTL 返回文件路径:', filePath)
-          
+
           if (filePath) {
             try {
               console.log('开始上传文件:', filePath)
               const uploadRes = await uploadModelFile(filePath)
               console.log('上传响应:', uploadRes)
               if (uploadRes.code === 1 && uploadRes.data) {
-                modifiedModelUrl = uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
+                modifiedModelUrl =
+                  uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
                 console.log('修改后的模型上传成功:', modifiedModelUrl)
               }
             } catch (err) {
@@ -1070,7 +1112,7 @@ export default {
           }
         }
         // #endif
-        
+
         // #ifdef H5
         if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
           const stlBase64 = await this.$refs.preview3d.$refs.stageApp.call({
@@ -1078,7 +1120,7 @@ export default {
             args: [],
             isReturn: true
           })
-          
+
           if (stlBase64) {
             const binaryString = atob(stlBase64)
             const bytes = new Uint8Array(binaryString.length)
@@ -1088,15 +1130,15 @@ export default {
             const blob = new Blob([bytes], { type: 'application/octet-stream' })
             const formData = new FormData()
             formData.append('file', blob, `modified_${Date.now()}.stl`)
-            
+
             const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
             const token = uni.getStorageSync('token')
-            
+
             try {
               const res = await fetch(baseUrl + '/upload/model', {
                 method: 'POST',
                 headers: {
-                  'Authorization': token ? `Bearer ${token}` : ''
+                  Authorization: token ? `Bearer ${token}` : ''
                 },
                 body: formData
               })
@@ -1111,16 +1153,16 @@ export default {
           }
         }
         // #endif
-        
+
         uni.showLoading({ title: this.texts.gettingDeviceInfo || '获取设备信息...' })
-        
+
         const deviceRes = await getDefaultDevice()
         console.log('默认设备响应:', deviceRes)
         console.log('默认设备数据:', deviceRes.data)
-        
+
         const deviceId = deviceRes.data?.deviceId || deviceRes.data?.data?.deviceId
         console.log('解析后的设备ID:', deviceId)
-        
+
         if (!deviceId) {
           uni.hideLoading()
           uni.showToast({
@@ -1129,9 +1171,9 @@ export default {
           })
           return
         }
-        
+
         uni.hideLoading()
-        
+
         let imageUrl = this.snapshotImageUrl
         if (!imageUrl && this.modelInfo && this.modelInfo.previewUrl) {
           imageUrl = this.modelInfo.previewUrl
@@ -1139,9 +1181,12 @@ export default {
         if (!imageUrl) {
           imageUrl = this.modelUrl
         }
-        
-        const dimensionsParam = this.dimensions && this.dimensions.x ? encodeURIComponent(JSON.stringify(this.dimensions)) : ''
-        
+
+        const dimensionsParam =
+          this.dimensions && this.dimensions.x
+            ? encodeURIComponent(JSON.stringify(this.dimensions))
+            : ''
+
         uni.navigateTo({
           url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(modifiedModelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}&addSupports=${this.addSupports}`
         })
@@ -1149,7 +1194,8 @@ export default {
         uni.hideLoading()
         console.error('获取设备信息失败:', error)
         uni.showToast({
-          title: error.message || this.texts.getDeviceInfoFailed || '获取设备信息失败，请检查打印机连接',
+          title:
+            error.message || this.texts.getDeviceInfoFailed || '获取设备信息失败，请检查打印机连接',
           icon: 'none'
         })
       }
@@ -1163,61 +1209,61 @@ export default {
 
 <style scoped>
 .preview-page {
-	min-height: 100vh;
-	height: 100vh;
-	background-color: #1a1a1a;
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
+  min-height: 100vh;
+  height: 100vh;
+  background-color: #1a1a1a;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .top-bar {
-	min-height: 88rpx;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0 24rpx;
-	border-bottom: 1rpx solid #333;
-	box-sizing: border-box;
-	background-color: #2a2a2a;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx;
+  border-bottom: 1rpx solid #333;
+  box-sizing: border-box;
+  background-color: #2a2a2a;
 }
 
 .top-bar .title {
-	font-size: 34rpx;
-	font-weight: 600;
-	color: #fff;
-	flex: 1;
-	text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+  text-align: center;
 }
 
 .top-bar .back {
-	width: 60rpx;
-	height: 60rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .empty {
-	width: 60rpx;
+  width: 60rpx;
 }
 
 .canvas-wrap {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	background-color: #1a1a1a;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a;
 }
 
 .canvas-container {
-	flex: 1;
-	position: relative;
-	background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-	/* APP 端：画布区域不参与页面滚动，触摸交给 3D 跟手拖动/旋转/缩放 */
-	touch-action: none;
-	-webkit-user-select: none;
-	user-select: none;
+  flex: 1;
+  position: relative;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  /* APP 端：画布区域不参与页面滚动，触摸交给 3D 跟手拖动/旋转/缩放 */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .left-toolbar {
@@ -1249,8 +1295,6 @@ export default {
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
 }
 
-
-
 .toolbar-text {
   font-size: 20rpx;
   color: #fff;
@@ -1277,193 +1321,196 @@ export default {
 }
 
 .empty-state {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .empty-text {
-	font-size: 28rpx;
-	color: #666;
+  font-size: 28rpx;
+  color: #666;
 }
 
 .loading-overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(26, 26, 26, 0.85);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	z-index: 10;
-	backdrop-filter: blur(8rpx);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(26, 26, 26, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(8rpx);
 }
 
 .loading-text {
-	font-size: 32rpx;
-	color: #fff;
-	font-weight: 500;
-	margin-bottom: 40rpx;
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
+  font-size: 32rpx;
+  color: #fff;
+  font-weight: 500;
+  margin-bottom: 40rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .loading-text::before {
-	content: '';
-	width: 40rpx;
-	height: 40rpx;
-	border: 4rpx solid rgba(255, 255, 255, 0.2);
-	border-top-color: #2a7fff;
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
+  content: '';
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.2);
+  border-top-color: #2a7fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .cancel-btn {
-	padding: 20rpx 48rpx;
-	background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
-	border-radius: 40rpx;
-	border: none;
-	box-shadow: 0 8rpx 24rpx rgba(238, 90, 90, 0.35);
-	transition: all 0.3s ease;
+  padding: 20rpx 48rpx;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  border-radius: 40rpx;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(238, 90, 90, 0.35);
+  transition: all 0.3s ease;
 }
 
 .cancel-btn:active {
-	transform: scale(0.95);
-	box-shadow: 0 4rpx 12rpx rgba(238, 90, 90, 0.25);
+  transform: scale(0.95);
+  box-shadow: 0 4rpx 12rpx rgba(238, 90, 90, 0.25);
 }
 
 .cancel-btn-text {
-	font-size: 28rpx;
-	color: #fff;
-	font-weight: 500;
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 500;
 }
 
 .fixed-top {
-	flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .dimensions-bar {
-	background-color: #2a2a2a;
-	padding: 16rpx 24rpx;
-	border-top: 1rpx solid #333;
-	flex-shrink: 0;
+  background-color: #2a2a2a;
+  padding: 16rpx 24rpx;
+  border-top: 1rpx solid #333;
+  flex-shrink: 0;
 }
 
 .dimensions-text {
-	font-size: 24rpx;
-	color: #999;
-	font-weight: 500;
+  font-size: 24rpx;
+  color: #999;
+  font-weight: 500;
 }
 
 .settings-section {
-	background-color: #2a2a2a;
-	padding: 24rpx;
-	border-top: 1rpx solid #333;
-	flex-shrink: 0;
+  background-color: #2a2a2a;
+  padding: 24rpx;
+  border-top: 1rpx solid #333;
+  flex-shrink: 0;
 }
 
 .setting-item {
-	margin-bottom: 32rpx;
+  margin-bottom: 32rpx;
 }
 
 .support-item {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .support-item .setting-label {
-	margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .setting-label {
-	font-size: 28rpx;
-	color: #fff;
-	margin-bottom: 16rpx;
-	display: block;
+  font-size: 28rpx;
+  color: #fff;
+  margin-bottom: 16rpx;
+  display: block;
 }
 
 .reset-btn {
-	width: 100%;
-	height: 88rpx;
-	border-radius: 44rpx;
-	background-color: #666;
-	border: none;
-	color: #ffffff;
-	font-size: 28rpx;
-	font-weight: 600;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-bottom: 16rpx;
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background-color: #666;
+  border: none;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16rpx;
 }
 
 .reset-btn-text {
-	color: #ffffff;
-	font-weight: 600;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .reset-btn:active {
-	opacity: 0.8;
+  opacity: 0.8;
 }
 
 .boundary-warning {
-	background-color: rgba(255, 59, 48, 0.1);
-	border: 1rpx solid rgba(255, 59, 48, 0.3);
-	border-radius: 8rpx;
-	padding: 16rpx 24rpx;
-	margin-bottom: 16rpx;
+  background-color: rgba(255, 59, 48, 0.1);
+  border: 1rpx solid rgba(255, 59, 48, 0.3);
+  border-radius: 8rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 16rpx;
 }
 
 .warning-text {
-	font-size: 24rpx;
-	color: #ff3b30;
-	text-align: center;
+  font-size: 24rpx;
+  color: #ff3b30;
+  text-align: center;
 }
 
 .next-btn {
-	width: 100%;
-	height: 88rpx;
-	border-radius: 44rpx;
-	background-color: #2a7fff;
-	border: none;
-	color: #ffffff;
-	font-size: 28rpx;
-	font-weight: 600;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background-color: #2a7fff;
+  border: none;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .next-btn.disabled {
-	background-color: #666;
-	opacity: 0.5;
+  background-color: #666;
+  opacity: 0.5;
 }
 
 .next-btn-text {
-	color: #ffffff;
-	font-weight: 600;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .next-btn:active {
-	opacity: 0.8;
+  opacity: 0.8;
 }
 
 .next-btn.disabled:active {
-	opacity: 0.5;
+  opacity: 0.5;
 }
 </style>
-

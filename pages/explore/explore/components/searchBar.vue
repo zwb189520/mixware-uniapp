@@ -1,6 +1,8 @@
 ﻿<template>
   <view class="search-bar" @click="handleClick">
-    <view class="search-input" :class="{'placeholder-text': !keyword}">{{ keyword || texts.searchModel }}</view>
+    <view class="search-input" :class="{ 'placeholder-text': !keyword }">{{
+      keyword || texts.searchModel
+    }}</view>
     <uni-icons type="search" size="30"></uni-icons>
   </view>
 </template>
@@ -49,7 +51,7 @@ export default {
   padding: 8rpx;
   display: flex;
   align-items: center;
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,.1);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 .search-input {
   flex: 1;
@@ -62,4 +64,3 @@ export default {
   color: #999;
 }
 </style>
-

@@ -9,37 +9,45 @@
         </view>
       </template>
     </custom-navbar>
-    
+
     <scroll-view class="session-list" scroll-y>
       <view v-if="loading && sessionList.length === 0" class="loading-state">
         <uni-load-more status="loading" :content-text="loadingText"></uni-load-more>
       </view>
-      
+
       <view v-else-if="sessionList.length === 0" class="empty-state">
         <uni-icons type="chatbubble" size="64" color="#ccc"></uni-icons>
         <text class="empty-text">{{ texts.noSessions }}</text>
         <button class="create-btn" @click="createNewSession">{{ texts.createFirstSession }}</button>
       </view>
-      
+
       <view v-else class="session-items">
-        <view 
-          v-for="(session, index) in sessionList" 
+        <view
+          v-for="(session, index) in sessionList"
           :key="session.sessionId"
           class="session-item"
           :class="{ active: currentSessionIndex === index }"
           @click="selectSession(index)"
         >
           <view class="session-icon">
-            <uni-icons type="chatbubble-filled" size="24" :color="currentSessionIndex === index ? '#007AFF' : '#666'"></uni-icons>
+            <uni-icons
+              type="chatbubble-filled"
+              size="24"
+              :color="currentSessionIndex === index ? '#007AFF' : '#666'"
+            ></uni-icons>
           </view>
           <view class="session-info">
-            <text class="session-title">{{ session.title ? session.title : texts.unnamedSession }}</text>
-            <text class="session-time">{{ formatTime(session.updateTime || session.createTime) }}</text>
+            <text class="session-title">{{
+              session.title ? session.title : texts.unnamedSession
+            }}</text>
+            <text class="session-time">{{
+              formatTime(session.updateTime || session.createTime)
+            }}</text>
           </view>
           <view class="session-actions" @click.stop>
-            <uni-icons 
-              type="more-filled" 
-              size="20" 
+            <uni-icons
+              type="more-filled"
+              size="20"
               color="#999"
               @click="showActionMenu(index)"
             ></uni-icons>
@@ -68,7 +76,7 @@ export default {
     const chatStore = useChatStore()
     const languageStore = useLanguageStore()
     const { sessionList, currentSessionIndex } = storeToRefs(chatStore)
-    
+
     return {
       chatStore,
       languageStore,
@@ -87,24 +95,26 @@ export default {
   },
   computed: {
     texts() {
-      return this.languageStore.texts.create?.sessionList || {
-        title: '会话列表',
-        newSession: '新建',
-        noSessions: '暂无会话',
-        createFirstSession: '创建第一个会话',
-        unnamedSession: '未命名会话',
-        deleteConfirm: '确定删除该会话吗？',
-        deleteSuccess: '删除成功',
-        deleteFailed: '删除失败',
-        loadFailed: '加载失败',
-        createSessionFailed: '创建会话失败',
-        tip: '提示',
-        deleteSession: '删除会话',
-        justNow: '刚刚',
-        minutesAgo: '分钟前',
-        hoursAgo: '小时前',
-        daysAgo: '天前'
-      }
+      return (
+        this.languageStore.texts.create?.sessionList || {
+          title: '会话列表',
+          newSession: '新建',
+          noSessions: '暂无会话',
+          createFirstSession: '创建第一个会话',
+          unnamedSession: '未命名会话',
+          deleteConfirm: '确定删除该会话吗？',
+          deleteSuccess: '删除成功',
+          deleteFailed: '删除失败',
+          loadFailed: '加载失败',
+          createSessionFailed: '创建会话失败',
+          tip: '提示',
+          deleteSession: '删除会话',
+          justNow: '刚刚',
+          minutesAgo: '分钟前',
+          hoursAgo: '小时前',
+          daysAgo: '天前'
+        }
+      )
     },
     loadingText() {
       return {
@@ -121,7 +131,7 @@ export default {
     async loadSessionList() {
       if (this.loading) return
       this.loading = true
-      
+
       try {
         const res = await getSessionList(this.page, this.size)
         console.log('会话列表响应:', res)
@@ -129,7 +139,7 @@ export default {
           const data = res.data || {}
           const records = data.records || []
           console.log('会话记录:', records)
-          
+
           if (this.page === 1) {
             this.chatStore.setSessionList(records)
           } else {
@@ -137,7 +147,7 @@ export default {
               this.chatStore.sessionList.push(session)
             })
           }
-          
+
           this.hasMore = records.length === this.size
         }
       } catch (error) {
@@ -150,9 +160,7 @@ export default {
         this.loading = false
       }
     },
-    
 
-    
     async createNewSession() {
       try {
         const res = await createSession()
@@ -160,9 +168,9 @@ export default {
           const session = res.data
           if (session && session.sessionId) {
             this.chatStore.addSession(session)
-            
+
             await setCurrentSession(session.sessionId)
-            
+
             uni.navigateTo({
               url: `/pages/create/createDetail/aiChat/aiChat?sessionId=${session.sessionId}`
             })
@@ -176,48 +184,48 @@ export default {
         })
       }
     },
-    
+
     async selectSession(index) {
       const session = this.sessionList[index]
       if (!session) return
-      
+
       this.chatStore.selectSession(index)
-      
+
       try {
         await setCurrentSession(session.sessionId)
       } catch (error) {
         console.error('设置当前会话失败:', error)
       }
-      
+
       uni.navigateTo({
         url: `/pages/create/createDetail/aiChat/aiChat?sessionId=${session.sessionId}`
       })
     },
-    
+
     showActionMenu(index) {
       const session = this.sessionList[index]
       uni.showActionSheet({
         itemList: [this.texts.deleteSession || '删除会话'],
-        success: (res) => {
+        success: res => {
           if (res.tapIndex === 0) {
             this.deleteSession(index)
           }
         }
       })
     },
-    
+
     async deleteSession(index) {
       const session = this.sessionList[index]
-      
+
       uni.showModal({
         title: this.texts.tip || '提示',
         content: this.texts.deleteConfirm,
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             try {
               // 这里需要调用删除会话的API
               // await deleteSession(session.sessionId)
-              
+
               this.chatStore.removeSession(index)
               uni.showToast({
                 title: this.texts.deleteSuccess,
@@ -234,13 +242,13 @@ export default {
         }
       })
     },
-    
+
     formatTime(timeStr) {
       if (!timeStr) return ''
       const date = new Date(timeStr)
       const now = new Date()
       const diff = now - date
-      
+
       if (diff < 60000) {
         return this.texts.justNow || '刚刚'
       } else if (diff < 3600000) {
@@ -253,7 +261,7 @@ export default {
         return date.toLocaleDateString()
       }
     },
-    
+
     goBack() {
       uni.navigateBack()
     }
@@ -277,7 +285,7 @@ export default {
 
 .new-text {
   font-size: 28rpx;
-  color: #007AFF;
+  color: #007aff;
 }
 
 .session-list {
@@ -286,7 +294,8 @@ export default {
   overflow-y: auto;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -303,7 +312,7 @@ export default {
 .create-btn {
   margin-top: 40rpx;
   padding: 20rpx 40rpx;
-  background: #007AFF;
+  background: #007aff;
   color: #fff;
   border-radius: 8rpx;
   font-size: 28rpx;
@@ -359,4 +368,3 @@ export default {
   padding: 10rpx;
 }
 </style>
-

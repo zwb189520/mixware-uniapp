@@ -4,17 +4,19 @@
       <safe-area />
       <custom-navbar :title="texts.deviceManager || '设备管理'" @back="handleBack" />
     </view>
-    
+
     <view class="content-container">
       <view v-if="devices.length === 0 && !isLoading" class="empty-state">
         <view class="empty-icon">📱</view>
         <text class="empty-title">{{ texts.noDevices || '还没有设备' }}</text>
-        <text class="empty-desc">{{ texts.noDevicesHint || '扫描设备二维码或手动输入SN码添加设备' }}</text>
+        <text class="empty-desc">{{
+          texts.noDevicesHint || '扫描设备二维码或手动输入SN码添加设备'
+        }}</text>
       </view>
-      
+
       <view v-else class="device-list">
-        <view 
-          v-for="device in devices" 
+        <view
+          v-for="device in devices"
           :key="device.deviceId"
           class="device-card"
           @click="handleDeviceClick(device)"
@@ -23,8 +25,12 @@
             <view class="device-main-info">
               <image class="device-img" src="/static/images/3Dprinter.png" mode="aspectFit"></image>
               <view class="device-text-info">
-                <text class="device-name">{{ device.deviceName || texts.unnamedDevice || '未命名设备' }}</text>
-                <text v-if="device.deviceName !== device.deviceId" class="device-id">{{ device.deviceId }}</text>
+                <text class="device-name">{{
+                  device.deviceName || texts.unnamedDevice || '未命名设备'
+                }}</text>
+                <text v-if="device.deviceName !== device.deviceId" class="device-id">{{
+                  device.deviceId
+                }}</text>
               </view>
             </view>
             <view class="status-badge" :class="getStatusClass(device)">
@@ -32,7 +38,7 @@
               <text>{{ getDeviceStatusText(device) }}</text>
             </view>
           </view>
-          
+
           <view class="card-actions">
             <button class="card-btn edit-btn" @click.stop="handleEditDevice(device)">
               <text>{{ texts.editDevice || '编辑' }}</text>
@@ -46,26 +52,26 @@
           </view>
         </view>
       </view>
-      
+
       <view class="add-printer-btn" @click="handleShowAddPrinter">
         <uni-icons type="plus" size="20" color="#FF5A00"></uni-icons>
         <text class="add-text">{{ texts.addDevice || '添加打印机' }}</text>
       </view>
     </view>
-    
-    <AddPrinterModal 
-      :visible="showAddPrinter" 
-      @select-printer="onSelectPrinter" 
-      @cancel="onCancelAddPrinter" 
+
+    <AddPrinterModal
+      :visible="showAddPrinter"
+      @select-printer="onSelectPrinter"
+      @cancel="onCancelAddPrinter"
     />
-    
+
     <view v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
       <view class="edit-modal" @click.stop>
         <view class="modal-decoration">
           <view class="decoration-circle decoration-circle-1"></view>
           <view class="decoration-circle decoration-circle-2"></view>
         </view>
-        
+
         <view class="modal-header">
           <view class="header-left">
             <text class="modal-icon">✏️</text>
@@ -75,18 +81,18 @@
             <text>×</text>
           </view>
         </view>
-        
+
         <view class="modal-body">
           <view class="input-wrapper">
             <text class="input-icon">📝</text>
-            <input 
+            <input
               class="form-input"
               v-model="editForm.deviceName"
               :placeholder="texts.deviceNamePlaceholder || '请输入设备名称'"
             />
           </view>
         </view>
-        
+
         <view class="modal-footer">
           <button class="btn-cancel" @click="closeEditModal">
             <text>{{ texts.cancel || '取消' }}</text>
@@ -196,15 +202,15 @@ const handleSaveDevice = async () => {
     })
     return
   }
-  
+
   const submitData = {
     deviceId: editForm.value.deviceId,
     deviceName: editForm.value.deviceName
   }
-  
+
   try {
     const res: any = await updateDeviceInfo(submitData)
-    
+
     if (res.code === 1 || res.code === 200) {
       uni.showToast({
         title: texts.saveSuccess || '保存成功',
@@ -214,7 +220,7 @@ const handleSaveDevice = async () => {
       loadDevices()
     } else {
       uni.showToast({
-        title: res.msg || (texts.saveFailed || '保存失败'),
+        title: res.msg || texts.saveFailed || '保存失败',
         icon: 'none'
       })
     }
@@ -231,7 +237,7 @@ const handleDeleteDevice = async (device: Device) => {
   uni.showModal({
     title: texts.deleteConfirm || '确认删除',
     content: `${texts.deleteConfirmContent || '确定要删除设备'} "${device.deviceName || device.deviceId}" ${texts.questionMark || '吗？'}`,
-    success: async (res) => {
+    success: async res => {
       if (res.confirm) {
         try {
           await deleteDevice(device.deviceId)
@@ -287,7 +293,7 @@ const handleSetDefault = async (device: Device) => {
       loadDevices()
     } else {
       uni.showToast({
-        title: res.msg || (texts.setDefaultFailed || '设置默认设备失败'),
+        title: res.msg || texts.setDefaultFailed || '设置默认设备失败',
         icon: 'none'
       })
     }
@@ -304,7 +310,7 @@ const handleSetDefault = async (device: Device) => {
 <style scoped>
 .device-manager-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFF 100%);
+  background: linear-gradient(180deg, #fff9f5 0%, #fff 100%);
   position: relative;
   overflow: hidden;
 }
@@ -334,8 +340,15 @@ const handleSetDefault = async (device: Device) => {
 }
 
 @keyframes pulse-bg {
-  0%, 100% { transform: scale(1) translateY(0); opacity: 0.5; }
-  50% { transform: scale(1.2) translateY(-30rpx); opacity: 0.8; }
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2) translateY(-30rpx);
+    opacity: 0.8;
+  }
 }
 
 .header-wrapper {
@@ -377,8 +390,13 @@ const handleSetDefault = async (device: Device) => {
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20rpx); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20rpx);
+  }
 }
 
 .empty-title {
@@ -484,7 +502,7 @@ const handleSetDefault = async (device: Device) => {
 
 .status-online {
   background: rgba(126, 211, 33, 0.1);
-  color: #7ED321;
+  color: #7ed321;
 }
 
 .status-offline {
@@ -501,8 +519,13 @@ const handleSetDefault = async (device: Device) => {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .card-actions {
@@ -528,7 +551,7 @@ const handleSetDefault = async (device: Device) => {
 }
 
 .edit-btn {
-  background: #4A90E2;
+  background: #4a90e2;
   color: #fff;
 }
 
@@ -538,12 +561,12 @@ const handleSetDefault = async (device: Device) => {
 }
 
 .delete-btn {
-  background: linear-gradient(135deg, #FF5A00, #FF8C00);
+  background: linear-gradient(135deg, #ff5a00, #ff8c00);
   color: #fff;
 }
 
 .add-printer-btn {
-  border: 2rpx dashed #FF5A00;
+  border: 2rpx dashed #ff5a00;
   border-radius: 16rpx;
   padding: 30rpx;
   display: flex;
@@ -562,7 +585,7 @@ const handleSetDefault = async (device: Device) => {
 
 .add-text {
   font-size: 28rpx;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 .modal-overlay {
@@ -690,7 +713,7 @@ const handleSetDefault = async (device: Device) => {
 }
 
 .input-wrapper:focus-within {
-  border-color: #FF5A00;
+  border-color: #ff5a00;
   background: #fff;
 }
 
@@ -742,7 +765,7 @@ const handleSetDefault = async (device: Device) => {
 }
 
 .btn-confirm {
-  background: linear-gradient(135deg, #FF5A00, #FF8C00);
+  background: linear-gradient(135deg, #ff5a00, #ff8c00);
   color: #fff;
 }
 

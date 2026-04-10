@@ -81,7 +81,7 @@ export default {
 <style scoped>
 .printer-more-intro-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFF 100%);
+  background: linear-gradient(180deg, #fff9f5 0%, #fff 100%);
 }
 
 .header-wrapper {
@@ -92,5 +92,3 @@ export default {
   padding-bottom: 40rpx;
 }
 </style>
-
-

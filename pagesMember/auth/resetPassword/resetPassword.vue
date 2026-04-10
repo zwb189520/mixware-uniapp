@@ -10,7 +10,11 @@
       <view class="form-item">
         <text class="form-label">{{ texts.codeLabel }}</text>
         <view class="code-input-container">
-          <input class="form-input code-input" v-model="code" :placeholder="texts.codePlaceholder" />
+          <input
+            class="form-input code-input"
+            v-model="code"
+            :placeholder="texts.codePlaceholder"
+          />
           <button class="code-btn" @click="handleGetCode" :disabled="countdown > 0">
             {{ countdown > 0 ? `${countdown}s` : texts.getCode }}
           </button>
@@ -18,15 +22,30 @@
       </view>
       <view class="form-item">
         <text class="form-label">{{ texts.oldPasswordLabel }}</text>
-        <input class="form-input" v-model="oldPassword" type="password" :placeholder="texts.oldPasswordPlaceholder" />
+        <input
+          class="form-input"
+          v-model="oldPassword"
+          type="password"
+          :placeholder="texts.oldPasswordPlaceholder"
+        />
       </view>
       <view class="form-item">
         <text class="form-label">{{ texts.newPasswordLabel }}</text>
-        <input class="form-input" v-model="newPassword" type="password" :placeholder="texts.newPasswordPlaceholder" />
+        <input
+          class="form-input"
+          v-model="newPassword"
+          type="password"
+          :placeholder="texts.newPasswordPlaceholder"
+        />
       </view>
       <view class="form-item">
         <text class="form-label">{{ texts.confirmPasswordLabel }}</text>
-        <input class="form-input" v-model="confirmPassword" type="password" :placeholder="texts.confirmPasswordPlaceholder" />
+        <input
+          class="form-input"
+          v-model="confirmPassword"
+          type="password"
+          :placeholder="texts.confirmPasswordPlaceholder"
+        />
       </view>
       <button class="submit-btn" @click="handleSubmit">{{ texts.resetButton }}</button>
     </view>
@@ -74,32 +93,40 @@ const handleGetCode = () => {
     })
     return
   }
-  
-  sendResetPasswordCode(email.value).then(() => {
-    countdown.value = 60
-    timer.value = setInterval(() => {
-      countdown.value--
-      if (countdown.value <= 0 && timer.value) {
-        clearInterval(timer.value)
-      }
-    }, 1000)
-  }).catch((error: any) => {
-    uni.showToast({
-      title: error.message || texts.value.sendFailed,
-      icon: 'none'
+
+  sendResetPasswordCode(email.value)
+    .then(() => {
+      countdown.value = 60
+      timer.value = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0 && timer.value) {
+          clearInterval(timer.value)
+        }
+      }, 1000)
     })
-  })
+    .catch((error: any) => {
+      uni.showToast({
+        title: error.message || texts.value.sendFailed,
+        icon: 'none'
+      })
+    })
 }
 
 const handleSubmit = () => {
-  if (!email.value || !code.value || !oldPassword.value || !newPassword.value || !confirmPassword.value) {
+  if (
+    !email.value ||
+    !code.value ||
+    !oldPassword.value ||
+    !newPassword.value ||
+    !confirmPassword.value
+  ) {
     uni.showToast({
       title: texts.value.fillAllFields,
       icon: 'none'
     })
     return
   }
-  
+
   if (newPassword.value === oldPassword.value) {
     uni.showToast({
       title: texts.value.newPasswordSameAsOld || '新密码不能与旧密码相同',
@@ -107,7 +134,7 @@ const handleSubmit = () => {
     })
     return
   }
-  
+
   if (newPassword.value !== confirmPassword.value) {
     uni.showToast({
       title: texts.value.passwordsNotMatch,
@@ -115,7 +142,7 @@ const handleSubmit = () => {
     })
     return
   }
-  
+
   if (newPassword.value.length < 6) {
     uni.showToast({
       title: texts.value.passwordTooShort,
@@ -123,44 +150,46 @@ const handleSubmit = () => {
     })
     return
   }
-  
+
   uni.showLoading({
     title: texts.value.resetting
   })
-  
+
   resetPassword({
     email: email.value,
     verificationCode: code.value,
     oldPassword: oldPassword.value,
     newPassword: newPassword.value
-  }).then(() => {
-    uni.hideLoading()
-    
-    uni.showToast({
-      title: texts.value.resetSuccess,
-      icon: 'success'
-    })
-    
-    setTimeout(() => {
-      handleLogout()
-      uni.redirectTo({
-        url: '/pagesMember/auth/login/login'
-      })
-    }, 1500)
-  }).catch((error: any) => {
-    uni.hideLoading()
-    uni.showToast({
-      title: error.message || texts.value.resetFailed,
-      icon: 'none'
-    })
   })
+    .then(() => {
+      uni.hideLoading()
+
+      uni.showToast({
+        title: texts.value.resetSuccess,
+        icon: 'success'
+      })
+
+      setTimeout(() => {
+        handleLogout()
+        uni.redirectTo({
+          url: '/pagesMember/auth/login/login'
+        })
+      }, 1500)
+    })
+    .catch((error: any) => {
+      uni.hideLoading()
+      uni.showToast({
+        title: error.message || texts.value.resetFailed,
+        icon: 'none'
+      })
+    })
 }
 </script>
 
 <style scoped>
 .reset-password-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content {
@@ -204,7 +233,7 @@ const handleSubmit = () => {
 .code-btn {
   width: 200rpx;
   height: 80rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 8rpx;
@@ -219,7 +248,7 @@ const handleSubmit = () => {
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 44rpx;

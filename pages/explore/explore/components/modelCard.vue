@@ -1,9 +1,9 @@
 ﻿<template>
   <view class="model-card" @click="handleCardClick">
-    <image 
-      class="card-img" 
-      :src="model.image" 
-      mode="aspectFill" 
+    <image
+      class="card-img"
+      :src="model.image"
+      mode="aspectFill"
       lazy-load="true"
       @error="handleImageError"
       :style="{ height: Math.random() > 0.5 ? '200px' : '250px' }"
@@ -12,15 +12,15 @@
       <text class="card-desc">{{ model.desc }}</text>
       <view class="card-footer">
         <view class="card-author" @click.stop="handleAuthorClick">
-          <image 
-            class="author-avatar" 
-            :src="model.authorAvatar" 
+          <image
+            class="author-avatar"
+            :src="model.authorAvatar"
             @error="handleAvatarError"
             mode="aspectFill"
           />
           <text class="author-name">{{ model.author }}</text>
         </view>
-        <view class="card-like" :class="{ 'liked': model.isLiked }" @click.stop="handleLikeClick">
+        <view class="card-like" :class="{ liked: model.isLiked }" @click.stop="handleLikeClick">
           <text class="like-icon">{{ model.isLiked ? '❤️' : '🤍' }}</text>
           <text class="like-count">{{ model.likes }}</text>
         </view>
@@ -69,7 +69,7 @@ export default {
   border-radius: 16rpx;
   overflow: hidden;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 .card-img {
   width: 100%;
@@ -135,7 +135,7 @@ export default {
 
 /* 已点赞状态 */
 .card-like.liked {
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 /* 移动端适配 */
@@ -150,6 +150,4 @@ export default {
     font-size: 20rpx;
   }
 }
-
 </style>
-

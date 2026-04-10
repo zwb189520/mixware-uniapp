@@ -44,7 +44,12 @@ export function uploadImages(files: string[], options: UploadOptions = {}): Prom
  * @param id - 关联 ID
  * @param options - 上传选项
  */
-export function uploadImage(filePath: string, type: string, id: string, options: UploadOptions = {}): Promise<unknown> {
+export function uploadImage(
+  filePath: string,
+  type: string,
+  id: string,
+  options: UploadOptions = {}
+): Promise<unknown> {
   return uploadFile('/upload/image', filePath, {
     name: 'file',
     formData: {
@@ -62,4 +67,3 @@ export function uploadImage(filePath: string, type: string, id: string, options:
 export function getModelDownloadUrl(fileUrl: string): Promise<unknown> {
   return get('/upload/model/download', { fileUrl })
 }
-

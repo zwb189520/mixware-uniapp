@@ -5,10 +5,14 @@
  * @param postId - 帖子 ID
  */
 export function getPostDetail(postId: string): Promise<unknown> {
-  return get(`/community/posts/${postId}`, {}, {
-    cache: true,
-    cacheTime: 3 * 60 * 1000
-  })
+  return get(
+    `/community/posts/${postId}`,
+    {},
+    {
+      cache: true,
+      cacheTime: 3 * 60 * 1000
+    }
+  )
 }
 
 /**
@@ -73,10 +77,14 @@ export function deleteComment(commentId: string): Promise<unknown> {
  * @param targetId - 目标 ID
  */
 export function toggleLike(targetType: string, targetId: string): Promise<unknown> {
-  return postFormWithQuery('/community/likes', {}, {
-    targetType,
-    targetId
-  })
+  return postFormWithQuery(
+    '/community/likes',
+    {},
+    {
+      targetType,
+      targetId
+    }
+  )
 }
 
 /**

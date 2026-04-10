@@ -4,13 +4,13 @@ export const useLanguageStore = defineStore('language', {
   state: () => ({
     language: 'zh'
   }),
-  
+
   getters: {
-    languageLabel: (state) => {
+    languageLabel: state => {
       return state.language === 'en' ? 'English' : '中文'
     },
-    
-    texts: (state) => {
+
+    texts: state => {
       const zh = {
         login: {
           title: '登录',
@@ -356,7 +356,8 @@ export const useLanguageStore = defineStore('language', {
           prepareDownload: '准备下载...',
           downloadStart: '下载开始',
           formatNotSupported: '格式不支持',
-          formatNotSupportedMsg: '当前暂不支持 GCode 格式的模型预览，请使用 GLB、GLTF、OBJ 或 STL 格式的模型',
+          formatNotSupportedMsg:
+            '当前暂不支持 GCode 格式的模型预览，请使用 GLB、GLTF、OBJ 或 STL 格式的模型',
           startPrint: '开始打印',
           noModel: '暂无模型',
           gettingDeviceInfo: '正在获取设备信息...',
@@ -440,7 +441,8 @@ export const useLanguageStore = defineStore('language', {
           searchFailed: '搜索失败，请稍后重试',
           scanFailed: '扫码失败',
           uploadSteps: '上传步骤',
-          uploadStepsContent: '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传',
+          uploadStepsContent:
+            '1. 选择预览图片\n2. 选择STL模型文件\n3. 选择分类\n4. 输入模型名称\n\n点击确定开始上传',
           postNotFound: '帖子不存在',
           cannotFollowSelf: '不能关注自己',
           followSuccess: '关注成功',
@@ -698,7 +700,8 @@ export const useLanguageStore = defineStore('language', {
           wifiConnectSuccess: 'WiFi连接成功',
           wifiConnectFailed: 'WiFi连接失败，请检查密码后重试',
           networkConfigFailedRetry: '配网失败，请重试',
-          connectionTimeout: '连接超时，请检查：\n1. WiFi密码是否正确\n2. 设备是否已上电\n3. 路由器是否为2.4G网络',
+          connectionTimeout:
+            '连接超时，请检查：\n1. WiFi密码是否正确\n2. 设备是否已上电\n3. 路由器是否为2.4G网络',
           confirm: '我知道了'
         },
         profile: {
@@ -1006,19 +1009,26 @@ export const useLanguageStore = defineStore('language', {
         loginUserAgreement: {
           title: '用户协议',
           section1Title: '1. 服务条款',
-          section1Content: '欢迎使用 mixware 服务。在使用本服务前，请仔细阅读并理解本用户协议。使用本服务即表示您同意本协议的所有条款。',
+          section1Content:
+            '欢迎使用 mixware 服务。在使用本服务前，请仔细阅读并理解本用户协议。使用本服务即表示您同意本协议的所有条款。',
           section2Title: '2. 用户注册',
-          section2Content: '用户在注册时必须提供真实准确的个人信息。用户有责任维护其账户和密码的保密性，并对该账户下发生的所有活动负责。',
+          section2Content:
+            '用户在注册时必须提供真实准确的个人信息。用户有责任维护其账户和密码的保密性，并对该账户下发生的所有活动负责。',
           section3Title: '3. 服务使用',
-          section3Content: '用户承诺不将本服务用于任何非法或不当活动，包括但不限于发布非法信息、侵犯他人知识产权等。',
+          section3Content:
+            '用户承诺不将本服务用于任何非法或不当活动，包括但不限于发布非法信息、侵犯他人知识产权等。',
           section4Title: '4. 隐私保护',
-          section4Content: '我们将采取合理的技术措施保护用户个人信息的安全，但不对因不可抗力或第三方原因导致的信息泄露承担责任。',
+          section4Content:
+            '我们将采取合理的技术措施保护用户个人信息的安全，但不对因不可抗力或第三方原因导致的信息泄露承担责任。',
           section5Title: '5. 免责声明',
-          section5Content: '本服务按"原样"提供，不保证连续性、及时性、安全性或无错误。用户使用本服务所产生的风险由用户自行承担。',
+          section5Content:
+            '本服务按"原样"提供，不保证连续性、及时性、安全性或无错误。用户使用本服务所产生的风险由用户自行承担。',
           section6Title: '6. 协议修改',
-          section6Content: '我们保留随时修改本协议的权利。修改后的协议自发布之日起生效。如用户不同意修改后的协议，应停止使用本服务。',
+          section6Content:
+            '我们保留随时修改本协议的权利。修改后的协议自发布之日起生效。如用户不同意修改后的协议，应停止使用本服务。',
           section7Title: '7. 适用法律',
-          section7Content: '本协议的订立、执行和解释均适用中华人民共和国法律。如发生争议，双方应通过友好协商解决。'
+          section7Content:
+            '本协议的订立、执行和解释均适用中华人民共和国法律。如发生争议，双方应通过友好协商解决。'
         },
         commentList: {
           title: '全部评论',
@@ -1061,49 +1071,68 @@ export const useLanguageStore = defineStore('language', {
         loginMixwareAgreement: {
           title: 'mixware用户协议',
           section1Title: '1. mixware服务说明',
-          section1Content: 'mixware是一款专业的3D打印管理应用，为用户提供模型浏览、创作、打印管理等全面服务。本协议是您与mixware之间关于使用本服务的法律协议。',
+          section1Content:
+            'mixware是一款专业的3D打印管理应用，为用户提供模型浏览、创作、打印管理等全面服务。本协议是您与mixware之间关于使用本服务的法律协议。',
           section2Title: '2. 账号管理',
-          section2Content: '用户在mixware注册的账号归用户所有，但mixware保留管理账号的权利。用户不得转让、出售或出借账号。如发现账号被盗，应立即通知mixware。',
+          section2Content:
+            '用户在mixware注册的账号归用户所有，但mixware保留管理账号的权利。用户不得转让、出售或出借账号。如发现账号被盗，应立即通知mixware。',
           section3Title: '3. 3D模型版权',
-          section3Content: 'mixware平台上的3D模型版权归原作者所有。用户可以浏览、下载和使用模型，但不得用于商业目的或侵犯原作者的权益。用户上传的模型应确保拥有合法的版权。',
+          section3Content:
+            'mixware平台上的3D模型版权归原作者所有。用户可以浏览、下载和使用模型，但不得用于商业目的或侵犯原作者的权益。用户上传的模型应确保拥有合法的版权。',
           section4Title: '4. 3D打印机设备管理',
-          section4Content: '用户可以通过mixware管理连接的3D打印机设备。用户应确保设备使用符合当地法律法规，不得用于打印违禁物品。mixware不对因设备使用不当造成的损失负责。',
+          section4Content:
+            '用户可以通过mixware管理连接的3D打印机设备。用户应确保设备使用符合当地法律法规，不得用于打印违禁物品。mixware不对因设备使用不当造成的损失负责。',
           section5Title: '5. 服务费用',
-          section5Content: 'mixware的基础服务免费提供，但某些高级功能可能需要付费。付费服务的价格和条款以mixware官方公告为准。购买付费服务后不支持退款。',
+          section5Content:
+            'mixware的基础服务免费提供，但某些高级功能可能需要付费。付费服务的价格和条款以mixware官方公告为准。购买付费服务后不支持退款。',
           section6Title: '6. 用户行为规范',
-          section6Content: '用户在使用mixware服务时应遵守以下规范：不得发布违法、有害、色情或暴力内容；不得侵犯他人的知识产权；不得干扰或破坏正常的服务运行；不得利用服务进行欺诈或其他违法活动。',
+          section6Content:
+            '用户在使用mixware服务时应遵守以下规范：不得发布违法、有害、色情或暴力内容；不得侵犯他人的知识产权；不得干扰或破坏正常的服务运行；不得利用服务进行欺诈或其他违法活动。',
           section7Title: '7. 知识产权',
-          section7Content: 'mixware平台上的所有内容，包括但不限于软件、设计、文本、图片、视频等，均受知识产权法保护。未经mixware书面许可，用户不得复制、分发、修改或用于商业目的。',
+          section7Content:
+            'mixware平台上的所有内容，包括但不限于软件、设计、文本、图片、视频等，均受知识产权法保护。未经mixware书面许可，用户不得复制、分发、修改或用于商业目的。',
           section8Title: '8. 免责声明',
-          section8Content: 'mixware对以下情况不承担责任：因用户操作不当导致的打印失败；因设备故障或网络问题导致的服务中断；第三方内容或服务的质量问题；不可抗力事件。',
+          section8Content:
+            'mixware对以下情况不承担责任：因用户操作不当导致的打印失败；因设备故障或网络问题导致的服务中断；第三方内容或服务的质量问题；不可抗力事件。',
           section9Title: '9. 服务终止',
-          section9Content: 'mixware有权在以下情况下终止或暂停服务：用户违反本协议；用户行为损害mixware或其他用户的利益；法律要求或其他必要情况。服务终止后，用户账号将被冻结或删除。',
+          section9Content:
+            'mixware有权在以下情况下终止或暂停服务：用户违反本协议；用户行为损害mixware或其他用户的利益；法律要求或其他必要情况。服务终止后，用户账号将被冻结或删除。',
           section10Title: '10. 争议解决',
-          section10Content: '因本协议产生的任何争议，应首先通过友好协商解决。协商不成的，任何一方均可向mixware所在地的人民法院提起诉讼。',
+          section10Content:
+            '因本协议产生的任何争议，应首先通过友好协商解决。协商不成的，任何一方均可向mixware所在地的人民法院提起诉讼。',
           section11Title: '11. 联系方式',
-          section11Content: '如果您对本协议有任何疑问或建议，请通过以下方式联系我们：邮箱：support@mixware.com；电话：400-XXX-XXXX。'
+          section11Content:
+            '如果您对本协议有任何疑问或建议，请通过以下方式联系我们：邮箱：support@mixware.com；电话：400-XXX-XXXX。'
         },
         loginPrivacy: {
           title: '隐私通知',
           section1Title: '1. 信息收集',
-          section1Content: '我们可能会收集您的个人信息，包括但不限于：电子邮件地址、设备信息、使用日志等。这些信息用于提供和改进我们的服务。',
+          section1Content:
+            '我们可能会收集您的个人信息，包括但不限于：电子邮件地址、设备信息、使用日志等。这些信息用于提供和改进我们的服务。',
           section2Title: '2. 信息使用',
-          section2Content: '我们使用收集的信息来：提供、维护和改进我们的服务；处理您的请求和交易；向您发送相关通知；保护我们的服务和用户。',
+          section2Content:
+            '我们使用收集的信息来：提供、维护和改进我们的服务；处理您的请求和交易；向您发送相关通知；保护我们的服务和用户。',
           section3Title: '3. 信息共享',
-          section3Content: '除非获得您的明确同意或法律要求，否则我们不会出售、交易或转让您的个人信息给第三方。我们可能与受信任的第三方服务提供商共享必要信息以提供服务。',
+          section3Content:
+            '除非获得您的明确同意或法律要求，否则我们不会出售、交易或转让您的个人信息给第三方。我们可能与受信任的第三方服务提供商共享必要信息以提供服务。',
           section4Title: '4. 信息安全',
-          section4Content: '我们采取合理的技术和管理措施来保护您的个人信息安全，包括数据加密、访问控制、安全审计等。但请注意，没有任何互联网传输或存储方法是100%安全的。',
+          section4Content:
+            '我们采取合理的技术和管理措施来保护您的个人信息安全，包括数据加密、访问控制、安全审计等。但请注意，没有任何互联网传输或存储方法是100%安全的。',
           section5Title: '5. Cookie使用',
-          section5Content: '我们使用Cookie和类似技术来改善用户体验、分析使用情况、提供个性化内容。您可以通过浏览器设置管理Cookie偏好。',
+          section5Content:
+            '我们使用Cookie和类似技术来改善用户体验、分析使用情况、提供个性化内容。您可以通过浏览器设置管理Cookie偏好。',
           section6Title: '6. 您的权利',
-          section6Content: '您有权访问、更正、删除您的个人信息，以及反对或限制某些处理。您可以通过联系我们行使这些权利。',
+          section6Content:
+            '您有权访问、更正、删除您的个人信息，以及反对或限制某些处理。您可以通过联系我们行使这些权利。',
           section7Title: '7. 儿童隐私',
-          section7Content: '我们的服务不针对13岁以下的儿童。我们不会故意收集13岁以下儿童的个人信息。如果发现此类情况，我们将立即删除。',
+          section7Content:
+            '我们的服务不针对13岁以下的儿童。我们不会故意收集13岁以下儿童的个人信息。如果发现此类情况，我们将立即删除。',
           section8Title: '8. 隐私政策更新',
-          section8Content: '我们可能会不时更新此隐私政策。更新的政策将在此页面上发布，并注明修订日期。重大变更将通过其他方式通知您。'
+          section8Content:
+            '我们可能会不时更新此隐私政策。更新的政策将在此页面上发布，并注明修订日期。重大变更将通过其他方式通知您。'
         }
       }
-      
+
       const en = {
         login: {
           title: 'Login',
@@ -1220,7 +1249,7 @@ export const useLanguageStore = defineStore('language', {
             goPrint: 'Go Print',
             saveSuccess: 'Save Successful',
             exitConfirm: 'You have unsaved changes, are you sure to exit?',
-            dontSave: 'Don\'t Save',
+            dontSave: "Don't Save",
             save: 'Save',
             shareFailed: 'Share Failed',
             saveFailed: 'Save Failed',
@@ -1387,7 +1416,8 @@ export const useLanguageStore = defineStore('language', {
           autoPrintAfterProcess: 'Will print directly after processing',
           cancelProcessing: 'Cancel Processing',
           confirmCancel: 'Confirm Cancel',
-          cancelContent: 'Canceling will skip auto-print, processing continues in background, confirm?',
+          cancelContent:
+            'Canceling will skip auto-print, processing continues in background, confirm?',
           pendingTaskGenerated: 'Pending print task generated',
           printTimeAnalyzed: 'Print time analysis complete',
           modelConsumptionAnalyzed: 'Model consumption analysis complete',
@@ -1448,7 +1478,8 @@ export const useLanguageStore = defineStore('language', {
           prepareDownload: 'Preparing download...',
           downloadStart: 'Download started',
           formatNotSupported: 'Format not supported',
-          formatNotSupportedMsg: 'GCode format model preview is currently not supported. Please use GLB, GLTF, OBJ, or STL format models',
+          formatNotSupportedMsg:
+            'GCode format model preview is currently not supported. Please use GLB, GLTF, OBJ, or STL format models',
           startPrint: 'Start Print',
           noModel: 'No model available',
           gettingDeviceInfo: 'Getting device info...',
@@ -1478,7 +1509,7 @@ export const useLanguageStore = defineStore('language', {
           printPaused: 'Print paused',
           confirmResumePrint: 'Confirm resume printing?',
           resuming: 'Resuming...',
-          printResumed: 'Print resumed', 
+          printResumed: 'Print resumed',
           cancelPrint: 'Cancel Print',
           confirmCancelPrint: 'Confirm cancel printing? This action cannot be undone.',
           stopping: 'Stopping...',
@@ -1522,17 +1553,20 @@ export const useLanguageStore = defineStore('language', {
           getDeviceInfoFailed: 'Failed to get device info, please check printer connection',
           copySuccess: 'Copy successful',
           connectionFailed: 'Connection failed',
-          connectionFailedContent: 'Unable to establish real-time connection, please check your network and try again',
+          connectionFailedContent:
+            'Unable to establish real-time connection, please check your network and try again',
           deviceBusy: 'Device busy',
           deviceBusyContent: 'Device is printing, please stop the current task first',
           deviceOffline: 'Device offline',
-          deviceOfflineContent: 'Device is currently offline, please check the device connection status',
+          deviceOfflineContent:
+            'Device is currently offline, please check the device connection status',
           pleaseEnterKeyword: 'Please enter search keywords',
           noResultsFound: 'No results found',
           searchFailed: 'Search failed, please try again later',
           scanFailed: 'Scan failed',
           uploadSteps: 'Upload Steps',
-          uploadStepsContent: '1. Select preview image\n2. Select STL model file\n3. Select category\n4. Enter model name\n\nClick OK to start uploading',
+          uploadStepsContent:
+            '1. Select preview image\n2. Select STL model file\n3. Select category\n4. Enter model name\n\nClick OK to start uploading',
           postNotFound: 'Post not found',
           cannotFollowSelf: 'Cannot follow yourself',
           followSuccess: 'Follow success',
@@ -1563,7 +1597,8 @@ export const useLanguageStore = defineStore('language', {
           editFailed: 'Edit failed',
           deviceIdNotFound: 'Device ID not found',
           confirmUnbind: 'Confirm Unbind',
-          confirmUnbindContent: 'After unbinding, you will not be able to control this printer. Are you sure you want to continue?',
+          confirmUnbindContent:
+            'After unbinding, you will not be able to control this printer. Are you sure you want to continue?',
           unbindSuccess: 'Unbind successful',
           startCalibration: 'Start Calibration',
           pleaseEnterContent: 'Please enter content',
@@ -1790,7 +1825,8 @@ export const useLanguageStore = defineStore('language', {
           wifiConnectSuccess: 'WiFi connected successfully',
           wifiConnectFailed: 'WiFi connection failed, please check password and retry',
           networkConfigFailedRetry: 'Network config failed, please retry',
-          connectionTimeout: 'Connection timeout, please check:\n1. WiFi password is correct\n2. Device is powered on\n3. Router is 2.4G network'
+          connectionTimeout:
+            'Connection timeout, please check:\n1. WiFi password is correct\n2. Device is powered on\n3. Router is 2.4G network'
         },
         profile: {
           loginRegister: 'Login/Register',
@@ -1888,7 +1924,8 @@ export const useLanguageStore = defineStore('language', {
           // 作品管理
           deleteWork: 'Delete Work',
           deleteConfirm: 'Confirm Delete',
-          deleteConfirmContent: 'Are you sure you want to delete this work? This action cannot be undone.',
+          deleteConfirmContent:
+            'Are you sure you want to delete this work? This action cannot be undone.',
           deleteSuccess: 'Delete successful',
           deleteFailed: 'Delete failed',
           cancel: 'Cancel',
@@ -2002,7 +2039,8 @@ export const useLanguageStore = defineStore('language', {
           },
           deleteAccount: 'Delete Account',
           deleteAccountTitle: 'Delete Account',
-          deleteAccountContent: 'After deleting your account, all your data will be permanently deleted and cannot be recovered. Are you sure you want to continue?',
+          deleteAccountContent:
+            'After deleting your account, all your data will be permanently deleted and cannot be recovered. Are you sure you want to continue?',
           confirm: 'Confirm',
           cancel: 'Cancel',
           deleting: 'Deleting...',
@@ -2077,8 +2115,9 @@ export const useLanguageStore = defineStore('language', {
         printerPrint: {
           title: 'Printer Print',
           instructionTitle: 'Please follow the instructions',
-          instructionText: 'In power-on state, press and hold the power button for 7 seconds until the indicator light flashes orange',
-          readyButton: 'I\'m Ready'
+          instructionText:
+            'In power-on state, press and hold the power button for 7 seconds until the indicator light flashes orange',
+          readyButton: "I'm Ready"
         },
         message: {
           title: 'Message',
@@ -2105,63 +2144,89 @@ export const useLanguageStore = defineStore('language', {
         loginMixwareAgreement: {
           title: 'mixware User Agreement',
           section1Title: '1. mixware Service Description',
-          section1Content: 'mixware is a professional 3D printing management application that provides users with comprehensive services such as model browsing, creation, and printing management. This agreement is a legal agreement between you and mixware regarding the use of this service.',
+          section1Content:
+            'mixware is a professional 3D printing management application that provides users with comprehensive services such as model browsing, creation, and printing management. This agreement is a legal agreement between you and mixware regarding the use of this service.',
           section2Title: '2. Account Management',
-          section2Content: 'Accounts registered by users in mixware belong to the users, but mixware reserves the right to manage accounts. Users may not transfer, sell, or lend accounts. If an account is found to be compromised, notify mixware immediately.',
+          section2Content:
+            'Accounts registered by users in mixware belong to the users, but mixware reserves the right to manage accounts. Users may not transfer, sell, or lend accounts. If an account is found to be compromised, notify mixware immediately.',
           section3Title: '3. 3D Model Copyright',
-          section3Content: 'The 3D models on the mixware platform are copyrighted by their original authors. Users can browse, download, and use models, but may not use them for commercial purposes or infringe upon the rights of the original authors. Models uploaded by users should ensure they have legitimate copyrights.',
+          section3Content:
+            'The 3D models on the mixware platform are copyrighted by their original authors. Users can browse, download, and use models, but may not use them for commercial purposes or infringe upon the rights of the original authors. Models uploaded by users should ensure they have legitimate copyrights.',
           section4Title: '4. 3D Printer Device Management',
-          section4Content: 'Users can manage connected 3D printer devices through mixware. Users should ensure device usage complies with local laws and regulations and may not be used to print prohibited items. mixware is not responsible for losses caused by improper device usage.',
+          section4Content:
+            'Users can manage connected 3D printer devices through mixware. Users should ensure device usage complies with local laws and regulations and may not be used to print prohibited items. mixware is not responsible for losses caused by improper device usage.',
           section5Title: '5. Service Fees',
-          section5Content: 'mixware\'s basic services are provided free of charge, but certain advanced features may require payment. The pricing and terms of paid services are subject to mixware\'s official announcements. After purchasing paid services, refunds are not supported.',
+          section5Content:
+            "mixware's basic services are provided free of charge, but certain advanced features may require payment. The pricing and terms of paid services are subject to mixware's official announcements. After purchasing paid services, refunds are not supported.",
           section6Title: '6. User Behavior Guidelines',
-          section6Content: 'When using mixware services, users should comply with the following guidelines: do not post illegal, harmful, pornographic, or violent content; do not infringe upon others\' intellectual property rights; do not interfere with or disrupt normal service operations; do not use the service for fraud or other illegal activities.',
+          section6Content:
+            "When using mixware services, users should comply with the following guidelines: do not post illegal, harmful, pornographic, or violent content; do not infringe upon others' intellectual property rights; do not interfere with or disrupt normal service operations; do not use the service for fraud or other illegal activities.",
           section7Title: '7. Intellectual Property',
-          section7Content: 'All content on the mixware platform, including but not limited to software, designs, text, images, videos, etc., is protected by intellectual property law. Without mixware\'s written permission, users may not copy, distribute, modify, or use for commercial purposes.',
+          section7Content:
+            "All content on the mixware platform, including but not limited to software, designs, text, images, videos, etc., is protected by intellectual property law. Without mixware's written permission, users may not copy, distribute, modify, or use for commercial purposes.",
           section8Title: '8. Disclaimer',
-          section8Content: 'mixware is not responsible for the following situations: print failures due to improper user operations; service interruptions due to device failures or network issues; quality issues of third-party content or services; force majeure events.',
+          section8Content:
+            'mixware is not responsible for the following situations: print failures due to improper user operations; service interruptions due to device failures or network issues; quality issues of third-party content or services; force majeure events.',
           section9Title: '9. Service Termination',
-          section9Content: 'mixware has the right to terminate or suspend services under the following circumstances: users violate this agreement; user behavior damages mixware or other users\' interests; legal requirements or other necessary situations. After service termination, user accounts will be frozen or deleted.',
+          section9Content:
+            "mixware has the right to terminate or suspend services under the following circumstances: users violate this agreement; user behavior damages mixware or other users' interests; legal requirements or other necessary situations. After service termination, user accounts will be frozen or deleted.",
           section10Title: '10. Dispute Resolution',
-          section10Content: 'Any disputes arising from this agreement should first be resolved through friendly negotiations. If negotiations fail, either party may file a lawsuit with the people\'s court in mixware\'s location.',
+          section10Content:
+            "Any disputes arising from this agreement should first be resolved through friendly negotiations. If negotiations fail, either party may file a lawsuit with the people's court in mixware's location.",
           section11Title: '11. Contact Information',
-          section11Content: 'If you have any questions or suggestions about this agreement, please contact us through the following methods: Email: support@mixware.com; Phone: 400-XXX-XXXX.'
+          section11Content:
+            'If you have any questions or suggestions about this agreement, please contact us through the following methods: Email: support@mixware.com; Phone: 400-XXX-XXXX.'
         },
         loginPrivacy: {
           title: 'Privacy Notice',
           section1Title: '1. Information Collection',
-          section1Content: 'We may collect your personal information, including but not limited to: email address, device information, usage logs, etc. This information is used to provide and improve our services.',
+          section1Content:
+            'We may collect your personal information, including but not limited to: email address, device information, usage logs, etc. This information is used to provide and improve our services.',
           section2Title: '2. Information Usage',
-          section2Content: 'We use collected information to: provide, maintain and improve our services; process your requests and transactions; send you relevant notifications; protect our services and users.',
+          section2Content:
+            'We use collected information to: provide, maintain and improve our services; process your requests and transactions; send you relevant notifications; protect our services and users.',
           section3Title: '3. Information Sharing',
-          section3Content: 'We will not sell, trade or transfer your personal information to third parties unless we obtain your explicit consent or as required by law. We may share necessary information with trusted third-party service providers to provide services.',
+          section3Content:
+            'We will not sell, trade or transfer your personal information to third parties unless we obtain your explicit consent or as required by law. We may share necessary information with trusted third-party service providers to provide services.',
           section4Title: '4. Information Security',
-          section4Content: 'We take reasonable technical and administrative measures to protect your personal information security, including data encryption, access control, security audits, etc. However, please note that no internet transmission or storage method is 100% secure.',
+          section4Content:
+            'We take reasonable technical and administrative measures to protect your personal information security, including data encryption, access control, security audits, etc. However, please note that no internet transmission or storage method is 100% secure.',
           section5Title: '5. Cookie Usage',
-          section5Content: 'We use cookies and similar technologies to improve user experience, analyze usage, provide personalized content. You can manage cookie preferences through browser settings.',
+          section5Content:
+            'We use cookies and similar technologies to improve user experience, analyze usage, provide personalized content. You can manage cookie preferences through browser settings.',
           section6Title: '6. Your Rights',
-          section6Content: 'You have the right to access, correct, delete your personal information, as well as object to or restrict certain processing. You can exercise these rights by contacting us.',
-          section7Title: '7. Children\'s Privacy',
-          section7Content: 'Our services are not directed to children under 13 years of age. We do not intentionally collect personal information from children under 13. If such cases are discovered, we will delete them immediately.',
+          section6Content:
+            'You have the right to access, correct, delete your personal information, as well as object to or restrict certain processing. You can exercise these rights by contacting us.',
+          section7Title: "7. Children's Privacy",
+          section7Content:
+            'Our services are not directed to children under 13 years of age. We do not intentionally collect personal information from children under 13. If such cases are discovered, we will delete them immediately.',
           section8Title: '8. Privacy Policy Updates',
-          section8Content: 'We may update this privacy policy from time to time. Updated policies will be published on this page with revision dates. Significant changes will be notified to you through other means.'
+          section8Content:
+            'We may update this privacy policy from time to time. Updated policies will be published on this page with revision dates. Significant changes will be notified to you through other means.'
         },
         loginUserAgreement: {
           title: 'User Agreement',
           section1Title: '1. Terms of Service',
-          section1Content: 'Welcome to use mixware services. Before using this service, please read and understand this user agreement carefully. Using this service indicates that you agree to all terms of this agreement.',
+          section1Content:
+            'Welcome to use mixware services. Before using this service, please read and understand this user agreement carefully. Using this service indicates that you agree to all terms of this agreement.',
           section2Title: '2. User Registration',
-          section2Content: 'Users must provide true and accurate personal information during registration. Users are responsible for maintaining the confidentiality of their account and password, and for all activities occurring under that account.',
+          section2Content:
+            'Users must provide true and accurate personal information during registration. Users are responsible for maintaining the confidentiality of their account and password, and for all activities occurring under that account.',
           section3Title: '3. Service Usage',
-          section3Content: 'Users promise not to use this service for any illegal or inappropriate activities, including but not limited to posting illegal information, infringe upon others\' intellectual property rights, etc.',
+          section3Content:
+            "Users promise not to use this service for any illegal or inappropriate activities, including but not limited to posting illegal information, infringe upon others' intellectual property rights, etc.",
           section4Title: '4. Privacy Protection',
-          section4Content: 'We will take reasonable technical measures to protect the security of users\' personal information, but will not be liable for information leaks caused by force majeure or third-party reasons.',
+          section4Content:
+            "We will take reasonable technical measures to protect the security of users' personal information, but will not be liable for information leaks caused by force majeure or third-party reasons.",
           section5Title: '5. Disclaimer',
-          section5Content: 'This service is provided "as is" without guarantee of continuity, timeliness, security, or freedom from errors. Risks arising from user\'s use of this service are borne by the user.',
+          section5Content:
+            'This service is provided "as is" without guarantee of continuity, timeliness, security, or freedom from errors. Risks arising from user\'s use of this service are borne by the user.',
           section6Title: '6. Agreement Modifications',
-          section6Content: 'We reserve the right to modify this agreement at any time. The modified agreement becomes effective upon publication. If users disagree with the modified agreement, they should stop using this service.',
+          section6Content:
+            'We reserve the right to modify this agreement at any time. The modified agreement becomes effective upon publication. If users disagree with the modified agreement, they should stop using this service.',
           section7Title: '7. Applicable Law',
-          section7Content: 'The establishment, execution, and interpretation of this agreement are governed by the laws of the People\'s Republic of China. In case of disputes, both parties should resolve them through friendly negotiation.'
+          section7Content:
+            "The establishment, execution, and interpretation of this agreement are governed by the laws of the People's Republic of China. In case of disputes, both parties should resolve them through friendly negotiation."
         },
         commentList: {
           title: 'All Comments',
@@ -2202,11 +2267,11 @@ export const useLanguageStore = defineStore('language', {
           operationFailed: 'Operation failed'
         }
       }
-      
+
       return state.language === 'en' ? en : zh
     }
   },
-  
+
   actions: {
     loadLanguage(updateTabBar = true) {
       try {
@@ -2222,13 +2287,17 @@ export const useLanguageStore = defineStore('language', {
         this.language = 'zh'
       }
     },
-    
+
     updateTabBar() {
       const texts = this.texts
       // 只在 TabBar 页面更新
       const pages = getCurrentPages()
       const currentPage = pages[pages.length - 1]
-      const tabBarPages = ['pages/explore/explore/explore', 'pages/create/create/create', 'pages/profile/profile']
+      const tabBarPages = [
+        'pages/explore/explore/explore',
+        'pages/create/create/create',
+        'pages/profile/profile'
+      ]
       if (!currentPage || !tabBarPages.includes(currentPage.route)) {
         return
       }
@@ -2249,7 +2318,7 @@ export const useLanguageStore = defineStore('language', {
         console.warn('更新TabBar文本失败:', e)
       }
     },
-    
+
     setLanguage(lang: string) {
       this.language = lang
       try {
@@ -2260,7 +2329,7 @@ export const useLanguageStore = defineStore('language', {
         console.warn('保存语言设置失败:', err)
       }
     },
-    
+
     toggleLanguage() {
       const newLang = this.language === 'zh' ? 'en' : 'zh'
       this.setLanguage(newLang)

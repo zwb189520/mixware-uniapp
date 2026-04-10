@@ -21,8 +21,14 @@
               <text class="stat-item">{{ formatTime(postDetail.createdAt) }}</text>
             </view>
           </view>
-          <view class="follow-btn" :class="{ 'followed': postDetail.isFollowing }" @click="handleFollow">
-            <text class="follow-text">{{ postDetail.isFollowing ? texts.followed : texts.follow }}</text>
+          <view
+            class="follow-btn"
+            :class="{ followed: postDetail.isFollowing }"
+            @click="handleFollow"
+          >
+            <text class="follow-text">{{
+              postDetail.isFollowing ? texts.followed : texts.follow
+            }}</text>
           </view>
         </view>
       </view>
@@ -36,9 +42,19 @@
 
         <!-- 图片轮播 -->
         <view class="image-gallery">
-          <swiper class="swiper" :indicator-dots="imageUrls.length > 1" :autoplay="false" :circular="true">
+          <swiper
+            class="swiper"
+            :indicator-dots="imageUrls.length > 1"
+            :autoplay="false"
+            :circular="true"
+          >
             <swiper-item v-for="(img, index) in imageUrls" :key="index">
-              <image class="gallery-image" :src="img" mode="aspectFill" @click="previewImages(index)" />
+              <image
+                class="gallery-image"
+                :src="img"
+                mode="aspectFill"
+                @click="previewImages(index)"
+              />
             </swiper-item>
           </swiper>
           <view class="image-count" v-if="imageUrls.length > 1">
@@ -60,16 +76,23 @@
         </view>
 
         <!-- 关联模型 -->
-        <view class="model-link-section" v-if="postDetail.modelId && postDetail.modelName" @click="goToModel(postDetail.modelId)">
+        <view
+          class="model-link-section"
+          v-if="postDetail.modelId && postDetail.modelName"
+          @click="goToModel(postDetail.modelId)"
+        >
           <view class="model-link-card">
-            <image class="model-preview" :src="modelImage || '/static/images/icon/3d_model.png'" mode="aspectFill" />
+            <image
+              class="model-preview"
+              :src="modelImage || '/static/images/icon/3d_model.png'"
+              mode="aspectFill"
+            />
             <view class="model-info">
               <text class="model-name-text">{{ postDetail.modelName }}</text>
             </view>
             <text class="model-link-arrow">></text>
           </view>
         </view>
-
       </view>
 
       <!-- 评论区 -->
@@ -87,13 +110,27 @@
       </view>
     </scroll-view>
 
-    <view v-if="isPopupOpen" class="popup-mask" @tap="closeCommentPopup" @touchmove.stop.prevent="moveHandle">
-      <view class="comment-popup" :style="{ bottom: keyboardHeight + 'px' }" @tap.stop @touchmove.stop.prevent="moveHandle">
+    <view
+      v-if="isPopupOpen"
+      class="popup-mask"
+      @tap="closeCommentPopup"
+      @touchmove.stop.prevent="moveHandle"
+    >
+      <view
+        class="comment-popup"
+        :style="{ bottom: keyboardHeight + 'px' }"
+        @tap.stop
+        @touchmove.stop.prevent="moveHandle"
+      >
         <view class="popup-body">
-          <textarea 
+          <textarea
             class="popup-textarea"
             v-model="commentText"
-            :placeholder="replyTargetName ? (texts.replyTo || '回复') + ' ' + replyTargetName + '...' : (texts.inputPlaceholder || '写点什么吧...')"
+            :placeholder="
+              replyTargetName
+                ? (texts.replyTo || '回复') + ' ' + replyTargetName + '...'
+                : texts.inputPlaceholder || '写点什么吧...'
+            "
             :maxlength="1000"
             :focus="true"
             :show-confirm-bar="false"
@@ -105,9 +142,14 @@
         </view>
         <view class="popup-footer">
           <view class="footer-left">
-            <image class="footer-icon" src="/static/images/icon/image.png" mode="aspectFit" @click="handleUploadImage" />
+            <image
+              class="footer-icon"
+              src="/static/images/icon/image.png"
+              mode="aspectFit"
+              @click="handleUploadImage"
+            />
           </view>
-          <view class="publish-btn" :class="{ 'active': commentText.trim() }" @click="handlePublish">
+          <view class="publish-btn" :class="{ active: commentText.trim() }" @click="handlePublish">
             <text class="publish-text">{{ texts.publish || '发布' }}</text>
           </view>
         </view>
@@ -121,8 +163,18 @@
       </view>
       <view class="input-actions">
         <view class="action-btn" @click="handlePostLike">
-          <image class="action-btn-icon" :src="postDetail.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" mode="aspectFit" />
-          <text class="action-btn-text" :class="{ 'active-like': postDetail.isLiked }">{{ postDetail.likeCount || 0 }}</text>
+          <image
+            class="action-btn-icon"
+            :src="
+              postDetail.isLiked
+                ? '/static/images/icon/like_active.png'
+                : '/static/images/icon/like.png'
+            "
+            mode="aspectFit"
+          />
+          <text class="action-btn-text" :class="{ 'active-like': postDetail.isLiked }">{{
+            postDetail.likeCount || 0
+          }}</text>
         </view>
       </view>
     </view>
@@ -134,11 +186,11 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import CommentSection from './components/CommentSection.vue'
 import { useLanguageStore } from '@/stores/index.ts'
-import { 
-  getPostDetail, 
-  getPostComments, 
-  toggleLike, 
-  toggleFollow, 
+import {
+  getPostDetail,
+  getPostComments,
+  toggleLike,
+  toggleFollow,
   createComment,
   deleteComment,
   deletePost,
@@ -218,10 +270,10 @@ export default {
     this.postId = options.postId || options.workId || options.id || ''
     this.workTitle = options.title ? decodeURIComponent(options.title) : '作品详情'
     this.modelImage = options.image ? decodeURIComponent(options.image) : ''
-    
+
     this.languageStore.loadLanguage()
     this.getCurrentUserId()
-    
+
     if (this.postId) {
       this.loadPostDetail()
       this.loadComments()
@@ -232,7 +284,7 @@ export default {
       })
       setTimeout(() => uni.navigateBack(), 1500)
     }
-    
+
     if (uni.onKeyboardHeightChange) {
       uni.onKeyboardHeightChange(res => {
         this.keyboardHeight = res.height
@@ -271,12 +323,12 @@ export default {
       const userInfo = uni.getStorageSync('userInfo')
       this.currentUserId = userInfo?.userId || ''
       this.currentUserAvatar = userInfo?.avatar || '/static/images/Default avatar.png'
-      this.currentUserName = userInfo?.nickname || userInfo?.username || (this.texts?.me || '我')
+      this.currentUserName = userInfo?.nickname || userInfo?.username || this.texts?.me || '我'
     },
 
     async loadPostDetail() {
       this.loading = true
-      
+
       try {
         const res = await getPostDetail(String(this.postId))
 
@@ -287,23 +339,29 @@ export default {
           postData.likeCount = postData.likeCount || postData.likes || 0
           // 过滤imageUrls中的无效路径（blob和file://）
           if (postData.imageUrls && Array.isArray(postData.imageUrls)) {
-            const validImageUrls = postData.imageUrls.filter(imgUrl => 
-              imgUrl && !(imgUrl.startsWith('blob:') || imgUrl.startsWith('file://'))
-            );
-            postData.imageUrls = validImageUrls.length > 0 ? validImageUrls : postData.imageUrls;
+            const validImageUrls = postData.imageUrls.filter(
+              imgUrl => imgUrl && !(imgUrl.startsWith('blob:') || imgUrl.startsWith('file://'))
+            )
+            postData.imageUrls = validImageUrls.length > 0 ? validImageUrls : postData.imageUrls
           } else {
-            postData.imageUrls = [];
+            postData.imageUrls = []
           }
           // 过滤用户头像中的无效路径
-          if (postData.avatarUrl && (postData.avatarUrl.startsWith('blob:') || postData.avatarUrl.startsWith('file://'))) {
-            postData.avatarUrl = '/static/images/Default avatar.png';
+          if (
+            postData.avatarUrl &&
+            (postData.avatarUrl.startsWith('blob:') || postData.avatarUrl.startsWith('file://'))
+          ) {
+            postData.avatarUrl = '/static/images/Default avatar.png'
           }
-          
+
           // 处理话题数据，确保是数组格式
           let topicsData = postData.topics || postData.tags || []
 
           // 如果后端返回 null 或空，尝试从正文中解析 #话题#
-          if ((!topicsData || (Array.isArray(topicsData) && topicsData.length === 0)) && postData.content) {
+          if (
+            (!topicsData || (Array.isArray(topicsData) && topicsData.length === 0)) &&
+            postData.content
+          ) {
             const contentTopics = postData.content.match(/#([^#\s]+)#/g)
             if (contentTopics) {
               topicsData = contentTopics.map(t => t.replace(/#/g, ''))
@@ -328,14 +386,14 @@ export default {
           }
           // 移除重复并清理
           postData.topics = [...new Set(topicsData.map(t => String(t).trim()))].filter(t => t)
-          
+
           this.postDetail = postData
           this.userName = this.postDetail.username
           this.userAvatar = this.postDetail.avatarUrl
           // 过滤掉正文中的 #话题# 文本，避免重复显示
           this.description = (this.postDetail.content || '').replace(/#[^#\s]+#/g, '').trim()
           this.workTitle = this.postDetail.title || '作品详情'
-          
+
           // 获取模型预览图
           if (this.postDetail.modelId) {
             this.loadModelPreview(this.postDetail.modelId)
@@ -344,7 +402,7 @@ export default {
           } else {
             this.modelImage = '/static/images/3Dprinter.png'
           }
-          
+
           this.checkUserInteractions()
         } else {
           uni.showToast({
@@ -364,7 +422,8 @@ export default {
     },
 
     async checkUserInteractions() {
-      if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined') return
+      if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined')
+        return
 
       try {
         // 后端 getPostDetail 返回的 isLiked 不正确，需要调用 checkLikeStatus 获取真实状态
@@ -378,7 +437,11 @@ export default {
         }
 
         // 只在需要时才调用关注状态检查（如果后端没有返回）
-        if (this.postDetail.isFollowing === undefined && this.postDetail.userId && this.postDetail.userId !== 'local_user') {
+        if (
+          this.postDetail.isFollowing === undefined &&
+          this.postDetail.userId &&
+          this.postDetail.userId !== 'local_user'
+        ) {
           try {
             const followRes = await checkFollowStatus(this.postDetail.userId)
             if (followRes.code === 0 || followRes.code === 1) {
@@ -396,7 +459,7 @@ export default {
     async loadComments() {
       try {
         const res = await getPostComments(this.postId)
-        
+
         if ((res.code === 0 || res.code === 1) && res.data && res.data.length > 0) {
           this.comments = this.transformComments(res.data)
         } else {
@@ -482,15 +545,15 @@ export default {
 
     formatTime(timestamp) {
       if (!timestamp) return ''
-      
+
       const now = new Date().getTime()
       const time = new Date(timestamp).getTime()
       const diff = now - time
-      
+
       const minute = 60 * 1000
       const hour = 60 * minute
       const day = 24 * hour
-      
+
       if (diff < minute) {
         return this.texts.justNow
       } else if (diff < hour) {
@@ -509,7 +572,12 @@ export default {
       this.postDetail.isLiked = !this.postDetail.isLiked
       this.postDetail.likeCount += this.postDetail.isLiked ? 1 : -1
 
-      const isMock = !this.postId || String(this.postId).includes('mock') || String(this.postId) === '1' || String(this.postId) === 'NaN' || String(this.postId) === 'undefined'
+      const isMock =
+        !this.postId ||
+        String(this.postId).includes('mock') ||
+        String(this.postId) === '1' ||
+        String(this.postId) === 'NaN' ||
+        String(this.postId) === 'undefined'
 
       if (!isMock) {
         try {
@@ -526,7 +594,10 @@ export default {
         }
       } else {
         // 如果是本地 mock ID，更新本地存储
-        if (this.postId && (String(this.postId).startsWith('mock_') || String(this.postId) === '1')) {
+        if (
+          this.postId &&
+          (String(this.postId).startsWith('mock_') || String(this.postId) === '1')
+        ) {
           this.updateLocalPostLike()
         }
       }
@@ -534,37 +605,45 @@ export default {
 
     async handleFollow() {
       // 防止关注自己
-      if (this.postDetail.userId && this.currentUserId && String(this.postDetail.userId) === String(this.currentUserId)) {
+      if (
+        this.postDetail.userId &&
+        this.currentUserId &&
+        String(this.postDetail.userId) === String(this.currentUserId)
+      ) {
         uni.showToast({
           title: this.texts.cannotFollowSelf || '不能关注自己',
           icon: 'none'
         })
         return
       }
-      
+
       // 本地立即更新UI
       const isFollowingBefore = this.postDetail.isFollowing
       this.postDetail.isFollowing = !this.postDetail.isFollowing
-      
+
       // 发送事件通知，让其他页面更新关注统计
       uni.$emit('followStatusChanged', {
         userId: this.postDetail.userId,
         isFollowing: this.postDetail.isFollowing
       })
-      
+
       uni.showToast({
-        title: this.postDetail.isFollowing ? (this.texts.followSuccess || '关注成功') : (this.texts.unfollowSuccess || '取消关注'),
+        title: this.postDetail.isFollowing
+          ? this.texts.followSuccess || '关注成功'
+          : this.texts.unfollowSuccess || '取消关注',
         icon: 'success'
       })
-      
+
       // 如果不是 mock 用户，调用接口
-      if (this.postDetail.userId && 
-          !String(this.postDetail.userId).includes('user') && 
-          this.postDetail.userId !== 'local_user' && 
-          String(this.postDetail.userId) !== '1') {
+      if (
+        this.postDetail.userId &&
+        !String(this.postDetail.userId).includes('user') &&
+        this.postDetail.userId !== 'local_user' &&
+        String(this.postDetail.userId) !== '1'
+      ) {
         try {
           const res = await toggleFollow(this.postDetail.userId)
-          
+
           if (res.code === 0) {
             const isFollowing = res.data
             this.postDetail.isFollowing = isFollowing
@@ -588,13 +667,18 @@ export default {
     async handleCommentLike(commentId) {
       // 本地更新
       this.updateCommentLikeLocal(commentId)
-      
+
       // 如果不是 mock ID，调用接口
-      const isMock = !this.postId || String(this.postId).includes('mock') || String(this.postId) === '1' || String(this.postId) === 'NaN' || String(this.postId) === 'undefined'
+      const isMock =
+        !this.postId ||
+        String(this.postId).includes('mock') ||
+        String(this.postId) === '1' ||
+        String(this.postId) === 'NaN' ||
+        String(this.postId) === 'undefined'
       if (!isMock) {
         try {
           const res = await toggleLike('COMMENT', commentId)
-          
+
           if (res.code === 0) {
             this.loadComments()
           }
@@ -661,8 +745,11 @@ export default {
     handleUploadImage() {
       uni.chooseImage({
         count: 1,
-        success: (res) => {
-          uni.showToast({ title: this.texts.imageUploadInDev || '图片上传功能开发中', icon: 'none' })
+        success: res => {
+          uni.showToast({
+            title: this.texts.imageUploadInDev || '图片上传功能开发中',
+            icon: 'none'
+          })
         }
       })
     },
@@ -691,7 +778,7 @@ export default {
         }
         this.comments.unshift(newComment)
         this.postDetail.commentCount++
-        
+
         // 如果是 mock post，保存到本地存储
         if (!this.postId || String(this.postId).includes('mock') || String(this.postId) === '1') {
           this.saveLocalComments()
@@ -708,7 +795,7 @@ export default {
             content: content,
             parentCommentId: parentId
           })
-          
+
           if (res.code === 0) {
             this.loadComments()
           }
@@ -754,12 +841,12 @@ export default {
         }
         parentComment.replies.push(newReply)
         this.postDetail.commentCount++
-        
+
         // 如果是 mock post，保存到本地存储
         if (!this.postId || String(this.postId).includes('mock') || String(this.postId) === '1') {
           this.saveLocalComments()
         }
-        
+
         uni.showToast({ title: this.texts.replySuccess || '回复成功', icon: 'success' })
       }
 
@@ -771,7 +858,7 @@ export default {
             content: data.content,
             parentCommentId: data.commentId
           })
-          
+
           if (res.code === 0) {
             this.loadComments()
           }
@@ -785,9 +872,14 @@ export default {
       uni.showModal({
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteComment || '确定要删除这条评论吗？',
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
-            const isMock = !this.postId || String(this.postId).includes('mock') || String(this.postId) === '1' || String(this.postId) === 'NaN' || String(this.postId) === 'undefined'
+            const isMock =
+              !this.postId ||
+              String(this.postId).includes('mock') ||
+              String(this.postId) === '1' ||
+              String(this.postId) === 'NaN' ||
+              String(this.postId) === 'undefined'
             if (!isMock) {
               try {
                 const result = await deleteComment(commentId)
@@ -854,8 +946,9 @@ export default {
     },
 
     handleMore() {
-      const isAuthor = String(this.postDetail.userId) === String(this.currentUserId) ||
-                       String(this.postDetail.userId) === 'local_user'
+      const isAuthor =
+        String(this.postDetail.userId) === String(this.currentUserId) ||
+        String(this.postDetail.userId) === 'local_user'
 
       if (!isAuthor) {
         uni.showToast({ title: this.texts.noPermission || '无操作权限', icon: 'none' })
@@ -864,7 +957,7 @@ export default {
 
       uni.showActionSheet({
         itemList: [this.texts.delete || '删除'],
-        success: (res) => {
+        success: res => {
           this.handleDeletePost()
         }
       })
@@ -874,10 +967,15 @@ export default {
       uni.showModal({
         title: this.texts.tip || '提示',
         content: this.texts.confirmDeletePost || '确定要删除这篇作品吗？',
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             try {
-              const isMock = !this.postId || String(this.postId).includes('mock') || String(this.postId) === '1' || String(this.postId) === 'NaN' || String(this.postId) === 'undefined'
+              const isMock =
+                !this.postId ||
+                String(this.postId).includes('mock') ||
+                String(this.postId) === '1' ||
+                String(this.postId) === 'NaN' ||
+                String(this.postId) === 'undefined'
               if (!isMock) {
                 const result = await deletePost(this.postId)
                 if (result.code === 0 || result.code === 1) {
@@ -888,7 +986,10 @@ export default {
                     uni.navigateBack()
                   }, 1500)
                 } else {
-                  uni.showToast({ title: result.msg || this.texts.deleteFailed || '删除失败', icon: 'none' })
+                  uni.showToast({
+                    title: result.msg || this.texts.deleteFailed || '删除失败',
+                    icon: 'none'
+                  })
                 }
               } else {
                 // 处理本地 mock 数据的删除
@@ -909,10 +1010,10 @@ export default {
 
     deleteLocalPost() {
       if (!this.postId) return
-      
+
       // 1. 从详情页本地缓存中删除 (如果存了的话)
       uni.removeStorageSync(`post_detail_${this.postId}`)
-      
+
       // 2. 从作品列表中删除 (针对特定的 modelId)
       const modelId = this.postDetail && this.postDetail.modelId
       if (modelId) {
@@ -920,7 +1021,7 @@ export default {
         localPosts = localPosts.filter(p => String(p.id) !== String(this.postId))
         uni.setStorageSync(`local_posts_${modelId}`, localPosts)
       }
-      
+
       // 3. 从总列表中删除
       let allLocalPosts = uni.getStorageSync('local_all_posts') || []
       allLocalPosts = allLocalPosts.filter(p => String(p.id) !== String(this.postId))
@@ -931,10 +1032,10 @@ export default {
       if (newlyCreated && String(newlyCreated.id) === String(this.postId)) {
         uni.removeStorageSync('newlyCreatedPost')
       }
-      
+
       // 5. 清除对应的评论
       uni.removeStorageSync(`comments_${this.postId}`)
-      
+
       // 6. 发送删除事件
       uni.$emit('postDeleted', this.postId)
     },
@@ -953,7 +1054,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
   overflow: hidden;
   position: relative;
 }
@@ -990,7 +1091,7 @@ export default {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ff5a00 0%, #ff8c00 100%);
   flex-shrink: 0;
 }
 
@@ -1026,7 +1127,7 @@ export default {
 .follow-btn {
   padding: 12rpx 32rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ff5a00 0%, #ff8c00 100%);
   box-shadow: 0 4rpx 12rpx rgba(255, 90, 0, 0.3);
   transition: all 0.3s;
 }
@@ -1225,8 +1326,12 @@ export default {
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .popup-body {
@@ -1277,7 +1382,7 @@ export default {
 }
 
 .publish-btn.active {
-  background: #00C853;
+  background: #00c853;
 }
 
 .publish-text {
@@ -1310,7 +1415,7 @@ export default {
   flex: 1;
   height: 72rpx;
   padding: 0 24rpx;
-  background: #FFF9F5;
+  background: #fff9f5;
   border-radius: 36rpx;
   display: flex;
   align-items: center;
@@ -1352,13 +1457,12 @@ export default {
 }
 
 .action-btn-text.active-like {
-  color: #FF69B4;
+  color: #ff69b4;
   font-weight: 600;
 }
 
 .action-btn-text.active-collect {
-  color: #FFD700;
+  color: #ffd700;
   font-weight: 600;
 }
 </style>
-

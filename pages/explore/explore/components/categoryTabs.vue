@@ -1,9 +1,9 @@
 ﻿<template>
   <view class="category-tabs">
-    <view 
-      class="tab-item" 
-      :class="{active: currentTab === tab.value}" 
-      v-for="tab in tabs" 
+    <view
+      class="tab-item"
+      :class="{ active: currentTab === tab.value }"
+      v-for="tab in tabs"
       :key="tab.value"
       :id="'tab-' + tab.value"
       @click="handleTabClick(tab.value)"
@@ -60,14 +60,14 @@ export default {
         const query = uni.createSelectorQuery().in(this)
         query.select('.category-tabs').boundingClientRect()
         query.select('#tab-' + this.currentTab).boundingClientRect()
-        query.exec((res) => {
+        query.exec(res => {
           if (res && res[0] && res[1]) {
             const containerRect = res[0]
             const tabRect = res[1]
             const relativeLeft = tabRect.left - containerRect.left
             const indicatorWidth = 40
             this.indicatorStyle = {
-              left: (relativeLeft + tabRect.width / 2 - indicatorWidth / 2) + 'px',
+              left: relativeLeft + tabRect.width / 2 - indicatorWidth / 2 + 'px',
               width: indicatorWidth + 'px'
             }
           }
@@ -99,19 +99,18 @@ export default {
   bottom: 20rpx;
   left: 0;
   height: 4rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   border-radius: 2rpx;
   transition: all 0.3s ease;
 }
 .tab-text {
   font-size: 30rpx;
   color: #999;
-  transition: all .3s ease;
+  transition: all 0.3s ease;
 }
 .tab-item.active .tab-text {
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 500;
   transform: scale(1.05);
 }
 </style>
-

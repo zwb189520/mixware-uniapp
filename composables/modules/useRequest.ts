@@ -8,11 +8,11 @@
  */
 export function useRequest() {
   const error = ref(null)
-  
+
   const resetError = () => {
     error.value = null
   }
-  
+
   return {
     error,
     resetError

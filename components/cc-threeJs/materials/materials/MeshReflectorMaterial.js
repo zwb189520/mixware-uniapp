@@ -1,82 +1,85 @@
-import { MeshStandardMaterial } from 'three';
+import { MeshStandardMaterial } from 'three'
 
 class MeshReflectorMaterial extends MeshStandardMaterial {
   constructor(parameters = {}) {
-    super(parameters);
+    super(parameters)
     this._tDepth = {
       value: null
-    };
+    }
     this._distortionMap = {
       value: null
-    };
+    }
     this._tDiffuse = {
       value: null
-    };
+    }
     this._tDiffuseBlur = {
       value: null
-    };
+    }
     this._textureMatrix = {
       value: null
-    };
+    }
     this._hasBlur = {
       value: false
-    };
+    }
     this._mirror = {
       value: 0.0
-    };
+    }
     this._mixBlur = {
       value: 0.0
-    };
+    }
     this._blurStrength = {
       value: 0.5
-    };
+    }
     this._minDepthThreshold = {
       value: 0.9
-    };
+    }
     this._maxDepthThreshold = {
       value: 1
-    };
+    }
     this._depthScale = {
       value: 0
-    };
+    }
     this._depthToBlurRatioBias = {
       value: 0.25
-    };
+    }
     this._distortion = {
       value: 1
-    };
+    }
     this._mixContrast = {
       value: 1.0
-    };
-    this.setValues(parameters);
+    }
+    this.setValues(parameters)
   }
   onBeforeCompile(shader) {
-    var _shader$defines;
+    var _shader$defines
     if (!((_shader$defines = shader.defines) != null && _shader$defines.USE_UV)) {
-      shader.defines.USE_UV = '';
+      shader.defines.USE_UV = ''
     }
-    shader.uniforms.hasBlur = this._hasBlur;
-    shader.uniforms.tDiffuse = this._tDiffuse;
-    shader.uniforms.tDepth = this._tDepth;
-    shader.uniforms.distortionMap = this._distortionMap;
-    shader.uniforms.tDiffuseBlur = this._tDiffuseBlur;
-    shader.uniforms.textureMatrix = this._textureMatrix;
-    shader.uniforms.mirror = this._mirror;
-    shader.uniforms.mixBlur = this._mixBlur;
-    shader.uniforms.mixStrength = this._blurStrength;
-    shader.uniforms.minDepthThreshold = this._minDepthThreshold;
-    shader.uniforms.maxDepthThreshold = this._maxDepthThreshold;
-    shader.uniforms.depthScale = this._depthScale;
-    shader.uniforms.depthToBlurRatioBias = this._depthToBlurRatioBias;
-    shader.uniforms.distortion = this._distortion;
-    shader.uniforms.mixContrast = this._mixContrast;
+    shader.uniforms.hasBlur = this._hasBlur
+    shader.uniforms.tDiffuse = this._tDiffuse
+    shader.uniforms.tDepth = this._tDepth
+    shader.uniforms.distortionMap = this._distortionMap
+    shader.uniforms.tDiffuseBlur = this._tDiffuseBlur
+    shader.uniforms.textureMatrix = this._textureMatrix
+    shader.uniforms.mirror = this._mirror
+    shader.uniforms.mixBlur = this._mixBlur
+    shader.uniforms.mixStrength = this._blurStrength
+    shader.uniforms.minDepthThreshold = this._minDepthThreshold
+    shader.uniforms.maxDepthThreshold = this._maxDepthThreshold
+    shader.uniforms.depthScale = this._depthScale
+    shader.uniforms.depthToBlurRatioBias = this._depthToBlurRatioBias
+    shader.uniforms.distortion = this._distortion
+    shader.uniforms.mixContrast = this._mixContrast
     shader.vertexShader = `
         uniform mat4 textureMatrix;
         varying vec4 my_vUv;
-      ${shader.vertexShader}`;
-    shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
+      ${shader.vertexShader}`
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <project_vertex>',
+      `#include <project_vertex>
         my_vUv = textureMatrix * vec4( position, 1.0 );
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );`);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );`
+    )
     shader.fragmentShader = `
         uniform sampler2D tDiffuse;
         uniform sampler2D tDiffuseBlur;
@@ -95,8 +98,10 @@ class MeshReflectorMaterial extends MeshStandardMaterial {
         uniform float depthScale;
         uniform float depthToBlurRatioBias;
         varying vec4 my_vUv;
-        ${shader.fragmentShader}`;
-    shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        ${shader.fragmentShader}`
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <emissivemap_fragment>',
+      `#include <emissivemap_fragment>
 
       float distortionFactor = 0.0;
       #ifdef USE_DISTORTION
@@ -159,98 +164,99 @@ class MeshReflectorMaterial extends MeshStandardMaterial {
       newMerge.b = (merge.b - 0.5) * mixContrast + 0.5;
 
       diffuseColor.rgb = diffuseColor.rgb * ((1.0 - min(1.0, mirror)) + newMerge.rgb * mixStrength);
-      `);
+      `
+    )
   }
   get tDiffuse() {
-    return this._tDiffuse.value;
+    return this._tDiffuse.value
   }
   set tDiffuse(v) {
-    this._tDiffuse.value = v;
+    this._tDiffuse.value = v
   }
   get tDepth() {
-    return this._tDepth.value;
+    return this._tDepth.value
   }
   set tDepth(v) {
-    this._tDepth.value = v;
+    this._tDepth.value = v
   }
   get distortionMap() {
-    return this._distortionMap.value;
+    return this._distortionMap.value
   }
   set distortionMap(v) {
-    this._distortionMap.value = v;
+    this._distortionMap.value = v
   }
   get tDiffuseBlur() {
-    return this._tDiffuseBlur.value;
+    return this._tDiffuseBlur.value
   }
   set tDiffuseBlur(v) {
-    this._tDiffuseBlur.value = v;
+    this._tDiffuseBlur.value = v
   }
   get textureMatrix() {
-    return this._textureMatrix.value;
+    return this._textureMatrix.value
   }
   set textureMatrix(v) {
-    this._textureMatrix.value = v;
+    this._textureMatrix.value = v
   }
   get hasBlur() {
-    return this._hasBlur.value;
+    return this._hasBlur.value
   }
   set hasBlur(v) {
-    this._hasBlur.value = v;
+    this._hasBlur.value = v
   }
   get mirror() {
-    return this._mirror.value;
+    return this._mirror.value
   }
   set mirror(v) {
-    this._mirror.value = v;
+    this._mirror.value = v
   }
   get mixBlur() {
-    return this._mixBlur.value;
+    return this._mixBlur.value
   }
   set mixBlur(v) {
-    this._mixBlur.value = v;
+    this._mixBlur.value = v
   }
   get mixStrength() {
-    return this._blurStrength.value;
+    return this._blurStrength.value
   }
   set mixStrength(v) {
-    this._blurStrength.value = v;
+    this._blurStrength.value = v
   }
   get minDepthThreshold() {
-    return this._minDepthThreshold.value;
+    return this._minDepthThreshold.value
   }
   set minDepthThreshold(v) {
-    this._minDepthThreshold.value = v;
+    this._minDepthThreshold.value = v
   }
   get maxDepthThreshold() {
-    return this._maxDepthThreshold.value;
+    return this._maxDepthThreshold.value
   }
   set maxDepthThreshold(v) {
-    this._maxDepthThreshold.value = v;
+    this._maxDepthThreshold.value = v
   }
   get depthScale() {
-    return this._depthScale.value;
+    return this._depthScale.value
   }
   set depthScale(v) {
-    this._depthScale.value = v;
+    this._depthScale.value = v
   }
   get depthToBlurRatioBias() {
-    return this._depthToBlurRatioBias.value;
+    return this._depthToBlurRatioBias.value
   }
   set depthToBlurRatioBias(v) {
-    this._depthToBlurRatioBias.value = v;
+    this._depthToBlurRatioBias.value = v
   }
   get distortion() {
-    return this._distortion.value;
+    return this._distortion.value
   }
   set distortion(v) {
-    this._distortion.value = v;
+    this._distortion.value = v
   }
   get mixContrast() {
-    return this._mixContrast.value;
+    return this._mixContrast.value
   }
   set mixContrast(v) {
-    this._mixContrast.value = v;
+    this._mixContrast.value = v
   }
 }
 
-export { MeshReflectorMaterial };
+export { MeshReflectorMaterial }

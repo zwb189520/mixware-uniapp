@@ -16,7 +16,13 @@ export function sendStopCommand(deviceId: string): Promise<unknown> {
  * @param gcodeUrl - GCode文件URL
  * @param taskId - 任务 ID
  */
-export function sendPrintCommand(deviceId: string, modelId: string, action: string, gcodeUrl: string, taskId: string): Promise<unknown> {
+export function sendPrintCommand(
+  deviceId: string,
+  modelId: string,
+  action: string,
+  gcodeUrl: string,
+  taskId: string
+): Promise<unknown> {
   return post('/iot/sendPrintCommand', { deviceId, modelId, action, gcodeUrl, taskId })
 }
 
@@ -40,7 +46,9 @@ export function checkFirmware(firmwareCheckRequestDTO: Record<string, unknown>):
  * 验证设备凭证
  * @param deviceCredentialVerifyDTO - 设备凭证验证数据
  */
-export function verifyCredential(deviceCredentialVerifyDTO: Record<string, unknown>): Promise<unknown> {
+export function verifyCredential(
+  deviceCredentialVerifyDTO: Record<string, unknown>
+): Promise<unknown> {
   return post('/iot/auth/verify', deviceCredentialVerifyDTO)
 }
 
@@ -98,7 +106,10 @@ export function sendRestartCommand(deviceId: string): Promise<unknown> {
  * @param onError - 连接错误时的回调函数
  * @returns 返回EventSource实例
  */
-export function connectSSE(onMessage?: (data: unknown) => void, onError?: (error: unknown) => void): EventSource {
+export function connectSSE(
+  onMessage?: (data: unknown) => void,
+  onError?: (error: unknown) => void
+): EventSource {
   const BASE_URL = 'http://app.mixwarebot.cn:8080'
   const url = `${BASE_URL}/api/notify/sse/connect`
   console.log('建立SSE连接:', url)
@@ -108,7 +119,7 @@ export function connectSSE(onMessage?: (data: unknown) => void, onError?: (error
     console.log('SSE连接已打开')
   }
 
-  eventSource.onmessage = (event) => {
+  eventSource.onmessage = event => {
     console.log('SSE原始消息:', event.data)
     try {
       const data = JSON.parse(event.data)
@@ -118,10 +129,10 @@ export function connectSSE(onMessage?: (data: unknown) => void, onError?: (error
     }
   }
 
-  eventSource.onerror = (error) => {
+  eventSource.onerror = error => {
     console.error('SSE连接错误:', error)
     onError && onError(error)
   }
-  
+
   return eventSource
 }

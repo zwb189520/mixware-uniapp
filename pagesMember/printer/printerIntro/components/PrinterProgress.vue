@@ -6,7 +6,7 @@
         <text class="progress-title">{{ texts.printProgress || '打印进度' }}</text>
         <text class="progress-percent">{{ progress }}%</text>
       </view>
-      
+
       <!-- 进度条 -->
       <view class="progress-bar-wrap">
         <view class="progress-track">
@@ -15,7 +15,7 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 统计信息 -->
       <view class="stats-grid">
         <view v-if="estimatedTime" class="stat-item">
@@ -90,7 +90,7 @@ export default {
 }
 
 .progress-card {
-  background: linear-gradient(135deg, #FFF9F5 0%, #FFF 100%);
+  background: linear-gradient(135deg, #fff9f5 0%, #fff 100%);
   border-radius: 32rpx;
   padding: 40rpx 32rpx;
   box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
@@ -113,7 +113,7 @@ export default {
 .progress-percent {
   font-size: 48rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -132,7 +132,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #FF6B35 0%, #FF8E53 100%);
+  background: linear-gradient(90deg, #ff6b35 0%, #ff8e53 100%);
   border-radius: 8rpx;
   position: relative;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -154,8 +154,12 @@ export default {
 }
 
 @keyframes shine {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .stats-grid {
@@ -197,5 +201,3 @@ export default {
   font-weight: 600;
 }
 </style>
-
-

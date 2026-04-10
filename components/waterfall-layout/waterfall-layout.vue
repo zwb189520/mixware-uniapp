@@ -3,16 +3,16 @@
     <view class="waterfall-box" :class="slideDirection" :key="currentTab + '-box'">
       <!-- 左列 -->
       <view class="waterfall-col">
-        <view 
-          class="model-card" 
-          v-for="item in leftList" 
-          :key="item.id || item.image" 
+        <view
+          class="model-card"
+          v-for="item in leftList"
+          :key="item.id || item.image"
           @click="handleCardClick(item)"
         >
-          <image 
-            class="card-img" 
-            :src="fixBlobUrl(item.image)" 
-            mode="widthFix" 
+          <image
+            class="card-img"
+            :src="fixBlobUrl(item.image)"
+            mode="widthFix"
             lazy-load
             @error="handleImageError(item)"
           />
@@ -20,30 +20,49 @@
             <text class="card-desc">{{ item.desc || item.info || item.title }}</text>
             <view class="card-footer">
               <view class="card-author" @click.stop="handleAuthorClick(item)">
-                <image class="author-avatar" :src="fixBlobUrl(item.authorAvatar || item.userAvatar) || '/static/images/Default avatar.png'" @error="handleAvatarError(item)"/>
+                <image
+                  class="author-avatar"
+                  :src="
+                    fixBlobUrl(item.authorAvatar || item.userAvatar) ||
+                    '/static/images/Default avatar.png'
+                  "
+                  @error="handleAvatarError(item)"
+                />
                 <text class="author-name">{{ item.author || item.userName || '' }}</text>
               </view>
-              <view class="card-like" :class="{ 'liked': item.isLiked }" @click.stop="handleLikeClick(item)">
-                <image class="like-icon" :src="item.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" mode="aspectFit"/>
+              <view
+                class="card-like"
+                :class="{ liked: item.isLiked }"
+                @click.stop="handleLikeClick(item)"
+              >
+                <image
+                  class="like-icon"
+                  :src="
+                    item.isLiked
+                      ? '/static/images/icon/like_active.png'
+                      : '/static/images/icon/like.png'
+                  "
+                  mode="aspectFit"
+                />
                 <text class="like-count">{{ item.likes || 0 }}</text>
               </view>
             </view>
           </view>
         </view>
       </view>
-      
+
       <!-- 右列 -->
       <view class="waterfall-col">
-        <view 
-          class="model-card" 
-          v-for="item in rightList" 
-          :key="item.id || item.image" 
+        <view
+          class="model-card"
+          v-for="item in rightList"
+          :key="item.id || item.image"
           @click="handleCardClick(item)"
         >
-          <image 
-            class="card-img" 
-            :src="fixBlobUrl(item.image)" 
-            mode="widthFix" 
+          <image
+            class="card-img"
+            :src="fixBlobUrl(item.image)"
+            mode="widthFix"
             lazy-load
             @error="handleImageError(item)"
           />
@@ -51,11 +70,30 @@
             <text class="card-desc">{{ item.desc || item.info || item.title }}</text>
             <view class="card-footer">
               <view class="card-author" @click.stop="handleAuthorClick(item)">
-                <image class="author-avatar" :src="fixBlobUrl(item.authorAvatar || item.userAvatar) || '/static/images/Default avatar.png'" @error="handleAvatarError(item)"/>
+                <image
+                  class="author-avatar"
+                  :src="
+                    fixBlobUrl(item.authorAvatar || item.userAvatar) ||
+                    '/static/images/Default avatar.png'
+                  "
+                  @error="handleAvatarError(item)"
+                />
                 <text class="author-name">{{ item.author || item.userName || '' }}</text>
               </view>
-              <view class="card-like" :class="{ 'liked': item.isLiked }" @click.stop="handleLikeClick(item)">
-                <image class="like-icon" :src="item.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" mode="aspectFit"/>
+              <view
+                class="card-like"
+                :class="{ liked: item.isLiked }"
+                @click.stop="handleLikeClick(item)"
+              >
+                <image
+                  class="like-icon"
+                  :src="
+                    item.isLiked
+                      ? '/static/images/icon/like_active.png'
+                      : '/static/images/icon/like.png'
+                  "
+                  mode="aspectFit"
+                />
                 <text class="like-count">{{ item.likes || 0 }}</text>
               </view>
             </view>
@@ -241,4 +279,3 @@ export default {
   color: #ff6b9d;
 }
 </style>
-

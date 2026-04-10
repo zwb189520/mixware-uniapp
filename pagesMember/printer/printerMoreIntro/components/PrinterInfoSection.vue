@@ -10,7 +10,9 @@
     <view class="info-item" @click="handleEditRemark">
       <text class="info-label">{{ texts.remarkLabel || '备注' }}</text>
       <view class="value-wrapper">
-        <text class="info-value">{{ printerRemark || texts.clickToAddRemark || '点击添加备注' }}</text>
+        <text class="info-value">{{
+          printerRemark || texts.clickToAddRemark || '点击添加备注'
+        }}</text>
         <uni-icons type="compose" size="16" color="#999" class="edit-icon"></uni-icons>
       </view>
     </view>
@@ -70,7 +72,7 @@ export default {
           this.printerName = info.deviceName || this.texts.unnamedDevice || '未命名设备'
           this.printerRemark = info.remark || ''
           this.printerSN = info.snCode || '-'
-          this.printerMAC = info.deviceId || '-' 
+          this.printerMAC = info.deviceId || '-'
           this.bindTime = info.bindTime ? info.bindTime.split('T')[0] : '-'
           this.$emit('device-info-loaded', info)
         }
@@ -84,7 +86,7 @@ export default {
         editable: true,
         placeholderText: this.texts.enterNewDeviceName || '请输入新的设备名称',
         content: this.printerName,
-        success: async (res) => {
+        success: async res => {
           if (res.confirm && res.content.trim()) {
             const newName = res.content.trim()
             try {
@@ -116,7 +118,7 @@ export default {
         editable: true,
         placeholderText: this.texts.enterDeviceRemark || '请输入设备备注',
         content: this.printerRemark,
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             const newRemark = res.content.trim()
             try {
@@ -147,7 +149,7 @@ export default {
 
 <style scoped>
 .info-section {
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
@@ -188,5 +190,3 @@ export default {
   font-weight: 500;
 }
 </style>
-
-

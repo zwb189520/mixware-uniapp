@@ -4,14 +4,18 @@
       <text class="empty-text">{{ texts.emptyText }}</text>
     </view>
     <view v-else class="message-items">
-      <view 
-        v-for="message in messages" 
-        :key="message.id" 
+      <view
+        v-for="message in messages"
+        :key="message.id"
         class="message-item"
         @click="handleMessageClick(message)"
       >
         <view class="message-icon">
-          <uni-icons :type="getMessageIcon(message.type)" size="24" :color="message.read ? '#999' : '#FF5A00'"></uni-icons>
+          <uni-icons
+            :type="getMessageIcon(message.type)"
+            size="24"
+            :color="message.read ? '#999' : '#FF5A00'"
+          ></uni-icons>
         </view>
         <view class="message-content">
           <view class="message-header">
@@ -55,10 +59,10 @@ const loadMessages = () => {
 
 const getMessageIcon = (type: string): string => {
   const iconMap: Record<string, string> = {
-    'system': 'info',
-    'notification': 'notification',
-    'like': 'heart',
-    'comment': 'chat'
+    system: 'info',
+    notification: 'notification',
+    like: 'heart',
+    comment: 'chat'
   }
   return iconMap[type] || 'info'
 }
@@ -114,7 +118,7 @@ defineExpose({
   display: flex;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 1rpx solid #FFF9F5;
+  border-bottom: 1rpx solid #fff9f5;
   position: relative;
 }
 

@@ -8,15 +8,15 @@ export function useUser() {
   const userInfo = ref(null)
   const isLoggedIn = ref(false)
   const loading = ref(false)
-  
+
   const checkLoginStatus = () => {
     try {
       const loginStatus = uni.getStorageSync('isLoggedIn')
       const userData = uni.getStorageSync('userInfo')
-      
+
       isLoggedIn.value = !!loginStatus
       userInfo.value = userData || null
-      
+
       return isLoggedIn.value
     } catch (error) {
       console.error('检查登录状态失败:', error)
@@ -25,8 +25,8 @@ export function useUser() {
       return false
     }
   }
-  
-  const setUserInfo = (userData) => {
+
+  const setUserInfo = userData => {
     userInfo.value = userData
     if (userData) {
       uni.setStorageSync('userInfo', userData)
@@ -34,23 +34,23 @@ export function useUser() {
       uni.removeStorageSync('userInfo')
     }
   }
-  
-  const setLoginStatus = (status) => {
+
+  const setLoginStatus = status => {
     isLoggedIn.value = status
     uni.setStorageSync('isLoggedIn', status)
-    
+
     if (!status) {
       userInfo.value = null
       uni.removeStorageSync('userInfo')
     }
   }
-  
+
   const logout = () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       uni.showModal({
         title: '提示',
         content: '确定要退出登录吗？',
-        success: (res) => {
+        success: res => {
           if (res.confirm) {
             setLoginStatus(false)
             uni.$emit('userLogout')
@@ -62,8 +62,8 @@ export function useUser() {
       })
     })
   }
-  
-  const requireLogin = (callback) => {
+
+  const requireLogin = callback => {
     if (checkLoginStatus()) {
       callback && callback()
       return true
@@ -74,7 +74,7 @@ export function useUser() {
       return false
     }
   }
-  
+
   return {
     userInfo,
     isLoggedIn,

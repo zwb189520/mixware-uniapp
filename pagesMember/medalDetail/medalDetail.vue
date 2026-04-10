@@ -1,25 +1,21 @@
 ﻿<template>
   <view class="medal-detail-page">
-    <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
+    <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
     <view class="header">
       <uni-icons type="left" size="24" @click="goBack"></uni-icons>
       <text class="header-title">{{ texts.medalsWall }}</text>
       <view class="header-placeholder"></view>
     </view>
-    
+
     <view class="medals-container">
-      <view 
-        v-for="medal in medals" 
-        :key="medal.id" 
-        class="medal-card"
-      >
+      <view v-for="medal in medals" :key="medal.id" class="medal-card">
         <view class="medal-header">
-          <view class="medal-icon-wrapper" :class="{ 'unachieved': !medal.achieved }">
+          <view class="medal-icon-wrapper" :class="{ unachieved: !medal.achieved }">
             <image :src="medal.image" mode="aspectFit" class="medal-image"></image>
           </view>
           <view class="medal-info">
             <text class="medal-name">{{ medal.name }}</text>
-            <view class="medal-status" :class="{ 'achieved': medal.achieved }">
+            <view class="medal-status" :class="{ achieved: medal.achieved }">
               {{ medal.achieved ? texts.achieved : texts.notAchieved }}
             </view>
           </view>
@@ -69,58 +65,58 @@ export default {
   methods: {
     updateMedals() {
       this.medals = [
-        { 
-          id: 1, 
-          name: this.texts.newbieMedal, 
+        {
+          id: 1,
+          name: this.texts.newbieMedal,
           image: '/static/images/medal/newbie-medal.png',
           description: this.texts.newbieMedalDesc,
           achieved: true
         },
-        { 
-          id: 2, 
-          name: this.texts.creatorMedal, 
+        {
+          id: 2,
+          name: this.texts.creatorMedal,
           image: '/static/images/medal/creator-medal.png',
           description: this.texts.creatorMedalDesc,
           achieved: true
         },
-        { 
-          id: 3, 
-          name: this.texts.activeUserMedal, 
+        {
+          id: 3,
+          name: this.texts.activeUserMedal,
           image: '/static/images/medal/active-user-medal.png',
           description: this.texts.activeUserMedalDesc,
           achieved: false
         },
-        { 
-          id: 4, 
-          name: this.texts.popularMedal, 
+        {
+          id: 4,
+          name: this.texts.popularMedal,
           image: '/static/images/medal/popular-medal.png',
           description: this.texts.popularMedalDesc,
           achieved: false
         },
-        { 
-          id: 5, 
-          name: this.texts.modelMasterMedal, 
+        {
+          id: 5,
+          name: this.texts.modelMasterMedal,
           image: '/static/images/medal/model-master-medal.png',
           description: this.texts.modelMasterMedalDesc,
           achieved: false
         },
-        { 
-          id: 6, 
-          name: this.texts.printExpertMedal, 
+        {
+          id: 6,
+          name: this.texts.printExpertMedal,
           image: '/static/images/medal/print-expert-medal.png',
           description: this.texts.printExpertMedalDesc,
           achieved: false
         },
-        { 
-          id: 7, 
-          name: this.texts.contributorMedal, 
+        {
+          id: 7,
+          name: this.texts.contributorMedal,
           image: '/static/images/medal/contributor-medal.png',
           description: this.texts.contributorMedalDesc,
           achieved: false
         },
-        { 
-          id: 8, 
-          name: this.texts.pioneerMedal, 
+        {
+          id: 8,
+          name: this.texts.pioneerMedal,
           image: '/static/images/medal/pioneer-medal.png',
           description: this.texts.pioneerMedalDesc,
           achieved: false
@@ -137,7 +133,7 @@ export default {
 <style scoped>
 .medal-detail-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .safe-area-top {
@@ -246,5 +242,3 @@ export default {
   line-height: 1.6;
 }
 </style>
-
-

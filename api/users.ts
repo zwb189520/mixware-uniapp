@@ -12,7 +12,8 @@ function _syncLoginToStore(userInfo: UserInfo, token: string) {
   if (userInfo.id) uni.setStorageSync('id', userInfo.id)
   if (userInfo.username) uni.setStorageSync('username', userInfo.username)
   if (userInfo.email) uni.setStorageSync('email', userInfo.email)
-  if (userInfo.accountStatus !== undefined) uni.setStorageSync('accountStatus', userInfo.accountStatus)
+  if (userInfo.accountStatus !== undefined)
+    uni.setStorageSync('accountStatus', userInfo.accountStatus)
   uni.setStorageSync('isLoggedIn', true)
 
   uni.$emit('userLogin', userInfo)
@@ -84,13 +85,22 @@ export function loginByCodeWithHandler(email: string, verificationCode: string) 
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
-    const userInfo = { userId, id, username, nickname: username, avatar: finalAvatarUrl, email, accountStatus, birthday }
+    const userInfo = {
+      userId,
+      id,
+      username,
+      nickname: username,
+      avatar: finalAvatarUrl,
+      email,
+      accountStatus,
+      birthday
+    }
     _syncLoginToStore(userInfo, token)
     return res
   })
 }
 
-export function createUser(userCreateDTO: UserCreateDTO ) {
+export function createUser(userCreateDTO: UserCreateDTO) {
   return post('/users/create', userCreateDTO)
 }
 
@@ -145,7 +155,14 @@ export function loginWithPassword(email: string, password: string) {
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
-    const userInfo = { userId, username, nickname: username, avatar: finalAvatarUrl, email, birthday }
+    const userInfo = {
+      userId,
+      username,
+      nickname: username,
+      avatar: finalAvatarUrl,
+      email,
+      birthday
+    }
     _syncLoginToStore(userInfo, token)
     return res
   })
@@ -171,7 +188,12 @@ export function registerWithHandler(registerData: RegisterDTO) {
     let finalAvatarUrl = avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
-    const userInfo = { userId, username, nickname: registerData.username || username, avatar: finalAvatarUrl }
+    const userInfo = {
+      userId,
+      username,
+      nickname: registerData.username || username,
+      avatar: finalAvatarUrl
+    }
     _syncLoginToStore(userInfo, token)
     return res
   })
@@ -188,7 +210,12 @@ export function thirdPartyLoginWithHandler(platform: string, code: string, extra
     let finalAvatarUrl = avatarUrl || extraData.avatarUrl || '/static/images/Default avatar.png'
     if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
 
-    const userInfo = { userId, username, nickname: username || extraData.nickname, avatar: finalAvatarUrl }
+    const userInfo = {
+      userId,
+      username,
+      nickname: username || extraData.nickname,
+      avatar: finalAvatarUrl
+    }
     _syncLoginToStore(userInfo, token)
     return res
   })

@@ -6,11 +6,11 @@
 
 ## 方案对比
 
-| 方案 | 优点 | 缺点 | 适用场景 |
-|------|------|------|----------|
-| **客户端生成** | 实时预览、无需服务端、响应快 | 字体文件大、复杂模型性能有限 | 简单模型、实时预览 |
-| **服务端生成** | 支持复杂模型、字体丰富、性能好 | 需要服务端、有网络延迟 | 复杂模型、生产环境 |
-| **OpenJSCAD** | 功能强大、参数化建模 | 学习成本、文件较大 | 复杂参数化设计 |
+| 方案           | 优点                           | 缺点                         | 适用场景           |
+| -------------- | ------------------------------ | ---------------------------- | ------------------ |
+| **客户端生成** | 实时预览、无需服务端、响应快   | 字体文件大、复杂模型性能有限 | 简单模型、实时预览 |
+| **服务端生成** | 支持复杂模型、字体丰富、性能好 | 需要服务端、有网络延迟       | 复杂模型、生产环境 |
+| **OpenJSCAD**  | 功能强大、参数化建模           | 学习成本、文件较大           | 复杂参数化设计     |
 
 ---
 
@@ -21,10 +21,12 @@
 #### 1. 准备字体文件
 
 将字体转换为 Three.js 格式（JSON）：
+
 - 使用 [facetype.js](http://gero3.github.io/facetype.js/) 在线转换
 - 或使用 `typeface.js` 工具
 
 字体文件放置位置：
+
 ```
 /static/fonts/
   ├── SourceHanSans.json
@@ -37,11 +39,7 @@
 ```vue
 <template>
   <view>
-    <cc-threeJs 
-      ref="threeView"
-      :modelurl="modelUrl"
-      modelType="stl"
-    />
+    <cc-threeJs ref="threeView" :modelurl="modelUrl" modelType="stl" />
     <view class="controls">
       <input v-model="surname" placeholder="输入姓氏" />
       <picker :value="fontIndex" :range="fonts" @change="onFontChange">
@@ -71,14 +69,14 @@ export default {
     async initGenerator() {
       // 获取 Three.js 场景实例
       const { scene } = this.$refs.threeView.getInstance()
-      
+
       // 创建生成器
       this.generator = new ParametricModelGenerator(scene)
-      
+
       // 生成初始模型
       await this.generateModel()
     },
-    
+
     async generateModel() {
       const group = await this.generator.generateKeychain({
         text: this.surname,
@@ -90,19 +88,16 @@ export default {
           thickness: 2
         }
       })
-      
+
       // 添加到场景
       const { group: sceneGroup } = this.$refs.threeView.getInstance()
       sceneGroup.add(group)
     },
-    
+
     async onSurnameChange() {
-      await this.generator.updateText(
-        this.surname,
-        this.fonts[this.fontIndex]
-      )
+      await this.generator.updateText(this.surname, this.fonts[this.fontIndex])
     },
-    
+
     async onFontChange(e) {
       this.fontIndex = e.detail.value
       await this.onSurnameChange()
@@ -153,7 +148,7 @@ def generate_model():
     text = data.get('text', '')
     font_name = data.get('fontName', 'SourceHanSans')
     size = data.get('size', {})
-    
+
     # 生成 OpenSCAD 代码
     scad_code = f"""
     text = "{text}";
@@ -161,7 +156,7 @@ def generate_model():
     width = {size.get('width', 30)};
     height = {size.get('height', 34)};
     depth = {size.get('depth', 3)};
-    
+
     // 基础圆形
     difference() {{
         cylinder(h=depth, r=width/2);
@@ -170,17 +165,17 @@ def generate_model():
                 text(text, font=font, size=20, halign="center", valign="center");
     }}
     """
-    
+
     # 创建临时文件
     with tempfile.NamedTemporaryFile(mode='w', suffix='.scad', delete=False) as f:
         f.write(scad_code)
         scad_file = f.name
-    
+
     stl_file = scad_file.replace('.scad', '.stl')
-    
+
     # 调用 OpenSCAD 生成 STL
     subprocess.run(['openscad', '-o', stl_file, scad_file])
-    
+
     # 返回文件
     return send_file(stl_file, as_attachment=True, download_name='model.stl')
 ```
@@ -200,7 +195,7 @@ const stlUrl = await generator.generateModel({
 })
 
 // 加载到 Three.js
-loader.load(stlUrl, (geometry) => {
+loader.load(stlUrl, geometry => {
   const material = new THREE.MeshStandardMaterial({ color: 0xcccccc })
   const mesh = new THREE.Mesh(geometry, material)
   scene.add(mesh)
@@ -228,23 +223,27 @@ const stlUrl = await serverGenerator.generateModel({ text, fontName, size })
 ## 字体文件准备
 
 ### 1. 下载字体文件
+
 - 思源黑体：https://github.com/adobe-fonts/source-han-sans
 - 站酷快乐体：https://www.zcool.com.cn/special/zcoolfonts/
 
 ### 2. 转换为 Three.js 格式
 
 使用在线工具：
+
 - http://gero3.github.io/facetype.js/
 - 上传 TTF/OTF 文件
 - 下载 JSON 格式
 
 或使用命令行：
+
 ```bash
 npm install -g typeface.js
 typeface.js --font "SourceHanSans-Regular.ttf" --output "SourceHanSans.json"
 ```
 
 ### 3. 放置字体文件
+
 ```
 /static/fonts/
   ├── SourceHanSans.json
@@ -266,4 +265,3 @@ typeface.js --font "SourceHanSans-Regular.ttf" --output "SourceHanSans.json"
 ## 完整示例
 
 参考 `kedongAPP/pages/model/design.vue` 的实现，结合上述方案进行集成。
-

@@ -7,40 +7,39 @@ var MeshoptDecoder = (function (path) {
   if (typeof WXWebAssembly !== 'object') {
     // This module requires WebAssembly to function
     return {
-      supported: false,
-    };
+      supported: false
+    }
   }
 
-  var instance;
-  var readyResolve;
-  var promise = new Promise((resovle) => {
+  var instance
+  var readyResolve
+  var promise = new Promise(resovle => {
     readyResolve = resovle
   })
 
   function setWasmPath(path) {
     WXWebAssembly.instantiate(path, {}).then(function (result) {
-      instance = result.instance;
-      instance.exports.__wasm_call_ctors();
+      instance = result.instance
+      instance.exports.__wasm_call_ctors()
       readyResolve()
-    });
+    })
   }
 
-
   function decode(fun, target, count, size, source, filter) {
-    var sbrk = instance.exports.sbrk;
-    var count4 = (count + 3) & ~3; // pad for SIMD filter
-    var tp = sbrk(count4 * size);
-    var sp = sbrk(source.length);
-    var heap = new Uint8Array(instance.exports.memory.buffer);
-    heap.set(source, sp);
-    var res = fun(tp, count, size, sp, source.length);
+    var sbrk = instance.exports.sbrk
+    var count4 = (count + 3) & ~3 // pad for SIMD filter
+    var tp = sbrk(count4 * size)
+    var sp = sbrk(source.length)
+    var heap = new Uint8Array(instance.exports.memory.buffer)
+    heap.set(source, sp)
+    var res = fun(tp, count, size, sp, source.length)
     if (res == 0 && filter) {
-      filter(tp, count4, size);
+      filter(tp, count4, size)
     }
-    target.set(heap.subarray(tp, tp + count * size));
-    sbrk(tp - sbrk(0));
+    target.set(heap.subarray(tp, tp + count * size))
+    sbrk(tp - sbrk(0))
     if (res != 0) {
-      throw new Error('Malformed buffer data: ' + res);
+      throw new Error('Malformed buffer data: ' + res)
     }
   }
   var filters = {
@@ -53,8 +52,8 @@ var MeshoptDecoder = (function (path) {
     NONE: '',
     OCTAHEDRAL: 'meshopt_decodeFilterOct',
     QUATERNION: 'meshopt_decodeFilterQuat',
-    EXPONENTIAL: 'meshopt_decodeFilterExp',
-  };
+    EXPONENTIAL: 'meshopt_decodeFilterExp'
+  }
 
   var decoders = {
     // legacy index-based enums for glTF
@@ -64,8 +63,8 @@ var MeshoptDecoder = (function (path) {
     // string-based enums for glTF
     ATTRIBUTES: 'meshopt_decodeVertexBuffer',
     TRIANGLES: 'meshopt_decodeIndexBuffer',
-    INDICES: 'meshopt_decodeIndexSequence',
-  };
+    INDICES: 'meshopt_decodeIndexSequence'
+  }
 
   return {
     setWasmPath,
@@ -78,14 +77,14 @@ var MeshoptDecoder = (function (path) {
         count,
         size,
         source,
-        instance.exports[filters[filter]],
-      );
+        instance.exports[filters[filter]]
+      )
     },
     decodeIndexBuffer: function (target, count, size, source) {
-      decode(instance.exports.meshopt_decodeIndexBuffer, target, count, size, source);
+      decode(instance.exports.meshopt_decodeIndexBuffer, target, count, size, source)
     },
     decodeIndexSequence: function (target, count, size, source) {
-      decode(instance.exports.meshopt_decodeIndexSequence, target, count, size, source);
+      decode(instance.exports.meshopt_decodeIndexSequence, target, count, size, source)
     },
     decodeGltfBuffer: function (target, count, size, source, mode, filter) {
       decode(
@@ -94,10 +93,10 @@ var MeshoptDecoder = (function (path) {
         count,
         size,
         source,
-        instance.exports[filters[filter]],
-      );
-    },
-  };
-})();
+        instance.exports[filters[filter]]
+      )
+    }
+  }
+})()
 
-export { MeshoptDecoder };
+export { MeshoptDecoder }

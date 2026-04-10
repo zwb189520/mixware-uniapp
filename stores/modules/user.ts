@@ -44,11 +44,11 @@ function xorCipher(data: string, key: string): number[] {
   const dataBytes = stringToBytes(data)
   const keyBytes = stringToBytes(key)
   const result: number[] = []
-  
+
   for (let i = 0; i < dataBytes.length; i++) {
     result.push(dataBytes[i] ^ keyBytes[i % keyBytes.length])
   }
-  
+
   return result
 }
 
@@ -83,19 +83,19 @@ function encryptToken(token: string): string {
   if (!token) return ''
   try {
     console.log('开始加密 Token...')
-    
+
     // 1. XOR 加密
     const encrypted = xorCipher(token, SECRET_KEY)
-    
+
     // 2. 转为字符串
     const encryptedStr = bytesToString(encrypted)
-    
+
     // 3. Base64 编码
     const base64 = base64Encode(encryptedStr)
-    
+
     // 4. 反转字符串（增加混淆）
     const reversed = base64.split('').reverse().join('')
-    
+
     console.log('Token 加密成功，长度:', reversed.length)
     return reversed
   } catch (e) {
@@ -111,28 +111,28 @@ function decryptToken(encrypted: string): string {
   if (!encrypted) return ''
   try {
     console.log('开始解密 Token，加密字符串长度:', encrypted.length)
-    
+
     // 1. 反转字符串
     const reversed = encrypted.split('').reverse().join('')
-    
+
     // 2. Base64 解码
     const decoded = base64Decode(reversed)
     if (!decoded) {
       console.warn('Base64 解码失败')
       return ''
     }
-    
+
     // 3. XOR 解密
     const decrypted = xorCipher(decoded, SECRET_KEY)
-    
+
     // 4. 转为字符串
     const token = bytesToString(decrypted)
-    
+
     if (!token) {
       console.warn('Token 解密失败，可能是旧版本加密的 Token')
       return ''
     }
-    
+
     console.log('Token 解密成功，长度:', token.length)
     return token
   } catch (e) {
@@ -146,27 +146,27 @@ export const useUserStore = defineStore('user', {
     token: '',
     userInfo: null
   }),
-  
+
   getters: {
     isLoggedIn: (state): boolean => !!state.token,
     userId: (state): string | number => state.userInfo?.userId || '',
     userName: (state): string => state.userInfo?.userName || '',
     avatar: (state): string => state.userInfo?.avatar || ''
   },
-  
+
   actions: {
     setToken(token: string): void {
       // ✅ 改进：使用 XOR + Base64 加密 Token
       console.log('=== setToken 被调用 ===')
       console.log('原始 Token 长度:', token ? token.length : 0)
-      
+
       this.token = token
       const encrypted = encryptToken(token)
-      
+
       if (encrypted) {
         uni.setStorageSync(STORAGE.TOKEN_KEY, encrypted)
         console.log('✅ Token 已加密并存储到本地')
-        
+
         // 验证是否存储成功
         const verify = uni.getStorageSync(STORAGE.TOKEN_KEY)
         console.log('验证存储:', verify ? '成功' : '失败')
@@ -174,27 +174,27 @@ export const useUserStore = defineStore('user', {
         console.error('❌ Token 加密失败，未存储')
       }
     },
-    
+
     setUserInfo(userInfo: UserInfo): void {
       // 用户信息存内存 + 本地
       this.userInfo = userInfo
       uni.setStorageSync(STORAGE.USER_INFO_KEY, userInfo)
     },
-    
+
     logout(): void {
       this.token = ''
       this.userInfo = null
       uni.removeStorageSync(STORAGE.TOKEN_KEY)
       uni.removeStorageSync(STORAGE.USER_INFO_KEY)
     },
-    
+
     initFromStorage(): void {
       // ✅ 改进：恢复 Token（解密）和用户信息
       console.log('=== 开始初始化用户状态 ===')
       try {
         const encrypted = uni.getStorageSync(STORAGE.TOKEN_KEY) as string | undefined
         console.log('读取到的加密 Token:', encrypted ? '存在' : '不存在')
-        
+
         if (encrypted) {
           const token = decryptToken(encrypted)
           if (token) {
@@ -210,14 +210,14 @@ export const useUserStore = defineStore('user', {
         } else {
           console.log('本地没有 Token，需要登录')
         }
-        
+
         const userInfo = uni.getStorageSync(STORAGE.USER_INFO_KEY) as UserInfo | undefined
         console.log('读取到的用户信息:', userInfo ? '存在' : '不存在')
         if (userInfo) {
           this.userInfo = userInfo
           console.log('✅ 用户信息恢复成功')
         }
-        
+
         console.log('=== 用户状态初始化完成 ===')
         console.log('isLoggedIn:', this.isLoggedIn)
       } catch (e) {

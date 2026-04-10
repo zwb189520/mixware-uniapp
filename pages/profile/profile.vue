@@ -1,6 +1,6 @@
 ﻿<template>
   <view class="profile-page">
-    <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
+    <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
     <view class="header-right">
       <view class="icon-btn" @click="handleSettings">
         <uni-icons type="gear" size="22" color="#333"></uni-icons>
@@ -81,7 +81,7 @@ export default {
 <style scoped>
 .profile-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .safe-area-top {
@@ -111,5 +111,3 @@ export default {
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 </style>
-
-

@@ -10,19 +10,24 @@
           <text>{{ texts.selectWiFiToConnect || '请选择要连接的WiFi' }}</text>
         </view>
         <view class="header-right">
-          <uni-icons type="refreshempty" size="24" color="#FF5A00" @click="handleRefresh"></uni-icons>
+          <uni-icons
+            type="refreshempty"
+            size="24"
+            color="#FF5A00"
+            @click="handleRefresh"
+          ></uni-icons>
         </view>
       </view>
-      
+
       <!-- 2.4G提示 -->
       <view class="network-tips">
         <text class="tips-text">{{ texts.onlySupport24G || '该设备仅支持2.4GWiFi网络' }}</text>
       </view>
-      
+
       <!-- WiFi列表 -->
       <view class="wifi-list">
-        <view 
-          v-for="(wifi, index) in wifiList" 
+        <view
+          v-for="(wifi, index) in wifiList"
           :key="index"
           class="wifi-item"
           @tap="handleSelectWiFi(wifi)"
@@ -44,8 +49,12 @@ import { useLanguageStore } from '@/stores/index.ts'
 export default {
   name: 'WiFiSelectorModal',
   computed: {
-    languageStore() { return useLanguageStore() },
-    texts() { return this.languageStore.texts.printerMoreIntro }
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.printerMoreIntro
+    }
   },
   props: {
     visible: {
@@ -133,7 +142,7 @@ export default {
 
 .tips-text {
   font-size: 26rpx;
-  color: #FF5A00;
+  color: #ff5a00;
   text-align: center;
 }
 
@@ -147,7 +156,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 30rpx 0;
-  border-bottom: 1rpx solid #FFF9F5;
+  border-bottom: 1rpx solid #fff9f5;
 }
 
 .wifi-item:last-child {
@@ -171,4 +180,3 @@ export default {
   color: #999;
 }
 </style>
-

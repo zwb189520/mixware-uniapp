@@ -20,19 +20,22 @@ function sendDataByPlugin(lib, text) {
   return new Promise((resolve, reject) => {
     const hexStr = lib.string2ByteStrWithCharset(text, 'utf-8')
     console.log('[BLE插件] 发送数据:', text, '-> HEX:', hexStr)
-    lib.sendData({
-      serviceId: lib.getSericUUID(),
-      characteristicId: lib.getwriteUUID(),
-      fenbao: true,       // 自动分包，每包20字节
-      hexStrData: hexStr, // writeType不传 = 插件自动识别
-    }, (result) => {
-      console.log('[BLE插件] sendData结果:', result)
-      if (result.type === 0) {
-        resolve()
-      } else {
-        reject(new Error(`发送失败: type=${result.type} ${result.message}`))
+    lib.sendData(
+      {
+        serviceId: lib.getSericUUID(),
+        characteristicId: lib.getwriteUUID(),
+        fenbao: true, // 自动分包，每包20字节
+        hexStrData: hexStr // writeType不传 = 插件自动识别
+      },
+      result => {
+        console.log('[BLE插件] sendData结果:', result)
+        if (result.type === 0) {
+          resolve()
+        } else {
+          reject(new Error(`发送失败: type=${result.type} ${result.message}`))
+        }
       }
-    })
+    )
   })
 }
 
@@ -49,8 +52,8 @@ export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
 
     // 1. 连接设备
     console.log('[BLE插件] 连接设备:', deviceId)
-    const connectOk = await new Promise((res) => {
-      lib.connect(deviceId, false, (result) => {
+    const connectOk = await new Promise(res => {
+      lib.connect(deviceId, false, result => {
         console.log('[BLE插件] 连接结果:', result)
         // type=0 成功, type=10004 已连接，都算成功
         res(result.type === 0 || result.type === 10004)
@@ -63,8 +66,8 @@ export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
 
     // 2. 扫描服务与特征值
     console.log('[BLE插件] 扫描服务...')
-    await new Promise((res) => {
-      lib.scanServices((result) => {
+    await new Promise(res => {
+      lib.scanServices(result => {
         console.log('[BLE插件] 扫描服务完成')
         lib.setSelectUUID(0) // 选择第一个可用服务
         res()
@@ -72,8 +75,8 @@ export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
     })
 
     // 3. 设置 MTU
-    await new Promise((res) => {
-      lib.setMtu(512, (result) => {
+    await new Promise(res => {
+      lib.setMtu(512, result => {
         console.log('[BLE插件] MTU结果:', result)
         res() // 失败也继续
       })
@@ -113,7 +116,7 @@ export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
  * @param {string} deviceId 设备MAC地址
  */
 export function subscribeToConfigResultByPlugin(deviceId) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const lib = getBleLib()
     let isResolved = false
     let timeoutId
@@ -134,39 +137,34 @@ export function subscribeToConfigResultByPlugin(deviceId) {
       }
     }, 60000)
 
-    lib.onNotityBleData(
-      lib.getSericUUID(),
-      lib.getNotityUUID(),
-      true,
-      (result) => {
-        if (isResolved) return
-        if (result.type === 1000) {
-          console.log('[BLE插件] 结果通知订阅成功')
-          return
-        }
-        if (result.type !== 0 || !result.data) return
-
-        // 将 number[] 解码为 UTF-8 字符串
-        const dataBytes = result.data.data || []
-        const hexStr = dataBytes.map(b => b.toString(16).padStart(2, '0')).join('')
-        const text = lib.byte2StringWithCharset(hexStr, 'utf-8')
-        console.log('[BLE插件] 收到配网数据:', text)
-
-        if (text.includes('#config#success') || text.includes('connected') || text.includes('true')) {
-          isResolved = true
-          cleanup()
-          resolve({ success: true, message: text })
-        } else if (text.includes('#config#fail') || text.includes('fail') || text.includes('false')) {
-          isResolved = true
-          cleanup()
-          resolve({ success: false, message: text })
-        } else if (text.includes('#split#')) {
-          console.log('[BLE插件] 收到WiFi列表，继续等待配网结果')
-        } else {
-          console.log('[BLE插件] 收到其他数据，继续等待:', text)
-        }
+    lib.onNotityBleData(lib.getSericUUID(), lib.getNotityUUID(), true, result => {
+      if (isResolved) return
+      if (result.type === 1000) {
+        console.log('[BLE插件] 结果通知订阅成功')
+        return
       }
-    )
+      if (result.type !== 0 || !result.data) return
+
+      // 将 number[] 解码为 UTF-8 字符串
+      const dataBytes = result.data.data || []
+      const hexStr = dataBytes.map(b => b.toString(16).padStart(2, '0')).join('')
+      const text = lib.byte2StringWithCharset(hexStr, 'utf-8')
+      console.log('[BLE插件] 收到配网数据:', text)
+
+      if (text.includes('#config#success') || text.includes('connected') || text.includes('true')) {
+        isResolved = true
+        cleanup()
+        resolve({ success: true, message: text })
+      } else if (text.includes('#config#fail') || text.includes('fail') || text.includes('false')) {
+        isResolved = true
+        cleanup()
+        resolve({ success: false, message: text })
+      } else if (text.includes('#split#')) {
+        console.log('[BLE插件] 收到WiFi列表，继续等待配网结果')
+      } else {
+        console.log('[BLE插件] 收到其他数据，继续等待:', text)
+      }
+    })
   })
 }
 

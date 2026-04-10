@@ -4,7 +4,7 @@
       <safe-area />
       <custom-navbar :title="texts.createPost" @back="handleBack" />
     </view>
-    
+
     <scroll-view scroll-y class="content-scroll">
       <view class="create-post-container">
         <!-- 关联模型信息 -->
@@ -17,40 +17,36 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 帖子标题 -->
         <view class="form-item">
           <text class="label">{{ texts.title }}</text>
-          <input 
-            class="input" 
-            type="text" 
-            v-model="postForm.title" 
-            :placeholder="texts.postTitlePlaceholder" 
+          <input
+            class="input"
+            type="text"
+            v-model="postForm.title"
+            :placeholder="texts.postTitlePlaceholder"
             maxlength="50"
           />
         </view>
-        
+
         <!-- 帖子内容 -->
         <view class="form-item">
           <text class="label">{{ texts.content }}</text>
-          <textarea 
-            class="textarea" 
-            v-model="postForm.content" 
-            :placeholder="texts.postContentPlaceholder" 
+          <textarea
+            class="textarea"
+            v-model="postForm.content"
+            :placeholder="texts.postContentPlaceholder"
             maxlength="2000"
             auto-height
           ></textarea>
         </view>
-        
+
         <!-- 图片上传 -->
         <view class="form-item">
           <text class="label">{{ texts.images }}</text>
           <view class="image-uploader">
-            <view 
-              class="image-item" 
-              v-for="(image, index) in postForm.imageUrls" 
-              :key="index"
-            >
+            <view class="image-item" v-for="(image, index) in postForm.imageUrls" :key="index">
               <image class="uploaded-image" :src="image" mode="aspectFill" />
               <view class="delete-image" @click="deleteImage(index)">
                 <image class="delete-icon" src="/static/images/icon/close.png" mode="aspectFit" />
@@ -63,30 +59,30 @@
           </view>
           <text class="hint-text">{{ texts.maxImagesHint }}</text>
         </view>
-        
+
         <!-- 话题标签 -->
         <view class="form-item">
           <text class="label">{{ texts.topics }}</text>
           <view class="topics-container">
-            <view 
-              class="topic-item" 
-              v-for="topic in selectedTopics" 
-              :key="topic"
-            >
+            <view class="topic-item" v-for="topic in selectedTopics" :key="topic">
               <text class="topic-text">{{ topic }}</text>
               <uni-icons type="close" size="14" color="#667eea" @click="removeTopic(topic)" />
             </view>
             <view class="topic-input-wrapper">
-              <view class="add-topic-trigger" @click="showTopicInput = true" v-if="!showTopicInput && selectedTopics.length < 5">
+              <view
+                class="add-topic-trigger"
+                @click="showTopicInput = true"
+                v-if="!showTopicInput && selectedTopics.length < 5"
+              >
                 <uni-icons type="plus" size="20" color="#999"></uni-icons>
                 <text class="add-topic-text">{{ texts.addTopicPlaceholder }}</text>
               </view>
               <block v-else-if="showTopicInput">
-                <input 
-                  class="topic-input" 
-                  type="text" 
-                  v-model="newTopic" 
-                  :placeholder="texts.addTopicPlaceholder" 
+                <input
+                  class="topic-input"
+                  type="text"
+                  v-model="newTopic"
+                  :placeholder="texts.addTopicPlaceholder"
                   :focus="showTopicInput"
                   @confirm="addTopic"
                   @input="handleTopicInput"
@@ -101,14 +97,10 @@
         </view>
       </view>
     </scroll-view>
-    
+
     <!-- 发布按钮 -->
     <view class="publish-container">
-      <view 
-        class="publish-btn" 
-        :class="{ 'disabled': !canPublish }"
-        @click="handlePublish"
-      >
+      <view class="publish-btn" :class="{ disabled: !canPublish }" @click="handlePublish">
         <text class="publish-btn-text">{{ texts.publish }}</text>
       </view>
     </view>
@@ -157,7 +149,7 @@ export default {
   onLoad(options) {
     this.languageStore.loadLanguage()
     this.from = options.from || ''
-    
+
     // 接收模型信息
     if (options.modelId) {
       this.postForm.modelId = options.modelId
@@ -172,7 +164,7 @@ export default {
     handleBack() {
       uni.navigateBack()
     },
-    
+
     // 监听话题输入，支持空格和逗号自动添加
     handleTopicInput(e) {
       const val = e.detail.value
@@ -186,29 +178,29 @@ export default {
         this.showTopicInput = false
       }
     },
-    
+
     // 选择图片
     chooseImage() {
       if (this.postForm.imageUrls.length >= 9) {
         uni.showToast({ title: this.texts.maxImagesHint || '最多可上传9张图片', icon: 'none' })
         return
       }
-      
+
       uni.chooseImage({
         count: 9 - this.postForm.imageUrls.length,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
-        success: (res) => {
+        success: res => {
           this.postForm.imageUrls = [...this.postForm.imageUrls, ...res.tempFilePaths]
         }
       })
     },
-    
+
     // 删除图片
     deleteImage(index) {
       this.postForm.imageUrls.splice(index, 1)
     },
-    
+
     // 添加话题
     addTopic() {
       const topic = this.newTopic.trim().replace(/[,，]/g, '')
@@ -226,7 +218,7 @@ export default {
       this.newTopic = ''
       this.showTopicInput = false
     },
-    
+
     // 移除话题
     removeTopic(topic) {
       const index = this.selectedTopics.indexOf(topic)
@@ -235,7 +227,7 @@ export default {
         this.postForm.topics = [...this.selectedTopics]
       }
     },
-    
+
     // 发布帖子
     async handlePublish() {
       // 检查是否可以发布
@@ -247,9 +239,9 @@ export default {
         }
         return
       }
-      
+
       uni.showLoading({ title: this.texts.publishing })
-      
+
       try {
         // 先上传图片
         const uploadedImageUrls = []
@@ -275,7 +267,7 @@ export default {
           }
         }
         console.log('上传完成，图片URL列表:', uploadedImageUrls)
-        
+
         // 创建帖子数据
         let finalContent = this.postForm.content
         // 如果有话题，自动拼接到内容末尾，确保话题能显示（针对后端可能不存储 topics 的兜底）
@@ -293,19 +285,19 @@ export default {
           topics: this.postForm.topics, // 保持数组
           tags: this.postForm.topics.join(',') // 同时也发送逗号分隔的字符串，增加兼容性
         }
-        
+
         const res = await createPost(postData)
         if (res.code === 0 || res.code === 1) {
           uni.hideLoading()
           uni.showToast({ title: this.texts.publishSuccess, icon: 'success' })
-          
+
           // 触发帖子创建事件，通知模型详情页刷新作品展示
           console.log('触发 postCreated 事件，modelId:', this.postForm.modelId)
           uni.$emit('postCreated', this.postForm.modelId)
-          
+
           // 设置标记，让模型详情页在 onShow 时刷新
           uni.setStorageSync('needRefreshShowcase', this.postForm.modelId)
-          
+
           setTimeout(() => {
             if (this.from === 'printComplete') {
               uni.switchTab({ url: '/pages/explore/explore/explore' })
@@ -588,7 +580,7 @@ export default {
   align-items: center;
   justify-content: center;
   z-index: 100;
-  background: #FF5A00;
+  background: #ff5a00;
   border-radius: 25rpx;
 }
 
@@ -613,13 +605,13 @@ export default {
 
 .publish-btn {
   height: 96rpx;
-  background: linear-gradient(135deg, #FF5A00 0%, #FF8C00 100%);
+  background: linear-gradient(135deg, #ff5a00 0%, #ff8c00 100%);
   border-radius: 48rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 32rpx 32rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255,90,0,0.3);
+  box-shadow: 0 8rpx 24rpx rgba(255, 90, 0, 0.3);
 }
 
 .publish-btn:active {
@@ -643,4 +635,3 @@ export default {
   color: #999;
 }
 </style>
-

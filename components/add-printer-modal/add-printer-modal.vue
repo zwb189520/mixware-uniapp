@@ -4,27 +4,33 @@
       <view class="modal-header">
         <text class="modal-title">{{ texts.title || '添加打印机' }}</text>
       </view>
-      
+
       <view class="modal-body">
         <view v-if="loading" class="loading">
-        <text>{{ texts.loading || '加载中...' }}</text>
-      </view>
-      <view v-else-if="deviceList.length === 0" class="empty">
-      </view>
-      <view v-else>
-          <view v-for="device in deviceList" :key="device.id || device.deviceId" class="printer-item">
+          <text>{{ texts.loading || '加载中...' }}</text>
+        </view>
+        <view v-else-if="deviceList.length === 0" class="empty"> </view>
+        <view v-else>
+          <view
+            v-for="device in deviceList"
+            :key="device.id || device.deviceId"
+            class="printer-item"
+          >
             <view class="printer-main" @tap="handleSelectPrinter(device.deviceId)">
               <image class="printer-icon" src="/static/images/3Dprinter.png" mode="aspectFit" />
               <view class="printer-info">
-                <text class="printer-name">{{ device.deviceName || device.name || texts.unnamedDevice || '未命名设备' }}</text>
-              <text class="printer-model">{{ device.deviceId || texts.unknownDevice || '未知设备' }}</text>
+                <text class="printer-name">{{
+                  device.deviceName || device.name || texts.unnamedDevice || '未命名设备'
+                }}</text>
+                <text class="printer-model">{{
+                  device.deviceId || texts.unknownDevice || '未知设备'
+                }}</text>
               </view>
             </view>
-
           </view>
         </view>
       </view>
-      
+
       <view class="modal-footer">
         <button class="btn-cancel" @tap="handleCancel">{{ texts.cancel || '取消' }}</button>
       </view>
@@ -36,7 +42,12 @@
 // @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 import { deleteDevice, bindDevice, getDeviceList } from '@/api/devices.ts'
-import { initBluetooth, startBluetoothScan, stopBluetoothScan, getBluetoothDevices } from '@/utils/bluetooth.ts'
+import {
+  initBluetooth,
+  startBluetoothScan,
+  stopBluetoothScan,
+  getBluetoothDevices
+} from '@/utils/bluetooth.ts'
 import { checkAllPermissions } from '@/utils/permission.ts'
 
 export default {
@@ -87,22 +98,20 @@ export default {
         this.loading = false
       }
     },
-    
 
-    
     async scanBluetoothDevices() {
       console.log('扫描蓝牙设备...')
-      
+
       try {
         const hasPermission = await checkAllPermissions()
         if (!hasPermission) {
           console.log('权限不足，无法扫描')
           return
         }
-        
+
         await initBluetooth()
         await startBluetoothScan()
-        
+
         uni.showLoading({
           title: this.texts.scanning || '扫描中...'
         })
@@ -123,7 +132,6 @@ export default {
         }
 
         checkDevices()
-        
       } catch (error) {
         uni.hideLoading()
         console.error('蓝牙扫描失败:', error)
@@ -137,7 +145,7 @@ export default {
     async finishScan(devices) {
       console.log('蓝牙扫描结束，结果:', devices)
       uni.hideLoading()
-      
+
       this.bluetoothDevices = devices.map(device => ({
         id: device.deviceId,
         name: device.displayName,
@@ -146,10 +154,10 @@ export default {
         rssi: device.RSSI,
         isBluetooth: true
       }))
-      
+
       this.deviceList = this.bluetoothDevices
       await stopBluetoothScan()
-      
+
       if (this.bluetoothDevices.length === 0) {
         uni.showToast({
           title: this.texts.noBluetoothDevices || '未扫描到任何蓝牙设备',
@@ -157,7 +165,7 @@ export default {
         })
       }
     },
-    
+
     // 获取已绑定的设备列表
     async getBoundDevices() {
       try {
@@ -177,7 +185,7 @@ export default {
         return []
       }
     },
-    
+
     stopBluetoothScan() {
       try {
         if (this.scanTimer) {
@@ -191,7 +199,6 @@ export default {
         console.log('停止扫描失败:', error)
       }
     },
-    
 
     handleSelectPrinter(printerId) {
       this.$emit('select-printer', printerId)
@@ -203,8 +210,7 @@ export default {
     handleCancel() {
       this.stopBluetoothScan()
       this.$emit('cancel')
-    },
-
+    }
   }
 }
 </script>
@@ -276,7 +282,7 @@ export default {
 .add-device-hint {
   margin-top: 20rpx;
   padding: 20rpx 40rpx;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   border-radius: 50rpx;
   display: inline-block;
 }
@@ -290,7 +296,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 30rpx;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
   border-radius: 16rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
@@ -349,10 +355,8 @@ export default {
   border-radius: 50rpx;
   font-size: 32rpx;
   border: none;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   color: white;
   box-shadow: 0 8rpx 24rpx rgba(255, 90, 0, 0.3);
 }
 </style>
-
-

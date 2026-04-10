@@ -2,8 +2,8 @@
   <view v-show="visible" class="custom-action-mask" @click="handleCancel">
     <view class="custom-action-sheet" @click.stop>
       <view class="action-list">
-        <view 
-          v-for="(item, index) in items" 
+        <view
+          v-for="(item, index) in items"
           :key="index"
           class="action-item"
           @click="handleSelect(index)"
@@ -74,7 +74,7 @@ export default {
 
 .custom-action-sheet {
   width: 100%;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
   border-radius: 20rpx 20rpx 0 0;
   padding-bottom: env(safe-area-inset-bottom);
   animation: slideUp 0.3s ease;
@@ -104,7 +104,7 @@ export default {
 }
 
 .action-item:active {
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .action-item:last-child {
@@ -126,7 +126,7 @@ export default {
 }
 
 .action-cancel:active {
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .cancel-text {
@@ -135,4 +135,3 @@ export default {
   font-weight: 500;
 }
 </style>
-

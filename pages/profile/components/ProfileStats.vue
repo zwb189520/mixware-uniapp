@@ -1,12 +1,7 @@
 <template>
   <view class="profile-stats">
     <view class="stats-grid">
-      <view 
-        v-for="stat in stats" 
-        :key="stat.id" 
-        class="stat-item"
-        @click="handleStatClick(stat)"
-      >
+      <view v-for="stat in stats" :key="stat.id" class="stat-item" @click="handleStatClick(stat)">
         <view class="stat-icon-wrapper">
           <image :src="stat.icon" mode="aspectFit" class="stat-icon"></image>
         </view>
@@ -45,10 +40,26 @@ export default {
     updateStats() {
       const allTexts = this.languageStore.texts
       this.stats = [
-        { id: 1, name: allTexts.profile?.likes || 'Likes', icon: '/static/images/customIcon/like.png' },
-        { id: 2, name: allTexts.profile?.collections || 'Collections', icon: '/static/images/customIcon/collect.png' },
-        { id: 3, name: allTexts.printTasks?.title || '打印任务', icon: '/static/images/customIcon/print.png' },
-        { id: 4, name: allTexts.modelTasks?.title || '模型任务', icon: '/static/images/customIcon/model.png' }
+        {
+          id: 1,
+          name: allTexts.profile?.likes || 'Likes',
+          icon: '/static/images/customIcon/like.png'
+        },
+        {
+          id: 2,
+          name: allTexts.profile?.collections || 'Collections',
+          icon: '/static/images/customIcon/collect.png'
+        },
+        {
+          id: 3,
+          name: allTexts.printTasks?.title || '打印任务',
+          icon: '/static/images/customIcon/print.png'
+        },
+        {
+          id: 4,
+          name: allTexts.modelTasks?.title || '模型任务',
+          icon: '/static/images/customIcon/model.png'
+        }
       ]
     },
     handleStatClick(stat) {
@@ -80,7 +91,7 @@ export default {
 
 <style scoped>
 .profile-stats {
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   padding: 40rpx 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
@@ -112,12 +123,10 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FFF9F5 0%, #FFE8DC 100%);
+  background: linear-gradient(135deg, #fff9f5 0%, #ffe8dc 100%);
   border-radius: 24rpx;
   transition: all 0.3s ease;
 }
-
-
 
 .stat-icon {
   width: 56rpx;
@@ -137,5 +146,3 @@ export default {
   font-weight: 500;
 }
 </style>
-
-

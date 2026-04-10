@@ -1,5 +1,5 @@
 ﻿<template>
-  <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
+  <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
 </template>
 
 <script lang="ts">
@@ -23,5 +23,3 @@ export default {
   background: #fff;
 }
 </style>
-
-

@@ -14,7 +14,9 @@
           </view>
         </view>
         <view class="binding-action">
-          <button v-if="!googleBound" class="bind-btn" @click="handleGoogleBind">{{ texts.bind }}</button>
+          <button v-if="!googleBound" class="bind-btn" @click="handleGoogleBind">
+            {{ texts.bind }}
+          </button>
           <button v-else class="unbind-btn" @click="handleGoogleUnbind">{{ texts.unbind }}</button>
         </view>
       </view>
@@ -39,11 +41,11 @@ export default {
       googleBound: false
     }
   },
-  
+
   mounted() {
     this.languageStore.loadLanguage()
   },
-  
+
   computed: {
     languageStore() {
       return useLanguageStore()
@@ -52,17 +54,17 @@ export default {
       return this.languageStore.texts.accountSecurity.thirdPartyBinding
     }
   },
-  
+
   methods: {
     handleBack() {
       uni.navigateBack()
     },
-    
+
     handleGoogleBind() {
       uni.showLoading({
         title: this.texts.binding
       })
-      
+
       setTimeout(() => {
         uni.hideLoading()
         this.googleBound = true
@@ -72,12 +74,12 @@ export default {
         })
       }, 1500)
     },
-    
+
     handleGoogleUnbind() {
       uni.showModal({
         title: this.texts.confirmCancel,
         content: this.texts.confirmCancelContent,
-        success: (res) => {
+        success: res => {
           if (res.confirm) {
             this.googleBound = false
             uni.showToast({
@@ -95,7 +97,7 @@ export default {
 <style scoped>
 .third-party-binding-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content {
@@ -129,7 +131,14 @@ export default {
 }
 
 .google-icon {
-  background: linear-gradient(135deg, #4285F4 0%, #34A853 25%, #FBBC05 50%, #EA4335 75%, #4285F4 100%);
+  background: linear-gradient(
+    135deg,
+    #4285f4 0%,
+    #34a853 25%,
+    #fbbc05 50%,
+    #ea4335 75%,
+    #4285f4 100%
+  );
 }
 
 .google-icon .icon-text {
@@ -161,7 +170,7 @@ export default {
 
 .bind-btn {
   padding: 12rpx 32rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 8rpx;
@@ -171,11 +180,9 @@ export default {
 .unbind-btn {
   padding: 12rpx 32rpx;
   background: #fff;
-  color: #FF5A00;
-  border: 2rpx solid #FF5A00;
+  color: #ff5a00;
+  border: 2rpx solid #ff5a00;
   border-radius: 8rpx;
   font-size: 26rpx;
 }
 </style>
-
-

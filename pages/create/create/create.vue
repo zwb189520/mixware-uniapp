@@ -1,35 +1,27 @@
 ﻿<template>
   <view class="page">
     <!-- 安全区域 -->
-    <view class="safe-area-top" :style="{height: statusBarHeight + 'px'}"></view>
-    
+    <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
+
     <!-- 主要内容区域 -->
     <view class="content">
       <!-- 功能按钮区域 -->
       <view class="creation-tools">
-        <view 
-          v-for="(tool, index) in tools" 
-          :key="index" 
+        <view
+          v-for="(tool, index) in tools"
+          :key="index"
           :class="[getCardPositionClass(index), tool.id === 'aiChat' ? 'ai-chat-card' : '']"
           class="tool-button"
           @click="handleToolClick(tool)"
           :style="{ height: getCardHeight(index) + 'rpx' }"
         >
-          <image 
-            class="button-background" 
-            :src="tool.backgroundImage" 
-            mode="aspectFill"
-          />
+          <image class="button-background" :src="tool.backgroundImage" mode="aspectFill" />
           <view class="button-overlay"></view>
           <view class="button-content">
             <text class="button-text">{{ tool.text }}</text>
             <text class="button-desc">{{ tool.description }}</text>
           </view>
-          <image 
-            class="arrow-icon" 
-            src="/static/images/create/right-arrow.png" 
-            mode="aspectFit"
-          />
+          <image class="arrow-icon" src="/static/images/create/right-arrow.png" mode="aspectFit" />
         </view>
       </view>
     </view>
@@ -108,23 +100,25 @@ export default {
     },
     async handleToolClick(tool) {
       if (this.isNavigating) return
-      
+
       // 检查登录状态
       const isLoggedIn = uni.getStorageSync('isLoggedIn')
       if (!isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
-      
+
       this.isNavigating = true
-      
-      const navigate = (url) => {
+
+      const navigate = url => {
         uni.navigateTo({
           url,
-          complete: () => { this.isNavigating = false }
+          complete: () => {
+            this.isNavigating = false
+          }
         })
       }
-      
+
       switch (tool.id) {
         case 'photography':
           navigate('/pages/create/createDetail/photography/photography')
@@ -164,7 +158,7 @@ export default {
 <style>
 .page {
   height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 .page::-webkit-scrollbar {
   width: 0;
@@ -266,4 +260,3 @@ export default {
   padding: 80rpx 40rpx;
 }
 </style>
-

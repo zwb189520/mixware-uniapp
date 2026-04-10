@@ -1,16 +1,16 @@
 ﻿<template>
   <view class="settings-menu">
     <view class="menu-section">
-      <view 
-        v-for="item in menuItems" 
-        :key="item.id" 
+      <view
+        v-for="item in menuItems"
+        :key="item.id"
         class="menu-item"
         @click="handleMenuClick(item)"
       >
         <text class="menu-text">{{ item.title }}</text>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
       </view>
-      
+
       <view class="menu-item" @click="handleLanguageClick">
         <text class="menu-text">{{ texts.language }}</text>
         <view class="language-right">
@@ -19,7 +19,7 @@
         </view>
       </view>
     </view>
-    
+
     <view v-if="isLoggedIn" class="logout-section">
       <view class="logout-button" @click="handleLogout">
         <text class="logout-text">{{ texts.logout }}</text>
@@ -66,11 +66,11 @@ export default {
       this.isLoggedIn = true
     })
   },
-  
+
   onShow() {
     this.checkLoginStatus()
   },
-  
+
   beforeDestroy() {
     uni.$off('userLogout')
     uni.$off('userLogin')
@@ -94,7 +94,7 @@ export default {
       const options = ['中文', 'English']
       uni.showActionSheet({
         itemList: options,
-        success: (res) => {
+        success: res => {
           if (typeof res.tapIndex !== 'number') return
           const lang = res.tapIndex === 1 ? 'en' : 'zh'
           this.languageStore.setLanguage(lang)
@@ -105,57 +105,57 @@ export default {
       })
     },
     handleMenuClick(item) {
-          if (item.id === 1) {
-            const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
-            if (!isLoggedIn) {
-              uni.navigateTo({
-                url: '/pagesMember/auth/login/login'
-              })
-            } else {
-              uni.navigateTo({
-                url: '/pagesMember/user/profileEdit/profileEdit'
-              })
-            }
-          } else if (item.id === 2) {
-            const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
-            if (!isLoggedIn) {
-              uni.navigateTo({
-                url: '/pagesMember/auth/login/login'
-              })
-            } else {
-              uni.navigateTo({
-                url: '/pagesMember/user/accountSecurity/accountSecurity'
-              })
-            }
-          }
-          console.log('点击菜单:', item.title)
-        },
+      if (item.id === 1) {
+        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+        if (!isLoggedIn) {
+          uni.navigateTo({
+            url: '/pagesMember/auth/login/login'
+          })
+        } else {
+          uni.navigateTo({
+            url: '/pagesMember/user/profileEdit/profileEdit'
+          })
+        }
+      } else if (item.id === 2) {
+        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+        if (!isLoggedIn) {
+          uni.navigateTo({
+            url: '/pagesMember/auth/login/login'
+          })
+        } else {
+          uni.navigateTo({
+            url: '/pagesMember/user/accountSecurity/accountSecurity'
+          })
+        }
+      }
+      console.log('点击菜单:', item.title)
+    },
     handleLogout() {
       uni.showModal({
         title: this.texts.logoutTitle,
         content: this.texts.logoutContent,
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             try {
               await logout()
             } catch (error) {
               console.error('后端注销失败:', error)
             }
-            
+
             uni.removeStorageSync('isLoggedIn')
             uni.removeStorageSync('token')
             uni.removeStorageSync('userId')
             uni.removeStorageSync('userInfo')
-            
+
             console.log('Settings - 退出登录，清除用户信息')
-            
+
             uni.showToast({
               title: this.texts.logoutSuccess,
               icon: 'success'
             })
-            
+
             uni.$emit('userLogout')
-            
+
             setTimeout(() => {
               uni.switchTab({
                 url: '/pages/profile/profile'
@@ -185,7 +185,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 30rpx 40rpx;
-  border-bottom: 1rpx solid #FFF9F5;
+  border-bottom: 1rpx solid #fff9f5;
 }
 
 .menu-item:last-child {
@@ -220,13 +220,11 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1rpx solid #FF5A00;
+  border: 1rpx solid #ff5a00;
 }
 
 .logout-text {
   font-size: 28rpx;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 </style>
-
-

@@ -28,10 +28,10 @@
       <view v-if="searchHistory.length" class="history-section">
         <view class="section-header">
           <text class="section-title">{{ texts.searchHistory || '搜索历史' }}</text>
-          <uni-icons 
-            type="trash" 
-            size="20" 
-            color="#999" 
+          <uni-icons
+            type="trash"
+            size="20"
+            color="#999"
             @click="clearHistory"
             class="clear-history"
           />
@@ -118,7 +118,7 @@ export default {
     this.languageStore.loadLanguage()
     this.loadSearchHistory()
     this.loadHotTags()
-    
+
     // 如果从外部传递了关键词，则自动填充并执行搜索
     if (options.keyword) {
       const keyword = decodeURIComponent(options.keyword)
@@ -137,7 +137,7 @@ export default {
     const exploreStore = useExploreStore()
     const languageStore = useLanguageStore()
     const { hotTags: storeHotTags } = storeToRefs(exploreStore)
-    
+
     return {
       exploreStore,
       languageStore,
@@ -153,10 +153,10 @@ export default {
         this.searchHistory = []
       }
     },
-    
+
     saveSearchHistory(keyword) {
       if (!keyword.trim()) return
-      
+
       try {
         let history = uni.getStorageSync('searchHistory') || []
         // 移除重复项
@@ -171,7 +171,7 @@ export default {
         console.error('保存搜索历史失败:', e)
       }
     },
-    
+
     async loadHotTags() {
       if (!uni.getStorageSync('isLoggedIn')) return
       try {
@@ -180,28 +180,30 @@ export default {
           this.hotTags = this.storeHotTags
           return
         }
-        
+
         const res = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
-            this.hotTags = res.data.map(item => item.title || item.describe || '').filter(tag => tag.trim())
+            this.hotTags = res.data
+              .map(item => item.title || item.describe || '')
+              .filter(tag => tag.trim())
           }
         }
       } catch (error) {
         console.error('加载热门标签失败:', error)
       }
     },
-    
+
     handleInput(event) {
       // 实时更新本地关键字，但不触发搜索
       this.localKeyword = event.detail.value
-      
+
       // 如果输入为空，显示搜索历史和热门搜索
       if (!this.localKeyword.trim()) {
         this.showResults = false
       }
     },
-    
+
     async handleSearch() {
       if (!this.localKeyword.trim()) {
         uni.showToast({
@@ -210,28 +212,28 @@ export default {
         })
         return
       }
-      
+
       this.saveSearchHistory(this.localKeyword)
       await this.performSearch(this.localKeyword)
     },
-    
+
     async performSearch(keyword) {
       uni.showLoading({
         title: this.texts.searching || '搜索中...'
       })
-      
+
       try {
         const res = await getModelPage({
           current: 1,
           size: 20,
           name: keyword
         })
-        
+
         if (res.code === 1 && res.data && res.data.records) {
           const results = this.formatSearchResults(res.data.records)
           this.searchResults = results
           this.showResults = true
-          
+
           const resultCount = results.leftList.length + results.rightList.length
           // 不显示找到多少个结果的提示
         } else {
@@ -252,9 +254,9 @@ export default {
         uni.hideLoading()
       }
     },
-    
+
     formatSearchResults(models) {
-      const fixImageUrl = (url) => {
+      const fixImageUrl = url => {
         if (!url) return '/static/images/logo.png'
         if (url.includes('localhost:9000')) {
           return url.replace('localhost:9000', '47.102.212.37:9000')
@@ -264,23 +266,27 @@ export default {
         }
         return url
       }
-      
+
       const formattedModels = models.map(model => ({
         id: model.modelId,
         name: model.name || '未命名模型',
         desc: model.description || model.name || '暂无描述',
         image: fixImageUrl(model.previewUrl),
-        author: model.userId ? `用户_${model.userId.substring(model.userId.length - 6)}` : '匿名用户',
-        authorAvatar: model.authorAvatar ? fixImageUrl(model.authorAvatar) : '/static/images/Default avatar.png',
+        author: model.userId
+          ? `用户_${model.userId.substring(model.userId.length - 6)}`
+          : '匿名用户',
+        authorAvatar: model.authorAvatar
+          ? fixImageUrl(model.authorAvatar)
+          : '/static/images/Default avatar.png',
         likes: model.collectCount || 0,
         isLiked: false,
         viewCount: model.viewCount || 0
       }))
-      
+
       // 分成左右两列
       const leftList = []
       const rightList = []
-      
+
       formattedModels.forEach((model, index) => {
         if (index % 2 === 0) {
           leftList.push(model)
@@ -288,34 +294,34 @@ export default {
           rightList.push(model)
         }
       })
-      
+
       return { leftList, rightList }
     },
-    
+
     handleCancel() {
       uni.navigateBack()
     },
-    
+
     clearKeyword() {
       this.localKeyword = ''
       this.showResults = false
     },
-    
+
     useHistory(keyword) {
       this.localKeyword = keyword
       this.performSearch(keyword)
     },
-    
+
     handleTagClick(tag) {
       this.localKeyword = tag
       this.performSearch(tag)
     },
-    
+
     clearHistory() {
       uni.showModal({
         title: this.texts.clearHistoryTitle || '确认清除',
         content: this.texts.clearHistoryContent || '确定要清除搜索历史吗？',
-        success: (res) => {
+        success: res => {
           if (res.confirm) {
             uni.removeStorageSync('searchHistory')
             this.searchHistory = []
@@ -327,7 +333,7 @@ export default {
         }
       })
     },
-    
+
     handleModelClick(item) {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({
@@ -339,11 +345,11 @@ export default {
         url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
       })
     },
-    
+
     handleAuthorClick(item) {
       // 处理作者点击事件
     },
-    
+
     async toggleLike(item) {
       // 处理点赞事件
       uni.showToast({
@@ -358,7 +364,7 @@ export default {
 <style scoped>
 .search-page {
   height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
   display: flex;
   flex-direction: column;
 }
@@ -391,7 +397,7 @@ export default {
 
 .search-btn {
   font-size: 28rpx;
-  color: #FF5A00;
+  color: #ff5a00;
   margin-left: 20rpx;
   padding: 10rpx 0;
 }
@@ -413,7 +419,7 @@ export default {
 
 .cancel-btn {
   font-size: 28rpx;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 .search-content {
@@ -475,4 +481,3 @@ export default {
   flex: 1;
 }
 </style>
-

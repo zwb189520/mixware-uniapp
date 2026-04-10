@@ -15,8 +15,8 @@
       <printer-name-selector :device-id="deviceId" @printer-change="handlePrinterChange" />
       <printer-status :status="printerStatus" />
       <printer-image />
-      <printer-progress 
-        :progress="progress" 
+      <printer-progress
+        :progress="progress"
         :estimated-time="formatTime(estimatedPrintTimeSeconds)"
         :print-time-hms="printTimeHms"
         :filament-length-m="filamentLengthM"
@@ -37,7 +37,12 @@ import PrinterNameSelector from './components/PrinterNameSelector.vue'
 import PrinterStatus from './components/PrinterStatus.vue'
 import PrinterImage from './components/PrinterImage.vue'
 import PrinterProgress from './components/PrinterProgress.vue'
-import { getDeviceStatus, getDefaultDevice, getDeviceList, setDefaultDevice } from '@/api/devices.ts'
+import {
+  getDeviceStatus,
+  getDefaultDevice,
+  getDeviceList,
+  setDefaultDevice
+} from '@/api/devices.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -127,7 +132,7 @@ export default {
         console.log('已有deviceId，跳过加载默认设备')
         return
       }
-      
+
       try {
         const res = await getDefaultDevice()
         console.log('getDefaultDevice响应:', res)
@@ -150,7 +155,7 @@ export default {
     },
     async loadDeviceStatus() {
       if (!this.deviceId) return
-      
+
       try {
         const res = await getDeviceStatus(this.deviceId)
         // 打印后端返回的完整信息
@@ -160,10 +165,10 @@ export default {
           console.log('核心数据(data):', JSON.stringify(res.data, null, 2))
         }
         console.log('---------------------')
-        
+
         if ((res.code === 1 || res.code === 200) && res.data) {
           const status = res.data
-          
+
           // 检查是否为全空数据（后端可能返回了对象但里面全是 null）
           if (status.deviceId === null && status.deviceState === null) {
             console.warn('--- [状态异常] 后端返回了空状态对象，请检查设备是否已激活或上报数据 ---')
@@ -174,16 +179,19 @@ export default {
 
           const deviceState = (status.deviceState || '').toLowerCase()
           const printState = status.printState || ''
-          
-          if (deviceState === 'offline' || (status.deviceState === null && status.printState === null)) {
+
+          if (
+            deviceState === 'offline' ||
+            (status.deviceState === null && status.printState === null)
+          ) {
             this.printerStatus = 'offline'
             this.progress = 0
             this.showEncouragement = false
             return
           }
-          
+
           this.printerStatus = printState || 'online'
-          
+
           if (status.progress !== undefined && this.printerStatus !== 'offline') {
             this.progress = Math.round(status.progress)
           }
@@ -215,7 +223,7 @@ export default {
       this.deviceId = printer.id
       this.loadDeviceStatus()
     },
-    
+
     handleMoreInfo() {
       uni.navigateTo({
         url: '/pagesMember/printer/printerMoreIntro/printerMoreIntro'
@@ -287,7 +295,7 @@ export default {
 <style scoped>
 .printer-intro-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFF 100%);
+  background: linear-gradient(180deg, #fff9f5 0%, #fff 100%);
   position: relative;
   overflow: hidden;
 }
@@ -323,8 +331,15 @@ export default {
 }
 
 @keyframes pulse-bg {
-  0%, 100% { transform: scale(1) translateY(0); opacity: 0.5; }
-  50% { transform: scale(1.2) translateY(-30rpx); opacity: 0.8; }
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2) translateY(-30rpx);
+    opacity: 0.8;
+  }
 }
 
 .content-container {
@@ -353,7 +368,7 @@ export default {
 .encouragement-text {
   margin-top: 16rpx;
   padding: 16rpx 32rpx;
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
   border-radius: 80rpx;
   position: relative;
   overflow: hidden;
@@ -397,8 +412,13 @@ export default {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20rpx) scale(1.1); }
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20rpx) scale(1.1);
+  }
 }
 
 .encouragement-icon {
@@ -411,8 +431,13 @@ export default {
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10rpx); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10rpx);
+  }
 }
 
 .encouragement-text text {
@@ -428,5 +453,3 @@ export default {
   letter-spacing: 1rpx;
 }
 </style>
-
-

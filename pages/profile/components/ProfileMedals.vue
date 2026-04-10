@@ -5,13 +5,13 @@
       <text>{{ texts.medalsWall }}</text>
     </view>
     <view class="medals-grid">
-      <view 
-        v-for="medal in medals" 
-        :key="medal.id" 
-        class="medal-item"
-      >
-        <view class="medal-icon-wrapper" :class="{ 'unachieved': !medal.achieved }">
-          <image :src="medal.image || '/static/images/icon/medal.png'" mode="aspectFit" class="medal-image"></image>
+      <view v-for="medal in medals" :key="medal.id" class="medal-item">
+        <view class="medal-icon-wrapper" :class="{ unachieved: !medal.achieved }">
+          <image
+            :src="medal.image || '/static/images/icon/medal.png'"
+            mode="aspectFit"
+            class="medal-image"
+          ></image>
         </view>
         <text class="medal-name">{{ medal.name }}</text>
       </view>
@@ -38,21 +38,61 @@ export default {
     this.updateMedals()
   },
   watch: {
-    'texts'() {
+    texts() {
       this.updateMedals()
     }
   },
   methods: {
     updateMedals() {
       this.medals = [
-        { id: 1, name: this.texts.newbieMedal, image: '/static/images/medal/newbie-medal.png', achieved: true },
-        { id: 2, name: this.texts.creatorMedal, image: '/static/images/medal/creator-medal.png', achieved: true },
-        { id: 3, name: this.texts.activeUserMedal, image: '/static/images/medal/active-user-medal.png', achieved: false },
-        { id: 4, name: this.texts.popularMedal, image: '/static/images/medal/popular-medal.png', achieved: false },
-        { id: 5, name: this.texts.modelMasterMedal, image: '/static/images/medal/model-master-medal.png', achieved: false },
-        { id: 6, name: this.texts.printExpertMedal, image: '/static/images/medal/print-expert-medal.png', achieved: false },
-        { id: 7, name: this.texts.contributorMedal, image: '/static/images/medal/contributor-medal.png', achieved: false },
-        { id: 8, name: this.texts.pioneerMedal, image: '/static/images/medal/pioneer-medal.png', achieved: false }
+        {
+          id: 1,
+          name: this.texts.newbieMedal,
+          image: '/static/images/medal/newbie-medal.png',
+          achieved: true
+        },
+        {
+          id: 2,
+          name: this.texts.creatorMedal,
+          image: '/static/images/medal/creator-medal.png',
+          achieved: true
+        },
+        {
+          id: 3,
+          name: this.texts.activeUserMedal,
+          image: '/static/images/medal/active-user-medal.png',
+          achieved: false
+        },
+        {
+          id: 4,
+          name: this.texts.popularMedal,
+          image: '/static/images/medal/popular-medal.png',
+          achieved: false
+        },
+        {
+          id: 5,
+          name: this.texts.modelMasterMedal,
+          image: '/static/images/medal/model-master-medal.png',
+          achieved: false
+        },
+        {
+          id: 6,
+          name: this.texts.printExpertMedal,
+          image: '/static/images/medal/print-expert-medal.png',
+          achieved: false
+        },
+        {
+          id: 7,
+          name: this.texts.contributorMedal,
+          image: '/static/images/medal/contributor-medal.png',
+          achieved: false
+        },
+        {
+          id: 8,
+          name: this.texts.pioneerMedal,
+          image: '/static/images/medal/pioneer-medal.png',
+          achieved: false
+        }
       ]
     },
     handleMedalClick() {
@@ -70,7 +110,7 @@ export default {
 
 <style scoped>
 .profile-medals {
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
@@ -126,8 +166,13 @@ export default {
 }
 
 @keyframes shine {
-  0%, 100% { filter: drop-shadow(0 0 8rpx rgba(255, 215, 0, 0.3)); }
-  50% { filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.6)); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8rpx rgba(255, 215, 0, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.6));
+  }
 }
 
 .medal-icon-wrapper.unachieved {
@@ -145,5 +190,3 @@ export default {
   color: #666;
 }
 </style>
-
-

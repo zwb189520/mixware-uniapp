@@ -15,7 +15,11 @@ export const useExploreStore = defineStore('explore', () => {
   const loading = ref(false)
 
   // 使用通用 Hook 管理存储
-  const { state: storageState, initFromStorage, saveToStorage } = useStorageSync('exploreData', {
+  const {
+    state: storageState,
+    initFromStorage,
+    saveToStorage
+  } = useStorageSync('exploreData', {
     dailyModels: [],
     hotModels: [],
     categoryModels: [],
@@ -71,7 +75,7 @@ export const useExploreStore = defineStore('explore', () => {
   }
 
   function updateModelLike(modelId, isLiked, likes) {
-    const updateInList = (list) => {
+    const updateInList = list => {
       const model = list.find(m => m.id === modelId)
       if (model) {
         model.isLiked = isLiked
@@ -140,4 +144,3 @@ export const useExploreStore = defineStore('explore', () => {
     initFromStorage
   }
 })
-

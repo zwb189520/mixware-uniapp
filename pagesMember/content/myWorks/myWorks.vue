@@ -3,25 +3,17 @@
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
     <view class="tab-bar">
-      <view 
-        class="tab-item" 
-        :class="{ active: activeTab === 'works' }"
-        @click="switchTab('works')"
-      >
+      <view class="tab-item" :class="{ active: activeTab === 'works' }" @click="switchTab('works')">
         <text class="tab-text">{{ texts.myWorks || '我的作品' }}</text>
       </view>
-      <view 
-        class="tab-item" 
-        :class="{ active: activeTab === 'likes' }"
-        @click="switchTab('likes')"
-      >
+      <view class="tab-item" :class="{ active: activeTab === 'likes' }" @click="switchTab('likes')">
         <text class="tab-text">{{ texts.myLikes || '我的点赞' }}</text>
       </view>
     </view>
     <view class="works-container">
       <view v-if="worksList.length > 0" class="works-grid">
-        <view 
-          v-for="(work, index) in worksList" 
+        <view
+          v-for="(work, index) in worksList"
           :key="index"
           class="work-item"
           @click="handleWorkClick(work)"
@@ -31,11 +23,15 @@
       </view>
       <view v-else-if="!loading" class="empty-state">
         <image class="empty-icon" src="/static/images/empty-box.png" mode="aspectFit" />
-        <text class="empty-text">{{ activeTab === 'works' ? (texts.noWorks || '暂无作品') : (texts.noLikes || '暂无点赞') }}</text>
-        <text class="empty-hint">{{ activeTab === 'works' ? (texts.emptyHint || '快去打印吧') : (texts.goLike || '快去点赞吧') }}</text>
+        <text class="empty-text">{{
+          activeTab === 'works' ? texts.noWorks || '暂无作品' : texts.noLikes || '暂无点赞'
+        }}</text>
+        <text class="empty-hint">{{
+          activeTab === 'works' ? texts.emptyHint || '快去打印吧' : texts.goLike || '快去点赞吧'
+        }}</text>
       </view>
     </view>
-    
+
     <!-- 自定义ActionSheet -->
     <CustomActionSheet
       :visible="showCustomActionSheet"
@@ -143,9 +139,15 @@ export default {
           this.worksList = res.data.records.map(post => ({
             id: post.postId,
             title: post.title,
-            image: post.imageUrls && post.imageUrls.length > 0 ? post.imageUrls[0] : 'https://picsum.photos/400/400?random=' + post.postId,
+            image:
+              post.imageUrls && post.imageUrls.length > 0
+                ? post.imageUrls[0]
+                : 'https://picsum.photos/400/400?random=' + post.postId,
             printTime: '-',
-            printDate: post.createdAt && typeof post.createdAt === 'string' ? post.createdAt.split('T')[0] : '',
+            printDate:
+              post.createdAt && typeof post.createdAt === 'string'
+                ? post.createdAt.split('T')[0]
+                : '',
             type: 'model',
             status: 'completed',
             isPost: true,
@@ -176,9 +178,15 @@ export default {
             let apiPosts = res.data.records.map(post => ({
               id: post.postId,
               title: post.title,
-              image: post.imageUrls && post.imageUrls.length > 0 ? post.imageUrls[0] : 'https://picsum.photos/400/400?random=' + post.postId,
+              image:
+                post.imageUrls && post.imageUrls.length > 0
+                  ? post.imageUrls[0]
+                  : 'https://picsum.photos/400/400?random=' + post.postId,
               printTime: '-',
-              printDate: post.createdAt && typeof post.createdAt === 'string' ? post.createdAt.split('T')[0] : '',
+              printDate:
+                post.createdAt && typeof post.createdAt === 'string'
+                  ? post.createdAt.split('T')[0]
+                  : '',
               type: 'model',
               status: 'completed',
               isPost: true
@@ -192,7 +200,10 @@ export default {
                   title: newlyCreatedPost.title,
                   image: newlyCreatedPost.image,
                   printTime: '-',
-                  printDate: newlyCreatedPost.createdAt && typeof newlyCreatedPost.createdAt === 'string' ? newlyCreatedPost.createdAt.split('T')[0] : '',
+                  printDate:
+                    newlyCreatedPost.createdAt && typeof newlyCreatedPost.createdAt === 'string'
+                      ? newlyCreatedPost.createdAt.split('T')[0]
+                      : '',
                   type: 'model',
                   status: 'completed',
                   isPost: true
@@ -214,11 +225,11 @@ export default {
         this.loading = false
       }
     },
-    
+
     handleBack() {
       uni.navigateBack()
     },
-    
+
     handleWorkClick(work) {
       if (work.isPost) {
         uni.navigateTo({
@@ -234,7 +245,7 @@ export default {
       this.cancelText = cancelText
       this.showCustomActionSheet = true
     },
-    
+
     handleActionSheetSelect(res) {
       if (res.tapIndex === 0) {
         this.handlePrintPoster(this.selectedWork)
@@ -243,25 +254,26 @@ export default {
       }
       this.showCustomActionSheet = false
     },
-    
+
     handleActionSheetCancel() {
       this.showCustomActionSheet = false
     },
-    
+
     handleDeleteWork(work) {
       const deleteConfirmText = this.texts.deleteConfirm || '确认删除'
-      const deleteConfirmContentText = this.texts.deleteConfirmContent || '确定要删除这个作品吗？此操作不可恢复。'
+      const deleteConfirmContentText =
+        this.texts.deleteConfirmContent || '确定要删除这个作品吗？此操作不可恢复。'
       const confirmText = this.texts.confirm || '确认'
       const cancelText = this.texts.cancel || '取消'
       const deleteSuccessText = this.texts.deleteSuccess || '删除成功'
       const deleteFailedText = this.texts.deleteFailed || '删除失败'
-      
+
       uni.showModal({
         title: deleteConfirmText,
         content: deleteConfirmContentText,
         confirmText: confirmText,
         cancelText: cancelText,
-        success: async (res) => {
+        success: async res => {
           if (res.confirm) {
             try {
               const response = await deleteModel(work.id)
@@ -279,7 +291,7 @@ export default {
         }
       })
     },
-    
+
     handlePrintPoster(work) {
       uni.showToast({ title: this.texts.generatingPoster || '正在生成海报...', icon: 'loading' })
       setTimeout(() => {
@@ -293,7 +305,7 @@ export default {
 <style scoped>
 .my-works-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .works-container {
@@ -334,7 +346,7 @@ export default {
 
 .empty-hint {
   font-size: 28rpx;
-  color: #FF6B35;
+  color: #ff6b35;
   margin-top: 20rpx;
   font-weight: bold;
 }
@@ -362,7 +374,7 @@ export default {
   transform: translateX(-50%);
   width: 60rpx;
   height: 4rpx;
-  background-color: #FF6B35;
+  background-color: #ff6b35;
   border-radius: 2rpx;
 }
 
@@ -372,9 +384,7 @@ export default {
 }
 
 .tab-item.active .tab-text {
-  color: #FF6B35;
+  color: #ff6b35;
   font-weight: bold;
 }
 </style>
-
-

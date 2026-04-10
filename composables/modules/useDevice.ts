@@ -8,8 +8,8 @@ export function useDevice() {
   const devices = ref([])
   const currentDevice = ref(null)
   const loading = ref(false)
-  
-  const fetchDevices = async (apiFunction) => {
+
+  const fetchDevices = async apiFunction => {
     loading.value = true
     try {
       const result = await apiFunction()
@@ -23,20 +23,20 @@ export function useDevice() {
       loading.value = false
     }
   }
-  
-  const setCurrentDevice = (device) => {
+
+  const setCurrentDevice = device => {
     currentDevice.value = device
   }
-  
-  const getDeviceById = (deviceId) => {
+
+  const getDeviceById = deviceId => {
     return devices.value.find(device => device.id === deviceId || device.deviceId === deviceId)
   }
-  
+
   const clearDevices = () => {
     devices.value = []
     currentDevice.value = null
   }
-  
+
   return {
     devices,
     currentDevice,

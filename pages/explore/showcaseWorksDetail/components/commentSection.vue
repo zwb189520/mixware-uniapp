@@ -2,17 +2,13 @@
   <view class="comment-section-container">
     <view class="comment-section">
       <text class="section-title">{{ texts.comments }} ({{ totalCount }})</text>
-      
+
       <view class="comment-list">
-        <view 
-          v-for="comment in displayComments" 
-          :key="comment.id" 
-          class="comment-item"
-        >
+        <view v-for="comment in displayComments" :key="comment.id" class="comment-item">
           <view class="comment-main">
-            <image 
-              class="comment-avatar" 
-              :src="comment.userAvatar" 
+            <image
+              class="comment-avatar"
+              :src="comment.userAvatar"
               mode="aspectFill"
               @error="handleImageError"
             />
@@ -23,31 +19,32 @@
               </view>
               <text class="comment-text">{{ comment.content }}</text>
               <view class="comment-actions">
-                <text 
+                <text
                   class="action-text-only"
                   @click="handleReplyClick(comment.id, comment.userName)"
                 >
                   {{ texts.reply }}
                 </text>
-                <text 
-                  v-if="comment.replyCount > 0"
-                  class="reply-count-text"
-                >
+                <text v-if="comment.replyCount > 0" class="reply-count-text">
                   {{ comment.replyCount }}{{ texts.repliesCountSuffix || '条回复' }}
                 </text>
-                <view 
+                <view
                   class="action-item"
-                  :class="{ 'liked': comment.isLiked }"
+                  :class="{ liked: comment.isLiked }"
                   @click="handleLikeClick(comment.id)"
                 >
-                  <image 
-                    class="action-icon-img" 
-                    :src="comment.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" 
-                    mode="aspectFit" 
+                  <image
+                    class="action-icon-img"
+                    :src="
+                      comment.isLiked
+                        ? '/static/images/icon/like_active.png'
+                        : '/static/images/icon/like.png'
+                    "
+                    mode="aspectFit"
                   />
                   <text class="action-text">{{ comment.likes }}</text>
                 </view>
-                <view 
+                <view
                   v-if="currentUserId === comment.userId || currentUserId === postAuthorId"
                   class="action-item delete-btn"
                   @click="handleDeleteClick(comment.id)"
@@ -58,16 +55,12 @@
               </view>
             </view>
           </view>
-          
+
           <view v-if="comment.replies && comment.replies.length > 0" class="comment-replies">
-            <view 
-              v-for="reply in comment.replies" 
-              :key="reply.id" 
-              class="reply-item"
-            >
-              <image 
-                class="reply-avatar" 
-                :src="reply.userAvatar" 
+            <view v-for="reply in comment.replies" :key="reply.id" class="reply-item">
+              <image
+                class="reply-avatar"
+                :src="reply.userAvatar"
                 mode="aspectFill"
                 @error="handleImageError"
               />
@@ -78,25 +71,29 @@
                 </view>
                 <text class="reply-text">{{ reply.content }}</text>
                 <view class="reply-actions">
-                  <text 
+                  <text
                     class="action-text-only"
                     @click="handleReplyClick(reply.id, reply.userName)"
                   >
                     {{ texts.reply }}
                   </text>
-                  <view 
+                  <view
                     class="action-item"
-                    :class="{ 'liked': reply.isLiked }"
+                    :class="{ liked: reply.isLiked }"
                     @click="handleLikeClick(reply.id)"
                   >
-                    <image 
-                      class="action-icon-img" 
-                      :src="reply.isLiked ? '/static/images/icon/like_active.png' : '/static/images/icon/like.png'" 
-                      mode="aspectFit" 
+                    <image
+                      class="action-icon-img"
+                      :src="
+                        reply.isLiked
+                          ? '/static/images/icon/like_active.png'
+                          : '/static/images/icon/like.png'
+                      "
+                      mode="aspectFit"
                     />
                     <text class="action-text">{{ reply.likes }}</text>
                   </view>
-                  <view 
+                  <view
                     v-if="currentUserId === reply.userId || currentUserId === postAuthorId"
                     class="action-item delete-btn"
                     @click="handleDeleteClick(reply.id)"
@@ -110,12 +107,8 @@
           </view>
         </view>
       </view>
-      
-      <view 
-        v-if="comments.length > 2" 
-        class="view-more-btn"
-        @click="handleViewMore"
-      >
+
+      <view v-if="comments.length > 2" class="view-more-btn" @click="handleViewMore">
         <text class="view-more-text">{{ texts.viewMoreComments }}</text>
         <uni-icons type="right" size="16" color="#666"></uni-icons>
       </view>
@@ -148,8 +141,7 @@ export default {
     }
   },
   data() {
-    return {
-    }
+    return {}
   },
   computed: {
     languageStore() {
@@ -294,7 +286,7 @@ export default {
 
 .reply-count-text {
   font-size: 24rpx;
-  color: #FF5A00;
+  color: #ff5a00;
   padding: 8rpx 12rpx;
   font-weight: 500;
 }
@@ -324,7 +316,7 @@ export default {
 }
 
 .action-item.liked .action-text {
-  color: #FF69B4;
+  color: #ff69b4;
 }
 
 .comment-replies {
@@ -412,7 +404,7 @@ export default {
   transform: translateX(-50%);
   width: 0;
   height: 2rpx;
-  background: linear-gradient(90deg, transparent, #FF5A00, transparent);
+  background: linear-gradient(90deg, transparent, #ff5a00, transparent);
   transition: width 0.3s;
 }
 
@@ -426,10 +418,8 @@ export default {
 
 .view-more-text {
   font-size: 28rpx;
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 600;
   letter-spacing: 0.5rpx;
 }
 </style>
-
-

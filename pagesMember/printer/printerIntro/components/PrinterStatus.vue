@@ -29,17 +29,17 @@ export default {
     },
     statusClass() {
       const statusMap = {
-        'Printing': 'printing',
-        'Downloading': 'printing',
-        'Initializing': 'printing',
-        'Error': 'error',
-        'offline': 'offline',
-        'Pausing': 'idle',
-        'Aborting': 'idle',
-        'StandingBy': 'idle',
-        'Loading': 'idle',
-        'Unloading': 'idle',
-        'online': 'idle'
+        Printing: 'printing',
+        Downloading: 'printing',
+        Initializing: 'printing',
+        Error: 'error',
+        offline: 'offline',
+        Pausing: 'idle',
+        Aborting: 'idle',
+        StandingBy: 'idle',
+        Loading: 'idle',
+        Unloading: 'idle',
+        online: 'idle'
       }
       return statusMap[this.status] || 'idle'
     }
@@ -104,8 +104,8 @@ export default {
 }
 
 .status-printing {
-  background: #FF6B35;
-  color: #FF6B35;
+  background: #ff6b35;
+  color: #ff6b35;
 }
 
 .status-hungry {
@@ -119,7 +119,8 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -136,5 +137,3 @@ export default {
   letter-spacing: 1rpx;
 }
 </style>
-
-

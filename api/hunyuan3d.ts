@@ -40,7 +40,7 @@ export async function imageToModel(image, _prompt) {
   const token = uni.getStorageSync('token') || ''
   const uploadRes = await uploadFile('/upload/image', image, {
     header: {
-      'Authorization': token ? `Bearer ${token}` : ''
+      Authorization: token ? `Bearer ${token}` : ''
     }
   })
   console.log('图片上传响应:', uploadRes)
@@ -60,4 +60,3 @@ export async function imageToModel(image, _prompt) {
   }
   throw new Error('图片上传失败')
 }
-

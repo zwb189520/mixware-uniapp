@@ -7,17 +7,20 @@
         <image class="logo" src="/static/images/logo.png" mode="aspectFit" />
         <text class="account-name">{{ texts.accountName }}</text>
       </view>
-      
+
       <view class="login-form">
         <view class="login-tabs">
-          <view 
-            :class="['tab-item', { 'tab-active': loginType === 'login' || loginType === 'loginByCode' }]" 
+          <view
+            :class="[
+              'tab-item',
+              { 'tab-active': loginType === 'login' || loginType === 'loginByCode' }
+            ]"
             @click="switchLoginType(loginType === 'loginByCode' ? 'loginByCode' : 'login')"
           >
             {{ texts.loginTab }}
           </view>
-          <view 
-            :class="['tab-item', { 'tab-active': loginType === 'register' }]" 
+          <view
+            :class="['tab-item', { 'tab-active': loginType === 'register' }]"
             @click="switchLoginType('register')"
           >
             {{ texts.registerTab }}
@@ -26,68 +29,93 @@
 
         <!-- 登录方式切换 (仅在登录模式下显示) -->
         <view v-if="loginType === 'login' || loginType === 'loginByCode'" class="login-sub-tabs">
-          <view 
-            :class="['sub-tab-item', { 'sub-tab-active': loginType === 'login' }]" 
+          <view
+            :class="['sub-tab-item', { 'sub-tab-active': loginType === 'login' }]"
             @click="switchLoginType('login')"
           >
             {{ texts.passwordLoginTab }}
           </view>
-          <view 
-            :class="['sub-tab-item', { 'sub-tab-active': loginType === 'loginByCode' }]" 
+          <view
+            :class="['sub-tab-item', { 'sub-tab-active': loginType === 'loginByCode' }]"
             @click="switchLoginType('loginByCode')"
           >
             {{ texts.loginByCodeTab }}
           </view>
         </view>
-        
+
         <view v-if="loginType === 'register'" class="form-item">
           <text class="form-label">{{ texts.usernameLabel }}</text>
           <input class="form-input" v-model="username" :placeholder="texts.usernamePlaceholder" />
         </view>
-        
-        <picker v-if="loginType === 'register'" mode="date" :value="birthday" @change="handleBirthdayChange">
+
+        <picker
+          v-if="loginType === 'register'"
+          mode="date"
+          :value="birthday"
+          @change="handleBirthdayChange"
+        >
           <view class="form-item">
             <text class="form-label">{{ texts.birthdayLabel || '生日' }}</text>
             <view class="form-input birthday-display">
-              <text :class="{'placeholder-text': !birthday}">{{ birthday || texts.birthdayPlaceholder || '请选择生日' }}</text>
+              <text :class="{ 'placeholder-text': !birthday }">{{
+                birthday || texts.birthdayPlaceholder || '请选择生日'
+              }}</text>
             </view>
           </view>
         </picker>
-        
+
         <view class="form-item">
           <text class="form-label">{{ texts.emailLabel }}</text>
           <input class="form-input" v-model="email" :placeholder="texts.emailPlaceholder" />
         </view>
-        
+
         <view v-if="loginType === 'register' || loginType === 'loginByCode'" class="form-item">
           <text class="form-label">{{ texts.codeLabel }}</text>
           <view class="code-input-container">
-            <input class="form-input code-input" v-model="code" :placeholder="texts.codePlaceholder" />
+            <input
+              class="form-input code-input"
+              v-model="code"
+              :placeholder="texts.codePlaceholder"
+            />
             <button class="code-btn" @click="handleGetCode" :disabled="countdown > 0">
               {{ countdown > 0 ? `${countdown}s` : texts.getCode }}
             </button>
           </view>
         </view>
-        
+
         <view v-if="loginType === 'login' || loginType === 'register'" class="form-item">
           <text class="form-label">{{ texts.passwordLabel }}</text>
-          <input class="form-input" v-model="password" type="password" :placeholder="texts.passwordPlaceholder" />
+          <input
+            class="form-input"
+            v-model="password"
+            type="password"
+            :placeholder="texts.passwordPlaceholder"
+          />
         </view>
-        
+
         <view v-if="loginType === 'register'" class="form-item">
           <text class="form-label">{{ texts.confirmPasswordLabel }}</text>
-          <input class="form-input" v-model="confirmPassword" type="password" :placeholder="texts.confirmPasswordPlaceholder" />
+          <input
+            class="form-input"
+            v-model="confirmPassword"
+            type="password"
+            :placeholder="texts.confirmPasswordPlaceholder"
+          />
         </view>
-        
+
         <view class="agreement-item">
           <checkbox class="agreement-checkbox" :checked="agreed" @tap="toggleAgreement" />
           <text class="agreement-text">
             {{ texts.readAndAgree }}
-            <text class="agreement-link" @click="handleUserAgreement">{{ texts.userAgreement }}</text>
+            <text class="agreement-link" @click="handleUserAgreement">{{
+              texts.userAgreement
+            }}</text>
             、
             <text class="agreement-link" @click="handlePrivacy">{{ texts.privacyNotice }}</text>
             、
-            <text class="agreement-link" @click="handleMixwareAgreement">{{ texts.mixwareAgreement }}</text>
+            <text class="agreement-link" @click="handleMixwareAgreement">{{
+              texts.mixwareAgreement
+            }}</text>
           </text>
         </view>
 
@@ -95,15 +123,21 @@
           <checkbox class="agreement-checkbox" :checked="marketingOptIn" @tap="toggleMarketing" />
           <text class="agreement-text">{{ texts.marketingConsent || '同意接收营销推送信息' }}</text>
         </view>
-        
-        <button class="login-btn" @click="handleLogin">{{ (loginType === 'login' || loginType === 'loginByCode') ? texts.loginButton : texts.registerButton }}</button>
+
+        <button class="login-btn" @click="handleLogin">
+          {{
+            loginType === 'login' || loginType === 'loginByCode'
+              ? texts.loginButton
+              : texts.registerButton
+          }}
+        </button>
       </view>
-      
+
       <view v-if="loginType === 'login'" class="third-party-login">
         <view class="divider">
           <text class="divider-text">{{ texts.thirdPartyLogin }}</text>
         </view>
-        
+
         <view class="third-party-buttons">
           <view class="third-party-btn google-btn" @click="handleGoogleLogin">
             <text class="google-icon">G</text>
@@ -124,7 +158,13 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
-import { sendVerificationCodeWithHandler, loginWithPassword, registerWithHandler, thirdPartyLoginWithHandler, loginByCodeWithHandler } from '@/api/users.ts'
+import {
+  sendVerificationCodeWithHandler,
+  loginWithPassword,
+  registerWithHandler,
+  thirdPartyLoginWithHandler,
+  loginByCodeWithHandler
+} from '@/api/users.ts'
 import { getGoogleOAuthConfig, googleCallback, appleCallback, getAppleConfig } from '@/api/auth.ts'
 
 export default {
@@ -148,7 +188,7 @@ export default {
       timer: null
     }
   },
-  
+
   mounted() {
     this.languageStore.loadLanguage()
     this.initializeTestUser()
@@ -156,13 +196,13 @@ export default {
     this.handleOAuthCallback()
     // #endif
   },
-  
+
   beforeDestroy() {
     if (this.timer) {
       clearInterval(this.timer)
     }
   },
-  
+
   computed: {
     languageStore() {
       return useLanguageStore()
@@ -171,24 +211,24 @@ export default {
       return this.languageStore.texts.login || {}
     }
   },
-  
+
   methods: {
     handleBack() {
       uni.navigateBack()
     },
-    
+
     handleOAuthCallback() {
       // #ifdef H5
       const urlParams = new URLSearchParams(window.location.search)
       const code = urlParams.get('code')
       const state = urlParams.get('state')
       const error = urlParams.get('error')
-      
+
       if (error) {
         uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
         return
       }
-      
+
       if (code && state) {
         uni.showLoading({ title: this.texts.loggingIn || '登录中...' })
         try {
@@ -205,15 +245,15 @@ export default {
       }
       // #endif
     },
-    
+
     switchLoginType(type) {
       this.loginType = type
     },
-    
+
     toggleAgreement() {
       this.agreed = !this.agreed
     },
-    
+
     toggleMarketing() {
       this.marketingOptIn = !this.marketingOptIn
     },
@@ -221,11 +261,11 @@ export default {
     handleBirthdayChange(e) {
       this.birthday = e.detail.value
     },
-    
+
     initializeTestUser() {
       const registeredUsers = uni.getStorageSync('registeredUsers') || []
       const hasTestUser = registeredUsers.some(user => user.email === 'test@example.com')
-      
+
       if (!hasTestUser) {
         const testUser = {
           id: 1,
@@ -236,12 +276,12 @@ export default {
           region: '北京市',
           gender: '男'
         }
-        
+
         registeredUsers.push(testUser)
         uni.setStorageSync('registeredUsers', registeredUsers)
       }
     },
-    
+
     async handleGetCode() {
       if (!this.email) {
         uni.showToast({
@@ -250,7 +290,7 @@ export default {
         })
         return
       }
-      
+
       // 简单的邮箱格式验证
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(this.email)) {
@@ -260,16 +300,16 @@ export default {
         })
         return
       }
-      
+
       try {
         uni.showLoading({
           title: this.texts.sending || '发送中...'
         })
-        
+
         await sendVerificationCodeWithHandler(this.email)
-        
+
         uni.hideLoading()
-        
+
         // 倒计时
         this.countdown = 60
         this.timer = setInterval(() => {
@@ -280,7 +320,7 @@ export default {
             this.timer = null
           }
         }, 1000)
-        
+
         uni.showToast({
           title: this.texts.codeSent,
           icon: 'success'
@@ -293,7 +333,7 @@ export default {
         })
       }
     },
-    
+
     handleLogin() {
       if (!this.email) {
         uni.showToast({
@@ -302,7 +342,7 @@ export default {
         })
         return
       }
-      
+
       if (this.loginType !== 'loginByCode' && !this.password) {
         uni.showToast({
           title: this.texts.enterPassword,
@@ -310,7 +350,7 @@ export default {
         })
         return
       }
-      
+
       if (this.loginType === 'register') {
         if (!this.username) {
           uni.showToast({
@@ -319,7 +359,7 @@ export default {
           })
           return
         }
-        
+
         if (!this.code) {
           uni.showToast({
             title: this.texts.enterCode,
@@ -327,7 +367,7 @@ export default {
           })
           return
         }
-        
+
         if (!this.confirmPassword) {
           uni.showToast({
             title: this.texts.confirmPassword,
@@ -335,7 +375,7 @@ export default {
           })
           return
         }
-        
+
         if (this.password !== this.confirmPassword) {
           uni.showToast({
             title: this.texts.passwordsNotMatch,
@@ -344,7 +384,7 @@ export default {
           return
         }
       }
-      
+
       if (!this.agreed) {
         uni.showToast({
           title: this.texts.agreeToTerms,
@@ -352,7 +392,7 @@ export default {
         })
         return
       }
-      
+
       if (this.loginType === 'login') {
         this.handlePasswordLogin()
       } else if (this.loginType === 'loginByCode') {
@@ -361,7 +401,7 @@ export default {
         this.handleRegister()
       }
     },
-    
+
     async handleCodeLogin() {
       if (!this.code) {
         uni.showToast({
@@ -375,16 +415,16 @@ export default {
         uni.showLoading({
           title: this.texts.loggingIn || '登录中...'
         })
-        
+
         await loginByCodeWithHandler(this.email, this.code)
-        
+
         uni.hideLoading()
-        
+
         uni.showToast({
           title: this.texts.loginSuccess,
           icon: 'success'
         })
-        
+
         setTimeout(() => {
           uni.switchTab({
             url: '/pages/profile/profile'
@@ -398,22 +438,22 @@ export default {
         })
       }
     },
-    
+
     async handlePasswordLogin() {
       try {
         uni.showLoading({
           title: this.texts.loggingIn || '登录中...'
         })
-        
+
         await loginWithPassword(this.email, this.password)
-        
+
         uni.hideLoading()
-        
+
         uni.showToast({
           title: this.texts.loginSuccess,
           icon: 'success'
         })
-        
+
         // 跳转到首页
         setTimeout(() => {
           uni.switchTab({
@@ -422,26 +462,26 @@ export default {
         }, 500)
       } catch (error) {
         uni.hideLoading()
-        
+
         if (this.timer) {
           clearInterval(this.timer)
           this.timer = null
         }
         this.countdown = 0
-        
+
         uni.showToast({
           title: error.message || this.texts.loginFailed,
           icon: 'none'
         })
       }
     },
-    
+
     async handleRegister() {
       try {
         uni.showLoading({
           title: this.texts.registering || '注册中...'
         })
-        
+
         await registerWithHandler({
           username: this.username,
           email: this.email,
@@ -452,14 +492,14 @@ export default {
           privacyAgreed: true,
           marketingOptIn: this.marketingOptIn
         })
-        
+
         uni.hideLoading()
-        
+
         uni.showToast({
           title: this.texts.registerSuccess,
           icon: 'success'
         })
-        
+
         // 跳转到首页
         setTimeout(() => {
           uni.switchTab({
@@ -468,43 +508,43 @@ export default {
         }, 500)
       } catch (error) {
         uni.hideLoading()
-        
+
         if (this.timer) {
           clearInterval(this.timer)
           this.timer = null
         }
         this.countdown = 0
-        
+
         uni.showToast({
           title: error.message || this.texts.registerFailed,
           icon: 'none'
         })
       }
     },
-    
+
     handleUserAgreement() {
       uni.navigateTo({
         url: '/pagesMember/agreements/loginUserAgreement/loginUserAgreement'
       })
     },
-    
+
     handlePrivacy() {
       uni.navigateTo({
         url: '/pagesMember/agreements/loginPrivacy/loginPrivacy'
       })
     },
-    
+
     handleMixwareAgreement() {
       uni.navigateTo({
         url: '/pagesMember/agreements/loginMixwareAgreement/loginMixwareAgreement'
       })
     },
-    
+
     async handleGoogleLogin() {
       uni.showLoading({
         title: this.texts.loggingIn || '正在登录...'
       })
-      
+
       try {
         // #ifdef H5
         const config = await getGoogleOAuthConfig()
@@ -516,7 +556,7 @@ export default {
           window.location.href = authUrl
         }
         // #endif
-        
+
         // #ifdef APP-PLUS
         const appConfig = await getGoogleOAuthConfig()
         if (appConfig.code === 1 || appConfig.code === 0) {
@@ -524,16 +564,22 @@ export default {
           plus.oauth.getServices(services => {
             const google = services.find(s => s.id === 'google')
             if (google) {
-              google.authorize(async (e) => {
-                const result = await googleCallback(e.code, '')
-                this.handleOAuthResult(result)
-              }, (err) => {
-                uni.hideLoading()
-                uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
-              })
+              google.authorize(
+                async e => {
+                  const result = await googleCallback(e.code, '')
+                  this.handleOAuthResult(result)
+                },
+                err => {
+                  uni.hideLoading()
+                  uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
+                }
+              )
             } else {
               uni.hideLoading()
-              uni.showToast({ title: this.texts.googleNotSupported || '暂不支持Google登录', icon: 'none' })
+              uni.showToast({
+                title: this.texts.googleNotSupported || '暂不支持Google登录',
+                icon: 'none'
+              })
             }
           })
         }
@@ -546,17 +592,20 @@ export default {
         })
       }
     },
-    
+
     async handleAppleLogin() {
       uni.showLoading({
         title: this.texts.loggingIn || '正在登录...'
       })
-      
+
       try {
         // #ifdef H5
         if (typeof AppleID === 'undefined') {
           uni.hideLoading()
-          uni.showToast({ title: this.texts.appleNotAvailable || 'Apple登录暂不可用', icon: 'none' })
+          uni.showToast({
+            title: this.texts.appleNotAvailable || 'Apple登录暂不可用',
+            icon: 'none'
+          })
           return
         }
         try {
@@ -573,18 +622,19 @@ export default {
             usePopup: true
           })
           const response = await AppleID.auth.signIn()
-          
+
           const auth = response.authorization
           const userData = response.user || {}
-          
+
           if (userData.name) {
-            const fullName = `${userData.name.firstName || ''} ${userData.name.lastName || ''}`.trim()
+            const fullName =
+              `${userData.name.firstName || ''} ${userData.name.lastName || ''}`.trim()
             uni.setStorageSync('apple_user_name', fullName)
           }
           if (userData.email) {
             uni.setStorageSync('apple_user_email', userData.email)
           }
-          
+
           const result = await appleCallback({
             code: auth.code,
             id_token: auth.id_token,
@@ -602,26 +652,30 @@ export default {
           }
         }
         // #endif
-        
+
         // #ifdef APP-PLUS
         // 使用 uni.login 官方API
         uni.login({
           provider: 'apple',
-          success: (loginRes) => {
+          success: loginRes => {
             // 获取用户信息
             uni.getUserInfo({
               provider: 'apple',
-              success: async (info) => {
+              success: async info => {
                 const auth = info.authResult || {}
                 const userInfo = info.userInfo || {}
-                
+
                 // 提取数据
                 const code = auth.code || auth.authorizationCode
                 const identityToken = auth.identityToken || auth.id_token
                 const user = auth.user || userInfo.openId
-                const fullName = userInfo.fullName || (userInfo.name ? `${userInfo.name.firstName || ''} ${userInfo.name.lastName || ''}`.trim() : '')
+                const fullName =
+                  userInfo.fullName ||
+                  (userInfo.name
+                    ? `${userInfo.name.firstName || ''} ${userInfo.name.lastName || ''}`.trim()
+                    : '')
                 const email = userInfo.email
-                
+
                 // 首次登录保存用户信息
                 if (fullName) {
                   uni.setStorageSync('apple_user_name', fullName)
@@ -629,7 +683,7 @@ export default {
                 if (email) {
                   uni.setStorageSync('apple_user_email', email)
                 }
-                
+
                 try {
                   const result = await appleCallback({
                     code,
@@ -646,11 +700,14 @@ export default {
               },
               fail: () => {
                 uni.hideLoading()
-                uni.showToast({ title: this.texts.getUserInfoFailed || '获取用户信息失败', icon: 'none' })
+                uni.showToast({
+                  title: this.texts.getUserInfoFailed || '获取用户信息失败',
+                  icon: 'none'
+                })
               }
             })
           },
-          fail: (err) => {
+          fail: err => {
             uni.hideLoading()
             if (err.code === 1000) {
               uni.showToast({ title: this.texts.userCancelledAuth || '用户取消授权', icon: 'none' })
@@ -668,7 +725,7 @@ export default {
         })
       }
     },
-    
+
     handleOAuthResult(result) {
       uni.hideLoading()
       if (result.code === 1 || result.code === 0) {
@@ -692,7 +749,7 @@ export default {
 <style scoped>
 .login-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .login-container {
@@ -747,7 +804,7 @@ export default {
 }
 
 .sub-tab-active {
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: bold;
 }
 
@@ -758,7 +815,7 @@ export default {
   left: 20rpx;
   right: 20rpx;
   height: 4rpx;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   border-radius: 2rpx;
 }
 
@@ -773,7 +830,7 @@ export default {
 }
 
 .tab-active {
-  color: #FF5A00;
+  color: #ff5a00;
   font-weight: 600;
 }
 
@@ -785,7 +842,7 @@ export default {
   transform: translateX(-50%);
   width: 60rpx;
   height: 4rpx;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   border-radius: 2rpx;
 }
 
@@ -845,7 +902,7 @@ export default {
 .code-btn {
   width: 200rpx;
   height: 80rpx;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 8rpx;
@@ -879,7 +936,7 @@ export default {
 }
 
 .agreement-link {
-  color: #FF5A00;
+  color: #ff5a00;
   text-decoration: none;
   font-size: 24rpx;
 }
@@ -887,7 +944,7 @@ export default {
 .login-btn {
   width: 100%;
   height: 80rpx;
-  background-color: #FF5A00;
+  background-color: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 8rpx;
@@ -917,7 +974,7 @@ export default {
 }
 
 .divider-text {
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
   padding: 0 30rpx;
   font-size: 24rpx;
   color: #999;
@@ -958,7 +1015,14 @@ export default {
 .google-icon {
   width: 40rpx;
   height: 40rpx;
-  background: linear-gradient(135deg, #4285F4 0%, #34A853 25%, #FBBC05 50%, #EA4335 75%, #4285F4 100%);
+  background: linear-gradient(
+    135deg,
+    #4285f4 0%,
+    #34a853 25%,
+    #fbbc05 50%,
+    #ea4335 75%,
+    #4285f4 100%
+  );
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -982,4 +1046,3 @@ export default {
   color: #333;
 }
 </style>
-

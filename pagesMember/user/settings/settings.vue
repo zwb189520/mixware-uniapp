@@ -45,12 +45,10 @@ export default {
 <style scoped>
 .settings-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .safe-area-top {
   background: #fff;
 }
 </style>
-
-

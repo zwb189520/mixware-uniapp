@@ -10,7 +10,12 @@
       <view class="form-item" @click="handleAvatarEdit">
         <text class="form-label">{{ texts.avatar }}</text>
         <view class="form-value">
-          <image v-if="userInfo.avatar" :src="userInfo.avatar" class="avatar-preview" mode="aspectFill" />
+          <image
+            v-if="userInfo.avatar"
+            :src="userInfo.avatar"
+            class="avatar-preview"
+            mode="aspectFill"
+          />
           <uni-icons v-else type="person" size="40" color="#999"></uni-icons>
         </view>
         <uni-icons type="right" size="16" color="#999"></uni-icons>
@@ -81,45 +86,47 @@ export default {
     handleBack() {
       uni.navigateBack()
     },
-    
+
     handleSave() {
       uni.showLoading({
         title: this.texts.saving
       })
-      
-      const saveUserInfo = (avatarUrl) => {
+
+      const saveUserInfo = avatarUrl => {
         const updateData = {
           username: this.userInfo.nickname,
           avatarUrl: avatarUrl || this.userInfo.avatar,
           birthday: this.userInfo.birthday
         }
-        
-        updateUserInfo(updateData).then(() => {
-          uni.hideLoading()
-          
-          this.userInfo.avatar = avatarUrl || this.userInfo.avatar
-          uni.setStorageSync('userInfo', this.userInfo)
-          
-          uni.showToast({
-            title: this.texts.saveSuccess,
-            icon: 'success'
+
+        updateUserInfo(updateData)
+          .then(() => {
+            uni.hideLoading()
+
+            this.userInfo.avatar = avatarUrl || this.userInfo.avatar
+            uni.setStorageSync('userInfo', this.userInfo)
+
+            uni.showToast({
+              title: this.texts.saveSuccess,
+              icon: 'success'
+            })
+
+            uni.$emit('profileUpdate', this.userInfo)
+
+            setTimeout(() => {
+              uni.navigateBack()
+            }, 500)
           })
-          
-          uni.$emit('profileUpdate', this.userInfo)
-          
-          setTimeout(() => {
-            uni.navigateBack()
-          }, 500)
-        }).catch((error) => {
-          uni.hideLoading()
-          
-          uni.showToast({
-            title: error.message || this.texts.saveFailed,
-            icon: 'none'
+          .catch(error => {
+            uni.hideLoading()
+
+            uni.showToast({
+              title: error.message || this.texts.saveFailed,
+              icon: 'none'
+            })
           })
-        })
       }
-      
+
       if (this.tempAvatar) {
         const token = uni.getStorageSync('token') || ''
         uni.uploadFile({
@@ -127,9 +134,9 @@ export default {
           filePath: this.tempAvatar,
           name: 'file',
           header: {
-            'Authorization': token ? `Bearer ${token}` : ''
+            Authorization: token ? `Bearer ${token}` : ''
           },
-          success: (uploadRes) => {
+          success: uploadRes => {
             if (uploadRes.statusCode === 200) {
               try {
                 const uploadData = JSON.parse(uploadRes.data)
@@ -170,7 +177,7 @@ export default {
               })
             }
           },
-          fail: (err) => {
+          fail: err => {
             uni.hideLoading()
             uni.showToast({
               title: this.texts.uploadAvatarFailed,
@@ -182,16 +189,16 @@ export default {
         saveUserInfo(null)
       }
     },
-    
+
     handleAvatarEdit() {
       uni.showActionSheet({
         itemList: [this.texts.chooseFromAlbum, this.texts.takePhoto],
-        success: (res) => {
+        success: res => {
           if (res.tapIndex === 0) {
             uni.chooseImage({
               count: 1,
               sourceType: ['album'],
-              success: (chooseRes) => {
+              success: chooseRes => {
                 this.tempAvatar = chooseRes.tempFilePaths[0]
                 this.userInfo.avatar = this.tempAvatar
               }
@@ -200,7 +207,7 @@ export default {
             uni.chooseImage({
               count: 1,
               sourceType: ['camera'],
-              success: (chooseRes) => {
+              success: chooseRes => {
                 this.tempAvatar = chooseRes.tempFilePaths[0]
                 this.userInfo.avatar = this.tempAvatar
               }
@@ -209,13 +216,13 @@ export default {
         }
       })
     },
-    
+
     handleNicknameEdit() {
       uni.showModal({
         title: this.texts.editNickname,
         editable: true,
         placeholderText: this.texts.enterNickname,
-        success: (res) => {
+        success: res => {
           if (res.confirm && res.content) {
             this.userInfo.nickname = res.content
           }
@@ -226,7 +233,7 @@ export default {
     handleBirthdayChange(e) {
       this.userInfo.birthday = e.detail.value
     },
-    
+
     loadUserInfo() {
       const userInfo = uni.getStorageSync('userInfo') || {}
       this.userInfo = { ...this.userInfo, ...userInfo }
@@ -238,7 +245,7 @@ export default {
 <style scoped>
 .profile-edit-page {
   min-height: 100vh;
-  background-color: #FFF9F5;
+  background-color: #fff9f5;
 }
 
 .safe-area-top {
@@ -247,7 +254,7 @@ export default {
 
 .navbar-save {
   font-size: 28rpx;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 
 .profile-form {
@@ -259,7 +266,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 2rpx solid #FFF9F5;
+  border-bottom: 2rpx solid #fff9f5;
 }
 
 .form-item:last-child {
@@ -291,4 +298,3 @@ export default {
   color: #666;
 }
 </style>
-

@@ -6,12 +6,12 @@
           <uni-icons type="left" size="24" color="#333"></uni-icons>
         </view>
         <view class="input-wrapper">
-          <input 
-            class="title-input" 
-            v-model="modelName" 
+          <input
+            class="title-input"
+            v-model="modelName"
             :focus="isFocus"
             @blur="isFocus = false"
-            :placeholder="texts.placeholder || '为模型取名'" 
+            :placeholder="texts.placeholder || '为模型取名'"
             placeholder-style="color: #999;"
           />
           <view class="edit-icon-view" @click="handleIconClick">
@@ -25,7 +25,7 @@
           <view class="btn-save" @click="handleSave">{{ texts.saveEdit || '保存编辑' }}</view>
           <view class="btn-next" @click="handleNext">{{ texts.nextStep || '下一步' }}</view>
         </template>
-        
+
         <template v-else>
           <view class="icon-btn" @click="handleSnapshot">
             <uni-icons type="camera" size="24" color="#555"></uni-icons>
@@ -36,16 +36,16 @@
         </template>
       </view>
     </view>
-    
+
     <!-- #ifdef APP-PLUS -->
     <view class="webview-placeholder"></view>
     <!-- #endif -->
 
     <!-- #ifndef APP-PLUS -->
     <view class="webview-container">
-      <web-view 
+      <web-view
         class="webview-box"
-        :src="url" 
+        :src="url"
         :webview-styles="webviewStyles"
         ref="webview"
         @onPostMessage="handleWebviewMessage"
@@ -103,11 +103,11 @@ const webviewStyles = ref({
   }
 })
 
-const texts = computed(() => ((languageStore.texts as any).create?.draw1) || {})
+const texts = computed(() => (languageStore.texts as any).create?.draw1 || {})
 
 onMounted(() => {
   languageStore.loadLanguage()
-  
+
   const systemInfo = uni.getSystemInfoSync()
   if ((systemInfo as any).uniPlatform) {
     console.log('当前是运行环境是：' + (systemInfo as any).uniPlatform)
@@ -168,7 +168,7 @@ onShow(() => {
     console.log('onShow 设置横屏')
     plus.screen.lockOrientation('landscape-primary')
     plus.navigator.setFullscreen(true)
-    
+
     // 显示webview
     if (webviewContext.value) {
       console.log('onShow: 显示webview')
@@ -180,7 +180,7 @@ onShow(() => {
 onMounted(() => {
   if (platform.value && platform.value != 'web') {
     console.log('onMounted 执行中...')
-    
+
     const topOffset = statusBarHeight.value + 44
     const sysInfo = uni.getSystemInfoSync()
     const windowHeight = sysInfo.windowHeight
@@ -189,7 +189,7 @@ onMounted(() => {
     const initWebviewHeight = webviewHeight > windowWidth ? windowWidth : webviewHeight
 
     const wvId = 'custom-webview-' + Date.now()
-    
+
     const wv = plus.webview.create(url.value, wvId, {
       top: topOffset + 'px',
       height: initWebviewHeight + 'px',
@@ -198,28 +198,37 @@ onMounted(() => {
       scalable: false,
       plusrequire: 'ahead'
     })
-    
+
     const currentWebview = (getCurrentInstance() as any).proxy.$scope.$getAppWebview()
     currentWebview.append(wv)
-    
+
     webviewContext.value = wv
-    
+
     console.log(`手动创建 Webview 成功: top=${topOffset}px, height=${initWebviewHeight}px`)
-    
-    wv.addEventListener('loaded', () => {
-      console.log('Webview 加载完成')
-      // 延迟通知 H5 初始化，确保消息通道就绪
-      setTimeout(() => {
-        wv.evalJS(`
+
+    wv.addEventListener(
+      'loaded',
+      () => {
+        console.log('Webview 加载完成')
+        // 延迟通知 H5 初始化，确保消息通道就绪
+        setTimeout(() => {
+          wv.evalJS(`
           if (window.onUniAppMessageReady) {
             window.onUniAppMessageReady();
           }
         `)
-      }, 200)
-    }, false)
+        }, 200)
+      },
+      false
+    )
 
     plusMessageListener.value = (msg: any) => {
-      if (msg.data && msg.data.args && msg.data.args.data && msg.data.args.data.name == 'postMessage') {
+      if (
+        msg.data &&
+        msg.data.args &&
+        msg.data.args.data &&
+        msg.data.args.data.name == 'postMessage'
+      ) {
         const evt = {
           detail: {
             data: msg.data.args.data.arg
@@ -228,7 +237,7 @@ onMounted(() => {
         handleWebviewMessage(evt)
       }
     }
-    (plus as any).globalEvent.addEventListener('plusMessage', plusMessageListener.value)
+    ;(plus as any).globalEvent.addEventListener('plusMessage', plusMessageListener.value)
   }
 })
 
@@ -247,10 +256,13 @@ const sendMessage = (action: string, data: any = {}) => {
   if (platform.value && platform.value === 'web') {
     const iframe = document.querySelector('iframe')
     if (iframe) {
-      (iframe as any).contentWindow.postMessage({
-        action: action,
-        data: data
-      }, '*')
+      ;(iframe as any).contentWindow.postMessage(
+        {
+          action: action,
+          data: data
+        },
+        '*'
+      )
     }
   }
 }
@@ -259,7 +271,7 @@ const goBack = () => {
   console.log('goBack调用, is3DView:', is3DView.value)
   if (is3DView.value == true) {
     is3DView.value = false
-    sendMessage('switchMobileView', { 'tab': '2d' })
+    sendMessage('switchMobileView', { tab: '2d' })
   } else {
     if (webviewContext.value) {
       webviewContext.value.loadURL('about:blank')
@@ -277,132 +289,156 @@ const uploadSnapshotAndExportSTL = async (base64: string) => {
     pureBase64 = base64.split(',')[1]
   }
   console.log('处理截图，base64长度:', pureBase64.length)
-  
+
   // APP端使用plus
   // @ts-ignore
   if (typeof plus !== 'undefined') {
     try {
       const bitmap = new plus.nativeObj.Bitmap('snapshot_' + Date.now())
-      bitmap.loadBase64Data(pureBase64, async () => {
-        const fileName = '_doc/snapshot_' + Date.now() + '.png'
-        bitmap.save(fileName, { overwrite: true }, async () => {
-          // 上传图片
-          try {
-            const uploadRes = await uploadImage(fileName, 'model', 'custom') as any
-            console.log('截图上传响应:', uploadRes)
-            if (uploadRes.code === 1 && uploadRes.data) {
-              const url = uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
-              if (url) {
-                snapshotImageUrl.value = url
-                console.log('截图上传成功:', snapshotImageUrl.value)
-              } else {
-                console.log('截图上传响应无URL字段:', uploadRes.data)
+      bitmap.loadBase64Data(
+        pureBase64,
+        async () => {
+          const fileName = '_doc/snapshot_' + Date.now() + '.png'
+          bitmap.save(
+            fileName,
+            { overwrite: true },
+            async () => {
+              // 上传图片
+              try {
+                const uploadRes = (await uploadImage(fileName, 'model', 'custom')) as any
+                console.log('截图上传响应:', uploadRes)
+                if (uploadRes.code === 1 && uploadRes.data) {
+                  const url = uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
+                  if (url) {
+                    snapshotImageUrl.value = url
+                    console.log('截图上传成功:', snapshotImageUrl.value)
+                  } else {
+                    console.log('截图上传响应无URL字段:', uploadRes.data)
+                  }
+                } else {
+                  console.log('截图上传失败:', uploadRes)
+                }
+              } catch (err) {
+                console.error('截图上传异常:', err)
               }
-            } else {
-              console.log('截图上传失败:', uploadRes)
+              bitmap.clear()
+              // 继续导出STL
+              sendMessage('exportSTL')
+            },
+            (err: any) => {
+              console.error('保存截图文件失败:', err)
+              bitmap.clear()
+              sendMessage('exportSTL')
             }
-          } catch (err) {
-            console.error('截图上传异常:', err)
-          }
-          bitmap.clear()
-          // 继续导出STL
+          )
+        },
+        (err: any) => {
+          console.error('加载base64图片失败:', err)
           sendMessage('exportSTL')
-        }, (err: any) => {
-          console.error('保存截图文件失败:', err)
-          bitmap.clear()
-          sendMessage('exportSTL')
-        })
-      }, (err: any) => {
-        console.error('加载base64图片失败:', err)
-        sendMessage('exportSTL')
-      })
+        }
+      )
     } catch (error) {
       console.error('上传截图失败:', error)
       sendMessage('exportSTL')
     }
   } else {
     // H5端
-  console.log('H5开始处理截图上传')
-  try {
-    const base64Data = pureBase64
-    console.log('base64数据长度:', base64Data.length)
-    const byteCharacters = atob(base64Data)
-    const byteNumbers = new Array(byteCharacters.length)
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i)
-    }
-    const byteArray = new Uint8Array(byteNumbers)
-    const imageBlob = new Blob([byteArray], { type: 'image/png' })
-    console.log('图片Blob大小:', imageBlob.size)
-    
-    const formData = new FormData()
-    formData.append('file', imageBlob, 'snapshot.png')
-    formData.append('type', 'model')
-    formData.append('id', 'custom')
-    
-    const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
-    console.log('上传图片到:', baseUrl + '/upload/image')
-    
-    fetch(baseUrl + '/upload/image', {
-      method: 'POST',
-      headers: {
-        'Authorization': uni.getStorageSync('token') ? `Bearer ${uni.getStorageSync('token')}` : ''
-      },
-      body: formData
-    })
-    .then(res => res.json())
-    .then(res => {
-      console.log('H5截图上传响应:', res)
-      console.log('响应data:', res.data, 'data类型:', typeof res.data)
-      if (res.code === 1 && res.data) {
-        const url = res.data.url || res.data.fileUrl || res.data.path
-        if (url) {
-          snapshotImageUrl.value = url
-          console.log('H5截图上传成功:', snapshotImageUrl.value)
-        } else {
-          console.log('响应中无URL字段:', res.data)
-        }
-      } else {
-        console.log('H5截图上传失败:', res)
+    console.log('H5开始处理截图上传')
+    try {
+      const base64Data = pureBase64
+      console.log('base64数据长度:', base64Data.length)
+      const byteCharacters = atob(base64Data)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
       }
+      const byteArray = new Uint8Array(byteNumbers)
+      const imageBlob = new Blob([byteArray], { type: 'image/png' })
+      console.log('图片Blob大小:', imageBlob.size)
+
+      const formData = new FormData()
+      formData.append('file', imageBlob, 'snapshot.png')
+      formData.append('type', 'model')
+      formData.append('id', 'custom')
+
+      const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
+      console.log('上传图片到:', baseUrl + '/upload/image')
+
+      fetch(baseUrl + '/upload/image', {
+        method: 'POST',
+        headers: {
+          Authorization: uni.getStorageSync('token') ? `Bearer ${uni.getStorageSync('token')}` : ''
+        },
+        body: formData
+      })
+        .then(res => res.json())
+        .then(res => {
+          console.log('H5截图上传响应:', res)
+          console.log('响应data:', res.data, 'data类型:', typeof res.data)
+          if (res.code === 1 && res.data) {
+            const url = res.data.url || res.data.fileUrl || res.data.path
+            if (url) {
+              snapshotImageUrl.value = url
+              console.log('H5截图上传成功:', snapshotImageUrl.value)
+            } else {
+              console.log('响应中无URL字段:', res.data)
+            }
+          } else {
+            console.log('H5截图上传失败:', res)
+          }
+          sendMessage('exportSTL')
+        })
+        .catch(err => {
+          console.error('H5截图上传异常:', err)
+          sendMessage('exportSTL')
+        })
+    } catch (err) {
+      console.error('H5截图处理失败:', err)
       sendMessage('exportSTL')
-    })
-    .catch(err => {
-      console.error('H5截图上传异常:', err)
-      sendMessage('exportSTL')
-    })
-  } catch (err) {
-    console.error('H5截图处理失败:', err)
-    sendMessage('exportSTL')
-  }
+    }
   }
 }
 
 const saveImageToPhotosAlbum = (base64: string) => {
   // #ifdef APP-PLUS
-  const bitmap = new plus.nativeObj.Bitmap("snapshot_" + Date.now())
-  bitmap.loadBase64Data(base64, () => {
-    const fileName = "_doc/" + Date.now() + ".png"
-    bitmap.save(fileName, { overwrite: true }, () => {
-      uni.saveImageToPhotosAlbum({
-        filePath: fileName,
-        success: () => {
-          uni.showToast({ title: texts.value.savedToAlbum || '已保存到相册', icon: 'success' })
-          bitmap.clear()
+  const bitmap = new plus.nativeObj.Bitmap('snapshot_' + Date.now())
+  bitmap.loadBase64Data(
+    base64,
+    () => {
+      const fileName = '_doc/' + Date.now() + '.png'
+      bitmap.save(
+        fileName,
+        { overwrite: true },
+        () => {
+          uni.saveImageToPhotosAlbum({
+            filePath: fileName,
+            success: () => {
+              uni.showToast({ title: texts.value.savedToAlbum || '已保存到相册', icon: 'success' })
+              bitmap.clear()
+            },
+            fail: () => {
+              uni.showToast({
+                title: texts.value.saveToAlbumFailed || '保存到相册失败',
+                icon: 'none'
+              })
+              bitmap.clear()
+            }
+          })
         },
-        fail: () => {
-          uni.showToast({ title: texts.value.saveToAlbumFailed || '保存到相册失败', icon: 'none' })
+        () => {
+          uni.showToast({
+            title: texts.value.saveImageFileFailed || '保存图片文件失败',
+            icon: 'none'
+          })
           bitmap.clear()
         }
-      })
-    }, () => {
-      uni.showToast({ title: texts.value.saveImageFileFailed || '保存图片文件失败', icon: 'none' })
+      )
+    },
+    () => {
+      uni.showToast({ title: texts.value.parseImageDataFailed || '解析图片数据失败', icon: 'none' })
       bitmap.clear()
-    })
-  }, () => {
-    uni.showToast({ title: texts.value.parseImageDataFailed || '解析图片数据失败', icon: 'none' })
-    bitmap.clear()
-  })
+    }
+  )
   // #endif
 
   // #ifdef H5
@@ -420,7 +456,10 @@ const handleIconClick = () => {
 }
 
 const handleSave = () => {
-  if (modelName.value == (texts.value.placeholder || '为模型取名') || modelName.value.trim() == '') {
+  if (
+    modelName.value == (texts.value.placeholder || '为模型取名') ||
+    modelName.value.trim() == ''
+  ) {
     isFocus.value = true
   } else {
     console.log('保存编辑')
@@ -454,7 +493,10 @@ const handlePrint = () => {
   console.log('去打印')
   isPrinting.value = true
   snapshotImageUrl.value = ''
-  uni.showLoading({ title: languageStore.texts.create.generating3D || '生成3D模型中...', mask: true })
+  uni.showLoading({
+    title: languageStore.texts.create.generating3D || '生成3D模型中...',
+    mask: true
+  })
   // 先截图
   sendMessage('snapshot')
 }
@@ -465,7 +507,7 @@ const handleWebviewMessage = (evt: any) => {
   const msg: WebviewMessage = evt.detail.data
   // 只打印action，不打印完整数据
   console.log('消息action:', msg.action)
-  
+
   if (msg.action == 'loadDown') {
     isLoadDown3dView.value = true
     if (postNumber.value === 0) {
@@ -532,12 +574,13 @@ const handleWebviewMessage = (evt: any) => {
 
   if (msg.action === 'modelDataForPrint') {
     const modelData = msg.data
-    const modelId = modelData.id || ('custom_' + Date.now())
-    const modelNameVal = modelData.name || modelName.value || texts.value.unnamedModel || '未命名模型'
+    const modelId = modelData.id || 'custom_' + Date.now()
+    const modelNameVal =
+      modelData.name || modelName.value || texts.value.unnamedModel || '未命名模型'
     const modelUrl = modelData.url || ''
     const modelType = modelData.modelType || 'stl'
     const dimensions = modelData.dimensions || { x: 0, y: 0, z: 0 }
-    
+
     uni.navigateTo({
       url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=${modelType}&dimensions=${encodeURIComponent(JSON.stringify(dimensions))}`
     })
@@ -566,7 +609,7 @@ const showSaveModal = () => {
     content: texts.value.exitConfirm || '您有未保存的操作，确定要退出吗？',
     cancelText: texts.value.dontSave || '不保存',
     confirmText: texts.value.save || '保存',
-    success: (res) => {
+    success: res => {
       if (res.confirm) {
         handleSave()
       } else if (res.cancel) {
@@ -587,38 +630,42 @@ const showSaveModal = () => {
 
 const saveAndShareStl = (content: string) => {
   // #ifdef APP-PLUS
-  const fileName = "model_" + Date.now() + ".stl"
-  
-  plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs) => {
-    fs.root.getFile(fileName, { create: true }, (entry) => {
-      entry.createWriter((writer) => {
+  const fileName = 'model_' + Date.now() + '.stl'
+
+  plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
+    fs.root.getFile(fileName, { create: true }, entry => {
+      entry.createWriter(writer => {
         writer.onwriteend = () => {
           console.log('写入成功')
           const filePath = entry.fullPath
-          
-          plus.share.sendWithSystem({
-            content: texts.value.shareModel || '分享模型',
-            href: filePath,
-            pictures: [filePath]
-          }, () => {
-            console.log('分享成功')
-          }, (e) => {
-            console.log('分享失败: ' + JSON.stringify(e))
-            uni.openDocument({
-              filePath: filePath,
-              showMenu: true,
-              success: function () {
-                console.log('打开文档成功')
-              }
-            })
-          })
+
+          plus.share.sendWithSystem(
+            {
+              content: texts.value.shareModel || '分享模型',
+              href: filePath,
+              pictures: [filePath]
+            },
+            () => {
+              console.log('分享成功')
+            },
+            e => {
+              console.log('分享失败: ' + JSON.stringify(e))
+              uni.openDocument({
+                filePath: filePath,
+                showMenu: true,
+                success: function () {
+                  console.log('打开文档成功')
+                }
+              })
+            }
+          )
         }
-        
-        writer.onerror = (e) => {
+
+        writer.onerror = e => {
           console.log('写入失败', e)
           uni.showToast({ title: texts.value.saveFileFailed || '保存文件失败', icon: 'none' })
         }
-        
+
         writer.write(content)
       })
     })
@@ -631,7 +678,7 @@ const saveAndShareStl = (content: string) => {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = "model.stl"
+  link.download = 'model.stl'
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
@@ -641,15 +688,16 @@ const saveAndShareStl = (content: string) => {
 const uploadAndNavigateToPrint = async (stlContent: string) => {
   isPrinting.value = false
   uni.showLoading({ title: languageStore.texts.create.generating3D || '上传模型中...' })
-  
+
   try {
     const systemInfo = uni.getSystemInfoSync()
     console.log('当前平台:', (systemInfo as any).uniPlatform)
-    const isApp = (systemInfo as any).uniPlatform === 'app' || (systemInfo as any).uniPlatform === 'app-plus'
+    const isApp =
+      (systemInfo as any).uniPlatform === 'app' || (systemInfo as any).uniPlatform === 'app-plus'
     const isH5 = (systemInfo as any).uniPlatform === 'web' || !isApp
-    
+
     console.log('平台判断:', { isApp, isH5 })
-    
+
     if (isApp) {
       console.log('执行App上传逻辑')
       await uploadAndNavigateApp(stlContent)
@@ -672,45 +720,55 @@ const uploadAndNavigateApp = async (stlContent: string) => {
       await new Promise(resolve => setTimeout(resolve, 100))
       waitCount++
     }
-    console.log('截图URL:', snapshotImageUrl.value, '等待次数:', waitCount, 'isPrinting:', isPrinting.value)
-    
+    console.log(
+      '截图URL:',
+      snapshotImageUrl.value,
+      '等待次数:',
+      waitCount,
+      'isPrinting:',
+      isPrinting.value
+    )
+
     console.log('开始保存STL文件')
-    const fileName = "temp_model_" + Date.now() + ".stl"
+    const fileName = 'temp_model_' + Date.now() + '.stl'
     const filePath = await saveStlToFile(stlContent, fileName)
     console.log('STL文件保存成功:', filePath)
-    
+
     console.log('开始上传模型文件')
-    const uploadRes = await uploadModelFile(filePath, {
+    const uploadRes = (await uploadModelFile(filePath, {
       showLoading: false
-    }) as any
+    })) as any
     console.log('上传响应:', uploadRes)
-    
+
     uni.hideLoading()
-    
+
     if (uploadRes.code === 1 && uploadRes.data) {
       console.log('上传成功，data:', uploadRes.data)
       let modelUrl = uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
       modelUrl = modelUrl.replace(/[`\s]/g, '')
       console.log('modelUrl:', modelUrl)
-      
+
       if (!modelUrl) {
         uni.showToast({ title: texts.value.getModelLinkFailed || '获取模型链接失败', icon: 'none' })
         return
       }
-      
+
       const modelId = 'custom_' + Date.now()
       const modelNameVal = modelName.value || texts.value.unnamedModel || '未命名模型'
-      
-      console.log('准备跳转，URL:', `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl`)
-      
+
+      console.log(
+        '准备跳转，URL:',
+        `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=stl`
+      )
+
       if (webviewContext.value) {
         webviewContext.value.hide()
       }
-      
+
       // #ifdef APP-PLUS
       plus.screen.lockOrientation('portrait-primary')
       // #endif
-      
+
       const imageUrl = snapshotImageUrl.value || ''
 
       // 创建模型生成任务记录
@@ -733,7 +791,7 @@ const uploadAndNavigateApp = async (stlContent: string) => {
         success: () => {
           console.log('跳转成功')
         },
-        fail: (err) => {
+        fail: err => {
           console.error('跳转失败:', err)
           if (webviewContext.value) {
             webviewContext.value.show()
@@ -748,7 +806,13 @@ const uploadAndNavigateApp = async (stlContent: string) => {
   } catch (err: any) {
     console.error('uploadAndNavigateApp 错误:', err)
     uni.hideLoading()
-    uni.showToast({ title: (texts.value.uploadFailed || '上传失败') + ': ' + (err.message || (texts.value.unknownError || '未知错误')), icon: 'none' })
+    uni.showToast({
+      title:
+        (texts.value.uploadFailed || '上传失败') +
+        ': ' +
+        (err.message || texts.value.unknownError || '未知错误'),
+      icon: 'none'
+    })
   }
 }
 
@@ -760,14 +824,14 @@ const uploadAndNavigateH5 = async (stlContent: string) => {
     waitCount++
   }
   console.log('H5截图URL:', snapshotImageUrl.value, '等待次数:', waitCount)
-  
+
   const blob = new Blob([stlContent], { type: 'model/stl' })
   const tempFilePath = URL.createObjectURL(blob)
-  
+
   const h5UploadRes = await uploadBlobToServer(tempFilePath, blob)
-  
+
   uni.hideLoading()
-  
+
   if (h5UploadRes.code === 1 && h5UploadRes.data) {
     const h5ModelUrl = h5UploadRes.data.url || h5UploadRes.data.fileUrl
 
@@ -779,13 +843,13 @@ const uploadAndNavigateH5 = async (stlContent: string) => {
     let modelTaskId = ''
     try {
       const taskRes = await createModelTask({
-          sourceModelUrl: h5ModelUrl,
-          previewUrl: h5ImageUrl,
-          scaleFactor: 1
-        })
-        if ((taskRes as any).code === 1 && (taskRes as any).data) {
-          modelTaskId = (taskRes as any).data.taskId || (taskRes as any).data.id || ''
-        }
+        sourceModelUrl: h5ModelUrl,
+        previewUrl: h5ImageUrl,
+        scaleFactor: 1
+      })
+      if ((taskRes as any).code === 1 && (taskRes as any).data) {
+        modelTaskId = (taskRes as any).data.taskId || (taskRes as any).data.id || ''
+      }
     } catch (e) {
       console.error('创建模型任务记录失败:', e)
     }
@@ -802,40 +866,49 @@ const uploadBlobToServer = (tempPath: string, blob: Blob): Promise<any> => {
   return new Promise((resolve, reject) => {
     const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
     const url = baseUrl + '/upload/model'
-    
+
     const formData = new FormData()
     formData.append('file', blob, 'model.stl')
-    
+
     const token = uni.getStorageSync('token') || ''
-    
+
     fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': token ? `Bearer ${token}` : ''
+        Authorization: token ? `Bearer ${token}` : ''
       },
       body: formData
     })
-    .then(res => res.json())
-    .then(data => resolve(data))
-    .catch(err => reject(err))
+      .then(res => res.json())
+      .then(data => resolve(data))
+      .catch(err => reject(err))
   })
 }
 
 const saveStlToFile = (content: string, fileName: string): Promise<string> => {
   return new Promise((resolve, reject) => {
-    plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs) => {
-      fs.root.getFile(fileName, { create: true }, (entry) => {
-        entry.createWriter((writer) => {
-          writer.onwriteend = () => {
-            resolve(entry.fullPath)
-          }
-          writer.onerror = (e) => {
-            reject(e)
-          }
-          writer.write(content)
-        }, reject)
-      }, reject)
-    }, reject)
+    plus.io.requestFileSystem(
+      plus.io.PRIVATE_DOC,
+      fs => {
+        fs.root.getFile(
+          fileName,
+          { create: true },
+          entry => {
+            entry.createWriter(writer => {
+              writer.onwriteend = () => {
+                resolve(entry.fullPath)
+              }
+              writer.onerror = e => {
+                reject(e)
+              }
+              writer.write(content)
+            }, reject)
+          },
+          reject
+        )
+      },
+      reject
+    )
   })
 }
 
@@ -956,7 +1029,7 @@ import { getCurrentInstance } from 'vue'
 .btn-blue {
   font-size: 14px;
   color: #fff;
-  background: #007AFF;
+  background: #007aff;
   border-radius: 20px;
   padding: 0 16px;
   height: 32px;
@@ -980,7 +1053,7 @@ import { getCurrentInstance } from 'vue'
 .btn-next {
   font-size: 14px;
   color: #fff;
-  background: #007AFF;
+  background: #007aff;
   border-radius: 20px;
   padding: 0 16px;
   height: 32px;

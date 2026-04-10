@@ -17,7 +17,11 @@
       <view class="form-item">
         <text class="form-label">{{ texts.codeLabel }}</text>
         <view class="code-input-container">
-          <input class="form-input code-input" v-model="code" :placeholder="texts.codePlaceholder" />
+          <input
+            class="form-input code-input"
+            v-model="code"
+            :placeholder="texts.codePlaceholder"
+          />
           <button class="code-btn" @click="handleGetCode" :disabled="countdown > 0">
             {{ countdown > 0 ? `${countdown}s` : texts.getCode }}
           </button>
@@ -50,7 +54,7 @@ export default {
       isEditing: false
     }
   },
-  
+
   computed: {
     languageStore() {
       return useLanguageStore()
@@ -65,18 +69,18 @@ export default {
       return this.hasEmail && this.isEditing
     }
   },
-  
+
   mounted() {
     this.languageStore.loadLanguage()
     this.loadUserInfo()
   },
-  
+
   beforeDestroy() {
     if (this.timer) {
       clearInterval(this.timer)
     }
   },
-  
+
   methods: {
     loadUserInfo() {
       const userInfo = uni.getStorageSync('userInfo') || {}
@@ -92,7 +96,7 @@ export default {
     handleBack() {
       uni.navigateBack()
     },
-    
+
     async handleGetCode() {
       if (!this.email) {
         uni.showToast({
@@ -101,10 +105,10 @@ export default {
         })
         return
       }
-      
+
       try {
         await sendVerificationCode({ email: this.email })
-        
+
         this.countdown = 60
         this.timer = setInterval(() => {
           this.countdown--
@@ -112,7 +116,7 @@ export default {
             clearInterval(this.timer)
           }
         }, 1000)
-        
+
         uni.showToast({
           title: this.texts.codeSent,
           icon: 'success'
@@ -124,7 +128,7 @@ export default {
         })
       }
     },
-    
+
     async handleSubmit() {
       if (!this.email || !this.code) {
         uni.showToast({
@@ -133,12 +137,12 @@ export default {
         })
         return
       }
-      
+
       try {
         uni.showLoading({
           title: this.texts.binding
         })
-        
+
         const userInfo = uni.getStorageSync('userInfo') || {}
         await updateUserInfo({
           username: userInfo.username,
@@ -146,18 +150,18 @@ export default {
           email: this.email,
           birthday: userInfo.birthday
         })
-        
+
         userInfo.email = this.email
         uni.setStorageSync('userInfo', userInfo)
         uni.$emit('profileUpdate', userInfo)
-        
+
         uni.hideLoading()
-        
+
         uni.showToast({
           title: this.texts.bindSuccess,
           icon: 'success'
         })
-        
+
         setTimeout(() => {
           uni.clearStorage()
           uni.$emit('userLogout')
@@ -180,7 +184,7 @@ export default {
 <style scoped>
 .email-binding-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content {
@@ -224,7 +228,7 @@ export default {
 .code-btn {
   width: 200rpx;
   height: 80rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 8rpx;
@@ -239,7 +243,7 @@ export default {
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 44rpx;
@@ -271,7 +275,7 @@ export default {
 .change-btn {
   width: 100%;
   height: 88rpx;
-  background: #FF5A00;
+  background: #ff5a00;
   color: #fff;
   border: none;
   border-radius: 44rpx;
@@ -280,5 +284,3 @@ export default {
   margin-top: 40rpx;
 }
 </style>
-
-

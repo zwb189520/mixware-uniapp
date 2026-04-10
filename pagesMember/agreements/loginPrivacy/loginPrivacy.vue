@@ -70,7 +70,7 @@ export default {
 <style scoped>
 .privacy-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content {
@@ -99,5 +99,3 @@ export default {
   line-height: 1.8;
 }
 </style>
-
-

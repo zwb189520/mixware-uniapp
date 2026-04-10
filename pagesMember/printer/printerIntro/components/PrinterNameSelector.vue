@@ -4,16 +4,21 @@
     <view class="dropdown-icon" @click="toggleDropdown">
       <uni-icons type="down" size="20"></uni-icons>
     </view>
-    
+
     <view v-if="showDropdown" class="dropdown-menu" @click="handleDropdownClick">
-      <view 
-        v-for="printer in printers" 
-        :key="printer.id" 
+      <view
+        v-for="printer in printers"
+        :key="printer.id"
         class="dropdown-item"
         @click="selectPrinter(printer)"
       >
         <text class="dropdown-item-text">{{ printer.name }}</text>
-        <uni-icons v-if="printer.id === currentPrinter.id" type="checkmarkempty" size="18" color="#007AFF"></uni-icons>
+        <uni-icons
+          v-if="printer.id === currentPrinter.id"
+          type="checkmarkempty"
+          size="18"
+          color="#007AFF"
+        ></uni-icons>
       </view>
     </view>
   </view>
@@ -25,7 +30,7 @@ import { getDeviceList, setDefaultDevice } from '@/api/devices.ts'
 
 export default {
   name: 'PrinterNameSelector',
-    props: {
+  props: {
     deviceId: {
       type: String,
       default: ''
@@ -43,7 +48,12 @@ export default {
   },
   watch: {
     deviceId(newVal) {
-      console.log('PrinterNameSelector组件接收到新的deviceId:', newVal, '当前打印机列表:', this.printers)
+      console.log(
+        'PrinterNameSelector组件接收到新的deviceId:',
+        newVal,
+        '当前打印机列表:',
+        this.printers
+      )
       if (newVal) {
         const printer = this.printers.find(p => p.id === newVal)
         if (printer) {
@@ -63,13 +73,14 @@ export default {
       try {
         const res = await getDeviceList()
         const records = res?.data?.records ?? []
-        
-        this.printers = Array.isArray(records) ? records
-          .map(device => ({
-            id: device.id || device.deviceId,
-            name: device.deviceName || device.name || device.deviceId || '未命名设备'
-          })) : []
-        
+
+        this.printers = Array.isArray(records)
+          ? records.map(device => ({
+              id: device.id || device.deviceId,
+              name: device.deviceName || device.name || device.deviceId || '未命名设备'
+            }))
+          : []
+
         if (this.printers.length > 0) {
           if (this.deviceId) {
             const printer = this.printers.find(p => p.id === this.deviceId)
@@ -95,14 +106,14 @@ export default {
     async selectPrinter(printer) {
       this.currentPrinter = printer
       this.showDropdown = false
-      
+
       try {
         await setDefaultDevice(printer.id)
         console.log('成功设置为默认设备:', printer.id)
       } catch (error) {
         console.error('设置默认设备失败:', error)
       }
-      
+
       this.$emit('printer-change', printer)
     }
   }
@@ -166,12 +177,12 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 36rpx;
-  border-bottom: 1rpx solid #FFF9F5;
+  border-bottom: 1rpx solid #fff9f5;
   transition: all 0.2s ease;
 }
 
 .dropdown-item:active {
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .dropdown-item:last-child {
@@ -184,5 +195,3 @@ export default {
   font-weight: 500;
 }
 </style>
-
-

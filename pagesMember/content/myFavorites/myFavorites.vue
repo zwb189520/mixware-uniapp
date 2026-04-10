@@ -1,4 +1,5 @@
-﻿﻿<template>
+﻿﻿
+<template>
   <view class="my-favorites-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -8,9 +9,9 @@
         <text class="empty-text">{{ texts.noFavorites }}</text>
       </view>
       <view class="favorites-list" v-else>
-        <view 
-          v-for="item in favoritesList" 
-          :key="item.id" 
+        <view
+          v-for="item in favoritesList"
+          :key="item.id"
           class="favorite-item"
           @click="handleItemClick(item)"
         >
@@ -66,7 +67,7 @@ export default {
     async loadFavorites() {
       if (this.loading) return
       this.loading = true
-      
+
       try {
         const res = await getFavoriteModels()
         console.log('收藏列表响应:', res)
@@ -93,23 +94,25 @@ export default {
     },
     fixImageUrl(url) {
       if (!url) return ''
-      return url.replace('localhost:9000', '47.102.212.37:9000').replace('api/uploads/image', '9000/image')
+      return url
+        .replace('localhost:9000', '47.102.212.37:9000')
+        .replace('api/uploads/image', '9000/image')
     },
     formatTime(timeStr) {
       if (!timeStr) return ''
       const date = new Date(timeStr)
       const now = new Date()
       const diff = now - date
-      
+
       const days = Math.floor(diff / (1000 * 60 * 60 * 24))
       if (days > 0) return `${days}${this.texts.daysAgo || '天前'}`
-      
+
       const hours = Math.floor(diff / (1000 * 60 * 60))
       if (hours > 0) return `${hours}${this.texts.hoursAgo || '小时前'}`
-      
+
       const minutes = Math.floor(diff / (1000 * 60))
       if (minutes > 0) return `${minutes}${this.texts.minutesAgo || '分钟前'}`
-      
+
       return this.texts.justNow || '刚刚'
     },
     handleItemClick(item) {
@@ -124,7 +127,7 @@ export default {
 <style scoped>
 .my-favorites-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content-scroll {
@@ -183,5 +186,3 @@ export default {
   color: #999;
 }
 </style>
-
-

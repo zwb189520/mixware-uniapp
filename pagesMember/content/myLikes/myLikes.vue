@@ -8,9 +8,9 @@
         <text class="empty-text">{{ texts.noLikedContent }}</text>
       </view>
       <view class="likes-list" v-else>
-        <view 
-          v-for="item in likesList" 
-          :key="item.id" 
+        <view
+          v-for="item in likesList"
+          :key="item.id"
           class="like-item"
           @click="handleItemClick(item)"
         >
@@ -55,23 +55,23 @@ const formatTime = (timeStr: string) => {
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   const textsValue = texts.value
-  
+
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   if (days > 0) return `${days}${textsValue.daysAgo || '天前'}`
-  
+
   const hours = Math.floor(diff / (1000 * 60 * 60))
   if (hours > 0) return `${hours}${textsValue.hoursAgo || '小时前'}`
-  
+
   const minutes = Math.floor(diff / (1000 * 60))
   if (minutes > 0) return `${minutes}${textsValue.minutesAgo || '分钟前'}`
-  
+
   return textsValue.justNow || '刚刚'
 }
 
 const loadLikes = async () => {
   if (loading.value) return
   loading.value = true
-  
+
   try {
     const localLikes = uni.getStorageSync('likesList') || []
     likesList.value = localLikes.map((item: any) => ({
@@ -101,7 +101,7 @@ onMounted(() => {
 <style scoped>
 .my-likes-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 
 .content-scroll {

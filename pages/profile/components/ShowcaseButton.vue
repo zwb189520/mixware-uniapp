@@ -48,7 +48,7 @@ export default {
             size: 1
           })
           if ((res.code === 0 || res.code === 1) && res.data) {
-             this.worksCount = res.data.total || res.data.records?.length || 0
+            this.worksCount = res.data.total || res.data.records?.length || 0
           }
         }
       } catch (e) {
@@ -70,7 +70,7 @@ export default {
 
 <style scoped>
 .showcase-button {
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
@@ -122,5 +122,3 @@ export default {
   margin-top: 4rpx;
 }
 </style>
-
-

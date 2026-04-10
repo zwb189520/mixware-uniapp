@@ -9,7 +9,9 @@
         <view class="device-selector" @click="showDeviceSelector">
           <text class="device-label-text">{{ texts.deviceNameLabel || '设备名称' }}</text>
           <view class="device-right">
-            <text class="device-name">{{ currentDevice.name || texts.selectDevice || '选择设备' }}</text>
+            <text class="device-name">{{
+              currentDevice.name || texts.selectDevice || '选择设备'
+            }}</text>
             <uni-icons type="down" size="16" color="#666"></uni-icons>
           </view>
         </view>
@@ -28,12 +30,7 @@
 
       <!-- 模型图片 -->
       <view class="model-image-section">
-        <image
-          class="model-image"
-          :src="modelImage"
-          mode="aspectFit"
-          @error="handleImageError"
-        />
+        <image class="model-image" :src="modelImage" mode="aspectFit" @error="handleImageError" />
         <view class="model-name-overlay">
           <text class="model-name-text">{{ modelName }}</text>
         </view>
@@ -64,7 +61,17 @@
       </view>
 
       <!-- 打印进度卡片（打印中、暂停、已完成或空闲时） -->
-      <view v-if="isPrinting || isPaused || currentProgress >= 100 || printerStatus === 'Idle' || printerStatus === 'StandingBy' || !printerStatus" class="section-card">
+      <view
+        v-if="
+          isPrinting ||
+          isPaused ||
+          currentProgress >= 100 ||
+          printerStatus === 'Idle' ||
+          printerStatus === 'StandingBy' ||
+          !printerStatus
+        "
+        class="section-card"
+      >
         <view class="card-header-row">
           <text class="section-title-text">{{ texts.progress }}</text>
           <text class="progress-pct">{{ currentProgress }}%</text>
@@ -72,17 +79,19 @@
         <view class="progress-bar-bg">
           <view class="progress-bar-fill" :style="{ width: currentProgress + `%` }"></view>
         </view>
-        <view class="device-row" style="margin-top:16rpx;">
+        <view class="device-row" style="margin-top: 16rpx">
           <text class="device-label">{{ texts.printedTime || '已打印时间' }}</text>
           <text class="device-value">{{ formatTime(estimatedPrintTimeSeconds) || '0分钟' }}</text>
         </view>
-        <view class="device-row" style="margin-top:12rpx;">
+        <view class="device-row" style="margin-top: 12rpx">
           <text class="device-label">{{ texts.estimatedTotalTime || '预计总耗时（约）' }}</text>
           <text class="device-value">{{ printTimeHms || '未知' }}</text>
         </view>
-        <view class="device-row" style="margin-top:12rpx;">
+        <view class="device-row" style="margin-top: 12rpx">
           <text class="device-label">{{ texts.estimatedFilament || '预计耗材' }}</text>
-          <text class="device-value">{{ filamentLengthM ? Number(filamentLengthM).toFixed(2) : '0.00' }} 米</text>
+          <text class="device-value"
+            >{{ filamentLengthM ? Number(filamentLengthM).toFixed(2) : '0.00' }} 米</text
+          >
         </view>
         <!-- 控制按钮 -->
         <view class="print-actions">
@@ -110,7 +119,14 @@
               <text class="ctrl-text">{{ texts.printComplete || '打印完成' }}</text>
             </view>
           </template>
-          <template v-if="!isPrinting && !isPaused && currentProgress < 100 && (printerStatus === 'Idle' || printerStatus === 'StandingBy' || !printerStatus)">
+          <template
+            v-if="
+              !isPrinting &&
+              !isPaused &&
+              currentProgress < 100 &&
+              (printerStatus === 'Idle' || printerStatus === 'StandingBy' || !printerStatus)
+            "
+          >
             <view class="ctrl-btn restart-btn" @click="handleRestart">
               <text class="ctrl-text">{{ texts.reprint || '重新打印' }}</text>
             </view>
@@ -167,8 +183,12 @@ export default {
     }
   },
   computed: {
-    languageStore() { return useLanguageStore() },
-    texts() { return this.languageStore.texts.explore },
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.explore
+    },
     displayStatus() {
       if (this.printerStatus === 'Offline') return '离线'
       if (this.isPrinting) return this.texts.printing || '打印中'
@@ -211,19 +231,55 @@ export default {
     this.workId = options.workId || ''
     console.log('printDetail onLoad options:', options)
     console.log('接收到的 workId:', this.workId)
-    
+
     // 如果有完整参数，直接使用
     if (options.modelName) {
-      try { this.modelName = decodeURIComponent(options.modelName) } catch { this.modelName = options.modelName || '' }
-      try { this.modelImage = decodeURIComponent(options.modelImage) } catch { this.modelImage = options.modelImage || '' }
+      try {
+        this.modelName = decodeURIComponent(options.modelName)
+      } catch {
+        this.modelName = options.modelName || ''
+      }
+      try {
+        this.modelImage = decodeURIComponent(options.modelImage)
+      } catch {
+        this.modelImage = options.modelImage || ''
+      }
       if (!this.modelImage) this.modelImage = '/static/images/logo.png'
-      try { this.gcodeUrl = decodeURIComponent(options.gcodeUrl) } catch { this.gcodeUrl = options.gcodeUrl || '' }
-      try { this.printerName = decodeURIComponent(options.printerName) } catch { this.printerName = options.printerName || '' }
-      try { this.modelDimensions = decodeURIComponent(options.dimensions) } catch { this.modelDimensions = options.dimensions || '' }
-      try { this.printTime = decodeURIComponent(options.printTime) } catch { this.printTime = options.printTime || '' }
-      try { this.materialWeight = decodeURIComponent(options.materialWeight) } catch { this.materialWeight = options.materialWeight || '' }
-      try { this.printTimeHms = decodeURIComponent(options.printTimeHms) } catch { this.printTimeHms = options.printTimeHms || '' }
-      try { this.filamentLengthM = decodeURIComponent(options.filamentLengthM) } catch { this.filamentLengthM = options.filamentLengthM || 0 }
+      try {
+        this.gcodeUrl = decodeURIComponent(options.gcodeUrl)
+      } catch {
+        this.gcodeUrl = options.gcodeUrl || ''
+      }
+      try {
+        this.printerName = decodeURIComponent(options.printerName)
+      } catch {
+        this.printerName = options.printerName || ''
+      }
+      try {
+        this.modelDimensions = decodeURIComponent(options.dimensions)
+      } catch {
+        this.modelDimensions = options.dimensions || ''
+      }
+      try {
+        this.printTime = decodeURIComponent(options.printTime)
+      } catch {
+        this.printTime = options.printTime || ''
+      }
+      try {
+        this.materialWeight = decodeURIComponent(options.materialWeight)
+      } catch {
+        this.materialWeight = options.materialWeight || ''
+      }
+      try {
+        this.printTimeHms = decodeURIComponent(options.printTimeHms)
+      } catch {
+        this.printTimeHms = options.printTimeHms || ''
+      }
+      try {
+        this.filamentLengthM = decodeURIComponent(options.filamentLengthM)
+      } catch {
+        this.filamentLengthM = options.filamentLengthM || 0
+      }
       this.deviceId = options.deviceId || ''
       this.isPrinting = options.autoStart === 'true'
     } else if (this.workId) {
@@ -231,7 +287,7 @@ export default {
       this.deviceId = options.deviceId || ''
       await this.loadWorkDetail()
     }
-    
+
     this.languageStore.loadLanguage()
     this.loadFirmwareInfo()
     this.$nextTick(() => {
@@ -249,11 +305,18 @@ export default {
       try {
         const res = await getDeviceList()
         const records = res?.data?.records ?? []
-        this.deviceList = Array.isArray(records) ? records.map(device => ({
-          id: device.id || device.deviceId,
-          name: device.deviceName || device.name || device.deviceId || this.texts.unnamedDevice || '未命名设备'
-        })) : []
-        
+        this.deviceList = Array.isArray(records)
+          ? records.map(device => ({
+              id: device.id || device.deviceId,
+              name:
+                device.deviceName ||
+                device.name ||
+                device.deviceId ||
+                this.texts.unnamedDevice ||
+                '未命名设备'
+            }))
+          : []
+
         if (this.deviceId) {
           const device = this.deviceList.find(d => d.id === this.deviceId)
           if (device) {
@@ -269,8 +332,12 @@ export default {
         console.error('加载设备列表失败:', error)
       }
     },
-    handleBack() { uni.navigateBack() },
-    handleImageError() { this.modelImage = '/static/images/logo.png' },
+    handleBack() {
+      uni.navigateBack()
+    },
+    handleImageError() {
+      this.modelImage = '/static/images/logo.png'
+    },
     showDeviceSelector() {
       if (this.deviceList.length === 0) {
         uni.showToast({ title: this.texts.noAvailableDevice || '暂无可用设备', icon: 'none' })
@@ -279,7 +346,7 @@ export default {
       const itemList = this.deviceList.map(d => d.name)
       uni.showActionSheet({
         itemList,
-        success: async (res) => {
+        success: async res => {
           const selected = this.deviceList[res.tapIndex]
           this.currentDevice = selected
           this.deviceId = selected.id
@@ -295,13 +362,13 @@ export default {
     },
     async loadFirmwareInfo() {
       if (!this.deviceId) return
-      
+
       try {
         const res = await getFirmwareInfo(this.deviceId)
         if (res.code === 1 && res.data) {
           this.firmwareVersion = res.data.version || res.data.currentVersion || ''
         }
-      } catch (e) { 
+      } catch (e) {
         console.log('获取固件信息失败（非关键错误）:', e)
         // 固件信息获取失败不影响主要功能，静默处理
       }
@@ -309,14 +376,16 @@ export default {
     async handlePause() {
       if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
-        title: this.texts.pausePrint || '暂停打印', content: this.texts.confirmPausePrint || '确认暂停打印？',
-        success: async (res) => {
+        title: this.texts.pausePrint || '暂停打印',
+        content: this.texts.confirmPausePrint || '确认暂停打印？',
+        success: async res => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.pausing || '暂停中...' })
             await sendPauseCommand(this.deviceId)
             uni.hideLoading()
-            this.isPaused = true; this.isPrinting = false
+            this.isPaused = true
+            this.isPrinting = false
             this._toast(this.texts.printPaused || '打印已暂停', 'success')
           } catch (e) {
             uni.hideLoading()
@@ -329,14 +398,16 @@ export default {
     async handleResume() {
       if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
-        title: this.texts.resumePrint || '恢复打印', content: this.texts.confirmResumePrint || '确认恢复打印？',
-        success: async (res) => {
+        title: this.texts.resumePrint || '恢复打印',
+        content: this.texts.confirmResumePrint || '确认恢复打印？',
+        success: async res => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.resuming || '恢复中...' })
             await sendResumeCommand(this.deviceId)
             uni.hideLoading()
-            this.isPaused = false; this.isPrinting = true
+            this.isPaused = false
+            this.isPrinting = true
             this._toast(this.texts.printResumed || '打印已恢复', 'success')
           } catch (e) {
             uni.hideLoading()
@@ -349,35 +420,42 @@ export default {
     async handleCancel() {
       if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
-        title: this.texts.cancelPrint || '取消打印', content: this.texts.confirmCancelPrint || '确认取消打印？此操作不可撤销。',
-        success: async (res) => {
+        title: this.texts.cancelPrint || '取消打印',
+        content: this.texts.confirmCancelPrint || '确认取消打印？此操作不可撤销。',
+        success: async res => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.stopping || '正在停止...' })
             await sendStopCommand(this.deviceId)
             uni.hideLoading()
-            this.isPaused = false; this.isPrinting = false
+            this.isPaused = false
+            this.isPrinting = false
             this._toast(this.texts.printCancelled || '已取消打印', 'success')
             setTimeout(() => uni.navigateBack(), 1500)
           } catch (e) {
             uni.hideLoading()
-            const errorMsg = e?.message || e?.msg || this.texts.stopPrintFailed || '停止失败，请重试'
+            const errorMsg =
+              e?.message || e?.msg || this.texts.stopPrintFailed || '停止失败，请重试'
             this._toast(errorMsg)
           }
         }
       })
     },
     async handleRestart() {
-      if (!this.deviceId || !this.workId) return this._toast(this.texts.missingRequiredParams || '缺少必要参数')
+      if (!this.deviceId || !this.workId)
+        return this._toast(this.texts.missingRequiredParams || '缺少必要参数')
       uni.showModal({
-        title: this.texts.restartPrint || '重新打印', content: this.texts.confirmRestartPrint || '确认重新开始打印？',
-        success: async (res) => {
+        title: this.texts.restartPrint || '重新打印',
+        content: this.texts.confirmRestartPrint || '确认重新开始打印？',
+        success: async res => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.restarting || '重启中...' })
             await sendRestartCommand(this.deviceId, this.workId)
             uni.hideLoading()
-            this.isPaused = false; this.isPrinting = true; this.currentProgress = 0
+            this.isPaused = false
+            this.isPrinting = true
+            this.currentProgress = 0
             this._toast(this.texts.printRestarted || '已重新开始打印', 'success')
           } catch (e) {
             uni.hideLoading()
@@ -387,7 +465,9 @@ export default {
         }
       })
     },
-    _toast(title, icon = 'none') { uni.showToast({ title, icon }) },
+    _toast(title, icon = 'none') {
+      uni.showToast({ title, icon })
+    },
 
     // 加载任务详情
     async loadWorkDetail() {
@@ -409,7 +489,7 @@ export default {
           this.isPaused = data.status === 'paused'
           this.currentProgress = data.progress || 0
           console.log('设置后的 deviceId:', this.deviceId)
-          
+
           // 如果没有 modelName，用 modelId 获取模型详情
           if (!this.modelName && data.modelId) {
             try {
@@ -487,7 +567,10 @@ export default {
             this.filamentLengthM = data.filamentLengthM
           }
           // 检查是否完成（必须进度100%且状态为空闲）
-          if (this.currentProgress >= 100 && (printState === 'StandingBy' || printState === 'Idle')) {
+          if (
+            this.currentProgress >= 100 &&
+            (printState === 'StandingBy' || printState === 'Idle')
+          ) {
             this.checkPrintComplete()
           }
         }
@@ -502,7 +585,7 @@ export default {
         // 清理message中的换行和多余空格
         const cleanMessage = message.replace(/\s+/g, ' ').trim()
         const msgObj = JSON.parse(cleanMessage)
-        
+
         // 提取温度（所有状态都显示）
         if (msgObj.temperature !== undefined) {
           this.currentTemp = Number(msgObj.temperature)
@@ -510,7 +593,7 @@ export default {
         if (msgObj.target !== undefined) {
           this.targetTemp = Number(msgObj.target)
         }
-        
+
         // 打印中状态才更新进度，待机/空闲保持当前进度（防止完成后跳回0%）
         if (printState === 'Printing') {
           if (msgObj.progress !== undefined) {
@@ -519,7 +602,7 @@ export default {
           }
         }
         // 注意：不在else里重置进度，避免完成后跳转前显示0%
-        
+
         // 解析打印持续时间（支持数字秒或字符串如 "4m 34"）
         if (msgObj.print_duration !== undefined) {
           if (typeof msgObj.print_duration === 'string' && msgObj.print_duration.includes('m')) {
@@ -532,12 +615,12 @@ export default {
         if (msgObj.total_duration !== undefined) {
           this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.total_duration)
         }
-        
-        console.log('解析message成功:', { 
-          state: printState, 
-          currentTemp: this.currentTemp, 
-          targetTemp: this.targetTemp, 
-          progress: this.currentProgress 
+
+        console.log('解析message成功:', {
+          state: printState,
+          currentTemp: this.currentTemp,
+          targetTemp: this.targetTemp,
+          progress: this.currentProgress
         })
       } catch (e) {
         console.error('解析message失败:', message, e)
@@ -556,7 +639,9 @@ export default {
     goToPrintComplete() {
       this.stopStatusPolling()
       const printTimeStr = this.printTimeHms || this.printTime || ''
-      const materialStr = this.filamentLengthM ? `${Number(this.filamentLengthM).toFixed(2)}米` : (this.materialWeight || '')
+      const materialStr = this.filamentLengthM
+        ? `${Number(this.filamentLengthM).toFixed(2)}米`
+        : this.materialWeight || ''
       uni.navigateTo({
         url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(printTimeStr)}&material=${encodeURIComponent(materialStr)}&size=${encodeURIComponent(this.modelDimensions || '')}`
       })
@@ -568,7 +653,7 @@ export default {
         this.goToPrintComplete()
       }
     },
-    
+
     // 格式化时间（秒转分钟/小时）
     formatTime(seconds) {
       if (!seconds || seconds <= 0) return '0分钟'
@@ -579,7 +664,7 @@ export default {
       if (minutes > 0) return `${minutes}分${secs}秒`
       return `${secs}秒`
     },
-    
+
     // 解析时间字符串（如 "22h 43m 42s" 或 "2h 24m 5s"）转为秒
     parseDuration(durationStr) {
       if (!durationStr || typeof durationStr !== 'string') return 0
@@ -601,14 +686,16 @@ export default {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #FFF9F5;
+  background: #fff9f5;
 }
 .content-scroll {
   flex: 1;
   height: 0;
   padding-bottom: 40rpx;
 }
-.bottom-safe { height: 40rpx; }
+.bottom-safe {
+  height: 40rpx;
+}
 
 /* 设备选择器 */
 .device-selector-section {
@@ -619,7 +706,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 32rpx;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 40rpx;
 }
 .device-label-text {
@@ -646,7 +733,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 32rpx;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 24rpx;
 }
 .status-label {
@@ -664,7 +751,7 @@ export default {
   width: calc(100% - 48rpx);
   border-radius: 24rpx;
   overflow: hidden;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
 }
 .model-image {
@@ -677,19 +764,19 @@ export default {
   left: 0;
   right: 0;
   padding: 24rpx 32rpx;
-  background: linear-gradient(transparent, rgba(0,0,0,0.45));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.45));
 }
 .model-name-text {
   font-size: 36rpx;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.3);
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
 }
 
 /* 通用卡片 */
 .section-card {
   margin: 0 24rpx 24rpx;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24rpx;
   padding: 32rpx;
@@ -711,20 +798,22 @@ export default {
   margin-bottom: 20rpx;
 }
 .section-title-text::after {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   bottom: 0;
   width: 48rpx;
   height: 4rpx;
-  background: linear-gradient(90deg, #FF5A00, #FF8C00);
+  background: linear-gradient(90deg, #ff5a00, #ff8c00);
   border-radius: 2rpx;
 }
 .card-header-row .section-title-text {
   margin-bottom: 0;
   padding-bottom: 0;
 }
-.card-header-row .section-title-text::after { display: none; }
+.card-header-row .section-title-text::after {
+  display: none;
+}
 
 /* 状态徽章 */
 .status-badge {
@@ -734,30 +823,60 @@ export default {
   padding: 8rpx 20rpx;
   border-radius: 30rpx;
 }
-.badge-printing { background: rgba(42,127,255,0.1); }
-.badge-paused   { background: rgba(246,166,35,0.1); }
-.badge-idle     { background: rgba(82,196,26,0.1); }
-.badge-offline  { background: rgba(153,153,153,0.1); }
-.badge-downloading { background: rgba(114,46,209,0.1); }
+.badge-printing {
+  background: rgba(42, 127, 255, 0.1);
+}
+.badge-paused {
+  background: rgba(246, 166, 35, 0.1);
+}
+.badge-idle {
+  background: rgba(82, 196, 26, 0.1);
+}
+.badge-offline {
+  background: rgba(153, 153, 153, 0.1);
+}
+.badge-downloading {
+  background: rgba(114, 46, 209, 0.1);
+}
 .status-dot {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
 }
-.dot-printing { background: #2a7fff; }
-.dot-paused   { background: #f6a623; }
-.dot-idle     { background: #52c41a; }
-.dot-offline  { background: #999; }
-.dot-downloading { background: #722ed1; }
+.dot-printing {
+  background: #2a7fff;
+}
+.dot-paused {
+  background: #f6a623;
+}
+.dot-idle {
+  background: #52c41a;
+}
+.dot-offline {
+  background: #999;
+}
+.dot-downloading {
+  background: #722ed1;
+}
 .status-badge-text {
   font-size: 24rpx;
   font-weight: 600;
 }
-.badge-printing .status-badge-text { color: #2a7fff; }
-.badge-paused   .status-badge-text { color: #f6a623; }
-.badge-idle     .status-badge-text { color: #52c41a; }
-.badge-offline  .status-badge-text { color: #999; }
-.badge-downloading .status-badge-text { color: #722ed1; }
+.badge-printing .status-badge-text {
+  color: #2a7fff;
+}
+.badge-paused .status-badge-text {
+  color: #f6a623;
+}
+.badge-idle .status-badge-text {
+  color: #52c41a;
+}
+.badge-offline .status-badge-text {
+  color: #999;
+}
+.badge-downloading .status-badge-text {
+  color: #722ed1;
+}
 
 /* 设备行 */
 .device-row {
@@ -765,9 +884,11 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 2rpx solid rgba(0,0,0,0.05);
+  border-bottom: 2rpx solid rgba(0, 0, 0, 0.05);
 }
-.device-row:last-child { border-bottom: none; }
+.device-row:last-child {
+  border-bottom: none;
+}
 .device-label {
   font-size: 28rpx;
   color: #888;
@@ -803,44 +924,63 @@ export default {
   justify-content: center;
 }
 .temp-circle.current {
-  background: #FFF8E6;
+  background: #fff8e6;
   border: 4rpx solid #f6a623;
 }
 .temp-circle.target {
-  background: #FFF0F0;
-  border: 4rpx solid #FF5A00;
+  background: #fff0f0;
+  border: 4rpx solid #ff5a00;
 }
 .temp-num {
   font-size: 36rpx;
   font-weight: 800;
   line-height: 1;
 }
-.temp-circle.current .temp-num { color: #f6a623; }
-.temp-circle.target  .temp-num { color: #FF5A00; }
-.temp-unit { font-size: 20rpx; }
-.temp-circle.current .temp-unit { color: #f6a623; }
-.temp-circle.target  .temp-unit { color: #FF5A00; }
-.temp-label { font-size: 24rpx; color: #888; }
-.temp-arrow-wrap { display: flex; align-items: center; }
-.temp-arrow { font-size: 32rpx; color: #ccc; }
+.temp-circle.current .temp-num {
+  color: #f6a623;
+}
+.temp-circle.target .temp-num {
+  color: #ff5a00;
+}
+.temp-unit {
+  font-size: 20rpx;
+}
+.temp-circle.current .temp-unit {
+  color: #f6a623;
+}
+.temp-circle.target .temp-unit {
+  color: #ff5a00;
+}
+.temp-label {
+  font-size: 24rpx;
+  color: #888;
+}
+.temp-arrow-wrap {
+  display: flex;
+  align-items: center;
+}
+.temp-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+}
 
 /* 进度 */
 .progress-pct {
   font-size: 34rpx;
   font-weight: 800;
-  color: #FF5A00;
+  color: #ff5a00;
 }
 .progress-bar-bg {
   width: 100%;
   height: 14rpx;
-  background: #F0EDE8;
+  background: #f0ede8;
   border-radius: 7rpx;
   overflow: hidden;
   margin-bottom: 4rpx;
 }
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #FF5A00, #FF8C00);
+  background: linear-gradient(90deg, #ff5a00, #ff8c00);
   border-radius: 7rpx;
   transition: width 0.4s ease;
 }
@@ -860,20 +1000,45 @@ export default {
   border-radius: 40rpx;
   border: 2rpx solid transparent;
 }
-.ctrl-btn:active { opacity: 0.75; }
-.ctrl-text { font-size: 28rpx; font-weight: 700; }
-.pause-btn  { background: #FFF9F5; border-color: #FF8C00; }
-.pause-btn  .ctrl-text { color: #FF8C00; }
-.resume-btn { background: #F0FFF4; border-color: #52c41a; }
-.resume-btn .ctrl-text { color: #52c41a; }
-.restart-btn { background: #FFF9F5; border-color: #FF5A00; }
-.restart-btn .ctrl-text { color: #FF5A00; }
-.stop-btn   { background: #FFF5F5; border-color: #ff4d4f; }
-.stop-btn   .ctrl-text { color: #ff4d4f; }
-.complete-btn { background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%); }
-.complete-btn .ctrl-text { color: #fff; }
-
-
+.ctrl-btn:active {
+  opacity: 0.75;
+}
+.ctrl-text {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+.pause-btn {
+  background: #fff9f5;
+  border-color: #ff8c00;
+}
+.pause-btn .ctrl-text {
+  color: #ff8c00;
+}
+.resume-btn {
+  background: #f0fff4;
+  border-color: #52c41a;
+}
+.resume-btn .ctrl-text {
+  color: #52c41a;
+}
+.restart-btn {
+  background: #fff9f5;
+  border-color: #ff5a00;
+}
+.restart-btn .ctrl-text {
+  color: #ff5a00;
+}
+.stop-btn {
+  background: #fff5f5;
+  border-color: #ff4d4f;
+}
+.stop-btn .ctrl-text {
+  color: #ff4d4f;
+}
+.complete-btn {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+}
+.complete-btn .ctrl-text {
+  color: #fff;
+}
 </style>
-
-

@@ -110,7 +110,4 @@ export default {
   width: 80rpx;
   height: 24rpx;
 }
-
 </style>
-
-

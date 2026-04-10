@@ -25,8 +25,12 @@ import { useLanguageStore } from '@/stores/index.ts'
 export default {
   name: 'FirmwareSettings',
   computed: {
-    languageStore() { return useLanguageStore() },
-    texts() { return this.languageStore.texts.printer }
+    languageStore() {
+      return useLanguageStore()
+    },
+    texts() {
+      return this.languageStore.texts.printer
+    }
   },
   props: {
     deviceInfo: {
@@ -60,7 +64,7 @@ export default {
 
 <style scoped>
 .firmware-section {
-  background: linear-gradient(135deg, #fff 0%, #FFF9F5 100%);
+  background: linear-gradient(135deg, #fff 0%, #fff9f5 100%);
   padding: 30rpx;
   margin: 20rpx;
   border-radius: 24rpx;
@@ -94,7 +98,7 @@ export default {
 
 .setting-value {
   font-size: 28rpx;
-  color: #FF6B35;
+  color: #ff6b35;
   font-weight: 600;
 }
 
@@ -112,7 +116,7 @@ export default {
 }
 
 .switch-active {
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
 }
 
 .switch-dot {
@@ -130,5 +134,3 @@ export default {
   transform: translateX(48rpx);
 }
 </style>
-
-

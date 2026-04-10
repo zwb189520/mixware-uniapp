@@ -92,5 +92,3 @@ export default {
   opacity: 0.6;
 }
 </style>
-
-
