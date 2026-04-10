@@ -1,12 +1,10 @@
 /********** 小程序端 *************/
 // #ifdef MP
 export * from 'three-platformize'
-// import {
-// 	OrbitControls
-// } from 'three-platformize/examples/jsm/controls/OrbitControls'
 import {
-	OrbitControls, // 使用three-platformize的OrbitControls会卡顿
+	OrbitControls as OrbitControlsMP
 } from './utils/OrbitControls.js'
+export { OrbitControlsMP as OrbitControls }
 // GLTFLoader
 export * from 'three-platformize/examples/jsm/loaders/GLTFLoader.js'
 // RGBELoader

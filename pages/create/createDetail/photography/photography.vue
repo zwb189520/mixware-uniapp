@@ -77,10 +77,10 @@ export default {
             case 0:
               uni.showShareMenu()
               break
-            case1:
+            case 1:
               uni.showToast({ title: this.texts.reportSuccess, icon: 'success' })
               break
-            case2:
+            case 2:
               uni.showToast({ title: this.texts.helpInDev, icon: 'none' })
               break
           }
