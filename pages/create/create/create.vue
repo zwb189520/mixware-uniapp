@@ -28,9 +28,11 @@
   </view>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { createSession } from '@/api/session.ts'
+import type { CreateTexts } from '@/types/language.ts'
 
 interface Tool {
   id: string
@@ -40,125 +42,123 @@ interface Tool {
   backgroundImage: string
 }
 
-export default {
-  data() {
-    return {
-      statusBarHeight: 0 as number,
-      isNavigating: false as boolean
-    }
+const languageStore = useLanguageStore()
+const statusBarHeight = ref(0)
+const isNavigating = ref(false)
+
+const texts = computed<CreateTexts>(() => languageStore.texts.create)
+
+const tools = computed<Tool[]>(() => [
+  {
+    id: 'photography',
+    text: texts.value.photography,
+    description: texts.value.photographyDesc,
+    icon: 'camera',
+    backgroundImage: '/static/images/create/photography.png'
   },
-  computed: {
-    texts(): any {
-      return useLanguageStore().texts.create
-    },
-    tools(): Tool[] {
-      return [
-        {
-          id: 'photography',
-          text: this.texts.photography,
-          description: this.texts.photographyDesc,
-          icon: 'camera',
-          backgroundImage: '/static/images/create/photography.png'
-        },
-        {
-          id: 'chat',
-          text: this.texts.chat,
-          description: this.texts.chatDesc,
-          icon: 'chat',
-          backgroundImage: '/static/images/create/chat.png'
-        },
-        {
-          id: 'draw',
-          text: this.texts.draw,
-          description: this.texts.drawDesc,
-          icon: 'color',
-          backgroundImage: '/static/images/create/draw.png'
-        },
-        {
-          id: 'transform',
-          text: this.texts.transform,
-          description: this.texts.transformDesc,
-          icon: 'compose',
-          backgroundImage: '/static/images/create/transform.png'
-        },
-        {
-          id: 'aiChat',
-          text: this.texts.aiChat,
-          description: this.texts.aiChatDesc,
-          icon: 'chat',
-          backgroundImage: '/static/images/create/aichat.png'
+  {
+    id: 'chat',
+    text: texts.value.chat,
+    description: texts.value.chatDesc,
+    icon: 'chat',
+    backgroundImage: '/static/images/create/chat.png'
+  },
+  {
+    id: 'draw',
+    text: texts.value.draw,
+    description: texts.value.drawDesc,
+    icon: 'color',
+    backgroundImage: '/static/images/create/draw.png'
+  },
+  {
+    id: 'transform',
+    text: texts.value.transform,
+    description: texts.value.transformDesc,
+    icon: 'compose',
+    backgroundImage: '/static/images/create/transform.png'
+  },
+  {
+    id: 'aiChat',
+    text: texts.value.aiChat,
+    description: texts.value.aiChatDesc,
+    icon: 'chat',
+    backgroundImage: '/static/images/create/aichat.png'
+  }
+])
+
+const getCardHeight = (index: number): number => {
+  return index === 4 ? 200 : 240
+}
+
+const getCardPositionClass = (index: number): string => {
+  return index === 4 ? 'ai-chat-full-width' : ''
+}
+
+const handleToolClick = async (tool: Tool): Promise<void> => {
+  if (isNavigating.value) return
+
+  const isLoggedIn = uni.getStorageSync('isLoggedIn')
+  if (!isLoggedIn) {
+    uni.navigateTo({ url: '/pagesMember/auth/login/login' })
+    return
+  }
+
+  isNavigating.value = true
+
+  const navigate = (url: string) => {
+    uni.navigateTo({
+      url,
+      complete: () => {
+        isNavigating.value = false
+      }
+    })
+  }
+
+  switch (tool.id) {
+    case 'photography':
+      navigate('/pages/create/createDetail/photography/photography')
+      break
+    case 'chat':
+      navigate('/pages/create/createDetail/chat/chat')
+      break
+    case 'aiChat':
+      try {
+        const res = await createSession() as { code: number; data?: { sessionId: string } }
+        if ((res.code === 1 || res.code === 0) && res.data?.sessionId) {
+          navigate(`/pages/create/createDetail/aiChat/aiChat?sessionId=${res.data.sessionId}`)
+        } else {
+          isNavigating.value = false
         }
-      ]
-    }
-  },
-  onLoad(): void {
-    const systemInfo = uni.getSystemInfoSync()
-    this.statusBarHeight = systemInfo.statusBarHeight || 0
-  },
-  onShow(): void {
-    useLanguageStore().updateTabBar()
-  },
-  methods: {
-    getCardHeight(index: number): number {
-      return index === 4 ? 200 : 240
-    },
-    getCardPositionClass(index: number): string {
-      return index === 4 ? 'ai-chat-full-width' : ''
-    },
-    async handleToolClick(tool: Tool): Promise<void> {
-      if (this.isNavigating) return
-
-      const isLoggedIn = uni.getStorageSync('isLoggedIn')
-      if (!isLoggedIn) {
-        uni.navigateTo({ url: '/pagesMember/auth/login/login' })
-        return
+      } catch (error) {
+        console.error('创建会话失败:', error)
+        isNavigating.value = false
       }
-
-      this.isNavigating = true
-
-      const navigate = (url: string) => {
-        uni.navigateTo({
-          url,
-          complete: () => {
-            this.isNavigating = false
-          }
-        })
-      }
-
-      switch (tool.id) {
-        case 'photography':
-          navigate('/pages/create/createDetail/photography/photography')
-          break
-        case 'chat':
-          navigate('/pages/create/createDetail/chat/chat')
-          break
-        case 'aiChat':
-          try {
-            const res: any = await createSession()
-            if ((res.code === 1 || res.code === 0) && res.data?.sessionId) {
-              navigate(`/pages/create/createDetail/aiChat/aiChat?sessionId=${res.data.sessionId}`)
-            } else {
-              this.isNavigating = false
-            }
-          } catch (error: any) {
-            console.error('创建会话失败:', error)
-            this.isNavigating = false
-          }
-          break
-        case 'draw':
-          navigate('/pages/create/createDetail/draw1/draw1')
-          break
-        case 'transform':
-          uni.showToast({ title: this.texts.featureInDev || '功能开发中', icon: 'none' })
-          this.isNavigating = false
-          break
-        default:
-          uni.showToast({ title: `${this.texts.selected || '选择了'}${tool.text}`, icon: 'none' })
-          this.isNavigating = false
-      }
-    }
+      break
+    case 'draw':
+      navigate('/pages/create/createDetail/draw1/draw1')
+      break
+    case 'transform':
+      uni.showToast({ title: texts.value.featureInDev || '功能开发中', icon: 'none' })
+      isNavigating.value = false
+      break
+    default:
+      uni.showToast({ title: `${texts.value.selected || '选择了'}${tool.text}`, icon: 'none' })
+      isNavigating.value = false
   }
 }
+
+const init = () => {
+  const systemInfo = uni.getSystemInfoSync()
+  statusBarHeight.value = systemInfo.statusBarHeight || 0
+}
+
+onLoad(() => {
+  init()
+})
+
+onShow(() => {
+  languageStore.updateTabBar()
+})
 </script>
 
 <style>

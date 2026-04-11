@@ -1,25 +1,81 @@
 <script lang="ts">
 import { useLanguageStore, useUserStore } from '@/stores'
 import { checkUpdate } from '@/api/ota'
+import { cancelAllRequests } from '@/api/request'
 
 const APP_VERSION = '1.0.0'
+
+interface UniShowModalResult {
+  confirm: boolean
+  cancel: boolean
+}
+
+interface CheckUpdateResponse {
+  code: number
+  data?: {
+    hasUpdate: boolean
+    latestVersion: string
+    downloadUrl: string
+    remark?: string
+  }
+}
+
+interface DownloadResult {
+  statusCode: number
+  tempFilePath: string
+}
+
+interface InstallError {
+  message: string
+}
+
+const errorMessages: Record<string, string> = {
+  '3D渲染错误': '3D模型加载失败，请刷新重试',
+  'Network Error': '网络连接失败，请检查网络',
+  'timeout': '请求超时，请稍后重试',
+  'chunk': '资源加载失败，请刷新页面'
+}
+
+const getErrorMessage = (error: Error): string => {
+  const errorMsg = error.message || ''
+  for (const [key, value] of Object.entries(errorMessages)) {
+    if (errorMsg.includes(key)) {
+      return value
+    }
+  }
+  return '应用发生错误，请刷新重试'
+}
+
+const handleGlobalError = (error: Error, context?: string): void => {
+  console.error('[全局错误]', context || '', error)
+
+  const message = getErrorMessage(error)
+
+  uni.showModal({
+    title: '错误提示',
+    content: message,
+    showCancel: true,
+    cancelText: '取消',
+    confirmText: '刷新',
+    success: (res: UniShowModalResult) => {
+      if (res.confirm) {
+        uni.reLaunch({ url: '/pages/explore/explore/explore' })
+      }
+    }
+  })
+}
 
 export default {
   onLaunch: function () {
     console.log('App Launch')
 
-    // 初始化用户状态，从本地存储加载 Token 等信息
     const userStore = useUserStore()
     userStore.initFromStorage()
 
-    // 初始化语言设置，确保 TabBar 等UI组件显示正确语言
     const languageStore = useLanguageStore()
     languageStore.loadLanguage(false)
 
-    // 检查并请求必要的权限
     this.initPermissionCheck()
-
-    // 检查OTA更新
     this.checkAppUpdate()
   },
   onShow: function () {
@@ -27,6 +83,13 @@ export default {
   },
   onHide: function () {
     console.log('App Hide')
+    cancelAllRequests()
+  },
+  onError: function (error: string) {
+    handleGlobalError(new Error(error), 'Vue Error')
+  },
+  onUnhandledRejection: function (promise: PromiseRejectionEvent) {
+    handleGlobalError(promise.reason instanceof Error ? promise.reason : new Error(String(promise.reason)), 'Unhandled Promise')
   },
   computed: {
     languageStore() {
@@ -153,10 +216,7 @@ export default {
      */
     checkAppUpdate(): void {
       checkUpdate(APP_VERSION).then((res: unknown) => {
-        const typedRes = res as {
-          code: number
-          data?: { hasUpdate: boolean; latestVersion: string; downloadUrl: string; remark?: string }
-        }
+        const typedRes = res as CheckUpdateResponse
         if (typedRes.code !== 0 || !typedRes.data?.hasUpdate) return
 
         const { latestVersion, downloadUrl, remark } = typedRes.data

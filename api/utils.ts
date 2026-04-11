@@ -1,4 +1,4 @@
-import { API } from '../constants/index.js'
+import { API } from '../constants/index.ts'
 import { useUserStore } from '../stores/modules/user.ts'
 
 interface RequestConfig {
@@ -8,6 +8,12 @@ interface RequestConfig {
   header?: Record<string, string>
   timeout?: number
   sslVerify?: boolean
+  signal?: AbortSignal
+}
+
+interface RequestWithRetryConfig extends RequestConfig {
+  requestId?: string
+  onAbort?: (requestId: string) => void
 }
 
 interface UniResponse {
@@ -153,26 +159,46 @@ export const prepareRequestData = (
  * 带重试的请求执行
  * @param requestConfig 请求配置
  * @param retryCount 当前重试次数
+ * @param pendingRequests 待处理请求Map（用于取消）
  */
 export const requestWithRetry = (
-  requestConfig: RequestConfig,
-  retryCount = 0
+  requestConfig: RequestWithRetryConfig,
+  retryCount = 0,
+  pendingRequests?: Map<string, UniApp.RequestTask>
 ): Promise<UniResponse> => {
   return new Promise((resolve, reject) => {
-    uni.request({
+    const { signal, requestId, onAbort } = requestConfig
+
+    if (signal?.aborted) {
+      reject(new Error('Request aborted'))
+      return
+    }
+
+    const requestTask = uni.request({
       ...requestConfig,
       success: (res: UniResponse) => {
+        if (requestId && pendingRequests) {
+          pendingRequests.delete(requestId)
+        }
         resolve(res as UniResponse)
       },
       fail: async (err: UniError) => {
-        // 只对网络错误重试，不重试业务错误
+        if (requestId && pendingRequests) {
+          pendingRequests.delete(requestId)
+        }
+
+        if (signal?.aborted || (err.errMsg || '').includes('abort')) {
+          reject(new Error('Request aborted'))
+          return
+        }
+
         const shouldRetry = shouldRetryError(err as UniError)
 
         if (shouldRetry && retryCount < API.MAX_RETRY_COUNT) {
           console.log(`请求失败，第${retryCount + 1}次重试，URL: ${requestConfig.url}`)
           await delay(API.RETRY_DELAY * (retryCount + 1))
           try {
-            const result = await requestWithRetry(requestConfig, retryCount + 1)
+            const result = await requestWithRetry(requestConfig, retryCount + 1, pendingRequests)
             resolve(result)
           } catch (retryErr) {
             reject(retryErr)
@@ -182,6 +208,23 @@ export const requestWithRetry = (
         }
       }
     })
+
+    if (requestId && pendingRequests) {
+      pendingRequests.set(requestId, requestTask)
+    }
+
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        requestTask.abort()
+        if (requestId && pendingRequests) {
+          pendingRequests.delete(requestId)
+        }
+        if (onAbort) {
+          onAbort(requestId || '')
+        }
+        reject(new Error('Request aborted'))
+      })
+    }
   })
 }
 

@@ -31,7 +31,29 @@ interface RequestOptions {
   timeout?: number
   sslVerify?: boolean
   silent?: boolean
+  signal?: AbortSignal
   [key: string]: unknown
+}
+
+const pendingRequests = new Map<string, UniApp.RequestTask>()
+
+export const cancelRequest = (requestId: string): void => {
+  const task = pendingRequests.get(requestId)
+  if (task) {
+    task.abort()
+    pendingRequests.delete(requestId)
+  }
+}
+
+export const cancelAllRequests = (): void => {
+  pendingRequests.forEach((task) => {
+    task.abort()
+  })
+  pendingRequests.clear()
+}
+
+export const generateRequestId = (url: string, method: string): string => {
+  return `${method.toUpperCase()}_${url}_${Date.now()}`
 }
 
 export const request = (options: RequestOptions = {}): Promise<unknown> => {
@@ -113,21 +135,24 @@ export const request = (options: RequestOptions = {}): Promise<unknown> => {
       data: requestData,
       header: headers,
       timeout: options.timeout || API.TIMEOUT,
-      sslVerify: options.sslVerify !== false
+      sslVerify: options.sslVerify !== false,
+      signal: options.signal,
+      requestId: options.signal ? undefined : generateRequestId(url ?? '', method || 'GET'),
+      onAbort: (id: string) => {
+        pendingRequests.delete(id)
+      }
     }
 
-    requestWithRetry(requestConfig)
+    requestWithRetry(requestConfig, 0, pendingRequests)
       .then(res => {
         logResponse(_timerKey, res.statusCode, res.data)
 
-        // 处理成功响应
         const successData = handleSuccess(res as any, options, url ?? '', data as Record<string, unknown>, cache, cacheTime)
         if (successData !== null) {
           resolve(successData)
           return
         }
 
-        // 处理错误响应
         const isHandled = handleError(res as any, options, requestUrl)
         if (isHandled) {
           reject(res)
@@ -137,6 +162,10 @@ export const request = (options: RequestOptions = {}): Promise<unknown> => {
         reject(res)
       })
       .catch(err => {
+        if ((err as Error).message === 'Request aborted') {
+          console.log('请求已取消:', requestUrl)
+          return
+        }
         logRequestError(_timerKey, err)
         handleNetworkError(err as any, options as any, requestUrl)
         reject(err)
