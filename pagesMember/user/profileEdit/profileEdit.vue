@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="profile-edit-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack">
@@ -41,12 +41,18 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { updateUserInfo } from '@/api/users.ts'
 import { BASE_URL } from '@/api/request.ts'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface UserInfo {
+  id: string
+  nickname: string
+  avatar: string
+  birthday: string
+}
 
 export default {
   name: 'ProfileEdit',
@@ -61,38 +67,38 @@ export default {
         nickname: '',
         avatar: '',
         birthday: ''
-      },
-      tempAvatar: ''
+      } as UserInfo,
+      tempAvatar: '' as string
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.profileEdit
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.loadUserInfo()
   },
   watch: {
-    'languageStore.language'() {
+    'languageStore.language'(): void {
       this.$forceUpdate()
     }
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleSave() {
+    handleSave(): void {
       uni.showLoading({
         title: this.texts.saving
       })
 
-      const saveUserInfo = avatarUrl => {
+      const saveUserInfo = (avatarUrl: string | null): void => {
         const updateData = {
           username: this.userInfo.nickname,
           avatarUrl: avatarUrl || this.userInfo.avatar,
@@ -117,7 +123,7 @@ export default {
               uni.navigateBack()
             }, 500)
           })
-          .catch(error => {
+          .catch((error: any) => {
             uni.hideLoading()
 
             uni.showToast({
@@ -136,7 +142,7 @@ export default {
           header: {
             Authorization: token ? `Bearer ${token}` : ''
           },
-          success: uploadRes => {
+          success: (uploadRes: any) => {
             if (uploadRes.statusCode === 200) {
               try {
                 const uploadData = JSON.parse(uploadRes.data)
@@ -177,7 +183,7 @@ export default {
               })
             }
           },
-          fail: err => {
+          fail: () => {
             uni.hideLoading()
             uni.showToast({
               title: this.texts.uploadAvatarFailed,
@@ -190,15 +196,15 @@ export default {
       }
     },
 
-    handleAvatarEdit() {
+    handleAvatarEdit(): void {
       uni.showActionSheet({
         itemList: [this.texts.chooseFromAlbum, this.texts.takePhoto],
-        success: res => {
+        success: (res: any) => {
           if (res.tapIndex === 0) {
             uni.chooseImage({
               count: 1,
               sourceType: ['album'],
-              success: chooseRes => {
+              success: (chooseRes: any) => {
                 this.tempAvatar = chooseRes.tempFilePaths[0]
                 this.userInfo.avatar = this.tempAvatar
               }
@@ -207,7 +213,7 @@ export default {
             uni.chooseImage({
               count: 1,
               sourceType: ['camera'],
-              success: chooseRes => {
+              success: (chooseRes: any) => {
                 this.tempAvatar = chooseRes.tempFilePaths[0]
                 this.userInfo.avatar = this.tempAvatar
               }
@@ -217,12 +223,12 @@ export default {
       })
     },
 
-    handleNicknameEdit() {
+    handleNicknameEdit(): void {
       uni.showModal({
         title: this.texts.editNickname,
         editable: true,
         placeholderText: this.texts.enterNickname,
-        success: res => {
+        success: (res: any) => {
           if (res.confirm && res.content) {
             this.userInfo.nickname = res.content
           }
@@ -230,11 +236,11 @@ export default {
       })
     },
 
-    handleBirthdayChange(e) {
+    handleBirthdayChange(e: any): void {
       this.userInfo.birthday = e.detail.value
     },
 
-    loadUserInfo() {
+    loadUserInfo(): void {
       const userInfo = uni.getStorageSync('userInfo') || {}
       this.userInfo = { ...this.userInfo, ...userInfo }
     }

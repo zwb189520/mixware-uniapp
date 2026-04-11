@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view v-show="visible" class="custom-action-mask" @click="handleCancel">
     <view class="custom-action-sheet" @click.stop>
       <view class="action-list">
@@ -19,7 +19,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 export default {
   name: 'CustomActionSheet',
   props: {
@@ -37,11 +36,11 @@ export default {
     }
   },
   methods: {
-    handleSelect(index) {
+    handleSelect(index: number): void {
       this.$emit('select', { tapIndex: index })
       this.$emit('update:visible', false)
     },
-    handleCancel() {
+    handleCancel(): void {
       this.$emit('cancel')
       this.$emit('update:visible', false)
     }

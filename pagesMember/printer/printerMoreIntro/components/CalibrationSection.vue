@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="calibration-section">
     <view class="section-title">
       <text>{{ texts.calibrationTitle || '校准功能' }}</text>
@@ -26,19 +26,25 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface CalibrationOption {
+  id: string
+  name: string
+  desc: string
+  icon: string
+}
 
 export default {
   name: 'CalibrationSection',
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.printerMoreIntro || {}
     },
-    calibrationOptions() {
+    calibrationOptions(): CalibrationOption[] {
       return [
         {
           id: 'auto_level',
@@ -62,7 +68,7 @@ export default {
     }
   },
   methods: {
-    handleCalibration(type) {
+    handleCalibration(type: string): void {
       uni.showToast({
         title: this.texts.startCalibration || '开始校准',
         icon: 'none'

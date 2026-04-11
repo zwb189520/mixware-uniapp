@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="chat-page">
     <safe-area />
     <custom-navbar :title="languageStore.texts.create.aiChat" @back="goBack"> </custom-navbar>
@@ -92,10 +92,9 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { chatStream, stopChat } from '@/api/chat.ts'
 import { audioOffline } from '@/api/audio.ts'
-import { post, get } from '@/api/request.ts'
+import { post } from '@/api/request.ts'
 import {
   getSessionMessages,
   setCurrentSession,
@@ -110,6 +109,20 @@ import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useChatStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface Message {
+  id: string
+  role: string
+  content: string
+  html?: string
+  images?: string[]
+  showSaveBtn?: boolean
+}
+
+interface Example {
+  title?: string
+  describe?: string
+}
 
 export default {
   components: {
@@ -137,26 +150,26 @@ export default {
   },
   data() {
     return {
-      scrollIntoView: '',
-      bottomAnchorId: 'chat-bottom-anchor',
-      streamController: null,
-      partialBuffer: '',
-      loadingSession: false,
-      md: null,
-      lastRenderTime: 0,
-      renderThrottle: 50,
-      pendingRender: false,
-      renderTimer: null,
-      isRecording: false,
-      recorderManager: null
+      scrollIntoView: '' as string,
+      bottomAnchorId: 'chat-bottom-anchor' as string,
+      streamController: null as any,
+      partialBuffer: '' as string,
+      loadingSession: false as boolean,
+      md: null as any,
+      lastRenderTime: 0 as number,
+      renderThrottle: 50 as number,
+      pendingRender: false as boolean,
+      renderTimer: null as any,
+      isRecording: false as boolean,
+      recorderManager: null as any
     }
   },
   computed: {
-    texts() {
+    texts(): any {
       return this.languageStore.texts.create
     }
   },
-  async onLoad(options) {
+  async onLoad(options: any): Promise<void> {
     this.md = new MarkdownIt({
       html: false,
       linkify: true,
@@ -165,12 +178,11 @@ export default {
     this.chatStore.initFromStorage()
     this.languageStore.loadLanguage()
 
-    // this.loadingSession = false
     this.loadHotExamples()
     if (options && options.sessionId) {
       this.chatStore.setSessionId(options.sessionId)
       try {
-        const res = await setCurrentSession(options.sessionId)
+        const res: any = await setCurrentSession(options.sessionId)
         console.log('设置当前会话结果:', res)
         if (res.code === 1 || res.code === 0) {
           await this.loadSessionDetail(options.sessionId)
@@ -178,7 +190,7 @@ export default {
         } else {
           console.error('设置当前会话失败:', res.msg)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('设置当前会话失败:', error)
       }
     } else {
@@ -186,14 +198,14 @@ export default {
     }
     this.scrollToBottom()
   },
-  onUnload() {
+  onUnload(): void {
     if (this.renderTimer) {
       clearTimeout(this.renderTimer)
       this.renderTimer = null
     }
   },
   methods: {
-    loadSessionFromStorage() {
+    loadSessionFromStorage(): boolean {
       try {
         const storedSessionId = uni.getStorageSync('aiChatSessionId')
         const storedSessionData = uni.getStorageSync('aiChatSessionData')
@@ -203,13 +215,13 @@ export default {
           this.chatStore.setSessionData(storedSessionData)
           return true
         }
-      } catch (e) {
+      } catch (e: any) {
         console.warn(this.texts.loadSessionFailed, e)
       }
       return false
     },
 
-    saveSessionToStorage(sessionId, sessionData) {
+    saveSessionToStorage(sessionId: string, sessionData: any): void {
       try {
         uni.setStorageSync('aiChatSessionId', sessionId)
         uni.setStorageSync('aiChatSessionData', {
@@ -217,25 +229,25 @@ export default {
           describe: sessionData.describe || '',
           examples: sessionData.examples || []
         })
-      } catch (e) {
+      } catch (e: any) {
         console.warn(this.texts.saveSessionFailed, e)
       }
     },
 
-    async loadHistory() {
+    async loadHistory(): Promise<void> {
       if (!this.sessionId) {
         this.chatStore.setMessages([])
         return
       }
 
       try {
-        const res = await getSessionMessages(this.sessionId)
+        const res: any = await getSessionMessages(this.sessionId)
 
         const data = res.data || res
         const historyList = data?.list || data?.messages || data || []
 
         if (Array.isArray(historyList) && historyList.length > 0) {
-          const messages = historyList.map((item, index) => ({
+          const messages: Message[] = historyList.map((item: any, index: number) => ({
             id: item.id || `msg-${Date.now()}-${index}`,
             role: item.role || item.type || 'assistant',
             content: item.content || item.message || '',
@@ -247,20 +259,20 @@ export default {
         } else {
           this.chatStore.setMessages([])
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(this.texts.loadHistoryFailed, err)
         this.chatStore.setMessages([])
       }
     },
 
-    async fetchSession() {
+    async fetchSession(): Promise<void> {
       if (this.loadSessionFromStorage()) {
         await this.loadHistory()
         return
       }
 
       try {
-        const res = await post('/session')
+        const res: any = await post('/session')
         const data = res.data || res
 
         if (data && data.sessionId) {
@@ -281,46 +293,43 @@ export default {
         } else {
           this.chatStore.setMessages([])
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(this.texts.fetchSessionFailed, err)
         this.chatStore.setMessages([])
       }
     },
-    goBack() {
+    goBack(): void {
       uni.navigateBack({
         delta: 3
       })
     },
-    goToSessionList() {
+    goToSessionList(): void {
       uni.navigateTo({
         url: '/pages/create/createDetail/sessionList/sessionList'
       })
     },
 
-    async loadSessionDetail(sessionId) {
+    async loadSessionDetail(sessionId: string): Promise<void> {
       try {
-        const res = await getSessionDetail(sessionId)
+        const res: any = await getSessionDetail(sessionId)
         if (res.code === 1 || res.code === 0) {
           const data = res.data || {}
           this.chatStore.sessionTitle = data.title || ''
           this.chatStore.sessionDescribe = data.describe || ''
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载会话详情失败:', error)
       }
     },
 
-    async loadHotExamples() {
+    async loadHotExamples(): Promise<void> {
       try {
-        const res = await getHotExamples(5)
+        const res: any = await getHotExamples(5)
         console.log('热门示例完整响应:', JSON.stringify(res))
         if (res.code === 1 || res.code === 0) {
-          // 处理多种可能的数据结构
           let data = res.data
 
-          // 尝试从不同位置获取数组
           if (Array.isArray(data)) {
-            // 直接是数组
           } else if (data && Array.isArray(data.list)) {
             data = data.list
           } else if (data && Array.isArray(data.records)) {
@@ -339,19 +348,19 @@ export default {
           console.warn('热门示例响应码异常:', res.code, res.msg)
           this.chatStore.setExamples([])
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载热门示例失败:', error)
         this.chatStore.setExamples([])
       }
     },
-    scrollToBottom() {
+    scrollToBottom(): void {
       this.$nextTick(() => {
         const anchor = `chat-bottom-anchor-${Date.now()}`
         this.bottomAnchorId = anchor
         this.scrollIntoView = anchor
       })
     },
-    throttledRender(aiMsg) {
+    throttledRender(aiMsg: Message): void {
       const now = Date.now()
       const timeSinceLastRender = now - this.lastRenderTime
 
@@ -383,7 +392,7 @@ export default {
         }, this.renderThrottle - timeSinceLastRender)
       }
     },
-    async stopStream() {
+    async stopStream(): Promise<void> {
       if (this.streamController && typeof this.streamController.abort === 'function') {
         this.streamController.abort()
       }
@@ -393,22 +402,22 @@ export default {
         try {
           await stopChat(this.sessionId)
           console.log(this.texts.chatStopped)
-        } catch (err) {
+        } catch (err: any) {
           console.error(this.texts.stopChatFailed, err)
         }
       }
     },
-    useExample(example) {
+    useExample(example: Example): void {
       if (example && example.describe) {
         this.inputValue = example.describe
         this.sendMessage()
       }
     },
-    sendMessage() {
+    sendMessage(): void {
       const content = (this.inputValue || '').trim()
       if (!content || this.loading) return
 
-      const userMsg = {
+      const userMsg: Message = {
         id: `user-${Date.now()}`,
         role: 'user',
         content
@@ -433,7 +442,7 @@ export default {
         return
       }
 
-      const aiMsg = {
+      const aiMsg: Message = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
         content: '',
@@ -445,17 +454,17 @@ export default {
 
       const history = this.messages
         .slice(0, this.messages.length - 1)
-        .map(item => ({ role: item.role, content: item.content }))
+        .map((item: any) => ({ role: item.role, content: item.content }))
 
       this.streamController = chatStream(content, this.sessionId, {
-        onMessage: chunk => {
+        onMessage: (chunk: string) => {
           this.partialBuffer += chunk || ''
           this.partialBuffer = this.partialBuffer.replace(/\}\s*\{/g, '}\n{')
           const parts = this.partialBuffer.split('\n')
           this.partialBuffer = parts.pop() || ''
 
           let hasNewContent = false
-          parts.forEach(line => {
+          parts.forEach((line: string) => {
             const text = line.trim()
             if (!text) return
             let appended = false
@@ -470,7 +479,7 @@ export default {
                 appended = true
                 hasNewContent = true
               }
-            } catch (e) {}
+            } catch (e: any) {}
             if (!appended) {
               aiMsg.content += text
               hasNewContent = true
@@ -481,7 +490,7 @@ export default {
             this.throttledRender(aiMsg)
           }
         },
-        onError: err => {
+        onError: (err: any) => {
           this.chatStore.setLoading(false)
         },
         onComplete: () => {
@@ -498,7 +507,7 @@ export default {
               } else {
                 aiMsg.content += this.partialBuffer
               }
-            } catch (e) {
+            } catch (e: any) {
               aiMsg.content += this.partialBuffer
             }
             this.partialBuffer = ''
@@ -517,8 +526,8 @@ export default {
       })
     },
 
-    async generateImage(prompt) {
-      const aiMsg = {
+    async generateImage(prompt: string): Promise<void> {
+      const aiMsg: Message = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
         content: this.texts.generatingImage || '正在生成图片...',
@@ -529,7 +538,7 @@ export default {
       this.scrollToBottom()
 
       try {
-        const res = await asyncTextToImg(prompt)
+        const res: any = await asyncTextToImg(prompt)
         if (res.code === 1 || res.code === 0) {
           const taskId = res.data?.taskId
           if (taskId) {
@@ -542,7 +551,7 @@ export default {
           aiMsg.content = res.msg || this.texts.imageGenerateFailed || '图片生成失败'
           aiMsg.html = aiMsg.content
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('生成图片失败:', error)
         aiMsg.content = this.texts.imageGenerateFailed || '图片生成失败，请重试'
         aiMsg.html = aiMsg.content
@@ -553,14 +562,14 @@ export default {
       }
     },
 
-    async pollImageTask(taskId, aiMsg) {
+    async pollImageTask(taskId: string, aiMsg: Message): Promise<void> {
       const maxAttempts = 30
       const interval = 2000
       let attempts = 0
 
       while (attempts < maxAttempts) {
         try {
-          const res = await queryTextToImgTask(taskId)
+          const res: any = await queryTextToImgTask(taskId)
           if (res.code === 1 || res.code === 0) {
             const data = res.data
             console.log('任务状态:', data.status, 'images:', data.images)
@@ -575,7 +584,7 @@ export default {
                 aiMsg.images = images
                 aiMsg.content = images
                   .map(
-                    (img, idx) =>
+                    (img: string, idx: number) =>
                       `<img src="${img}" data-idx="${idx}" style="max-width:100%;border-radius:8px;margin:8px 0;">`
                   )
                   .join('')
@@ -597,19 +606,19 @@ export default {
               return
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('查询任务状态失败:', error)
         }
         attempts++
         if (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, interval))
+          await new Promise<void>(resolve => setTimeout(resolve, interval))
         }
       }
       aiMsg.content = '图片生成超时，请重试'
       aiMsg.html = aiMsg.content
     },
 
-    async saveImages(images) {
+    async saveImages(images: string[]): Promise<void> {
       if (!images || images.length === 0) return
 
       uni.showLoading({ title: this.texts.saving || '保存中...' })
@@ -617,30 +626,30 @@ export default {
       try {
         for (let i = 0; i < images.length; i++) {
           const imgUrl = images[i]
-          const downloadRes = await uni.downloadFile({ url: imgUrl })
+          const downloadRes: any = await uni.downloadFile({ url: imgUrl })
           if (downloadRes.statusCode === 200) {
             await uni.saveImageToPhotosAlbum({ filePath: downloadRes.tempFilePath })
           }
         }
         uni.hideLoading()
         uni.showToast({ title: this.texts.saveSuccess || '保存成功', icon: 'success' })
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         console.error('保存图片失败:', error)
         uni.showToast({ title: this.texts.saveFailed || '保存失败', icon: 'none' })
       }
     },
-    initRecorder() {
+    initRecorder(): void {
       if (!this.recorderManager) {
         this.recorderManager = uni.getRecorderManager()
-        this.recorderManager.onStop(async res => {
+        this.recorderManager.onStop(async (res: any) => {
           if (res.duration < 500) {
             uni.showToast({ title: this.texts.recordingTooShort || '录音时间太短', icon: 'none' })
             return
           }
           uni.showLoading({ title: this.texts.recognizing || '识别中...' })
           try {
-            const result = await audioOffline(res.tempFilePath)
+            const result: any = await audioOffline(res.tempFilePath)
             uni.hideLoading()
             if (result.code === 1 || result.code === 0) {
               this.inputValue = result.data || ''
@@ -653,7 +662,7 @@ export default {
                 icon: 'none'
               })
             }
-          } catch (err) {
+          } catch (err: any) {
             uni.hideLoading()
             console.error('语音识别失败:', err)
             uni.showToast({ title: this.texts.recognitionFailed || '识别失败', icon: 'none' })
@@ -661,7 +670,7 @@ export default {
         })
       }
     },
-    startRecord() {
+    startRecord(): void {
       this.initRecorder()
       this.recorderManager.start({
         format: 'mp3',
@@ -669,13 +678,13 @@ export default {
       })
       this.isRecording = true
     },
-    stopRecord() {
+    stopRecord(): void {
       if (this.isRecording) {
         this.recorderManager.stop()
         this.isRecording = false
       }
     },
-    cancelRecord() {
+    cancelRecord(): void {
       if (this.isRecording) {
         this.recorderManager.stop()
         this.isRecording = false

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="category-tabs">
     <view
       class="tab-item"
@@ -15,12 +15,21 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
+interface Tab {
+  label: string
+  value: string
+}
+
+interface IndicatorStyle {
+  left: string
+  width: string
+}
+
 export default {
   name: 'CategoryTabs',
   props: {
     tabs: {
-      type: Array,
+      type: Array as () => Tab[],
       required: true,
       default: () => [
         { label: '每日推荐', value: 'daily' },
@@ -38,29 +47,29 @@ export default {
       indicatorStyle: {
         left: '0rpx',
         width: '40rpx'
-      }
+      } as IndicatorStyle
     }
   },
-  mounted() {
+  mounted(): void {
     this.updateIndicator()
   },
   watch: {
-    currentTab() {
+    currentTab(): void {
       this.updateIndicator()
     }
   },
   methods: {
-    handleTabClick(tabValue) {
+    handleTabClick(tabValue: string): void {
       if (tabValue !== this.currentTab) {
         this.$emit('tab-change', tabValue)
       }
     },
-    updateIndicator() {
+    updateIndicator(): void {
       this.$nextTick(() => {
         const query = uni.createSelectorQuery().in(this)
         query.select('.category-tabs').boundingClientRect()
         query.select('#tab-' + this.currentTab).boundingClientRect()
-        query.exec(res => {
+        query.exec((res: any) => {
           if (res && res[0] && res[1]) {
             const containerRect = res[0]
             const tabRect = res[1]

@@ -168,7 +168,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
@@ -185,6 +184,45 @@ import {
 import { getPostList, toggleLike, checkLikeStatus } from '@/api/community.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
+interface ModelInfo {
+  id: string
+  name: string
+  description: string
+  category: string
+  copyright: string
+  images: string[]
+  likes: number
+  collections: number
+  isLiked: boolean
+  isCollected: boolean
+  author: string
+  authorAvatar: string
+  modelFile?: string
+}
+
+interface PrintModel {
+  id: string | number
+  name: string
+  image: string
+  modelFile?: string
+  size: string
+  printTime: string
+  filamentLength?: string
+}
+
+interface ShowcaseWork {
+  id: string | number
+  image: string
+  likes: number
+  isLiked: boolean
+  likeCount: number
+  userName?: string
+  userAvatar?: string
+  info?: string
+  desc?: string
+  title?: string
+}
+
 export default {
   components: {
     CustomNavbar,
@@ -193,44 +231,44 @@ export default {
   },
   data() {
     return {
-      modelId: null,
-      currentCarouselIndex: 0,
-      loading: true, // 添加加载状态
+      modelId: null as string | number | null,
+      currentCarouselIndex: 0 as number,
+      loading: true as boolean,
       modelInfo: {
         id: '',
         name: '',
         description: '',
         category: '',
         copyright: '',
-        images: [],
+        images: [] as string[],
         likes: 0,
         collections: 0,
         isLiked: false,
         isCollected: false,
         author: '',
         authorAvatar: ''
-      },
-      printModels: [],
-      showcaseWorks: [],
-      isDescriptionExpanded: false,
-      showExpandBtn: false
+      } as ModelInfo,
+      printModels: [] as PrintModel[],
+      showcaseWorks: [] as ShowcaseWork[],
+      isDescriptionExpanded: false as boolean,
+      showExpandBtn: false as boolean
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     },
-    showcaseLeftList() {
+    showcaseLeftList(): ShowcaseWork[] {
       return this.showcaseWorks.filter((_, i) => i % 2 === 0)
     },
-    showcaseRightList() {
+    showcaseRightList(): ShowcaseWork[] {
       return this.showcaseWorks.filter((_, i) => i % 2 === 1)
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.languageStore.loadLanguage()
     if (options.id) {
       this.modelId = options.id
@@ -245,25 +283,24 @@ export default {
       }, 1500)
     }
 
-    uni.$on('postDeleted', deletedPostId => {
+    uni.$on('postDeleted', (deletedPostId: string | number) => {
       if (this.modelId) {
         this.refreshShowcaseWorks()
       }
     })
 
-    uni.$on('postCreated', modelId => {
+    uni.$on('postCreated', (modelId: string | number) => {
       if (modelId && String(modelId) === String(this.modelId)) {
         this.refreshShowcaseWorks()
       }
     })
   },
-  onUnload() {
+  onUnload(): void {
     uni.$off('postDeleted')
     uni.$off('postCreated')
   },
-  onShow() {
+  onShow(): void {
     if (this.modelId) {
-      // 检查是否需要刷新作品展示
       const needRefreshModelId = uni.getStorageSync('needRefreshShowcase')
       if (needRefreshModelId && String(needRefreshModelId) === String(this.modelId)) {
         console.log('检测到需要刷新作品展示，modelId:', this.modelId)
@@ -275,21 +312,19 @@ export default {
     }
   },
   methods: {
-    // 刷新晒物作品列表
-    async refreshShowcaseWorks() {
+    async refreshShowcaseWorks(): Promise<void> {
       if (!this.modelId) return
       await this.checkFavoriteStatus()
       await this.loadShowcaseWorks()
     },
-    async loadShowcaseWorks() {
+    async loadShowcaseWorks(): Promise<void> {
       if (!this.modelId) return
       if (!uni.getStorageSync('isLoggedIn')) {
         this.showcaseWorks = []
         return
       }
       try {
-        // 后端按modelId查询有bug，先查询所有帖子再过滤
-        const res = await getPostList({
+        const res: any = await getPostList({
           current: 1,
           size: 100
         })
@@ -297,8 +332,8 @@ export default {
         if (res.code === 0 || res.code === 1) {
           const records = res.data?.records || res.data || []
           this.showcaseWorks = records
-            .filter(post => String(post.modelId) === String(this.modelId))
-            .map(post => ({
+            .filter((post: any) => String(post.modelId) === String(this.modelId))
+            .map((post: any) => ({
               ...post,
               id: post.postId,
               image: post.imageUrls?.[0] || '/static/images/3Dprinter.png',
@@ -307,51 +342,48 @@ export default {
               userName: post.username,
               userAvatar: post.avatarUrl
             }))
-          // 后端返回的 isLiked 可能不正确，批量检查真实点赞状态
           this.checkWorksLikeStatus()
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载晒物作品失败:', error)
       }
     },
 
-    async checkWorksLikeStatus() {
-      // 批量检查每个帖子的点赞状态
+    async checkWorksLikeStatus(): Promise<void> {
       for (const work of this.showcaseWorks) {
         if (!work.id || String(work.id).includes('mock')) continue
         try {
-          const res = await checkLikeStatus('POST', work.id)
+          const res: any = await checkLikeStatus('POST', String(work.id))
           if (res.code === 0 || res.code === 1) {
             work.isLiked = res.data
           }
-        } catch (e) {
-          // 忽略单个检查失败
+        } catch (e: any) {
         }
       }
     },
-    checkDescriptionLength() {
+    checkDescriptionLength(): void {
       const text = this.modelInfo.description || ''
       const avgCharsPerLine = 20
       const estimatedLines = Math.ceil(text.length / avgCharsPerLine)
       this.showExpandBtn = estimatedLines > 5
     },
-    async checkFavoriteStatus() {
+    async checkFavoriteStatus(): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) return
       try {
-        const res = await getFavoriteModels()
+        const res: any = await getFavoriteModels()
         if (res.code === 1 && res.data) {
-          const isCollected = res.data.some(item => String(item.modelId) === String(this.modelId))
+          const isCollected = res.data.some((item: any) => String(item.modelId) === String(this.modelId))
           this.modelInfo.isCollected = isCollected
           console.log('检查收藏状态:', isCollected)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('检查收藏状态失败:', error)
       }
     },
-    toggleDescription() {
+    toggleDescription(): void {
       this.isDescriptionExpanded = !this.isDescriptionExpanded
     },
-    async loadModelDetail(id) {
+    async loadModelDetail(id: string | number): Promise<void> {
       if (!id || String(id) === 'NaN' || String(id) === 'undefined') {
         this.loading = false
         uni.showToast({
@@ -361,25 +393,23 @@ export default {
         return
       }
 
-      this.loading = true // 开始加载
+      this.loading = true
       try {
         const isLoggedIn = uni.getStorageSync('isLoggedIn')
 
-        // 1. 首先加载最核心的模型详情
-        const detailRes = await getModelDetail(id)
+        const detailRes: any = await getModelDetail(id)
         if (!detailRes || (detailRes.code !== 0 && detailRes.code !== 1)) {
           throw new Error(detailRes?.msg || '获取详情失败')
         }
 
         const data = detailRes.data || {}
-        const fixImageUrl = url => {
+        const fixImageUrl = (url: string): string => {
           if (!url) return ''
           return url
             .replace('localhost:9000', '47.102.212.37:9000')
             .replace('api/uploads/image', '9000/image')
         }
 
-        // 2. 初始化基础信息（确保用户能看到东西）
         this.modelInfo = {
           id: String(id),
           name: data.name || '',
@@ -401,50 +431,47 @@ export default {
           modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
         }
 
-        // 3. 获取正确的点赞数（从列表接口）和点赞状态
         try {
           const [pageRes, likeRes] = await Promise.all([
             getModelPage({ current: 1, size: 1, name: data.name }).catch(() => null),
             checkModelLike(id).catch(() => null)
           ])
 
-          if (pageRes && pageRes.code === 1 && pageRes.data && pageRes.data.records) {
-            const modelFromPage = pageRes.data.records.find(m => String(m.modelId) === String(id))
+          if (pageRes && (pageRes as any).code === 1 && (pageRes as any).data && (pageRes as any).data.records) {
+            const modelFromPage = (pageRes as any).data.records.find((m: any) => String(m.modelId) === String(id))
             if (modelFromPage) {
               this.modelInfo.likes = modelFromPage.likeCount || 0
               this.modelInfo.isLiked = modelFromPage.isLiked || false
             }
           }
-          if (likeRes && likeRes.code === 1) {
-            this.modelInfo.isLiked = likeRes.data === true
+          if (likeRes && (likeRes as any).code === 1) {
+            this.modelInfo.isLiked = (likeRes as any).data === true
           }
-        } catch (e) {
+        } catch (e: any) {
           console.warn('获取点赞信息失败:', e)
         }
 
-        // 4. 获取收藏状态
         if (isLoggedIn) {
           try {
             const favoriteRes = await getFavoriteModels().catch(() => null)
-            if (favoriteRes && favoriteRes.code === 1 && favoriteRes.data) {
-              this.modelInfo.isCollected = favoriteRes.data.some(
-                item => String(item.modelId) === String(id)
+            if (favoriteRes && (favoriteRes as any).code === 1 && (favoriteRes as any).data) {
+              this.modelInfo.isCollected = (favoriteRes as any).data.some(
+                (item: any) => String(item.modelId) === String(id)
               )
             }
-          } catch (e) {
+          } catch (e: any) {
             console.warn('获取收藏状态失败:', e)
           }
         }
 
-        let modelParam = {}
+        let modelParam: any = {}
         try {
           if (data.modelParam) {
             modelParam =
               typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
           }
-        } catch (e) {}
+        } catch (e: any) {}
 
-        // 解析尺寸、打印时间和耗材长度
         let dimensions = modelParam.dimensions || modelParam.size || modelParam.modelSize || ''
         let printTimeMinutes =
           modelParam.print_time_minutes ||
@@ -466,10 +493,10 @@ export default {
           }
         ]
         this.checkDescriptionLength()
-        this.loading = false // 结束加载
+        this.loading = false
         this.loadShowcaseWorks()
-      } catch (error) {
-        this.loading = false // 确保错误时也结束加载
+      } catch (error: any) {
+        this.loading = false
         uni.showToast({
           title: error.message || this.texts.loadFailed,
           icon: 'none'
@@ -477,11 +504,11 @@ export default {
       }
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    fixBlobUrl(url) {
+    fixBlobUrl(url: string): string {
       if (!url) return ''
       if (typeof url === 'string' && (url.startsWith('blob:') || url.startsWith('file://'))) {
         return '/static/images/3Dprinter.png'
@@ -489,14 +516,14 @@ export default {
       return url
     },
 
-    handleMore() {
+    handleMore(): void {
       uni.showActionSheet({
         itemList: [
           this.texts.share || '分享',
           this.texts.report || '举报',
           this.texts.collect || '收藏'
         ],
-        success: res => {
+        success: (res: any) => {
           switch (res.tapIndex) {
             case 0:
               this.handleShare()
@@ -512,7 +539,7 @@ export default {
       })
     },
 
-    async handleLike() {
+    async handleLike(): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -522,16 +549,14 @@ export default {
         return
       }
 
-      // 乐观更新 UI
       this.modelInfo.isLiked = !this.modelInfo.isLiked
       this.modelInfo.likes += this.modelInfo.isLiked ? 1 : -1
 
       try {
-        const res = this.modelInfo.isLiked
+        const res: any = this.modelInfo.isLiked
           ? await likeModel(this.modelId)
           : await unlikeModel(this.modelId)
         if (res.code !== 1) {
-          // 如果后端返回失败，回滚 UI
           this.modelInfo.isLiked = !this.modelInfo.isLiked
           this.modelInfo.likes += this.modelInfo.isLiked ? 1 : -1
           uni.showToast({
@@ -543,15 +568,13 @@ export default {
             title: this.modelInfo.isLiked ? this.texts.likeSuccess : this.texts.cancelLike,
             icon: 'success'
           })
-          // 通知 explore 页面更新点赞状态
           uni.$emit('modelLikeChanged', {
             modelId: this.modelId,
             isLiked: this.modelInfo.isLiked,
             likes: this.modelInfo.likes
           })
         }
-      } catch (error) {
-        // 网络错误回滚 UI
+      } catch (error: any) {
         this.modelInfo.isLiked = !this.modelInfo.isLiked
         this.modelInfo.likes += this.modelInfo.isLiked ? 1 : -1
         console.error('点赞操作失败:', error)
@@ -562,7 +585,7 @@ export default {
       }
     },
 
-    async handleCollect() {
+    async handleCollect(): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -572,7 +595,6 @@ export default {
         return
       }
 
-      // 乐观更新UI
       this.modelInfo.isCollected = !this.modelInfo.isCollected
       this.modelInfo.collections += this.modelInfo.isCollected ? 1 : -1
 
@@ -587,8 +609,7 @@ export default {
           title: this.modelInfo.isCollected ? this.texts.collectSuccess : this.texts.cancelCollect,
           icon: 'success'
         })
-      } catch (error) {
-        // 回滚UI
+      } catch (error: any) {
         this.modelInfo.isCollected = !this.modelInfo.isCollected
         this.modelInfo.collections += this.modelInfo.isCollected ? 1 : -1
 
@@ -598,28 +619,28 @@ export default {
         })
       }
     },
-    async updateModelCount() {
+    async updateModelCount(): Promise<void> {
       try {
-        const res = await getModelPage({ current: 1, size: 100 })
+        const res: any = await getModelPage({ current: 1, size: 100 })
         if (res.code === 1 && res.data && res.data.records) {
-          const model = res.data.records.find(m => String(m.modelId) === String(this.modelId))
+          const model = res.data.records.find((m: any) => String(m.modelId) === String(this.modelId))
           if (model) {
             this.modelInfo.collections = model.collectCount || 0
             this.modelInfo.likes = model.likeCount || 0
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('更新模型数量失败:', error)
       }
     },
 
-    handleShare() {
+    handleShare(): void {
       uni.showShareMenu({
         withShareTicket: true
       })
     },
 
-    handleCreatePost() {
+    handleCreatePost(): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -629,12 +650,12 @@ export default {
       })
     },
 
-    handlePrint() {
+    handlePrint(): void {
       const modelId = this.modelInfo.id || this.modelId || ''
       const modelName = this.modelInfo.name || '3D模型'
-      const modelUrl = this.modelInfo.modelFile || this.modelInfo.images[0] || ''
+      const modelUrl = this.modelInfo.modelFile || (this.modelInfo.images && this.modelInfo.images[0]) || ''
 
-      const ext = modelUrl.split('.').pop().toLowerCase()
+      const ext = modelUrl.split('.').pop()?.toLowerCase() || ''
       if (ext === 'gcode') {
         uni.showModal({
           title: this.texts.formatNotSupported,
@@ -644,7 +665,6 @@ export default {
         return
       }
 
-      // 获取尺寸信息
       const printModel = this.printModels[0] || {}
       const dimensions = {
         x: 0,
@@ -652,9 +672,7 @@ export default {
         z: 0
       }
 
-      // 解析尺寸信息
       if (printModel.size) {
-        // 匹配格式：200mm × 150mm × 100mm
         const sizeMatch = printModel.size.match(/([\d.]+)mm[^\d]+([\d.]+)mm[^\d]+([\d.]+)mm/)
         if (sizeMatch) {
           dimensions.x = parseFloat(sizeMatch[1])
@@ -669,29 +687,29 @@ export default {
       })
     },
 
-    handleCarouselChange(e) {
+    handleCarouselChange(e: any): void {
       this.currentCarouselIndex = e.detail.current
     },
 
-    handleImageClick(index) {
+    handleImageClick(index: number): void {
       uni.previewImage({
         urls: this.modelInfo.images,
         current: index
       })
     },
 
-    handleImageError(e) {
+    handleImageError(e: any): void {
       e.target.src = '/static/images/3Dprinter.png'
     },
 
-    handleAuthorClick() {
+    handleAuthorClick(): void {
       uni.showToast({
         title: this.texts.viewAuthorProfile || '查看作者主页',
         icon: 'none'
       })
     },
 
-    async handleDelete() {
+    async handleDelete(): Promise<void> {
       if (!this.modelId) {
         uni.showToast({ title: this.texts.modelIdNotFound || '模型ID不存在', icon: 'none' })
         return
@@ -701,22 +719,21 @@ export default {
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteModel || '确定要删除这个模型吗？删除后无法恢复。',
         confirmColor: '#FF0000',
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             uni.showLoading({ title: this.texts.deleting || '删除中...' })
             try {
-              const deleteRes = await deleteModel(this.modelId)
+              const deleteRes: any = await deleteModel(this.modelId || '')
               if (deleteRes.code === 1 || deleteRes.code === 200) {
                 uni.hideLoading()
                 uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
-                // 返回上一页
                 setTimeout(() => {
                   uni.navigateBack()
                 }, 1500)
               } else {
                 throw new Error(deleteRes.msg || this.texts.deleteFailed || '删除失败')
               }
-            } catch (error) {
+            } catch (error: any) {
               uni.hideLoading()
               uni.showToast({
                 title: error.message || this.texts.deleteFailed || '删除失败',
@@ -728,8 +745,7 @@ export default {
       })
     },
 
-    handlePrintModelClick(model) {
-      // 解析尺寸信息
+    handlePrintModelClick(model: PrintModel): void {
       const dimensions = {
         x: 0,
         y: 0,
@@ -737,7 +753,6 @@ export default {
       }
 
       if (model.size) {
-        // 匹配格式：200mm × 150mm × 100mm
         const sizeMatch = model.size.match(/([\d.]+)mm[^\d]+([\d.]+)mm[^\d]+([\d.]+)mm/)
         if (sizeMatch) {
           dimensions.x = parseFloat(sizeMatch[1])
@@ -751,8 +766,7 @@ export default {
       })
     },
 
-    handleWorkClick(work) {
-      // 跳转到作品详情页
+    handleWorkClick(work: ShowcaseWork): void {
       const workId = work.id || `mock_${Date.now()}`
       const title = work.info || work.desc || work.title || this.modelInfo.name || ''
       const image = work.image || ''
@@ -762,7 +776,7 @@ export default {
       })
     },
 
-    async handleWorkLike(work) {
+    async handleWorkLike(work: ShowcaseWork): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -780,21 +794,18 @@ export default {
 
       if (!isMock) {
         try {
-          const res = await toggleLike('POST', work.id)
+          const res: any = await toggleLike('POST', String(work.id))
           if (res.code === 0 || res.code === 1) {
-            // toggleLike 返回的 data 可能不正确，调用 checkLikeStatus 确认真实状态
-            const checkRes = await checkLikeStatus('POST', work.id)
+            const checkRes: any = await checkLikeStatus('POST', String(work.id))
             if (checkRes.code === 0 || checkRes.code === 1) {
               work.isLiked = checkRes.data
             }
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('点赞失败:', e)
         }
       } else {
-        // 如果是本地 mock ID，更新本地存储
         if (work.id && (String(work.id).startsWith('mock_') || String(work.id) === '1')) {
-          // 更新本地存储的点赞状态
           const index = this.showcaseWorks.findIndex(w => w.id === work.id)
           if (index !== -1) {
             this.showcaseWorks[index] = { ...work }
@@ -803,9 +814,8 @@ export default {
       }
     },
 
-    getCategoryDisplayName(category) {
-      // 如果传入的是中文分类，则返回对应语言的显示名称
-      const categoryMap = {
+    getCategoryDisplayName(category: string): string {
+      const categoryMap: Record<string, string> = {
         日用居家: this.texts.dailyUse,
         玩具手办: this.texts.toyFigure,
         时尚穿戴: this.texts.fashionWear,
@@ -814,16 +824,13 @@ export default {
         艺术创意: this.texts.artCreative
       }
 
-      // 如果找到对应的分类翻译则返回，否则返回原始值或空字符串
       return categoryMap[category] || category || ''
     },
 
-    formatPrintTime(timeStr) {
+    formatPrintTime(timeStr: string): string {
       if (!timeStr) return ''
 
-      // 如果是英文环境，转换时间格式
       if (this.languageStore.language === 'en') {
-        // 匹配中文时间格式：4小时30分钟
         const match = timeStr.match(/(\d+)小时(\d+)分钟/)
         if (match) {
           const hours = match[1]
@@ -831,13 +838,11 @@ export default {
           return `${hours}h ${minutes}m`
         }
 
-        // 匹配只有小时：4小时
         const hourMatch = timeStr.match(/(\d+)小时/)
         if (hourMatch) {
           return `${hourMatch[1]}h`
         }
 
-        // 匹配只有分钟：30分钟
         const minuteMatch = timeStr.match(/(\d+)分钟/)
         if (minuteMatch) {
           return `${minuteMatch[1]}m`

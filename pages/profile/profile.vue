@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="profile-page">
     <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
     <view class="header-right">
@@ -20,7 +20,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import ProfileUserInfo from './components/ProfileUserInfo.vue'
 import ProfileStats from './components/ProfileStats.vue'
 import ProfileMedals from './components/ProfileMedals.vue'
@@ -39,32 +38,31 @@ export default {
   },
   data() {
     return {
-      statusBarHeight: 0
+      statusBarHeight: 0 as number
     }
   },
-  onLoad() {
+  onLoad(): void {
     const systemInfo = uni.getSystemInfoSync()
-    this.statusBarHeight = systemInfo.statusBarHeight
+    this.statusBarHeight = systemInfo.statusBarHeight || 0
   },
-  onShow() {
-    // 页面显示时更新TabBar语言
+  onShow(): void {
     const languageStore = useLanguageStore()
     languageStore.updateTabBar()
 
     this.$nextTick(() => {
-      const comp = this.$refs.printerPartner
+      const comp = this.$refs.printerPartner as any
       if (comp) {
         comp.checkPrinterStatus()
       }
     })
   },
   methods: {
-    handleSettings() {
+    handleSettings(): void {
       uni.navigateTo({
         url: '/pagesMember/user/settings/settings'
       })
     },
-    handleNotification() {
+    handleNotification(): void {
       const userStore = useUserStore()
       if (!userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })

@@ -51,10 +51,17 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { getFollowingList, getFollowersList, toggleFollow } from '@/api/community'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface FollowUser {
+  userId: string
+  username: string
+  avatarUrl: string
+  bio: string
+  isFollowing: boolean
+}
 
 export default {
   components: {
@@ -62,29 +69,29 @@ export default {
   },
   data() {
     return {
-      userId: '',
-      activeTab: 'following',
-      followingList: [],
-      followersList: [],
-      followingCount: 0,
-      followersCount: 0
+      userId: '' as string,
+      activeTab: 'following' as string,
+      followingList: [] as FollowUser[],
+      followersList: [] as FollowUser[],
+      followingCount: 0 as number,
+      followersCount: 0 as number
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.followList
     },
-    pageTitle() {
+    pageTitle(): string {
       return this.activeTab === 'following' ? this.texts.followingTitle : this.texts.followersTitle
     },
-    currentList() {
+    currentList(): FollowUser[] {
       return this.activeTab === 'following' ? this.followingList : this.followersList
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.userId = options.userId || uni.getStorageSync('userInfo')?.userId || ''
     this.activeTab = options.tab || 'following'
     this.languageStore.loadLanguage()
@@ -95,9 +102,9 @@ export default {
     }
   },
   methods: {
-    async loadFollowingList() {
+    async loadFollowingList(): Promise<void> {
       try {
-        const res = await getFollowingList(this.userId)
+        const res: any = await getFollowingList(this.userId)
         if (res.code === 0) {
           this.followingList = res.data || []
           this.followingCount = this.followingList.length
@@ -107,9 +114,9 @@ export default {
       }
     },
 
-    async loadFollowersList() {
+    async loadFollowersList(): Promise<void> {
       try {
-        const res = await getFollowersList(this.userId)
+        const res: any = await getFollowersList(this.userId)
         if (res.code === 0) {
           this.followersList = res.data || []
           this.followersCount = this.followersList.length
@@ -119,13 +126,12 @@ export default {
       }
     },
 
-    switchTab(tab) {
+    switchTab(tab: string): void {
       this.activeTab = tab
     },
 
-    async handleFollowToggle(user) {
+    async handleFollowToggle(user: FollowUser): Promise<void> {
       try {
-        // 防止关注自己
         const currentUserId = uni.getStorageSync('userInfo')?.userId || ''
         if (user.userId && currentUserId && String(user.userId) === String(currentUserId)) {
           uni.showToast({
@@ -135,12 +141,11 @@ export default {
           return
         }
 
-        const res = await toggleFollow(user.userId)
+        const res: any = await toggleFollow(user.userId)
         if (res.code === 0) {
           const isFollowing = res.data
           user.isFollowing = isFollowing
 
-          // 如果当前是关注列表，取消关注后从列表中移除该用户
           if (this.activeTab === 'following' && !isFollowing) {
             const index = this.followingList.findIndex(u => u.userId === user.userId)
             if (index !== -1) {
@@ -149,13 +154,10 @@ export default {
             }
           }
 
-          // 如果当前是粉丝列表，更新关注状态即可
           if (this.activeTab === 'followers') {
-            // 重新加载粉丝列表以确保数据一致性
             this.loadFollowersList()
           }
 
-          // 重新加载关注列表和粉丝数，确保数据准确
           this.loadFollowingList()
           this.loadFollowersList()
 
@@ -170,13 +172,13 @@ export default {
       }
     },
 
-    goToUserProfile(userId) {
+    goToUserProfile(userId: string): void {
       uni.navigateTo({
         url: `/pages/profile/profile?userId=${userId}`
       })
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     }
   }

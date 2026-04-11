@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="info-section">
     <view class="info-item" @click="handleEditName">
       <text class="info-label">{{ texts.nameLabel || '名称' }}</text>
@@ -32,8 +32,17 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { getDeviceInfo, updateDeviceInfo } from '@/api/devices.ts'
+import { useLanguageStore } from '@/stores/index.ts'
+
+interface DeviceInfoData {
+  deviceName: string
+  remark: string
+  snCode: string
+  deviceId: string
+  bindTime: string
+  [key: string]: any
+}
 
 export default {
   name: 'PrinterInfoSection',
@@ -45,16 +54,24 @@ export default {
   },
   data() {
     return {
-      printerName: '',
-      printerRemark: '',
-      printerSN: '',
-      printerMAC: '',
-      bindTime: '-'
+      printerName: '' as string,
+      printerRemark: '' as string,
+      printerSN: '' as string,
+      printerMAC: '' as string,
+      bindTime: '-' as string
+    }
+  },
+  computed: {
+    languageStore(): any {
+      return useLanguageStore()
+    },
+    texts(): any {
+      return this.languageStore?.texts?.printerMoreIntro || {}
     }
   },
   watch: {
     deviceId: {
-      handler(val) {
+      handler(val: string): void {
         if (val) {
           this.loadDeviceInfo()
         }
@@ -63,12 +80,12 @@ export default {
     }
   },
   methods: {
-    async loadDeviceInfo() {
+    async loadDeviceInfo(): Promise<void> {
       if (!this.deviceId) return
       try {
-        const res = await getDeviceInfo(this.deviceId)
+        const res: any = await getDeviceInfo(this.deviceId)
         if (res.data) {
-          const info = res.data
+          const info: DeviceInfoData = res.data
           this.printerName = info.deviceName || this.texts.unnamedDevice || '未命名设备'
           this.printerRemark = info.remark || ''
           this.printerSN = info.snCode || '-'
@@ -80,13 +97,13 @@ export default {
         console.error('获取设备信息失败:', error)
       }
     },
-    handleEditName() {
+    handleEditName(): void {
       uni.showModal({
         title: this.texts.editDeviceName || '修改设备名称',
         editable: true,
         placeholderText: this.texts.enterNewDeviceName || '请输入新的设备名称',
         content: this.printerName,
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm && res.content.trim()) {
             const newName = res.content.trim()
             try {
@@ -100,7 +117,6 @@ export default {
                 title: this.texts.editSuccess || '修改成功',
                 icon: 'success'
               })
-              // 刷新信息
               this.loadDeviceInfo()
             } catch (error) {
               uni.showToast({
@@ -112,13 +128,13 @@ export default {
         }
       })
     },
-    handleEditRemark() {
+    handleEditRemark(): void {
       uni.showModal({
         title: this.texts.editRemark || '修改备注',
         editable: true,
         placeholderText: this.texts.enterDeviceRemark || '请输入设备备注',
         content: this.printerRemark,
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             const newRemark = res.content.trim()
             try {

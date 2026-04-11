@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 <template>
   <view class="my-favorites-page">
     <safe-area />
@@ -27,11 +27,20 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { getFavoriteModels } from '@/api/userFavorite'
+
+interface FavoriteItem {
+  id: number | string
+  favoriteId: number | string
+  title: string
+  image: string
+  time: string
+  collectCount: number
+  groupId: number | string
+}
 
 export default {
   name: 'MyFavorites',
@@ -41,38 +50,38 @@ export default {
   },
   data() {
     return {
-      favoritesList: [],
-      loading: false
+      favoritesList: [] as FavoriteItem[],
+      loading: false as boolean
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.myFavorites || {}
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.loadFavorites()
   },
-  onShow() {
+  onShow(): void {
     this.loadFavorites()
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    async loadFavorites() {
+    async loadFavorites(): Promise<void> {
       if (this.loading) return
       this.loading = true
 
       try {
-        const res = await getFavoriteModels()
+        const res: any = await getFavoriteModels()
         console.log('收藏列表响应:', res)
         if (res.code === 1 && res.data) {
-          this.favoritesList = res.data.map(item => ({
+          this.favoritesList = res.data.map((item: any) => ({
             id: item.modelId,
             favoriteId: item.favoriteId,
             title: item.name,
@@ -92,17 +101,17 @@ export default {
         this.loading = false
       }
     },
-    fixImageUrl(url) {
+    fixImageUrl(url: string): string {
       if (!url) return ''
       return url
         .replace('localhost:9000', '47.102.212.37:9000')
         .replace('api/uploads/image', '9000/image')
     },
-    formatTime(timeStr) {
+    formatTime(timeStr: string): string {
       if (!timeStr) return ''
       const date = new Date(timeStr)
       const now = new Date()
-      const diff = now - date
+      const diff = now.getTime() - date.getTime()
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24))
       if (days > 0) return `${days}${this.texts.daysAgo || '天前'}`
@@ -115,7 +124,7 @@ export default {
 
       return this.texts.justNow || '刚刚'
     },
-    handleItemClick(item) {
+    handleItemClick(item: FavoriteItem): void {
       uni.navigateTo({
         url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
       })

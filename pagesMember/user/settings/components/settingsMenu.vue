@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="settings-menu">
     <view class="menu-section">
       <view
@@ -29,33 +29,37 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 import { logout } from '@/api/users.ts'
+
+interface MenuItem {
+  id: number
+  title: string
+}
 
 export default {
   name: 'SettingsMenu',
   data() {
     return {
-      isLoggedIn: false,
+      isLoggedIn: false as boolean,
       menuItems: [
         { id: 1, title: '个人资料' },
         { id: 2, title: '账户与安全' }
-      ]
+      ] as MenuItem[]
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    languageLabel() {
+    languageLabel(): string {
       return this.languageStore.language === 'en' ? 'English' : '中文'
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.settings
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.updateMenuItems()
     this.checkLoginStatus()
@@ -67,34 +71,34 @@ export default {
     })
   },
 
-  onShow() {
+  onShow(): void {
     this.checkLoginStatus()
   },
 
-  beforeDestroy() {
+  beforeDestroy(): void {
     uni.$off('userLogout')
     uni.$off('userLogin')
   },
   watch: {
-    'languageStore.language'() {
+    'languageStore.language'(): void {
       this.updateMenuItems()
     }
   },
   methods: {
-    checkLoginStatus() {
+    checkLoginStatus(): void {
       this.isLoggedIn = uni.getStorageSync('isLoggedIn') || false
     },
-    updateMenuItems() {
+    updateMenuItems(): void {
       this.menuItems = [
         { id: 1, title: this.texts.profile },
         { id: 2, title: this.texts.account }
       ]
     },
-    handleLanguageClick() {
+    handleLanguageClick(): void {
       const options = ['中文', 'English']
       uni.showActionSheet({
         itemList: options,
-        success: res => {
+        success: (res: any) => {
           if (typeof res.tapIndex !== 'number') return
           const lang = res.tapIndex === 1 ? 'en' : 'zh'
           this.languageStore.setLanguage(lang)
@@ -104,7 +108,7 @@ export default {
         }
       })
     },
-    handleMenuClick(item) {
+    handleMenuClick(item: MenuItem): void {
       if (item.id === 1) {
         const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
         if (!isLoggedIn) {
@@ -130,11 +134,11 @@ export default {
       }
       console.log('点击菜单:', item.title)
     },
-    handleLogout() {
+    handleLogout(): void {
       uni.showModal({
         title: this.texts.logoutTitle,
         content: this.texts.logoutContent,
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             try {
               await logout()

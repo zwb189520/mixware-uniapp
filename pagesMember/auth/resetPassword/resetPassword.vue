@@ -158,7 +158,6 @@ const handleSubmit = () => {
   resetPassword({
     email: email.value,
     verificationCode: code.value,
-    oldPassword: oldPassword.value,
     newPassword: newPassword.value
   })
     .then(() => {

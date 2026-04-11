@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="profile-user-info">
     <view class="user-main" @click="handleLogin">
       <view class="user-avatar">
@@ -31,12 +31,17 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguage } from '@/composables'
 import { useUser } from '@/composables'
 import { getFollowingList, getFollowersList } from '@/api/community'
 import { useLanguageStore } from '@/stores/index.ts'
 import { computed } from 'vue'
+
+interface UserInfo {
+  nickname: string
+  avatar: string
+  userId?: string
+}
 
 export default {
   name: 'ProfileUserInfo',
@@ -45,9 +50,9 @@ export default {
       userInfo: {
         nickname: '用户昵称',
         avatar: '/static/images/Default avatar.png'
-      },
-      followingCount: 0,
-      followersCount: 0
+      } as UserInfo,
+      followingCount: 0 as number,
+      followersCount: 0 as number
     }
   },
   setup() {
@@ -60,14 +65,14 @@ export default {
       setUserInfo
     }
   },
-  mounted() {
+  mounted(): void {
     this.loadUserInfo()
 
     uni.$on('userLogin', () => {
       this.loadUserInfo()
     })
 
-    uni.$on('profileUpdate', userInfo => {
+    uni.$on('profileUpdate', (userInfo: UserInfo) => {
       this.userInfo = userInfo
     })
 
@@ -76,27 +81,25 @@ export default {
     })
   },
 
-  onShow() {
+  onShow(): void {
     this.loadUserInfo()
     if (this.isLoggedIn) {
       this.loadFollowStats()
     }
 
-    // 监听关注状态变化，更新关注统计
     uni.$on('followStatusChanged', () => {
       this.loadFollowStats()
     })
   },
 
-  beforeDestroy() {
-    // 移除事件监听
+  beforeDestroy(): void {
     uni.$off('userLogin')
     uni.$off('profileUpdate')
     uni.$off('userLogout')
   },
 
   methods: {
-    handleLogin() {
+    handleLogin(): void {
       if (!this.isLoggedIn) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
@@ -108,7 +111,7 @@ export default {
       }
     },
 
-    loadUserInfo() {
+    loadUserInfo(): void {
       this.checkLoginStatus()
 
       if (this.isLoggedIn) {
@@ -132,7 +135,7 @@ export default {
       }
     },
 
-    async loadFollowStats() {
+    async loadFollowStats(): Promise<void> {
       const userId = this.userInfo.userId || uni.getStorageSync('userInfo')?.userId
       if (!userId) return
 
@@ -142,18 +145,18 @@ export default {
           getFollowersList(userId)
         ])
 
-        if (followingRes.code === 0) {
-          this.followingCount = followingRes.data?.length || 0
+        if ((followingRes as any).code === 0) {
+          this.followingCount = (followingRes as any).data?.length || 0
         }
-        if (followersRes.code === 0) {
-          this.followersCount = followersRes.data?.length || 0
+        if ((followersRes as any).code === 0) {
+          this.followersCount = (followersRes as any).data?.length || 0
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('加载关注统计失败:', e)
       }
     },
 
-    goToFollowList(tab) {
+    goToFollowList(tab: string): void {
       const userId = this.userInfo.userId || uni.getStorageSync('userInfo')?.userId
       if (!userId) return
 
@@ -162,7 +165,7 @@ export default {
       })
     },
 
-    resetUserInfo() {
+    resetUserInfo(): void {
       this.checkLoginStatus()
       this.userInfo = {
         nickname: '用户昵称',

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="waterfall-container">
     <view class="waterfall-box" :class="slideDirection" :key="currentTab + '-box'">
       <!-- 左列 -->
@@ -105,18 +105,31 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface WaterfallItem {
+  id?: string | number
+  image?: string
+  desc?: string
+  info?: string
+  title?: string
+  authorAvatar?: string
+  userAvatar?: string
+  author?: string
+  userName?: string
+  isLiked?: boolean
+  likes?: number
+}
 
 export default {
   name: 'WaterfallLayout',
   props: {
     leftList: {
-      type: Array,
+      type: Array as () => WaterfallItem[],
       default: () => []
     },
     rightList: {
-      type: Array,
+      type: Array as () => WaterfallItem[],
       default: () => []
     },
     currentTab: {
@@ -128,6 +141,7 @@ export default {
       default: 'right'
     }
   },
+  emits: ['card-click', 'like-click', 'author-click'],
   setup() {
     const languageStore = useLanguageStore()
     return {
@@ -135,26 +149,26 @@ export default {
     }
   },
   methods: {
-    handleCardClick(item) {
+    handleCardClick(item: WaterfallItem): void {
       this.$emit('card-click', item)
     },
-    handleLikeClick(item) {
+    handleLikeClick(item: WaterfallItem): void {
       this.$emit('like-click', item)
     },
-    handleAuthorClick(item) {
+    handleAuthorClick(item: WaterfallItem): void {
       this.$emit('author-click', item)
     },
-    fixBlobUrl(url) {
+    fixBlobUrl(url: string | undefined): string {
       if (!url) return ''
       if (typeof url === 'string' && (url.startsWith('blob:') || url.startsWith('file://'))) {
         return '/static/images/3Dprinter.png'
       }
       return url
     },
-    handleImageError(item) {
+    handleImageError(item: WaterfallItem): void {
       item.image = '/static/images/3Dprinter.png'
     },
-    handleAvatarError(item) {
+    handleAvatarError(item: WaterfallItem): void {
       item.authorAvatar = '/static/images/Default avatar.png'
       item.userAvatar = '/static/images/Default avatar.png'
     }

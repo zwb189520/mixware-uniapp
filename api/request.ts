@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { API } from '../constants/index.ts'
 import { generateCacheKey, getCache, clearCache, clearUrlCache, setCache } from './cache.ts'
 import { isNoTokenUrl } from './validators.ts'
@@ -20,20 +19,22 @@ import {
 
 export const BASE_URL = API.BASE_URL
 
-/**
- * 统一的请求工具函数
- * @param {Object} options 请求配置
- * @param {String} options.url 请求地址（相对路径，会自动拼接 BASE_URL）
- * @param {String} options.method 请求方法，默认 'GET'
- * @param {Object} options.data 请求数据
- * @param {Object} options.header 请求头
- * @param {Boolean} options.showLoading 是否显示加载提示，默认 false
- * @param {String} options.loadingText 加载提示文字，默认 '加载中...'
- * @param {Boolean} options.cache 是否缓存，默认 false
- * @param {Number} options.cacheTime 缓存时间，默认 5分钟
- * @returns {Promise} 返回 Promise
- */
-export const request = (options = {}) => {
+interface RequestOptions {
+  url?: string
+  method?: string
+  data?: unknown
+  header?: Record<string, string>
+  showLoading?: boolean
+  loadingText?: string
+  cache?: boolean
+  cacheTime?: number
+  timeout?: number
+  sslVerify?: boolean
+  silent?: boolean
+  [key: string]: unknown
+}
+
+export const request = (options: RequestOptions = {}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     const {
       url,
@@ -45,7 +46,7 @@ export const request = (options = {}) => {
 
     // GET请求且启用缓存时，先检查缓存
     if (method.toUpperCase() === 'GET' && cache) {
-      const cacheKey = generateCacheKey(url, data)
+      const cacheKey = generateCacheKey(url ?? '', data as Record<string, unknown>)
       const cachedData = getCache(cacheKey)
       if (cachedData) {
         console.log('使用缓存数据:', url)
@@ -63,11 +64,11 @@ export const request = (options = {}) => {
     }
 
     // 处理 URL
-    let requestUrl = buildUrl(url, BASE_URL)
+    let requestUrl = buildUrl(url ?? '', BASE_URL)
 
     // GET 请求参数拼接到 URL
-    if (method.toUpperCase() === 'GET' && data && Object.keys(data).length > 0) {
-      requestUrl = appendQueryParams(requestUrl, data)
+    if (method.toUpperCase() === 'GET' && data && Object.keys(data as Record<string, unknown>).length > 0) {
+      requestUrl = appendQueryParams(requestUrl, data as Record<string, unknown>)
     }
 
     // 验证 URL 格式
@@ -120,14 +121,14 @@ export const request = (options = {}) => {
         logResponse(_timerKey, res.statusCode, res.data)
 
         // 处理成功响应
-        const successData = handleSuccess(res, options, url, data, cache, cacheTime)
+        const successData = handleSuccess(res as any, options, url ?? '', data as Record<string, unknown>, cache, cacheTime)
         if (successData !== null) {
           resolve(successData)
           return
         }
 
         // 处理错误响应
-        const isHandled = handleError(res, options, requestUrl)
+        const isHandled = handleError(res as any, options, requestUrl)
         if (isHandled) {
           reject(res)
           return
@@ -137,50 +138,31 @@ export const request = (options = {}) => {
       })
       .catch(err => {
         logRequestError(_timerKey, err)
-        handleNetworkError(err, options, requestUrl)
+        handleNetworkError(err as any, options as any, requestUrl)
         reject(err)
       })
   })
 }
 
-/**
- * GET 请求
- * @param {String} url 请求地址
- * @param {Object} params 请求参数
- * @param {Object} options 其他配置选项
- */
-export const get = (url, params = {}, options = {}) => {
+export const get = (url: string, params: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
   return request({
     url,
     method: 'GET',
     data: params,
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * POST 请求
- * @param {String} url 请求地址
- * @param {Object} data 请求数据
- * @param {Object} options 其他配置选项
- */
-export const post = (url, data = {}, options = {}) => {
+export const post = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
   return request({
     url,
     method: 'POST',
     data,
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * POST 请求（带query参数）
- * @param {String} url 请求地址
- * @param {Object} data 请求数据
- * @param {Object} queryParams query参数
- * @param {Object} options 其他配置选项
- */
-export const postWithQuery = (url, data = {}, queryParams = {}, options = {}) => {
+export const postWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
@@ -193,33 +175,20 @@ export const postWithQuery = (url, data = {}, queryParams = {}, options = {}) =>
       'Content-Type': 'application/x-www-form-urlencoded',
       ...options.header
     },
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * PUT 请求
- * @param {String} url 请求地址
- * @param {Object} data 请求数据
- * @param {Object} options 其他配置选项
- */
-export const put = (url, data = {}, options = {}) => {
+export const put = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
   return request({
     url,
     method: 'PUT',
     data,
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * PUT 请求（带query参数）
- * @param {String} url 请求地址
- * @param {Object} data 请求数据
- * @param {Object} queryParams query参数
- * @param {Object} options 其他配置选项
- */
-export const putWithQuery = (url, data = {}, queryParams = {}, options = {}) => {
+export const putWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
@@ -228,26 +197,20 @@ export const putWithQuery = (url, data = {}, queryParams = {}, options = {}) => 
     url: finalUrl,
     method: 'PUT',
     data,
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * DELETE 请求
- * @param {String} url 请求地址
- * @param {Object} data 请求数据
- * @param {Object} options 其他配置选项
- */
-export const del = (url, data = {}, options = {}) => {
+export const del = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
   return request({
     url,
     method: 'DELETE',
     data,
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-export const delWithQuery = (url, data = {}, queryParams = {}, options = {}) => {
+export const delWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
@@ -256,18 +219,12 @@ export const delWithQuery = (url, data = {}, queryParams = {}, options = {}) => 
     url: finalUrl,
     method: 'DELETE',
     data,
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * POST 请求（form-urlencoded 格式）
- * @param {String} url 请求地址
- * @param {Object} data 请求数据
- * @param {Object} options 其他配置选项
- */
-export const postForm = (url, data = {}, options = {}) => {
-  const formData = objectToFormUrlencoded(data)
+export const postForm = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
+  const formData = objectToFormUrlencoded(data as Record<string, unknown>)
 
   return request({
     url,
@@ -277,19 +234,12 @@ export const postForm = (url, data = {}, options = {}) => {
       'Content-Type': 'application/x-www-form-urlencoded',
       ...options.header
     },
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * POST 请求（form-urlencoded 格式，带query参数）
- * @param {String} url 请求地址
- * @param {Object} data 请求数据
- * @param {Object} queryParams query参数
- * @param {Object} options 其他配置选项
- */
-export const postFormWithQuery = (url, data = {}, queryParams = {}, options = {}) => {
-  const formData = objectToFormUrlencoded(data)
+export const postFormWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
+  const formData = objectToFormUrlencoded(data as Record<string, unknown>)
 
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
@@ -304,17 +254,17 @@ export const postFormWithQuery = (url, data = {}, queryParams = {}, options = {}
       'Content-Type': 'application/x-www-form-urlencoded',
       ...options.header
     },
-    ...options
+    ...(options as Record<string, unknown>)
   })
 }
 
-/**
- * 上传文件
- * @param {String} url 请求地址
- * @param {String} filePath 文件路径
- * @param {Object} options 其他配置选项
- */
-export const uploadFile = (url, filePath, options = {}) => {
+interface UploadOptions extends RequestOptions {
+  name?: string
+  formData?: unknown
+  [key: string]: unknown
+}
+
+export const uploadFile = (url: string, filePath: string, options: UploadOptions = {}): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     const { name = 'file', formData = {}, header = {} } = options
 
@@ -340,16 +290,16 @@ export const uploadFile = (url, filePath, options = {}) => {
     }
 
     // 记录请求开始
-    const timerKey = logRequest('UPLOAD', requestUrl, { filePath, formData })
+    const timerKey = logRequest('UPLOAD', requestUrl, { filePath, formData: formData as Record<string, unknown> })
 
     uni.uploadFile({
       url: requestUrl,
       filePath: filePath,
       name: name,
-      formData: formData,
+      formData: formData as Record<string, unknown>,
       header: headers,
       timeout: 30000,
-      success: res => {
+      success: (res: any) => {
         logResponse(timerKey, res.statusCode, res.data)
 
         if (options.showLoading) {
@@ -362,7 +312,7 @@ export const uploadFile = (url, filePath, options = {}) => {
             resolve(data)
           } else {
             // 使用统一的错误处理
-            const isHandled = handleError(res, options, requestUrl)
+            const isHandled = handleError(res as any, options as any, requestUrl)
             if (isHandled) {
               reject(res)
             } else {
@@ -382,7 +332,7 @@ export const uploadFile = (url, filePath, options = {}) => {
           })
         }
       },
-      fail: err => {
+      fail: (err: any) => {
         logRequestError(timerKey, err)
         handleNetworkError(err, options, requestUrl)
         if (options.showLoading) {

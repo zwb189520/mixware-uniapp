@@ -45,11 +45,20 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { getModelTasks } from '@/api/modelTasks.ts'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface TaskItem {
+  taskId: number | string
+  previewUrl: string
+  status: string
+  scaleFactor: number
+  createdAt: string
+  errorMsg: string
+  sourceModelUrl: string
+}
 
 export default {
   name: 'ModelTasks',
@@ -59,37 +68,37 @@ export default {
   },
   data() {
     return {
-      taskList: [] as any[],
-      loading: false,
-      current: 1,
-      size: 20,
-      total: 0
+      taskList: [] as TaskItem[],
+      loading: false as boolean,
+      current: 1 as number,
+      size: 20 as number,
+      total: 0 as number
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.modelTasks || {}
     }
   },
-  onShow() {
+  onShow(): void {
     this.languageStore.loadLanguage()
     this.loadTasks()
   },
-  onReachBottom() {
+  onReachBottom(): void {
     if (this.taskList.length < this.total) {
       this.current++
       this.loadTasks()
     }
   },
   methods: {
-    async loadTasks() {
+    async loadTasks(): Promise<void> {
       if (this.loading) return
       this.loading = true
       try {
-        const userInfo = uni.getStorageSync('userInfo')
+        const userInfo: any = uni.getStorageSync('userInfo')
         console.log('用户信息:', userInfo)
         console.log('userId:', userInfo?.userId)
         const res: any = await getModelTasks({
@@ -111,7 +120,7 @@ export default {
         } else {
           console.log('接口返回异常:', res)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载模型任务失败:', error)
         uni.showToast({
           title: error.message || this.texts.loadFailed || '加载失败',
@@ -121,13 +130,13 @@ export default {
         this.loading = false
       }
     },
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleTaskClick(task) {
+    handleTaskClick(task: TaskItem): void {
       console.log('点击任务:', task)
       console.log('sourceModelUrl:', task.sourceModelUrl)
-      const cleanUrl = (url: string) => url?.replace(/[`\s]/g, '').trim() || ''
+      const cleanUrl = (url: string): string => url?.replace(/[`\s]/g, '').trim() || ''
       const modelUrl = cleanUrl(task.sourceModelUrl)
       console.log('清理后modelUrl:', modelUrl)
       const url = modelUrl
@@ -136,9 +145,9 @@ export default {
       console.log('跳转URL:', url)
       uni.navigateTo({ url })
     },
-    getStatusClass(status) {
+    getStatusClass(status: string): string {
       const s = status?.toLowerCase()
-      const statusMap = {
+      const statusMap: Record<string, string> = {
         pending: 'status-pending',
         processing: 'status-processing',
         completed: 'status-completed',
@@ -146,9 +155,9 @@ export default {
       }
       return statusMap[s] || 'status-default'
     },
-    getStatusText(status) {
+    getStatusText(status: string): string {
       const s = status?.toLowerCase()
-      const statusTextMap = {
+      const statusTextMap: Record<string, string> = {
         pending: this.texts.statusPending || '待处理',
         processing: this.texts.statusProcessing || '处理中',
         completed: this.texts.statusCompleted || '已完成',
@@ -156,7 +165,7 @@ export default {
       }
       return statusTextMap[s] || status
     },
-    formatTime(time) {
+    formatTime(time: string): string {
       if (!time) return ''
       return time.replace('T', ' ').split('.')[0]
     }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="firmware-section">
     <view class="section-title">
       <text>{{ texts.firmwareSettings || '固件设置' }}</text>
@@ -19,16 +19,15 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'FirmwareSettings',
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.printer
     }
   },
@@ -40,13 +39,13 @@ export default {
   },
   data() {
     return {
-      firmwareVersion: '-',
-      antiShakeEnabled: true
+      firmwareVersion: '-' as string,
+      antiShakeEnabled: true as boolean
     }
   },
   watch: {
     deviceInfo: {
-      handler(newVal) {
+      handler(newVal: any): void {
         if (newVal && newVal.firmwareVersion) {
           this.firmwareVersion = newVal.firmwareVersion
         }
@@ -55,7 +54,7 @@ export default {
     }
   },
   methods: {
-    toggleAntiShake() {
+    toggleAntiShake(): void {
       this.antiShakeEnabled = !this.antiShakeEnabled
     }
   }

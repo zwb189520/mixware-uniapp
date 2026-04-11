@@ -117,7 +117,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { sendPrintCommand } from '@/api/iot.ts'
 import { getModelDetail } from '@/api/models.ts'
 import { getDefaultDevice } from '@/api/devices.ts'
@@ -128,6 +127,45 @@ import RotationPanel from './rotation-panel/rotation-panel.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { API } from '@/constants/index'
 
+interface Dimensions {
+  x: number
+  y: number
+  z: number
+}
+
+interface ModelInfo {
+  id?: string | number
+  name?: string
+  downloadUrl?: string
+  modelFile?: string
+  modelUrl?: string
+  previewUrl?: string
+  modelParam?: string | Record<string, any>
+}
+
+interface Rotation {
+  x: number
+  y: number
+  z: number
+}
+
+interface TaskResult {
+  Url?: string
+  url?: string
+}
+
+interface TaskData {
+  Status?: string
+  progress?: number
+  ResultFile3Ds?: TaskResult[]
+  modelUrl?: string
+}
+
+interface TaskResponse {
+  code?: number
+  data?: TaskData
+}
+
 export default {
   components: {
     Preview3D,
@@ -135,58 +173,52 @@ export default {
   },
   data() {
     return {
-      modelId: '',
-      modelName: '',
-      modelUrl: '',
-      modelType: '',
-      snapshotImageUrl: '',
-      loading: false,
-      pollTimer: null,
-      pollCount: 0,
-      maxPollCount: 120,
-      statusBarHeight: 0,
-      topBarHeightPx: 0,
-      safeAreaBottom: 0,
-      // 模型尺寸
+      modelId: '' as string,
+      modelName: '' as string,
+      modelUrl: '' as string,
+      modelType: '' as string,
+      snapshotImageUrl: '' as string,
+      loading: false as boolean,
+      pollTimer: null as ReturnType<typeof setTimeout> | null,
+      pollCount: 0 as number,
+      maxPollCount: 120 as number,
+      statusBarHeight: 0 as number,
+      topBarHeightPx: 0 as number,
+      safeAreaBottom: 0 as number,
       dimensions: {
         x: 0,
         y: 0,
         z: 0
-      },
-      // 缩放相关
-      modelScale: 1,
-      scalePercent: 100,
-      addSupports: false,
-      modelInfo: {},
-      showPreview: false,
-      // 模型选中状态
-      isModelSelected: true,
-      // 是否正在生成中（混元3D）
-      isGenerating: false,
-      selectedModel: null,
-      // 边界检测状态
-      isOutOfBounds: false,
-      boundaryMessage: '',
-      // 旋转面板
-      showRotationPanel: false,
-      currentRotation: { x: 0, y: 0, z: 0 }
+      } as Dimensions,
+      modelScale: 1 as number,
+      scalePercent: 100 as number,
+      addSupports: false as boolean,
+      modelInfo: {} as ModelInfo,
+      showPreview: false as boolean,
+      isModelSelected: true as boolean,
+      isGenerating: false as boolean,
+      selectedModel: null as ModelInfo | null,
+      isOutOfBounds: false as boolean,
+      boundaryMessage: '' as string,
+      showRotationPanel: false as boolean,
+      currentRotation: { x: 0, y: 0, z: 0 } as Rotation
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     },
-    topBarStyle() {
+    topBarStyle(): Record<string, string> {
       const heightPx = (this.topBarHeightPx || 0) + (this.statusBarHeight || 0)
       return {
         paddingTop: `${this.statusBarHeight || 0}px`,
         height: `${heightPx}px`
       }
     },
-    dimensionsText() {
+    dimensionsText(): string {
       if (
         this.isModelSelected &&
         this.dimensions &&
@@ -203,7 +235,7 @@ export default {
       return `${this.texts.size}: 0mm(X)×0mm(Y)×0mm(Z)`
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.languageStore.loadLanguage()
     this.modelId = options.id || ''
 
@@ -245,7 +277,7 @@ export default {
       urlLength: this.modelUrl?.length
     })
 
-    const ext = this.modelUrl.split('.').pop().toLowerCase()
+    const ext = this.modelUrl?.split('.').pop()?.toLowerCase() || ''
     if (ext === 'gcode') {
       uni.showModal({
         title: this.texts.formatNotSupported,
@@ -270,12 +302,11 @@ export default {
         this.showPreview = true
       }, 1000)
     } else if (this.modelId) {
-      // 先查询一次任务状态
       this.checkTaskStatusOnce()
     }
   },
   methods: {
-    normalizeUrl(url) {
+    normalizeUrl(url: string): string {
       if (!url) return ''
       let normalized = url.replace(/[`'"\s]/g, '').trim()
       if (normalized && !normalized.startsWith('http')) {
@@ -283,7 +314,7 @@ export default {
       }
       return normalized
     },
-    base64ToArrayBuffer(base64) {
+    base64ToArrayBuffer(base64: string): ArrayBuffer {
       const binaryString = atob(base64)
       const bytes = new Uint8Array(binaryString.length)
       for (let i = 0; i < binaryString.length; i++) {
@@ -292,14 +323,14 @@ export default {
       return bytes.buffer
     },
 
-    fixImageUrl(url) {
+    fixImageUrl(url: string): string {
       if (!url) return ''
       return url
         .replace('localhost:9000', '47.102.212.37:9000')
         .replace('api/uploads/image', '9000/image')
     },
 
-    parseDimensions(data) {
+    parseDimensions(data: any): Dimensions | null {
       if (!data) return null
       if (data.x && data.y && data.z) {
         return {
@@ -330,24 +361,23 @@ export default {
       return null
     },
 
-    isTaskCompleted(status) {
+    isTaskCompleted(status: string | undefined): boolean {
       const s = status?.toLowerCase()
       return s === 'completed' || s === 'success' || s === 'done'
     },
 
-    isTaskFailed(status) {
+    isTaskFailed(status: string | undefined): boolean {
       const s = status?.toLowerCase()
       return s === 'failed' || s === 'error'
     },
 
-    async checkTaskStatusOnce() {
+    async checkTaskStatusOnce(): Promise<void> {
       try {
         this.loading = true
-        const res = await getTaskStatus(this.modelId)
+        const res: TaskResponse = await getTaskStatus(this.modelId) as TaskResponse
         if (res && res.data) {
           const status = res.data.Status
-          if (this.isTaskCompleted(status) && res.data.ResultFile3Ds?.length > 0) {
-            // 任务已完成，直接显示模型
+          if (this.isTaskCompleted(status) && res.data.ResultFile3Ds && res.data.ResultFile3Ds.length > 0) {
             let modelUrl = (res.data.ResultFile3Ds[0].Url || res.data.ResultFile3Ds[0].url || '')
               .trim()
               .replace(/[`\s]/g, '')
@@ -362,7 +392,6 @@ export default {
             }
           }
         }
-        // 未完成或失败，开始轮询
         this.pollTaskStatus()
       } catch (error) {
         console.error('查询任务状态失败:', error)
@@ -370,7 +399,7 @@ export default {
       }
     },
 
-    initStatusBarHeight() {
+    initStatusBarHeight(): void {
       try {
         const systemInfo = uni.getSystemInfoSync()
         this.statusBarHeight = systemInfo.statusBarHeight || 0
@@ -390,10 +419,10 @@ export default {
         this.topBarHeightPx = 44
       }
     },
-    async loadModelDetail() {
+    async loadModelDetail(): Promise<void> {
       try {
         this.loading = true
-        const res = await getModelDetail(this.modelId)
+        const res: any = await getModelDetail(this.modelId)
         if (res && res.data) {
           const data = res.data
           this.modelInfo = data
@@ -415,7 +444,7 @@ export default {
             this.showPreview = true
           }, 1000)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(
           '获取模型详情失败:',
           error instanceof Error ? error.message : error ? JSON.stringify(error) : '未知错误'
@@ -430,17 +459,17 @@ export default {
       }
     },
 
-    async pollTaskStatus() {
+    async pollTaskStatus(): Promise<void> {
       this.loading = true
       this.isGenerating = true
       this.pollCount = 0
 
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         try {
           this.pollCount++
           console.log(`轮询任务状态 (${this.pollCount}/${this.maxPollCount}):`, this.modelId)
 
-          const res = await getTaskStatus(this.modelId)
+          const res: TaskResponse = await getTaskStatus(this.modelId) as TaskResponse
           console.log('任务状态响应:', res)
 
           if (res && res.data) {
@@ -507,7 +536,7 @@ export default {
       poll()
     },
 
-    stopPoll() {
+    stopPoll(): void {
       if (this.pollTimer) {
         clearTimeout(this.pollTimer)
         this.pollTimer = null
@@ -515,10 +544,10 @@ export default {
       this.pollCount = 0
     },
 
-    async handleCancelGenerate() {
+    async handleCancelGenerate(): Promise<void> {
       try {
         uni.showLoading({ title: this.texts.cancelling || '正在取消...' })
-        const res = await cancelTask(this.modelId)
+        const res: any = await cancelTask(this.modelId)
         uni.hideLoading()
 
         if (res.code === 1 || res.code === 0) {
@@ -538,14 +567,13 @@ export default {
       }
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    onModelLoaded() {
+    onModelLoaded(): void {
       this.loading = false
       console.log('=== 模型加载完成 ===')
 
-      // 初始状态设置为绿色（选中）
       this.$nextTick(() => {
         setTimeout(() => {
           this.setModelColor(0x00ff00)
@@ -553,14 +581,13 @@ export default {
       })
     },
 
-    capturePreviewImage() {
+    capturePreviewImage(): void {
       // #ifdef H5
       try {
         const canvas = document.querySelector('canvas')
         if (canvas) {
           const dataUrl = canvas.toDataURL('image/png')
           console.log('截取3D预览图成功，长度:', dataUrl.length)
-          // 上传到服务器获取URL
           this.uploadPreviewImage(dataUrl)
         }
       } catch (err) {
@@ -569,10 +596,9 @@ export default {
       // #endif
     },
 
-    async uploadPreviewImage(dataUrl: string) {
+    async uploadPreviewImage(dataUrl: string): Promise<void> {
       // #ifdef H5
       try {
-        // 去掉base64前缀
         const base64 = dataUrl.split(',')[1]
         const byteCharacters = atob(base64)
         const byteNumbers = new Array(byteCharacters.length)
@@ -608,7 +634,7 @@ export default {
       }
       // #endif
     },
-    onModelLoadError(error) {
+    onModelLoadError(error: any): void {
       this.loading = false
       console.error(
         '模型加载失败:',
@@ -616,7 +642,7 @@ export default {
       )
       uni.showToast({ title: this.texts.modelLoadFailed, icon: 'none' })
     },
-    onModelDimensions(dimensions) {
+    onModelDimensions(dimensions: Dimensions): void {
       if (!dimensions || typeof dimensions.x === 'undefined' || dimensions.x === 0) {
         return
       }
@@ -627,7 +653,6 @@ export default {
         z: Math.round(dimensions.z * 10) / 10
       }
 
-      // 自动缩放：如果任一维度超过100mm，自动缩小到99mm（仅后端通知，前端展示不变）
       const maxDim = Math.max(this.dimensions.x, this.dimensions.y, this.dimensions.z)
       if (maxDim > 100) {
         const targetScale = 99 / maxDim
@@ -641,20 +666,16 @@ export default {
       }
     },
 
-    // 模型点击事件
-    onModelClick(event) {
+    onModelClick(event: any): void {
       console.log('模型被点击:', event)
 
       if (event.isSame === false) {
-        // 点击了不同模型：renderjs 已经处理了颜色和包围框
-        // 这里只需保持 isModelSelected = true
         this.isModelSelected = true
         this.selectedModel = this.modelInfo
         this.isOutOfBounds = false
         return
       }
 
-      // 点击同一个模型：切换选中/取消选中
       this.isModelSelected = !this.isModelSelected
       if (this.isModelSelected) {
         this.selectedModel = this.modelInfo
@@ -664,8 +685,8 @@ export default {
           this.setModelColor(0x00ff00)
         }
         this.$nextTick(() => {
-          if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-            this.$refs.preview3d.$refs.stageApp.call({
+          if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+            (this.$refs.preview3d as any).$refs.stageApp.call({
               key: 'updateBoundingBox',
               args: [],
               isReturn: false
@@ -680,8 +701,8 @@ export default {
           this.setModelColor(0x808080)
         }
         this.$nextTick(() => {
-          if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-            this.$refs.preview3d.$refs.stageApp.call({
+          if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+            (this.$refs.preview3d as any).$refs.stageApp.call({
               key: 'updateBoundingBox',
               args: [],
               isReturn: false
@@ -691,8 +712,7 @@ export default {
       }
     },
 
-    // 边界检测事件
-    onBoundaryCheck(data) {
+    onBoundaryCheck(data: any): void {
       console.log('边界检测:', data)
       this.isOutOfBounds = data.isOutOfBounds
 
@@ -703,8 +723,7 @@ export default {
       }
     },
 
-    // 缩放更新事件
-    onScaleUpdate(data) {
+    onScaleUpdate(data: any): void {
       console.log('缩放更新:', data)
       if (data.scalePercent) {
         this.scalePercent = data.scalePercent
@@ -712,14 +731,12 @@ export default {
       }
     },
 
-    // 设置模型颜色
-    async setModelColor(color) {
+    async setModelColor(color: number): Promise<void> {
       console.log('设置模型颜色:', color)
 
       // #ifdef APP
-      // APP端通过call方法调用renderjs中的方法
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        const stageApp = this.$refs.preview3d.$refs.stageApp
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        const stageApp = (this.$refs.preview3d as any).$refs.stageApp
         try {
           await stageApp.call({
             key: 'setModelColor',
@@ -733,14 +750,11 @@ export default {
       // #endif
 
       // #ifndef APP
-      // H5和小程序端直接操作
       if (this.$refs.preview3d) {
-        const preview3d = this.$refs.preview3d
-        // 尝试获取group
+        const preview3d = this.$refs.preview3d as any
         if (preview3d.group) {
           this._doSetColor(preview3d.group, color)
         }
-        // 尝试获取scene
         if (preview3d.scene) {
           this._doSetColor(preview3d.scene, color)
         }
@@ -748,17 +762,15 @@ export default {
       // #endif
     },
 
-    // 实际设置颜色的辅助方法
-    _doSetColor(target, color) {
-      if (!target) return
+    _doSetColor(target: any, color: number): boolean {
+      if (!target) return false
       let found = false
-      target.traverse(child => {
+      target.traverse((child: any) => {
         if (child.isMesh && child.material) {
           found = true
           console.log('找到mesh:', child.name || 'unnamed')
-          // 确保材质可以修改颜色
           if (Array.isArray(child.material)) {
-            child.material.forEach(mat => {
+            child.material.forEach((mat: any) => {
               if (mat.color) {
                 mat.color.setHex(color)
                 mat.needsUpdate = true
@@ -774,11 +786,10 @@ export default {
       })
       return found
     },
-    getModelTypeFromUrl(url) {
-      // 从URL获取模型类型
+    getModelTypeFromUrl(url: string): string {
       if (!url) return ''
-      const ext = url.split('.').pop().toLowerCase()
-      const typeMap = {
+      const ext = url.split('.').pop()?.toLowerCase() || ''
+      const typeMap: Record<string, string> = {
         glb: 'glb',
         gltf: 'gltf',
         obj: 'obj',
@@ -786,24 +797,23 @@ export default {
       }
       return typeMap[ext] || ''
     },
-    onScaleChange(e) {
+    onScaleChange(e: any): void {
       this.scalePercent = e.detail.value
       this.modelScale = this.scalePercent / 100
       this.applyModelScale()
     },
-    onScaleChanging(e) {
+    onScaleChanging(e: any): void {
       this.scalePercent = e.detail.value
       this.modelScale = this.scalePercent / 100
       this.applyModelScale()
     },
-    onSupportChange(e) {
+    onSupportChange(e: any): void {
       this.addSupports = e.detail.value
     },
-    // 应用模型缩放
-    applyModelScale() {
+    applyModelScale(): void {
       // #ifdef APP
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        (this.$refs.preview3d as any).$refs.stageApp.call({
           key: 'scaleModelInPlace',
           args: [this.modelScale],
           isReturn: false
@@ -812,33 +822,28 @@ export default {
       // #endif
 
       // #ifndef APP
-      if (this.$refs.preview3d && typeof this.$refs.preview3d.centerAndScale === 'function') {
-        this.$refs.preview3d.centerAndScale(this.modelScale)
+      if (this.$refs.preview3d && typeof (this.$refs.preview3d as any).centerAndScale === 'function') {
+        (this.$refs.preview3d as any).centerAndScale(this.modelScale)
       }
       // #endif
     },
 
-    // 重置模型位置和缩放
-    handleReset() {
+    handleReset(): void {
       console.log('=== 重置按钮被点击 ===')
 
-      // 重置数据
       this.scalePercent = 100
       this.modelScale = 1
 
-      // 重置旋转面板
       this.currentRotation = { x: 0, y: 0, z: 0 }
       this.showRotationPanel = false
-      if (this.$refs.rotationPanel && typeof this.$refs.rotationPanel.setRotation === 'function') {
-        this.$refs.rotationPanel.setRotation(0, 0, 0)
+      if (this.$refs.rotationPanel && typeof (this.$refs.rotationPanel as any).setRotation === 'function') {
+        (this.$refs.rotationPanel as any).setRotation(0, 0, 0)
       }
 
       if (this.$refs.preview3d) {
-        // 调用组件的重置方法
-        if (typeof this.$refs.preview3d.resetModel === 'function') {
+        if (typeof (this.$refs.preview3d as any).resetModel === 'function') {
           try {
-            this.$refs.preview3d.resetModel()
-            // 重置后恢复绿色（选中状态）
+            (this.$refs.preview3d as any).resetModel()
             this.$nextTick(() => {
               setTimeout(() => {
                 this.setModelColor(0x00ff00)
@@ -856,19 +861,17 @@ export default {
       }
     },
 
-    // 安全调用缩放方法
-    safeApplyScale() {
+    safeApplyScale(): void {
       try {
-        if (this.$refs.preview3d && this.$refs.preview3d.centerAndScale) {
-          this.$refs.preview3d.centerAndScale(this.modelScale)
+        if (this.$refs.preview3d && (this.$refs.preview3d as any).centerAndScale) {
+          (this.$refs.preview3d as any).centerAndScale(this.modelScale)
         }
       } catch (error) {
         console.warn('缩放应用失败:', error)
       }
     },
 
-    // 居中
-    handleCenter() {
+    handleCenter(): void {
       console.log('居中按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
@@ -880,8 +883,8 @@ export default {
       }
 
       // #ifdef APP
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        (this.$refs.preview3d as any).$refs.stageApp.call({
           key: 'centerModel',
           args: [],
           isReturn: false
@@ -895,8 +898,7 @@ export default {
       // #endif
     },
 
-    // 旋转
-    handleRotate() {
+    handleRotate(): void {
       console.log('旋转按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
@@ -906,15 +908,13 @@ export default {
         })
         return
       }
-      // 打开旋转面板
       this.showRotationPanel = true
     },
 
-    // 旋转面板：旋转变化中（实时预览）
-    onRotationChanging(data) {
+    onRotationChanging(data: Rotation): void {
       // #ifdef APP
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        (this.$refs.preview3d as any).$refs.stageApp.call({
           key: 'setModelRotation',
           args: [data.x, data.y, data.z],
           isReturn: false
@@ -923,12 +923,11 @@ export default {
       // #endif
     },
 
-    // 旋转面板：旋转确认
-    onRotationChange(data) {
+    onRotationChange(data: Rotation): void {
       this.currentRotation = { x: data.x, y: data.y, z: data.z }
       // #ifdef APP
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        (this.$refs.preview3d as any).$refs.stageApp.call({
           key: 'setModelRotation',
           args: [data.x, data.y, data.z],
           isReturn: false
@@ -937,16 +936,14 @@ export default {
       // #endif
     },
 
-    // 旋转面板：重置旋转
-    onRotationReset() {
+    onRotationReset(): void {
       this.currentRotation = { x: 0, y: 0, z: 0 }
-      // 重置旋转面板滑尺
-      if (this.$refs.rotationPanel && typeof this.$refs.rotationPanel.setRotation === 'function') {
-        this.$refs.rotationPanel.setRotation(0, 0, 0)
+      if (this.$refs.rotationPanel && typeof (this.$refs.rotationPanel as any).setRotation === 'function') {
+        (this.$refs.rotationPanel as any).setRotation(0, 0, 0)
       }
       // #ifdef APP
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        (this.$refs.preview3d as any).$refs.stageApp.call({
           key: 'setModelRotation',
           args: [0, 0, 0],
           isReturn: false
@@ -955,8 +952,7 @@ export default {
       // #endif
     },
 
-    // 复制
-    handleCopy() {
+    handleCopy(): void {
       console.log('复制按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
@@ -968,8 +964,8 @@ export default {
       }
 
       // #ifdef APP
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        (this.$refs.preview3d as any).$refs.stageApp.call({
           key: 'copyModel',
           args: [],
           isReturn: false
@@ -983,8 +979,7 @@ export default {
       // #endif
     },
 
-    // 适配
-    handleFit() {
+    handleFit(): void {
       console.log('适配按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
@@ -996,23 +991,8 @@ export default {
       }
 
       // #ifdef APP
-      // 原功能：自动适配模型
-      // if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-      //   this.$refs.preview3d.$refs.stageApp.call({
-      //     key: 'fitModel',
-      //     args: [],
-      //     isReturn: false
-      //   })
-      //   uni.showToast({
-      //     title: '模型已自动适配',
-      //     icon: 'success',
-      //     duration: 1000
-      //   })
-      // }
-
-      // 新功能：和center一样，居中模型
-      if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-        this.$refs.preview3d.$refs.stageApp.call({
+      if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+        (this.$refs.preview3d as any).$refs.stageApp.call({
           key: 'centerModel',
           args: [],
           isReturn: false
@@ -1026,8 +1006,7 @@ export default {
       // #endif
     },
 
-    // 删除
-    handleDelete() {
+    handleDelete(): void {
       console.log('删除按钮被点击')
       if (!this.isModelSelected) {
         uni.showToast({
@@ -1040,18 +1019,17 @@ export default {
       uni.showModal({
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteModelContent || '确定要删除当前模型吗？',
-        success: res => {
+        success: (res: any) => {
           if (res.confirm) {
             // #ifdef APP
-            if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-              this.$refs.preview3d.$refs.stageApp.call({
+            if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+              (this.$refs.preview3d as any).$refs.stageApp.call({
                 key: 'deleteModel',
                 args: [],
                 isReturn: false
               })
             }
             // #endif
-            // 重置选中状态
             this.isModelSelected = false
             this.selectedModel = null
             this.isOutOfBounds = false
@@ -1064,7 +1042,7 @@ export default {
         }
       })
     },
-    async handlePrint() {
+    async handlePrint(): Promise<void> {
       if (this.isOutOfBounds) {
         uni.showToast({
           title: this.boundaryMessage || '模型尺寸超过100mm，禁止打印',
@@ -1085,9 +1063,9 @@ export default {
         let modifiedModelUrl = this.modelUrl
 
         // #ifdef APP-PLUS
-        if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
+        if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
           console.log('开始调用 exportModifiedSTL')
-          const filePath = await this.$refs.preview3d.$refs.stageApp.call({
+          const filePath = await (this.$refs.preview3d as any).$refs.stageApp.call({
             key: 'exportModifiedSTL',
             args: [],
             isReturn: true
@@ -1097,7 +1075,7 @@ export default {
           if (filePath) {
             try {
               console.log('开始上传文件:', filePath)
-              const uploadRes = await uploadModelFile(filePath)
+              const uploadRes: any = await uploadModelFile(filePath)
               console.log('上传响应:', uploadRes)
               if (uploadRes.code === 1 && uploadRes.data) {
                 modifiedModelUrl =
@@ -1114,8 +1092,8 @@ export default {
         // #endif
 
         // #ifdef H5
-        if (this.$refs.preview3d && this.$refs.preview3d.$refs.stageApp) {
-          const stlBase64 = await this.$refs.preview3d.$refs.stageApp.call({
+        if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
+          const stlBase64 = await (this.$refs.preview3d as any).$refs.stageApp.call({
             key: 'exportModifiedSTL',
             args: [],
             isReturn: true
@@ -1156,7 +1134,7 @@ export default {
 
         uni.showLoading({ title: this.texts.gettingDeviceInfo || '获取设备信息...' })
 
-        const deviceRes = await getDefaultDevice()
+        const deviceRes: any = await getDefaultDevice()
         console.log('默认设备响应:', deviceRes)
         console.log('默认设备数据:', deviceRes.data)
 
@@ -1190,7 +1168,7 @@ export default {
         uni.navigateTo({
           url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(modifiedModelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}&addSupports=${this.addSupports}`
         })
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         console.error('获取设备信息失败:', error)
         uni.showToast({
@@ -1201,7 +1179,7 @@ export default {
       }
     }
   },
-  beforeUnmount() {
+  beforeUnmount(): void {
     this.stopPoll()
   }
 }

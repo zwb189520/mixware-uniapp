@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="third-party-binding-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -25,7 +25,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
@@ -38,29 +37,29 @@ export default {
   },
   data() {
     return {
-      googleBound: false
+      googleBound: false as boolean
     }
   },
 
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
 
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.accountSecurity.thirdPartyBinding
     }
   },
 
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleGoogleBind() {
+    handleGoogleBind(): void {
       uni.showLoading({
         title: this.texts.binding
       })
@@ -75,11 +74,11 @@ export default {
       }, 1500)
     },
 
-    handleGoogleUnbind() {
+    handleGoogleUnbind(): void {
       uni.showModal({
         title: this.texts.confirmCancel,
         content: this.texts.confirmCancelContent,
-        success: res => {
+        success: (res: any) => {
           if (res.confirm) {
             this.googleBound = false
             uni.showToast({

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="comment-section-container">
     <view class="comment-section">
       <text class="section-title">{{ texts.comments }} ({{ totalCount }})</text>
@@ -117,14 +117,26 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface Comment {
+  id: number | string
+  userId: string
+  userName: string
+  userAvatar: string
+  content: string
+  time: string
+  likes: number
+  isLiked: boolean
+  replyCount: number
+  replies?: Comment[]
+}
 
 export default {
   name: 'CommentSection',
   props: {
     comments: {
-      type: Array,
+      type: Array as () => Comment[],
       default: () => []
     },
     totalCount: {
@@ -144,37 +156,37 @@ export default {
     return {}
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     },
-    displayComments() {
+    displayComments(): Comment[] {
       return this.comments.slice(0, 2)
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    handleLikeClick(commentId) {
+    handleLikeClick(commentId: number | string): void {
       this.$emit('like-click', commentId)
     },
 
-    handleReplyClick(commentId, userName) {
+    handleReplyClick(commentId: number | string, userName: string): void {
       this.$emit('reply-click', { commentId, userName })
     },
 
-    handleDeleteClick(commentId) {
+    handleDeleteClick(commentId: number | string): void {
       this.$emit('delete-click', commentId)
     },
 
-    handleViewMore() {
+    handleViewMore(): void {
       this.$emit('view-more')
     },
 
-    handleImageError(e) {
+    handleImageError(e: any): void {
       console.log('图片加载失败:', e)
     }
   }

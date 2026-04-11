@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="search-bar" @click="handleClick">
     <view class="search-input" :class="{ 'placeholder-text': !keyword }">{{
       keyword || texts.searchModel
@@ -8,7 +8,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -24,18 +23,18 @@ export default {
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    handleClick() {
+    handleClick(): void {
       console.log('SearchBar clicked')
       this.$emit('search-click')
     }

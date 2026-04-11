@@ -1,22 +1,31 @@
-// @ts-nocheck
-// 使用 android-ble 插件实现配网，解决官方 API write 模式多手机兼容性问题
 import { BleLib } from '@/uni_modules/android-ble'
 
-// 插件实例（全局单例）
-let _bleLib = null
-function getBleLib() {
+interface BleResult {
+  type: number
+  message?: string
+  data?: {
+    data: number[]
+  }
+}
+
+interface ConfigResult {
+  success: boolean
+  message: string
+}
+
+let _bleLib: any = null
+function getBleLib(): any {
   if (!_bleLib) {
     _bleLib = new BleLib()
   }
   return _bleLib
 }
 
-function delay(ms) {
+function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-// 通过插件发送一段字符串（UTF-8编码，自动分包，自动识别writeType）
-function sendDataByPlugin(lib, text) {
+function sendDataByPlugin(lib: any, text: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const hexStr = lib.string2ByteStrWithCharset(text, 'utf-8')
     console.log('[BLE插件] 发送数据:', text, '-> HEX:', hexStr)
@@ -24,10 +33,10 @@ function sendDataByPlugin(lib, text) {
       {
         serviceId: lib.getSericUUID(),
         characteristicId: lib.getwriteUUID(),
-        fenbao: true, // 自动分包，每包20字节
-        hexStrData: hexStr // writeType不传 = 插件自动识别
+        fenbao: true,
+        hexStrData: hexStr
       },
-      result => {
+      (result: BleResult) => {
         console.log('[BLE插件] sendData结果:', result)
         if (result.type === 0) {
           resolve()
@@ -39,23 +48,14 @@ function sendDataByPlugin(lib, text) {
   })
 }
 
-/**
- * 用 android-ble 插件发送WiFi配网数据
- * @param {string} deviceId  设备MAC地址，例如 E4:B0:63:84:F1:BA
- * @param {string} serverUrl 服务器URL
- * @param {string} ssid      WiFi名称
- * @param {string} password  WiFi密码
- */
-export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
+export function sendWiFiConfigByPlugin(deviceId: string, serverUrl: string, ssid: string, password: string): Promise<void> {
   return new Promise(async (resolve, reject) => {
     const lib = getBleLib()
 
-    // 1. 连接设备
     console.log('[BLE插件] 连接设备:', deviceId)
-    const connectOk = await new Promise(res => {
-      lib.connect(deviceId, false, result => {
+    const connectOk = await new Promise<boolean>(res => {
+      lib.connect(deviceId, false, (result: BleResult) => {
         console.log('[BLE插件] 连接结果:', result)
-        // type=0 成功, type=10004 已连接，都算成功
         res(result.type === 0 || result.type === 10004)
       })
     })
@@ -64,21 +64,19 @@ export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
       return
     }
 
-    // 2. 扫描服务与特征值
     console.log('[BLE插件] 扫描服务...')
-    await new Promise(res => {
-      lib.scanServices(result => {
+    await new Promise<void>(res => {
+      lib.scanServices((result: BleResult) => {
         console.log('[BLE插件] 扫描服务完成')
-        lib.setSelectUUID(0) // 选择第一个可用服务
+        lib.setSelectUUID(0)
         res()
       })
     })
 
-    // 3. 设置 MTU
-    await new Promise(res => {
-      lib.setMtu(512, result => {
+    await new Promise<void>(res => {
+      lib.setMtu(512, (result: BleResult) => {
         console.log('[BLE插件] MTU结果:', result)
-        res() // 失败也继续
+        res()
       })
     })
 
@@ -86,7 +84,6 @@ export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
     console.log('[BLE插件] 写入UUID:', lib.getwriteUUID())
     console.log('[BLE插件] 通知UUID:', lib.getNotityUUID())
 
-    // 4. 发送各段数据
     try {
       await sendDataByPlugin(lib, `#url#-r||${serverUrl}#end`)
       console.log('[BLE插件] 服务器URL发送成功')
@@ -104,31 +101,26 @@ export function sendWiFiConfigByPlugin(deviceId, serverUrl, ssid, password) {
       console.log('[BLE插件] 配网结束命令发送成功')
 
       resolve()
-    } catch (err) {
+    } catch (err: any) {
       console.error('[BLE插件] 发送失败:', err)
       reject(new Error(`[BLE插件] 发送失败: ${err.message}`))
     }
   })
 }
 
-/**
- * 用 android-ble 插件订阅配网结果通知
- * @param {string} deviceId 设备MAC地址
- */
-export function subscribeToConfigResultByPlugin(deviceId) {
+export function subscribeToConfigResultByPlugin(deviceId: string): Promise<ConfigResult> {
   return new Promise(resolve => {
     const lib = getBleLib()
     let isResolved = false
-    let timeoutId
+    let timeoutId: any
 
-    const cleanup = () => {
+    const cleanup = (): void => {
       if (timeoutId) clearTimeout(timeoutId)
       try {
         lib.onNotityBleData(lib.getSericUUID(), lib.getNotityUUID(), false, () => {})
       } catch (e) {}
     }
 
-    // 60秒超时
     timeoutId = setTimeout(() => {
       if (!isResolved) {
         isResolved = true
@@ -137,7 +129,7 @@ export function subscribeToConfigResultByPlugin(deviceId) {
       }
     }, 60000)
 
-    lib.onNotityBleData(lib.getSericUUID(), lib.getNotityUUID(), true, result => {
+    lib.onNotityBleData(lib.getSericUUID(), lib.getNotityUUID(), true, (result: BleResult) => {
       if (isResolved) return
       if (result.type === 1000) {
         console.log('[BLE插件] 结果通知订阅成功')
@@ -145,9 +137,8 @@ export function subscribeToConfigResultByPlugin(deviceId) {
       }
       if (result.type !== 0 || !result.data) return
 
-      // 将 number[] 解码为 UTF-8 字符串
       const dataBytes = result.data.data || []
-      const hexStr = dataBytes.map(b => b.toString(16).padStart(2, '0')).join('')
+      const hexStr = dataBytes.map((b: number) => b.toString(16).padStart(2, '0')).join('')
       const text = lib.byte2StringWithCharset(hexStr, 'utf-8')
       console.log('[BLE插件] 收到配网数据:', text)
 
@@ -168,10 +159,7 @@ export function subscribeToConfigResultByPlugin(deviceId) {
   })
 }
 
-/**
- * 断开插件 BLE 连接
- */
-export function closePluginBle() {
+export function closePluginBle(): void {
   try {
     getBleLib().close()
     console.log('[BLE插件] 已断开连接')

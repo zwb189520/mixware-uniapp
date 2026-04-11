@@ -2298,7 +2298,7 @@ export const useLanguageStore = defineStore('language', {
         'pages/create/create/create',
         'pages/profile/profile'
       ]
-      if (!currentPage || !tabBarPages.includes(currentPage.route)) {
+      if (!currentPage || !currentPage.route || !tabBarPages.includes(currentPage.route)) {
         return
       }
       try {

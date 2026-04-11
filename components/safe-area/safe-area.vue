@@ -1,19 +1,18 @@
-﻿<template>
+<template>
   <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 export default {
   name: 'SafeArea',
   data() {
     return {
-      statusBarHeight: 0
+      statusBarHeight: 0 as number
     }
   },
-  mounted() {
+  mounted(): void {
     const systemInfo = uni.getSystemInfoSync()
-    this.statusBarHeight = systemInfo.statusBarHeight
+    this.statusBarHeight = systemInfo.statusBarHeight || 0
   }
 }
 </script>

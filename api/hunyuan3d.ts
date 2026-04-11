@@ -1,48 +1,26 @@
-// @ts-nocheck
 import { post, get, uploadFile, postWithQuery } from './request'
 import { API } from '../constants/index.ts'
 
-/**
- * 文本转 3D 模型
- * @param {string} prompt - 模型描述文本
- * @returns {Promise<Object>} 返回任务 ID
- */
-export function textToModel(prompt) {
+export function textToModel(prompt: string): Promise<unknown> {
   return postWithQuery('/hunyuan3d/text-to-model', {}, { prompt })
 }
 
-/**
- * 获取任务状态
- * @param {string} taskId - 任务 ID
- * @returns {Promise<Object>} 返回任务状态
- */
-export function getTaskStatus(taskId) {
+export function getTaskStatus(taskId: string): Promise<unknown> {
   return get(`/hunyuan3d/query/${taskId}`)
 }
 
-/**
- * 取消3D生成任务
- * @param {string} taskId - 任务 ID
- * @returns {Promise<Object>} 返回取消结果
- */
-export function cancelTask(taskId) {
+export function cancelTask(taskId: string): Promise<unknown> {
   return post(`/hunyuan3d/cancel/${taskId}`)
 }
 
-/**
- * 图片转 3D 模型
- * @param {string} image - 图片文件路径
- * @param {string} prompt - 模型描述文本
- * @returns {Promise<Object>} 返回模型生成结果
- */
-export async function imageToModel(image, _prompt) {
+export async function imageToModel(image: string, _prompt?: string): Promise<unknown> {
   console.log('开始上传图片:', image)
   const token = uni.getStorageSync('token') || ''
   const uploadRes = await uploadFile('/upload/image', image, {
     header: {
       Authorization: token ? `Bearer ${token}` : ''
     }
-  })
+  }) as { code?: number; data?: { url?: string; fileUrl?: string; originalFileName?: string } }
   console.log('图片上传响应:', uploadRes)
   if (uploadRes.code === 1 && uploadRes.data) {
     let imageUrl = uploadRes.data.url || uploadRes.data.fileUrl

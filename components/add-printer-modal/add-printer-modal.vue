@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view v-if="visible" class="modal-overlay" @tap="handleCancel">
     <view class="modal-content" @tap.stop>
       <view class="modal-header">
@@ -39,7 +39,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 import { deleteDevice, bindDevice, getDeviceList } from '@/api/devices.ts'
 import {
@@ -50,6 +49,26 @@ import {
 } from '@/utils/bluetooth.ts'
 import { checkAllPermissions } from '@/utils/permission.ts'
 
+interface BluetoothDevice {
+  id?: string
+  name?: string
+  deviceId: string
+  deviceName?: string
+  rssi?: number
+  isBluetooth?: boolean
+  displayName?: string
+  RSSI?: number
+}
+
+interface DeviceItem {
+  id?: string
+  name?: string
+  deviceId: string
+  deviceName?: string
+  rssi?: number
+  isBluetooth: boolean
+}
+
 export default {
   name: 'AddPrinterModal',
   props: {
@@ -58,25 +77,26 @@ export default {
       default: false
     }
   },
+  emits: ['select-printer', 'cancel'],
   data() {
     return {
-      deviceList: [],
+      deviceList: [] as DeviceItem[],
       loading: false,
-      bluetoothDevices: [],
-      scanType: 'bluetooth', // 默认蓝牙扫描，不要API设备
-      scanTimer: null
+      bluetoothDevices: [] as BluetoothDevice[],
+      scanType: 'bluetooth',
+      scanTimer: null as any
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.addPrinter || {}
     }
   },
   watch: {
-    visible(newVal) {
+    visible(newVal: boolean): void {
       if (newVal) {
         this.loadDeviceList()
       } else {
@@ -87,19 +107,18 @@ export default {
     }
   },
   methods: {
-    async loadDeviceList() {
+    async loadDeviceList(): Promise<void> {
       this.loading = true
       try {
-        // 只使用蓝牙扫描，不要API设备
         await this.scanBluetoothDevices()
-      } catch (error) {
+      } catch (error: any) {
         console.error('扫描设备失败:', error)
       } finally {
         this.loading = false
       }
     },
 
-    async scanBluetoothDevices() {
+    async scanBluetoothDevices(): Promise<void> {
       console.log('扫描蓝牙设备...')
 
       try {
@@ -117,7 +136,7 @@ export default {
         })
 
         const startTime = Date.now()
-        const checkDevices = async () => {
+        const checkDevices = async (): Promise<void> => {
           const boundDevices = await this.getBoundDevices()
           const devices = await getBluetoothDevices(boundDevices)
           const elapsed = Date.now() - startTime
@@ -132,7 +151,7 @@ export default {
         }
 
         checkDevices()
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         console.error('蓝牙扫描失败:', error)
         uni.showToast({
@@ -142,11 +161,11 @@ export default {
       }
     },
 
-    async finishScan(devices) {
+    async finishScan(devices: BluetoothDevice[]): Promise<void> {
       console.log('蓝牙扫描结束，结果:', devices)
       uni.hideLoading()
 
-      this.bluetoothDevices = devices.map(device => ({
+      const mappedDevices: DeviceItem[] = devices.map((device: any) => ({
         id: device.deviceId,
         name: device.displayName,
         deviceId: device.deviceId,
@@ -155,10 +174,11 @@ export default {
         isBluetooth: true
       }))
 
-      this.deviceList = this.bluetoothDevices
+      this.bluetoothDevices = mappedDevices
+      this.deviceList = mappedDevices
       await stopBluetoothScan()
 
-      if (this.bluetoothDevices.length === 0) {
+      if (mappedDevices.length === 0) {
         uni.showToast({
           title: this.texts.noBluetoothDevices || '未扫描到任何蓝牙设备',
           icon: 'none'
@@ -166,12 +186,10 @@ export default {
       }
     },
 
-    // 获取已绑定的设备列表
-    async getBoundDevices() {
+    async getBoundDevices(): Promise<any[]> {
       try {
-        const res = await getDeviceList()
+        const res: any = await getDeviceList()
         if (res.code === 1 || res.code === 200) {
-          // data 可能是数组或 { records: [] } 两种结构
           const data = res.data
           if (Array.isArray(data)) return data
           if (data && Array.isArray(data.records)) return data.records
@@ -180,13 +198,13 @@ export default {
           console.error('获取已绑定设备列表失败:', res)
           return []
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('获取已绑定设备列表异常:', error)
         return []
       }
     },
 
-    stopBluetoothScan() {
+    stopBluetoothScan(): void {
       try {
         if (this.scanTimer) {
           clearTimeout(this.scanTimer)
@@ -195,19 +213,18 @@ export default {
         uni.hideLoading()
         stopBluetoothScan()
         console.log('蓝牙扫描已停止')
-      } catch (error) {
+      } catch (error: any) {
         console.log('停止扫描失败:', error)
       }
     },
 
-    handleSelectPrinter(printerId) {
+    handleSelectPrinter(printerId: string): void {
       this.$emit('select-printer', printerId)
     },
-    async handleBindDevice(deviceId) {
-      // 蓝牙设备直接选择，不需要绑定
+    async handleBindDevice(deviceId: string): Promise<void> {
       this.$emit('select-printer', deviceId)
     },
-    handleCancel() {
+    handleCancel(): void {
       this.stopBluetoothScan()
       this.$emit('cancel')
     }

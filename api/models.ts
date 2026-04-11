@@ -1,11 +1,29 @@
 ﻿import { post, get, put, del, postWithQuery } from './request'
 
-/**
- * 添加模型
- * @param {Object} modelData - 模型数据
- * @returns {Promise<Object>} 返回添加结果
- */
-export function addModel(modelData) {
+interface ModelData {
+  name?: string
+  category?: string
+  previewUrl?: string
+  downloadUrl?: string
+  description?: string
+  userId?: string | number
+  editableStatus?: string
+  modelFile?: string
+  modelUrl?: string
+  thumb?: string
+  image?: string
+  dimensions?: {
+    x?: number
+    y?: number
+    z?: number
+    width?: number
+    height?: number
+    depth?: number
+  }
+  [key: string]: any
+}
+
+export function addModel(modelData: ModelData): Promise<unknown> {
   return post('/models/add', {
     name: modelData.name || '',
     category: modelData.category || '',
@@ -17,86 +35,58 @@ export function addModel(modelData) {
   })
 }
 
-/**
- * 获取模型列表
- * @param {Object} [params={}] - 查询参数
- * @returns {Promise<Object>} 返回模型列表
- */
-export function getModelList(params = {}) {
+export function getModelList(params: Record<string, unknown> = {}): Promise<unknown> {
   return get('/models/page', params)
 }
 
-/**
- * 获取模型详情
- * @param {string} modelId - 模型 ID
- * @returns {Promise<Object>} 返回模型详情
- */
-export function getModelDetail(modelId) {
+export function getModelDetail(modelId: string | number): Promise<unknown> {
   return get(`/models/${modelId}`)
 }
 
-/**
- * 更新模型
- * @param {string} modelId - 模型 ID
- * @param {Object} updateData - 更新数据
- * @returns {Promise<Object>} 返回更新结果
- */
-export function updateModel(modelId, updateData) {
+export function updateModel(modelId: string | number, updateData: Record<string, unknown>): Promise<unknown> {
   return put(`/models/update/${modelId}`, updateData)
 }
 
-/**
- * 删除模型
- * @param {string} modelId - 模型 ID
- * @returns {Promise<Object>} 返回删除结果
- */
-export function deleteModel(modelId) {
+export function deleteModel(modelId: string | number): Promise<unknown> {
   return del(`/models/${modelId}`)
 }
 
-export function likeModel(modelId) {
+export function likeModel(modelId: string | number): Promise<unknown> {
   return postWithQuery('/model-like/like', null, { modelId })
 }
 
-export function unlikeModel(modelId) {
+export function unlikeModel(modelId: string | number): Promise<unknown> {
   return postWithQuery('/model-like/unlike', null, { modelId })
 }
 
-export function checkModelLike(modelId) {
+export function checkModelLike(modelId: string | number): Promise<unknown> {
   return get('/model-like/check', { modelId })
 }
 
-/**
- * 获取模型分页列表
- * @param {Object} [params={}] - 查询参数
- * @returns {Promise<Object>} 返回分页模型列表
- */
-export function getModelPage(params = {}) {
+export function getModelPage(params: Record<string, unknown> = {}): Promise<unknown> {
   return get('/models/page', params)
 }
 
-/**
- * 获取我的模型列表
- * @param {Object} [params={}] - 查询参数
- * @returns {Promise<Object>} 返回我的模型列表
- */
-export function getMyModels(params = {}) {
+export function getMyModels(params: Record<string, unknown> = {}): Promise<unknown> {
   return get('/models/my', params)
 }
 
-/**
- * 处理模型数据，提取关键字段
- * @param {Object} modelData - 原始模型数据
- * @returns {Object} 返回处理后的模型数据
- */
-export function processModelData(modelData) {
+export function processModelData(modelData: ModelData | null): {
+  downloadUrl: string
+  modelUrl: string
+  modelType: string
+  thumb: string
+  dimensions: { x: number; y: number; z: number }
+  name: string
+} {
   if (!modelData) {
     return {
       downloadUrl: '',
       modelUrl: '',
       modelType: 'glb',
       thumb: '',
-      dimensions: { x: 0, y: 0, z: 0 }
+      dimensions: { x: 0, y: 0, z: 0 },
+      name: ''
     }
   }
 
@@ -139,17 +129,12 @@ export function processModelData(modelData) {
   }
 }
 
-/**
- * 从 URL 提取文件类型
- * @param {string} url - 文件 URL
- * @returns {string} 返回文件类型
- */
-function extractFileType(url) {
+function extractFileType(url: string): string {
   if (!url) return ''
   try {
     const urlWithoutQuery = url.split('?')[0]
-    const ext = urlWithoutQuery.split('.').pop().toLowerCase()
-    const typeMap = {
+    const ext = urlWithoutQuery.split('.').pop()?.toLowerCase() || ''
+    const typeMap: Record<string, string> = {
       glb: 'glb',
       gltf: 'gltf',
       obj: 'obj',
@@ -161,20 +146,10 @@ function extractFileType(url) {
   }
 }
 
-/**
- * 缩放切片模型
- * @param {Object} data - 切片数据
- * @returns {Promise<Object>} 返回切片结果
- */
-export function scaleAndSliceModel(data) {
+export function scaleAndSliceModel(data: Record<string, unknown>): Promise<unknown> {
   return post('/models/scaleAndSlice', data)
 }
 
-/**
- * 获取缩放切片状态
- * @param {string} taskId - 任务ID
- * @returns {Promise<Object>} 返回切片状态
- */
-export function getScaleAndSliceStatus(taskId) {
+export function getScaleAndSliceStatus(taskId: string | number): Promise<unknown> {
   return get(`/models/scaleAndSlice/status/${taskId}`)
 }

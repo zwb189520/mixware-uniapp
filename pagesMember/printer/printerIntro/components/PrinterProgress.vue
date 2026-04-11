@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="progress-container">
     <!-- 进度卡片 -->
     <view class="progress-card">
@@ -45,7 +45,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -73,10 +72,10 @@ export default {
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.printerIntro || {}
     }
   }
@@ -115,6 +114,7 @@ export default {
   font-weight: 800;
   background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

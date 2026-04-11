@@ -71,44 +71,57 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { get } from '@/api/request.ts'
 import { getPrintRecords } from '@/api/operationRecords.ts'
 import { getUserInfo } from '@/api/users.ts'
 
+interface PrintData {
+  modelName: string
+  modelImage: string
+  printTime: string
+  material: string
+  size: string
+}
+
+interface UserData {
+  avatar: string
+  nickname: string
+  username: string
+}
+
 export default {
   components: { CustomNavbar },
   data() {
     return {
-      recordId: '',
-      modelId: '', // 添加 modelId 字段
+      recordId: '' as string,
+      modelId: '' as string,
       printData: {
         modelName: '',
         modelImage: '/static/images/logo.png',
         printTime: '',
         material: '',
         size: ''
-      },
+      } as PrintData,
       userData: {
         avatar: '/static/images/Default avatar.png',
         nickname: '',
         username: ''
-      }
+      } as UserData
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.recordId = options.recordId || ''
-    this.modelId = options.modelId || '' // 接收 modelId 参数
+    this.modelId = options.modelId || ''
 
     console.log('printComplete onLoad options:', options)
     console.log('接收到的 modelId:', this.modelId)
@@ -116,28 +129,23 @@ export default {
 
     this.languageStore.loadLanguage()
 
-    // 如果有recordId，从后端加载数据
     if (this.recordId) {
       this.loadPrintRecord()
     } else {
-      // 兼容旧的URL参数方式
       this.loadFromParams(options)
     }
 
-    // 加载用户信息
     this.loadUserInfo()
   },
   methods: {
-    // 从后端加载打印记录
-    async loadPrintRecord() {
+    async loadPrintRecord(): Promise<void> {
       try {
         uni.showLoading({ title: this.texts.loading || '加载中...' })
-        const res = await getPrintRecords(1, 20)
+        const res: any = await getPrintRecords(1, 20)
         uni.hideLoading()
 
         if (res.code === 1 && res.data?.records) {
-          // 查找对应的打印记录
-          const record = res.data.records.find(r => r.id === this.recordId)
+          const record = res.data.records.find((r: any) => r.id === this.recordId)
           if (record) {
             this.printData = {
               modelName: record.modelName || record.name || '未命名模型',
@@ -156,8 +164,7 @@ export default {
       }
     },
 
-    // 从URL参数加载（兼容旧方式）
-    loadFromParams(options) {
+    loadFromParams(options: any): void {
       try {
         this.printData = {
           modelName: options.modelName ? decodeURIComponent(options.modelName) : '',
@@ -183,10 +190,8 @@ export default {
       }
     },
 
-    // 加载用户信息
-    async loadUserInfo() {
+    async loadUserInfo(): Promise<void> {
       try {
-        // 先尝试从本地存储获取用户ID
         const userId = uni.getStorageSync('userId') || uni.getStorageSync('id')
 
         if (!userId) {
@@ -199,18 +204,16 @@ export default {
           return
         }
 
-        // 使用 getUserInfo(userId) 而不是 getCurrentUserInfo()
-        const res = await getUserInfo(userId)
+        const res: any = await getUserInfo(userId)
 
         if (res.code === 1 && res.data) {
           this.userData = {
             avatar: res.data.avatar || res.data.avatarUrl || '/static/images/Default avatar.png',
-            nickname: 'Mixware3D', // 固定显示品牌名称
+            nickname: 'Mixware3D',
             username:
-              res.data.nickname || res.data.username || res.data.name || res.data.email || '用户' // 显示真实用户名
+              res.data.nickname || res.data.username || res.data.name || res.data.email || '用户'
           }
         } else {
-          // 如果获取失败，使用默认值
           this.userData = {
             avatar: '/static/images/Default avatar.png',
             nickname: 'Mixware3D',
@@ -219,7 +222,6 @@ export default {
         }
       } catch (error) {
         console.error('加载用户信息失败:', error)
-        // 使用默认值
         this.userData = {
           avatar: '/static/images/Default avatar.png',
           nickname: 'Mixware3D',
@@ -228,27 +230,24 @@ export default {
       }
     },
 
-    // 格式化打印时间
-    formatPrintTime(time) {
+    formatPrintTime(time: string | number): string {
       if (!time) return '未知'
       if (typeof time === 'string' && time.includes('分')) return time
       if (typeof time === 'number') {
         const minutes = Math.floor(time / 60)
         return `${minutes}分钟`
       }
-      return time
+      return String(time)
     },
 
-    // 格式化材料
-    formatMaterial(material) {
+    formatMaterial(material: string | number): string {
       if (!material) return '未知'
       if (typeof material === 'string' && material.includes('g')) return material
       if (typeof material === 'number') return `${material}g`
-      return material
+      return String(material)
     },
 
-    // 格式化尺寸
-    formatSize(size) {
+    formatSize(size: any): string {
       if (!size) return '未知'
       if (typeof size === 'string') return size
       if (typeof size === 'object' && size.x && size.y && size.z) {
@@ -257,26 +256,25 @@ export default {
       return '未知'
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleImageError() {
+    handleImageError(): void {
       this.printData.modelImage = '/static/images/logo.png'
     },
 
-    handleAvatarError() {
+    handleAvatarError(): void {
       this.userData.avatar = '/static/images/Default avatar.png'
     },
 
-    handleBackHome() {
+    handleBackHome(): void {
       uni.switchTab({ url: '/pages/explore/explore/explore' })
     },
 
-    handleShare() {
-      // 跳转到创建帖子页面，传递打印完成的数据
+    handleShare(): void {
       const modelInfo = {
-        id: this.modelId || this.recordId || 'unknown', // 优先使用 modelId
+        id: this.modelId || this.recordId || 'unknown',
         name: this.printData.modelName,
         image: this.printData.modelImage
       }

@@ -294,7 +294,7 @@ const uploadSnapshotAndExportSTL = async (base64: string) => {
   // @ts-ignore
   if (typeof plus !== 'undefined') {
     try {
-      const bitmap = new plus.nativeObj.Bitmap('snapshot_' + Date.now())
+      const bitmap = new (plus.nativeObj as any).Bitmap('snapshot_' + Date.now())
       bitmap.loadBase64Data(
         pureBase64,
         async () => {
@@ -401,7 +401,7 @@ const uploadSnapshotAndExportSTL = async (base64: string) => {
 
 const saveImageToPhotosAlbum = (base64: string) => {
   // #ifdef APP-PLUS
-  const bitmap = new plus.nativeObj.Bitmap('snapshot_' + Date.now())
+  const bitmap = new (plus.nativeObj as any).Bitmap('snapshot_' + Date.now())
   bitmap.loadBase64Data(
     base64,
     () => {
@@ -551,7 +551,7 @@ const handleWebviewMessage = (evt: any) => {
   }
 
   if (msg.action === 'sketchData') {
-    if (msg.sketchData?.data?.spaces?.[0]?.objects.length > 0) {
+    if ((msg.sketchData?.data?.spaces?.[0]?.objects as any)?.length > 0) {
       sketchData.value = true
       sketchDataJson.value = msg.sketchData
     }
@@ -609,7 +609,7 @@ const showSaveModal = () => {
     content: texts.value.exitConfirm || '您有未保存的操作，确定要退出吗？',
     cancelText: texts.value.dontSave || '不保存',
     confirmText: texts.value.save || '保存',
-    success: res => {
+    success: (res: { confirm: boolean; cancel: boolean }) => {
       if (res.confirm) {
         handleSave()
       } else if (res.cancel) {
@@ -633,11 +633,11 @@ const saveAndShareStl = (content: string) => {
   const fileName = 'model_' + Date.now() + '.stl'
 
   plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
-    fs.root.getFile(fileName, { create: true }, entry => {
+    fs.root?.getFile(fileName, { create: true }, entry => {
       entry.createWriter(writer => {
         writer.onwriteend = () => {
           console.log('写入成功')
-          const filePath = entry.fullPath
+          const filePath = entry.fullPath || ''
 
           plus.share.sendWithSystem(
             {
@@ -791,7 +791,7 @@ const uploadAndNavigateApp = async (stlContent: string) => {
         success: () => {
           console.log('跳转成功')
         },
-        fail: err => {
+        fail: (err: any) => {
           console.error('跳转失败:', err)
           if (webviewContext.value) {
             webviewContext.value.show()
@@ -890,13 +890,13 @@ const saveStlToFile = (content: string, fileName: string): Promise<string> => {
     plus.io.requestFileSystem(
       plus.io.PRIVATE_DOC,
       fs => {
-        fs.root.getFile(
+        fs.root?.getFile(
           fileName,
           { create: true },
           entry => {
             entry.createWriter(writer => {
               writer.onwriteend = () => {
-                resolve(entry.fullPath)
+                resolve(entry.fullPath || '')
               }
               writer.onerror = e => {
                 reject(e)

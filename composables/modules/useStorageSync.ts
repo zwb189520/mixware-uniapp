@@ -14,29 +14,21 @@
  *   age: 0
  * })
  */
-export function useStorageSync(storageKey, initialState = {}) {
-  // 创建响应式状态
-  const state = ref({ ...initialState })
+export function useStorageSync<T extends Record<string, any>>(storageKey: string, initialState: T = {} as T) {
+  const state = ref<T>({ ...initialState } as T)
 
-  /**
-   * 从本地存储初始化状态
-   */
-  const initFromStorage = () => {
+  const initFromStorage = (): void => {
     try {
       const storedData = uni.getStorageSync(storageKey)
       if (storedData) {
-        // 合并存储的数据和初始状态
-        state.value = { ...state.value, ...storedData }
+        state.value = { ...state.value, ...storedData } as T
       }
     } catch (e) {
       console.warn(`从本地存储加载 ${storageKey} 失败:`, e)
     }
   }
 
-  /**
-   * 保存状态到本地存储
-   */
-  const saveToStorage = () => {
+  const saveToStorage = (): void => {
     try {
       uni.setStorageSync(storageKey, state.value)
     } catch (e) {
@@ -44,31 +36,21 @@ export function useStorageSync(storageKey, initialState = {}) {
     }
   }
 
-  /**
-   * 清除本地存储
-   */
-  const clearStorage = () => {
+  const clearStorage = (): void => {
     try {
       uni.removeStorageSync(storageKey)
-      state.value = { ...initialState }
+      state.value = { ...initialState } as T
     } catch (e) {
       console.warn(`清除 ${storageKey} 失败:`, e)
     }
   }
 
-  /**
-   * 更新状态并保存到本地存储
-   * @param {Object} updates - 要更新的字段
-   */
-  const updateAndSave = updates => {
+  const updateAndSave = (updates: Partial<T>): void => {
     state.value = { ...state.value, ...updates }
     saveToStorage()
   }
 
-  /**
-   * 重置状态到初始值
-   */
-  const reset = () => {
+  const reset = (): void => {
     state.value = { ...initialState }
     saveToStorage()
   }

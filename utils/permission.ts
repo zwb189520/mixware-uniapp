@@ -1,13 +1,12 @@
-﻿export function checkBluetoothPermission() {
+export function checkBluetoothPermission() {
   return new Promise((resolve, reject) => {
-    // 检查是否是微信小程序环境
     if (typeof wx !== 'undefined' && wx.authorize) {
       wx.authorize({
         scope: 'scope.bluetooth',
         success: () => {
           resolve(true)
         },
-        fail: error => {
+        fail: (error: any) => {
           console.error('蓝牙权限申请失败:', error)
           wx.showModal({
             title: '需要蓝牙权限',
@@ -15,7 +14,7 @@
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: res => {
+                success: (res: any) => {
                   resolve(res.authSetting['scope.bluetooth'] || false)
                 }
               })
@@ -25,7 +24,6 @@
         }
       })
     } else {
-      // 非微信环境，直接返回true
       console.log('非微信环境，跳过权限检查')
       resolve(true)
     }
@@ -34,14 +32,13 @@
 
 export function checkLocationPermission() {
   return new Promise((resolve, reject) => {
-    // 检查是否是微信小程序环境
     if (typeof wx !== 'undefined' && wx.authorize) {
       wx.authorize({
         scope: 'scope.userLocation',
         success: () => {
           resolve(true)
         },
-        fail: error => {
+        fail: (error: any) => {
           console.error('位置权限申请失败:', error)
           wx.showModal({
             title: '需要位置权限',
@@ -49,7 +46,7 @@ export function checkLocationPermission() {
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: res => {
+                success: (res: any) => {
                   resolve(res.authSetting['scope.userLocation'] || false)
                 }
               })

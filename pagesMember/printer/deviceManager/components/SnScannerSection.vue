@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="sn-scanner-section">
     <view class="section-title">
       <text>{{ texts.scanDevice || '扫码添加设备' }}</text>
@@ -78,6 +78,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useLanguageStore } from '@/stores'
 import ManualInputModal from './ManualInputModal.vue'
+// @ts-ignore
 import uniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 interface ScanResult {
@@ -226,10 +227,10 @@ const scanCode = (): Promise<ScanCodeResult | null> => {
     uni.scanCode({
       onlyFromCamera: true,
       scanType: ['qrCode', 'barCode'],
-      success: res => {
+      success: (res: any) => {
         resolve(res as ScanCodeResult)
       },
-      fail: err => {
+      fail: (err: any) => {
         if (err.errMsg && err.errMsg.includes('cancel')) {
           resolve(null)
         } else {

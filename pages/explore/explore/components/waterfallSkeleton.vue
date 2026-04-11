@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="skeleton-container">
     <view class="waterfall-box">
       <view class="waterfall-col">
@@ -36,7 +36,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 export default {
   name: 'WaterfallSkeleton'
 }

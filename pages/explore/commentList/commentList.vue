@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -181,10 +181,26 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { getPostComments, toggleLike, createComment, deleteComment } from '@/api/community'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface Comment {
+  id: number | string
+  userId: string
+  userName: string
+  userAvatar: string
+  content: string
+  time: string
+  likes: number
+  isLiked: boolean
+  replies?: Comment[]
+}
+
+interface SortOption {
+  label: string
+  value: string
+}
 
 export default {
   components: {
@@ -192,35 +208,36 @@ export default {
   },
   data() {
     return {
-      postId: '',
-      postAuthorId: '',
-      currentUserId: '',
-      comments: [],
-      isPopupOpen: false,
-      commentText: '',
-      replyTargetId: null,
-      replyTargetName: '',
-      keyboardHeight: 0,
-      sortType: 'time',
-      showSortMenu: false
+      postId: '' as string,
+      postAuthorId: '' as string,
+      currentUserId: '' as string,
+      comments: [] as Comment[],
+      isPopupOpen: false as boolean,
+      commentText: '' as string,
+      replyTargetId: null as number | string | null,
+      replyTargetName: '' as string,
+      keyboardHeight: 0 as number,
+      sortType: 'time' as string,
+      showSortMenu: false as boolean,
+      totalComments: 0 as number
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.commentList
     },
-    sortText() {
-      const map = {
+    sortText(): string {
+      const map: Record<string, string> = {
         time: this.texts.sortByTime,
         likes: this.texts.sortByLikes,
         replies: this.texts.sortByReplies
       }
       return map[this.sortType]
     },
-    sortOptions() {
+    sortOptions(): SortOption[] {
       return [
         { label: this.texts.sortByTime, value: 'time' },
         { label: this.texts.sortByLikes, value: 'likes' },
@@ -228,7 +245,7 @@ export default {
       ]
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.postId = options.postId || ''
     this.postAuthorId = options.postAuthorId || ''
     this.languageStore.loadLanguage()
@@ -245,40 +262,37 @@ export default {
     }
   },
   methods: {
-    getCurrentUserId() {
+    getCurrentUserId(): void {
       const userInfo = uni.getStorageSync('userInfo')
       this.currentUserId = userInfo?.userId || ''
     },
 
-    async loadComments() {
+    async loadComments(): Promise<void> {
       if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined')
         return
 
       try {
-        const res = await getPostComments(this.postId)
+        const res: any = await getPostComments(this.postId)
         if ((res.code === 0 || res.code === 1) && res.data && res.data.length > 0) {
           this.comments = this.transformComments(res.data)
         } else {
-          // 尝试加载本地存储的评论
           this.loadLocalComments()
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('加载评论失败:', e)
-        // 尝试加载本地存储的评论
         this.loadLocalComments()
       }
     },
 
-    saveLocalComments() {
+    saveLocalComments(): void {
       if (this.postId) {
         const key = `comments_${this.postId}`
         uni.setStorageSync(key, this.comments)
-        // 更新本地帖子的评论数
         this.updateLocalPostCommentCount()
       }
     },
 
-    loadLocalComments() {
+    loadLocalComments(): boolean {
       if (this.postId) {
         const key = `comments_${this.postId}`
         const localComments = uni.getStorageSync(key)
@@ -291,7 +305,7 @@ export default {
       return false
     },
 
-    calculateCommentCount(comments) {
+    calculateCommentCount(comments: Comment[]): number {
       let count = comments.length
       comments.forEach(c => {
         if (c.replies) count += c.replies.length
@@ -299,8 +313,8 @@ export default {
       return count
     },
 
-    updateLocalPostCommentCount() {
-      let allLocalPosts = uni.getStorageSync('local_all_posts') || []
+    updateLocalPostCommentCount(): void {
+      let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
       let postIndex = allLocalPosts.findIndex(p => String(p.id) === String(this.postId))
       if (postIndex !== -1) {
         allLocalPosts[postIndex].commentCount = this.calculateCommentCount(this.comments)
@@ -308,7 +322,7 @@ export default {
       }
     },
 
-    transformComments(apiComments) {
+    transformComments(apiComments: any[]): Comment[] {
       return apiComments.map(comment => ({
         id: comment.commentId,
         userId: comment.userId,
@@ -322,7 +336,7 @@ export default {
       }))
     },
 
-    formatTime(timestamp) {
+    formatTime(timestamp: string): string {
       if (!timestamp) return ''
       const now = new Date().getTime()
       const time = new Date(timestamp).getTime()
@@ -340,22 +354,20 @@ export default {
       return `${date.getMonth() + 1}-${date.getDate()}`
     },
 
-    async handleLikeClick(commentId) {
+    async handleLikeClick(commentId: number | string): Promise<void> {
       this.updateCommentLikeLocal(commentId)
       try {
-        const res = await toggleLike('COMMENT', commentId)
+        const res: any = await toggleLike('COMMENT', String(commentId))
         if (res.code !== 0 && res.code !== 1) {
-          // 接口失败，回滚本地状态
           this.updateCommentLikeLocal(commentId)
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('点赞失败:', e)
-        // 接口异常，回滚本地状态
         this.updateCommentLikeLocal(commentId)
       }
     },
 
-    updateCommentLikeLocal(commentId) {
+    updateCommentLikeLocal(commentId: number | string): void {
       for (const comment of this.comments) {
         if (comment.id === commentId) {
           comment.isLiked = !comment.isLiked
@@ -376,28 +388,27 @@ export default {
       }
     },
 
-    handleReplyClick(commentId, userName) {
+    handleReplyClick(commentId: number | string, userName: string): void {
       this.replyTargetId = commentId
       this.replyTargetName = userName
       this.commentText = ''
       this.isPopupOpen = true
     },
 
-    async handleDeleteClick(commentId) {
+    async handleDeleteClick(commentId: number | string): Promise<void> {
       uni.showModal({
         title: this.texts.deleteConfirm,
         content: this.texts.deleteContent,
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             try {
-              const result = await deleteComment(commentId)
+              const result: any = await deleteComment(String(commentId))
               if (result.code === 0 || result.code === 1) {
                 uni.showToast({ title: this.texts.deleteSuccess, icon: 'success' })
                 this.loadComments()
               }
-            } catch (e) {
+            } catch (e: any) {
               console.error('删除失败:', e)
-              // 可能是本地帖子，尝试本地删除
               this.deleteCommentLocal(commentId)
               uni.showToast({ title: this.texts.deleteSuccess, icon: 'success' })
             }
@@ -406,17 +417,17 @@ export default {
       })
     },
 
-    deleteCommentLocal(commentId) {
+    deleteCommentLocal(commentId: number | string): void {
       for (let i = 0; i < this.comments.length; i++) {
         if (this.comments[i].id === commentId) {
           this.comments.splice(i, 1)
           this.saveLocalComments()
           return
         }
-        if (this.comments[i].replies) {
-          for (let j = 0; j < this.comments[i].replies.length; j++) {
-            if (this.comments[i].replies[j].id === commentId) {
-              this.comments[i].replies.splice(j, 1)
+        if (this.comments[i].replies && this.comments[i].replies!.length > 0) {
+          for (let j = 0; j < this.comments[i].replies!.length; j++) {
+            if (this.comments[i].replies![j].id === commentId) {
+              this.comments[i].replies!.splice(j, 1)
               this.saveLocalComments()
               return
             }
@@ -425,14 +436,13 @@ export default {
       }
     },
 
-    async handlePublish() {
+    async handlePublish(): Promise<void> {
       if (!this.commentText.trim()) return
 
       const content = this.commentText.trim()
       const parentId = this.replyTargetId
 
-      // 本地立即添加评论/回复 (乐观更新)
-      const newComment = {
+      const newComment: Comment = {
         id: Date.now(),
         userId: this.currentUserId,
         userName: '我',
@@ -462,9 +472,8 @@ export default {
       uni.showToast({ title: this.texts.publishSuccess, icon: 'success' })
       this.closeCommentPopup()
 
-      // 调用接口
       try {
-        const res = await createComment({
+        const res: any = await createComment({
           postId: this.postId,
           content: content,
           parentCommentId: parentId
@@ -473,33 +482,33 @@ export default {
         if (res.code === 0 || res.code === 1) {
           this.loadComments()
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('发布失败:', e)
       }
     },
 
-    handleKeyboardShow(e) {
+    handleKeyboardShow(e: any): void {
       this.keyboardHeight = e.detail?.height || 0
     },
 
-    handleKeyboardHide() {
+    handleKeyboardHide(): void {
       this.keyboardHeight = 0
     },
 
-    moveHandle() {
+    moveHandle(): void {
       return
     },
 
-    handleUploadImage() {
+    handleUploadImage(): void {
       uni.chooseImage({
         count: 1,
-        success: res => {
+        success: (res: any) => {
           uni.showToast({ title: this.texts.imageUploadInDev, icon: 'none' })
         }
       })
     },
 
-    closeCommentPopup() {
+    closeCommentPopup(): void {
       this.isPopupOpen = false
       this.replyTargetId = null
       this.replyTargetName = ''
@@ -507,30 +516,30 @@ export default {
       this.keyboardHeight = 0
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleInputTrigger() {
+    handleInputTrigger(): void {
       this.replyTargetId = null
       this.replyTargetName = ''
       this.commentText = ''
       this.isPopupOpen = true
     },
 
-    toggleSortMenu() {
+    toggleSortMenu(): void {
       this.showSortMenu = !this.showSortMenu
     },
 
-    selectSort(item) {
+    selectSort(item: SortOption): void {
       this.sortType = item.value
       this.showSortMenu = false
       this.sortComments()
     },
 
-    sortComments() {
+    sortComments(): void {
       if (this.sortType === 'time') {
-        this.comments.sort((a, b) => b.id - a.id)
+        this.comments.sort((a, b) => Number(b.id) - Number(a.id))
       } else if (this.sortType === 'likes') {
         this.comments.sort((a, b) => b.likes - a.likes)
       } else if (this.sortType === 'replies') {

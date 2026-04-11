@@ -1,11 +1,6 @@
-﻿import { uploadFile } from './request'
+import { uploadFile } from './request'
 
-/**
- * 离线音频处理
- * @param {string} filePath - 音频文件路径
- * @returns {Promise<Object>} 返回处理结果
- */
-export function audioOffline(filePath) {
+export function audioOffline(filePath: string): Promise<any> {
   return uploadFile('/audio/offline', filePath, {
     name: 'file'
   })

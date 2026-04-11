@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="mixware-agreement-page">
     <custom-navbar :title="texts.title" @back="handleBack" />
     <view class="content">
@@ -54,7 +54,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -64,18 +63,18 @@ export default {
     CustomNavbar
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.loginMixwareAgreement
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     }
   }

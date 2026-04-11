@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="profile-medals" @click="handleMedalClick">
     <view class="medals-title">
       <image src="/static/images/icon/medal.png" mode="aspectFit" class="title-icon"></image>
@@ -20,30 +20,36 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguage } from '@/composables'
+
+interface Medal {
+  id: number
+  name: string
+  image: string
+  achieved: boolean
+}
 
 export default {
   name: 'ProfileMedals',
   data() {
     return {
-      medals: []
+      medals: [] as Medal[]
     }
   },
   setup() {
     const { texts } = useLanguage()
     return { texts }
   },
-  mounted() {
+  mounted(): void {
     this.updateMedals()
   },
   watch: {
-    texts() {
+    texts(): void {
       this.updateMedals()
     }
   },
   methods: {
-    updateMedals() {
+    updateMedals(): void {
       this.medals = [
         {
           id: 1,
@@ -95,7 +101,7 @@ export default {
         }
       ]
     },
-    handleMedalClick() {
+    handleMedalClick(): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return

@@ -12,7 +12,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import MessageList from './components/list.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
@@ -26,27 +25,27 @@ export default {
     SafeArea
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.message || {}
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleClear() {
+    handleClear(): void {
       uni.showModal({
         title: this.texts.prompt,
         content: this.texts.clearConfirm,
-        success: res => {
+        success: (res: any) => {
           if (res.confirm) {
-            const messageListComponent = this.$refs.messageList
+            const messageListComponent = this.$refs.messageList as any
             if (messageListComponent) {
               messageListComponent.clearAllMessages()
             }
@@ -54,7 +53,7 @@ export default {
         }
       })
     },
-    handleSettings() {
+    handleSettings(): void {
       uni.navigateTo({
         url: '/pagesMember/message/settings'
       })

@@ -59,49 +59,61 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 import { getModelDetail, scaleAndSliceModel, getScaleAndSliceStatus } from '@/api/models.ts'
 import { sendPrintCommand, getDeviceStatus, connectSSE } from '@/api/iot.ts'
 import { getDefaultDevice, getDeviceList } from '@/api/devices.ts'
 import { createPrintTask } from '@/api/printTasks.ts'
 
+interface Step {
+  text: string
+  completed: boolean
+  active: boolean
+}
+
+interface Dimensions {
+  x: number
+  y: number
+  z: number
+}
+
 export default {
   data() {
     return {
-      modelId: '',
-      modelName: '',
-      modelImage: '',
-      modelUrl: '',
-      progress: 0,
-      steps: [],
-
-      taskId: '',
-      gcodeUrl: '',
-      modelDimensions: '', // 模型尺寸
-      printTime: '', // 打印时间
-      materialWeight: '', // 材料重量
-      originalDimensions: null, // 从preview3DDetail传入的原始尺寸
-      realTaskCompleted: false, // 真实任务是否完成
-
-      scalePercent: 100, // 缩放比例
-      addSupports: false, // 是否添加支撑结构
-      taskFailed: false, // 任务是否失败
-      eventSource: null, // SSE连接实例
-      fakeTimer: null, // 假进度定时器
-      pollTimer: null, // 轮询定时器
-      isPaused: false // 是否暂停
+      modelId: '' as string,
+      modelName: '' as string,
+      modelImage: '' as string,
+      modelUrl: '' as string,
+      progress: 0 as number,
+      steps: [] as Step[],
+      taskId: '' as string,
+      gcodeUrl: '' as string,
+      modelDimensions: '' as string,
+      printTime: '' as string,
+      materialWeight: '' as string,
+      originalDimensions: null as Dimensions | null,
+      realTaskCompleted: false as boolean,
+      scalePercent: 100 as number,
+      addSupports: false as boolean,
+      taskFailed: false as boolean,
+      eventSource: null as EventSource | null,
+      fakeTimer: null as ReturnType<typeof setInterval> | null,
+      pollTimer: null as ReturnType<typeof setTimeout> | null,
+      isPaused: false as boolean,
+      deviceId: '' as string,
+      printTimeHms: '' as string,
+      filamentLengthM: 0 as number
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     }
   },
-  async onLoad(options) {
+  async onLoad(options: any): Promise<void> {
     this.modelId = options.modelId || ''
     try {
       this.modelName = options.modelName ? decodeURIComponent(options.modelName) : ''
@@ -114,28 +126,23 @@ export default {
       this.modelImage = options.modelImage || ''
     }
     this.scalePercent = parseFloat(options.scalePercent) || 100
-    // 自定义模型没有预览图，使用默认图片（但如果传了有效图片则保留）
     if (!this.modelImage || this.modelImage.endsWith('.stl')) {
       this.modelImage = '/static/images/logo.png'
     }
 
-    // 接收从preview3DDetail传入的尺寸
     if (options.dimensions) {
       try {
         this.originalDimensions = JSON.parse(decodeURIComponent(options.dimensions))
       } catch (e) {}
     }
 
-    // 接收缩放比例、设备ID和支撑选项
     this.scalePercent = parseFloat(options.scalePercent) || 100
     this.deviceId = options.deviceId || ''
     this.addSupports = options.addSupports === 'true' || options.addSupports === true
 
-    // 加载语言和初始化文本
     this.languageStore.loadLanguage()
     this.initializeTexts()
 
-    // 如果是自定义涂鸦模型（custom_ 开头）或任务ID（32位十六进制）且有modelUrl，直接使用modelUrl
     const isTaskId = /^[a-f0-9]{32}$/.test(this.modelId)
     if (this.modelId.startsWith('custom_') || (isTaskId && options.modelUrl)) {
       try {
@@ -152,18 +159,16 @@ export default {
       return
     }
 
-    // 加载模型详情获取图片和模型URL，完成后开始切片
     await this.loadModelImages()
   },
-  onUnload() {
+  onUnload(): void {
     this.clearAllTimers()
     if (this.eventSource) {
       this.eventSource.close()
     }
   },
   methods: {
-    initializeTexts() {
-      // 初始化步骤文本
+    initializeTexts(): void {
       this.steps = [
         {
           text: this.texts.pendingTaskGenerated || '待打印任务已生成',
@@ -192,17 +197,16 @@ export default {
         }
       ]
     },
-    async startSliceTask() {
+    async startSliceTask(): Promise<void> {
       if (!this.modelUrl) {
         uni.showToast({ title: this.texts.modelFileNotFound || '模型文件不存在', icon: 'none' })
         return
       }
 
-      // 提交真实的切片任务到后端
       try {
         const scaleFactor = this.scalePercent / 100
 
-        const submitRes = await scaleAndSliceModel({
+        const submitRes: any = await scaleAndSliceModel({
           modelIdOrUrl: this.modelUrl,
           scaleFactor: scaleFactor,
           deviceId: this.deviceId,
@@ -228,14 +232,13 @@ export default {
         return
       }
 
-      // 初始化进度显示
       this.steps[0].completed = true
       this.steps[0].active = false
       this.steps[1].active = true
       this.progress = 0
     },
 
-    clearAllTimers() {
+    clearAllTimers(): void {
       if (this.fakeTimer) {
         clearInterval(this.fakeTimer)
         this.fakeTimer = null
@@ -245,7 +248,7 @@ export default {
         this.pollTimer = null
       }
     },
-    async pollRealTaskStatus(taskId) {
+    async pollRealTaskStatus(taskId: string): Promise<void> {
       let fakeProgress = 0
       let realCompleted = false
       let realFailed = false
@@ -254,13 +257,11 @@ export default {
       let printTime = ''
       let materialWeight = ''
 
-      // 假进度定时器，每50ms增加0.2%，独立运行到99%
       this.fakeTimer = setInterval(() => {
         if (this.isPaused) return
         if (fakeProgress < 99 && !realFailed) {
           fakeProgress = Math.min(99, fakeProgress + 0.5)
           this.progress = Math.floor(fakeProgress)
-          // 根据假进度更新步骤
           if (this.progress >= 30 && !this.steps[1].completed) {
             this.steps[1].completed = true
             this.steps[1].active = false
@@ -279,14 +280,13 @@ export default {
         }
       }, 50)
 
-      // 使用轮询查询真实任务状态
-      const poll = async () => {
+      const poll = async (): Promise<void> => {
         if (this.isPaused) {
           this.pollTimer = setTimeout(poll, 500)
           return
         }
         try {
-          const res = await getScaleAndSliceStatus(taskId)
+          const res: any = await getScaleAndSliceStatus(taskId)
           console.log('轮询状态:', JSON.stringify(res))
 
           if (res.code !== 1 && res.code !== 0) {
@@ -303,13 +303,12 @@ export default {
             dimensions = data?.dimensions || ''
             printTime = data?.printTime || ''
             materialWeight = data?.materialWeight || ''
-            // 保存切片预计耗时和耗材
             this.printTimeHms = data?.printTimeHms || ''
             this.filamentLengthM = data?.filamentLengthM || 0
             checkComplete()
           } else if (status === 'FAILED') {
             realFailed = true
-            clearInterval(this.fakeTimer)
+            clearInterval(this.fakeTimer!)
             this.taskFailed = true
             this.progress = 0
             const errorMsg = data?.errorMessage || ''
@@ -331,10 +330,9 @@ export default {
         }
       }
 
-      // 检查是否完成（假进度和真进度都完成）
-      const checkComplete = () => {
+      const checkComplete = (): void => {
         if (realCompleted && fakeProgress >= 99) {
-          clearInterval(this.fakeTimer)
+          clearInterval(this.fakeTimer!)
           this.realTaskCompleted = true
           this.progress = 100
           this.steps[1].completed = true
@@ -348,7 +346,6 @@ export default {
           this.materialWeight = materialWeight
           this.checkBothCompleted()
         } else if (realCompleted) {
-          // 真实完成但假进度还没到99%，继续等待假进度
           setTimeout(checkComplete, 200)
         }
       }
@@ -356,40 +353,37 @@ export default {
       poll()
     },
 
-    checkBothCompleted() {
+    checkBothCompleted(): void {
       if (this.taskFailed) return
       if (this.realTaskCompleted) {
         this.sendPrintCommandAfterSlice()
       }
     },
 
-    handleBack() {
+    handleBack(): void {
       this.handleCancel()
     },
-    handleImageError() {
+    handleImageError(): void {
       this.modelImage = ''
     },
 
-    async loadModelImages() {
+    async loadModelImages(): Promise<void> {
       try {
-        const res = await getModelDetail(this.modelId)
+        const res: any = await getModelDetail(this.modelId)
 
-        // 检查响应状态
         if (!res || (res.code !== 0 && res.code !== 1)) {
           throw new Error(res?.msg || '获取详情失败')
         }
 
         const data = res.data || {}
 
-        // 使用与modelDetail.vue完全相同的fixImageUrl函数
-        const fixImageUrl = url => {
+        const fixImageUrl = (url: string): string => {
           if (!url) return ''
           return url
             .replace('localhost:9000', '47.102.212.37:9000')
             .replace('api/uploads/image', '9000/image')
         }
 
-        // 将previewUrl放入images数组中，与modelDetail.vue保持一致
         const images = data.previewUrl ? [fixImageUrl(data.previewUrl)] : []
 
         if (images.length > 0) {
@@ -398,10 +392,8 @@ export default {
           this.modelImage = '/static/images/logo.png'
         }
 
-        // 获取模型文件URL
         this.modelUrl = data.downloadUrl || data.modelFile || data.modelUrl || ''
 
-        // 获取到模型URL后开始切片任务
         if (this.modelUrl) {
           this.startSliceTask()
         } else {
@@ -411,17 +403,16 @@ export default {
         uni.showToast({ title: this.texts.loadModelInfoFailed || '加载模型信息失败', icon: 'none' })
       }
     },
-    async sendPrintCommandAfterSlice() {
+    async sendPrintCommandAfterSlice(): Promise<void> {
       try {
         uni.showLoading({ title: this.texts.sendingPrintCommand || '正在发送打印指令...' })
 
-        // 获取设备ID
         let deviceId = ''
-        const deviceRes = await getDefaultDevice()
+        const deviceRes: any = await getDefaultDevice()
         if (deviceRes.data?.deviceId) {
           deviceId = deviceRes.data.deviceId
         } else {
-          const listRes = await getDeviceList()
+          const listRes: any = await getDeviceList()
           const devices = listRes.data?.records || listRes.data || []
           if (devices.length > 0) {
             deviceId = devices[0].deviceId
@@ -434,8 +425,7 @@ export default {
           return
         }
 
-        // 检查设备状态
-        const statusRes = await getDeviceStatus(deviceId)
+        const statusRes: any = await getDeviceStatus(deviceId)
         const deviceStatus = statusRes.data?.status || statusRes.data
         if (deviceStatus === 'PRINTING' || deviceStatus === 'PAUSED') {
           uni.hideLoading()
@@ -458,10 +448,9 @@ export default {
           return
         }
 
-        // 创建打印任务记录
         let printTaskId = ''
         try {
-          const taskRes = await createPrintTask({
+          const taskRes: any = await createPrintTask({
             modelId: parseInt(this.modelId) || 0,
             sourceModelUrl: this.modelUrl,
             previewUrl: this.modelImage,
@@ -476,13 +465,11 @@ export default {
           console.error('创建打印任务记录失败:', e)
         }
 
-        // 发送打印命令
-        const res = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl, this.taskId)
+        const res: any = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl, this.taskId)
         uni.hideLoading()
 
         if (res.code === 1 || res.code === 0) {
           uni.showToast({ title: this.texts.printCommandSent || '打印指令已发送', icon: 'success' })
-          // 使用缩放后的尺寸
           let dimensionsStr = ''
           if (this.originalDimensions) {
             const scale = this.scalePercent / 100
@@ -511,17 +498,17 @@ export default {
       }
     },
 
-    goToPrintRecords() {
+    goToPrintRecords(): void {
       uni.navigateTo({
         url: '/pagesMember/printRecords/printRecords'
       })
     },
-    handleCancel() {
+    handleCancel(): void {
       this.isPaused = true
       uni.showModal({
         title: this.texts.confirmCancel || '确认取消',
         content: this.texts.cancelContent || '取消后将不自动打印，模型处理将在后台继续，是否确认？',
-        success: res => {
+        success: (res: any) => {
           if (res.confirm) {
             this.clearAllTimers()
             if (this.eventSource) {

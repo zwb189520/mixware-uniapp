@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="device-manager-page">
     <view class="header-wrapper">
       <safe-area />
@@ -237,7 +237,7 @@ const handleDeleteDevice = async (device: Device) => {
   uni.showModal({
     title: texts.deleteConfirm || '确认删除',
     content: `${texts.deleteConfirmContent || '确定要删除设备'} "${device.deviceName || device.deviceId}" ${texts.questionMark || '吗？'}`,
-    success: async res => {
+    success: async (res: any) => {
       if (res.confirm) {
         try {
           await deleteDevice(device.deviceId)

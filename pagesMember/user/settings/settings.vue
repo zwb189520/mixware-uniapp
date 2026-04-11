@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="settings-page">
     <safe-area />
     <custom-navbar :title="languageStore.texts.settings.title" @back="handleBack" />
@@ -7,7 +7,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SettingsMenu from './components/settingsMenu.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
@@ -24,18 +23,18 @@ export default {
     return {}
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleLanguageChange(lang) {
+    handleLanguageChange(lang: string): void {
       this.languageStore.setLanguage(lang)
     }
   }

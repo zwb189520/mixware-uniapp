@@ -54,7 +54,7 @@
         </button>
       </view>
     </view>
-    <WiFiSelectorModal
+    <WifiSelectorModal
       :visible="showWiFiList"
       :wifiList="wifiList"
       @close="handleWiFiListClose"
@@ -65,9 +65,8 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import WiFiSelectorModal from './components/WiFiSelectorModal.vue'
+import WifiSelectorModal from './components/WifiSelectorModal.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import {
@@ -78,63 +77,68 @@ import {
   initWifi,
   getWifiList
 } from '@/utils/bluetooth.ts'
-// import { sendWiFiConfigByPlugin, subscribeToConfigResultByPlugin, closePluginBle } from '@/utils/bluetooth-ble.ts'
+
+interface WiFiItem {
+  ssid: string
+  signal: number
+}
+
+interface ConfigResult {
+  success: boolean
+  message?: string
+}
 
 export default {
   name: 'AddDevice',
   components: {
     CustomNavbar,
-    WiFiSelectorModal,
+    WifiSelectorModal,
     SafeArea
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.addDevice || {}
     }
   },
   data() {
     return {
-      wifiPassword: '',
-      showPassword: false,
-      selectedWiFi: '',
-      showWiFiList: false,
-      bluetoothDeviceId: '',
-      wifiList: [],
-      isConnecting: false,
-      isScanning: true,
-      scanStatus: 'scanning' // scanning, stopped, failed, success
+      wifiPassword: '' as string,
+      showPassword: false as boolean,
+      selectedWiFi: '' as string,
+      showWiFiList: false as boolean,
+      bluetoothDeviceId: '' as string,
+      wifiList: [] as WiFiItem[],
+      isConnecting: false as boolean,
+      isScanning: true as boolean,
+      scanStatus: 'scanning' as 'scanning' | 'stopped' | 'failed' | 'success'
     }
   },
-  async onLoad(options) {
+  async onLoad(options: any): Promise<void> {
     this.bluetoothDeviceId = options.deviceId || ''
     if (this.bluetoothDeviceId) {
       await this.loadWiFiList()
     } else {
-      // 如果没有蓝牙设备ID，直接获取手机的WiFi列表
       await this.loadPhoneWiFiList()
     }
   },
-  onUnload() {
-    // 页面卸载时断开蓝牙连接
+  onUnload(): void {
     this._closeBluetooth()
   },
   methods: {
-    // 断开蓝牙连接（统一方法）
-    _closeBluetooth() {
+    _closeBluetooth(): void {
       if (this.bluetoothDeviceId) {
         console.log('断开蓝牙连接:', this.bluetoothDeviceId)
         uni.closeBLEConnection({
           deviceId: this.bluetoothDeviceId,
           success: () => {
             console.log('蓝牙连接已断开')
-            this.bluetoothDeviceId = '' // 清空ID，防止重复断开
+            this.bluetoothDeviceId = ''
           },
-          fail: err => {
+          fail: (err: any) => {
             if (err.code !== 10004) {
-              // 10004=no connection，已断开可忽略
               console.log('断开蓝牙连接失败:', err)
             }
           }
@@ -142,8 +146,7 @@ export default {
       }
     },
 
-    // 根据模式重新扫描WiFi
-    reloadWiFiList() {
+    reloadWiFiList(): void {
       if (this.bluetoothDeviceId) {
         this.loadWiFiList()
       } else {
@@ -151,22 +154,20 @@ export default {
       }
     },
 
-    async loadWiFiList() {
+    async loadWiFiList(): Promise<void> {
       this.isScanning = true
       this.scanStatus = 'scanning'
       console.log('开始获取WiFi列表，设备ID:', this.bluetoothDeviceId)
       uni.showLoading({ title: this.texts.gettingWiFiList || '获取WiFi列表...' })
       try {
-        // 第1步：清除所有 BLE 特征値监听，避免旧监听干扰
         console.log('清除BLE特征値监听...')
         try {
           uni.offBLECharacteristicValueChange()
         } catch (e) {}
 
-        // 第2步：先显式断开 BLE 连接，让设备端释放连接
         if (this.bluetoothDeviceId) {
           console.log('断开旧BLE连接...')
-          await new Promise(resolve => {
+          await new Promise<void>(resolve => {
             uni.closeBLEConnection({
               deviceId: this.bluetoothDeviceId,
               success: () => {
@@ -179,13 +180,11 @@ export default {
               }
             })
           })
-          // 等待设备端释放连接
           await new Promise(resolve => setTimeout(resolve, 800))
         }
 
-        // 第3步：关闭蓝牙适配器，确保完全重置
         console.log('关闭蓝牙适配器...')
-        await new Promise(resolve => {
+        await new Promise<void>(resolve => {
           uni.closeBluetoothAdapter({
             success: () => {
               console.log('蓝牙适配器已关闭')
@@ -197,7 +196,6 @@ export default {
             }
           })
         })
-        // 等待适配器完全关闭
         await new Promise(resolve => setTimeout(resolve, 500))
 
         const { initBluetooth } = await import('@/utils/bluetooth.ts')
@@ -209,16 +207,15 @@ export default {
         await connectToDevice(this.bluetoothDeviceId)
         console.log('蓝牙设备连接成功')
 
-        // 获取设备服务信息
         console.log('正在获取设备服务...')
-        const services = await this.getDeviceServices(this.bluetoothDeviceId)
+        const services: any = await this.getDeviceServices(this.bluetoothDeviceId)
         console.log('设备服务列表:', services)
 
         console.log('正在订阅WiFi列表...')
         console.log('设备ID:', this.bluetoothDeviceId)
         console.log('期望数据格式: #wifi#ssid1||signal1,ssid2||signal2#end#')
 
-        const wifiList = await subscribeToWiFiList(this.bluetoothDeviceId)
+        const wifiList = await subscribeToWiFiList(this.bluetoothDeviceId) as WiFiItem[]
         console.log('获取到的WiFi列表:', wifiList)
 
         this.wifiList = wifiList
@@ -235,7 +232,6 @@ export default {
         } else {
           console.log('成功获取到', wifiList.length, '个WiFi')
           this.scanStatus = 'success'
-          // 自动弹出WiFi列表
           this.showWiFiList = true
         }
       } catch (error) {
@@ -251,8 +247,7 @@ export default {
       }
     },
 
-    // 加载手机WiFi列表
-    async loadPhoneWiFiList() {
+    async loadPhoneWiFiList(): Promise<void> {
       this.isScanning = true
       this.scanStatus = 'scanning'
       console.log('开始获取手机WiFi列表')
@@ -264,11 +259,10 @@ export default {
         console.log('WiFi模块初始化成功')
 
         console.log('正在获取WiFi列表...')
-        const wifiList = await getWifiList()
+        const wifiList: any[] = await getWifiList()
         console.log('获取到的WiFi列表:', wifiList)
 
-        // 转换WiFi列表格式以匹配现有UI
-        this.wifiList = wifiList.map(wifi => ({
+        this.wifiList = wifiList.map((wifi: any) => ({
           ssid: wifi.SSID || wifi.name || 'Unknown',
           signal: wifi.signalStrength || 0
         }))
@@ -278,7 +272,7 @@ export default {
 
         if (this.wifiList.length === 0) {
           console.log('WiFi列表为空')
-          this.scanStatus = 'success' // 扫描成功但列表为空
+          this.scanStatus = 'success'
           uni.showToast({
             title: this.texts.noWifiFound || '未发现可用的WiFi，请检查路由器是否开启',
             icon: 'none'
@@ -298,10 +292,10 @@ export default {
         })
       }
     },
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    stopScan() {
+    stopScan(): void {
       console.log('用户手动停止扫描')
       this.isScanning = false
       this.scanStatus = 'stopped'
@@ -311,15 +305,14 @@ export default {
         icon: 'none'
       })
     },
-    togglePassword() {
+    togglePassword(): void {
       this.showPassword = !this.showPassword
     },
-    handleSelectWiFi() {
+    handleSelectWiFi(): void {
       if (this.isScanning) {
-        return // 扫描中不能点击
+        return
       }
 
-      // 如果扫描失败/停止，或WiFi列表为空，重新扫描
       if (
         this.scanStatus === 'failed' ||
         this.scanStatus === 'stopped' ||
@@ -329,33 +322,31 @@ export default {
         return
       }
 
-      // 有WiFi列表时，显示选择弹窗
       if (this.wifiList.length > 0) {
         this.showWiFiList = true
       }
     },
-    handleWiFiListClose() {
+    handleWiFiListClose(): void {
       this.showWiFiList = false
     },
-    handleWiFiSelected(wifiName) {
+    handleWiFiSelected(wifiName: string): void {
       this.selectedWiFi = wifiName
       this.showWiFiList = false
     },
-    handleWiFiRefresh() {
+    handleWiFiRefresh(): void {
       this.showWiFiList = false
       this.reloadWiFiList()
     },
 
-    // 获取设备服务
-    getDeviceServices(deviceId) {
+    getDeviceServices(deviceId: string): Promise<any[]> {
       return new Promise((resolve, reject) => {
         uni.getBLEDeviceServices({
           deviceId,
-          success: res => {
+          success: (res: any) => {
             console.log('获取服务成功:', res)
             resolve(res.services || [])
           },
-          fail: error => {
+          fail: (error: any) => {
             console.log('获取服务失败:', error)
             reject(error)
           }
@@ -363,15 +354,14 @@ export default {
       })
     },
 
-    // 获取设备特征值
-    getDeviceCharacteristics(deviceId, serviceId) {
+    getDeviceCharacteristics(deviceId: string, serviceId: string): Promise<any[]> {
       return new Promise((resolve, reject) => {
         uni.getBLEDeviceCharacteristics({
           deviceId,
           serviceId,
-          success: res => {
+          success: (res: any) => {
             console.log('获取特征值成功:', res)
-            const characteristics = (res.characteristics || []).map(char => ({
+            const characteristics = (res.characteristics || []).map((char: any) => ({
               uuid: char.uuid,
               shortUuid: char.uuid.substring(4, 8),
               read: char.properties?.read || false,
@@ -380,7 +370,7 @@ export default {
               indicate: char.properties?.indicate || false
             }))
             console.log('特征值详细信息:')
-            characteristics.forEach((char, index) => {
+            characteristics.forEach((char: any, index: number) => {
               console.log(`  ${index + 1}. ${char.shortUuid} (${char.uuid})`)
               console.log(
                 `     read: ${char.read}, write: ${char.write}, notify: ${char.notify}, indicate: ${char.indicate}`
@@ -388,7 +378,7 @@ export default {
             })
             resolve(characteristics)
           },
-          fail: error => {
+          fail: (error: any) => {
             console.log('获取特征值失败:', error)
             reject(error)
           }
@@ -396,7 +386,7 @@ export default {
       })
     },
 
-    async handleNext() {
+    async handleNext(): Promise<void> {
       if (!this.selectedWiFi) {
         uni.showToast({
           title: this.texts.pleaseSelectWiFi || '请选择WiFi',
@@ -419,25 +409,22 @@ export default {
       try {
         console.log('=== 开始配网流程 ===')
 
-        // 根据是否有蓝牙设备ID判断配网模式
         if (this.bluetoothDeviceId) {
-          // 蓝牙配网模式
           console.log('使用蓝牙配网模式，设备ID:', this.bluetoothDeviceId)
 
-          // 检查蓝牙连接状态，如果已断开则重新连接
           uni.showLoading({ title: this.texts.checkingDevice || '检查设备连接...' })
           try {
             await connectToDevice(this.bluetoothDeviceId)
             console.log('蓝牙设备连接/已连接')
-          } catch (connErr) {
+          } catch (connErr: any) {
             const msg = connErr.errMsg || connErr.message || ''
             if (!msg.includes('already connect') && !msg.includes('connected')) {
               console.log('蓝牙重连失败，尝试重新初始化...', connErr)
               try {
                 uni.offBLECharacteristicValueChange()
               } catch (e) {}
-              await new Promise(resolve => {
-                uni.closeBluetoothAdapter({ success: resolve, fail: resolve })
+              await new Promise<void>(resolve => {
+                uni.closeBluetoothAdapter({ success: () => resolve(), fail: () => resolve() })
               })
               await new Promise(resolve => setTimeout(resolve, 500))
               const { initBluetooth } = await import('@/utils/bluetooth.ts')
@@ -458,11 +445,8 @@ export default {
           }
           uni.showLoading({ title: this.texts.networking || '配网中...' })
 
-          // 先订阅配网结果，在发送命令之前
           console.log('1. 开始订阅配网结果...')
-          const resultPromise = subscribeToConfigResult(this.bluetoothDeviceId)
-          // const resultPromise = subscribeToConfigResultByPlugin(this.bluetoothDeviceId)
-          // 发送服务器URL + WiFi 配置
+          const resultPromise: Promise<ConfigResult> = subscribeToConfigResult(this.bluetoothDeviceId)
           const serverUrl = 'http://app.mixwarebot.cn/api/iot/auth'
           console.log('2. 准备发送服务器URL:', serverUrl)
 
@@ -472,11 +456,9 @@ export default {
             this.selectedWiFi,
             this.wifiPassword
           )
-          // await sendWiFiConfigByPlugin(this.bluetoothDeviceId, serverUrl, this.selectedWiFi, this.wifiPassword)
           console.log('3. 服务器URL和WiFi配置发送成功')
 
-          // 等待配网结果
-          const result = await resultPromise
+          const result: ConfigResult = await resultPromise
           console.log('4. 配网结果:', result)
 
           uni.hideLoading()
@@ -484,10 +466,8 @@ export default {
 
           if (result.success) {
             console.log('5. 配网成功，断开蓝牙并跳转到成功页面')
-            // 先保存 printerId，再断开蓝牙（断开后 bluetoothDeviceId 会被清空）
             const printerId = this.bluetoothDeviceId
             this._closeBluetooth()
-            // closePluginBle()
             uni.showToast({
               title: this.texts.networkConfigSuccess || '配网成功',
               icon: 'success'
@@ -499,7 +479,6 @@ export default {
             }, 1000)
           } else {
             console.log('5. 配网失败:', result.message)
-            // 密码错误时设备不回复会导致超时，两种情况提示相同
             const isTimeout = result.message && result.message.includes('超时')
             uni.showModal({
               title: this.texts.networkConfigFailed || '配网失败',
@@ -513,7 +492,6 @@ export default {
             })
           }
         } else {
-          // 手机WiFi直连模式
           console.log('使用手机WiFi直连模式')
           uni.connectWifi({
             SSID: this.selectedWiFi,
@@ -532,7 +510,7 @@ export default {
                 })
               }, 1000)
             },
-            fail: err => {
+            fail: (err: any) => {
               console.log('WiFi连接失败:', err)
               uni.hideLoading()
               this.isConnecting = false

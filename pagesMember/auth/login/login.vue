@@ -154,7 +154,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
@@ -175,21 +174,21 @@ export default {
   },
   data() {
     return {
-      loginType: 'login',
-      username: '',
-      email: '',
-      code: '',
-      password: '',
-      confirmPassword: '',
-      birthday: '',
-      marketingOptIn: false,
-      agreed: false,
-      countdown: 0,
-      timer: null
+      loginType: 'login' as string,
+      username: '' as string,
+      email: '' as string,
+      code: '' as string,
+      password: '' as string,
+      confirmPassword: '' as string,
+      birthday: '' as string,
+      marketingOptIn: false as boolean,
+      agreed: false as boolean,
+      countdown: 0 as number,
+      timer: null as any
     }
   },
 
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.initializeTestUser()
     // #ifdef H5
@@ -197,29 +196,29 @@ export default {
     // #endif
   },
 
-  beforeDestroy() {
+  beforeDestroy(): void {
     if (this.timer) {
       clearInterval(this.timer)
     }
   },
 
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.login || {}
     }
   },
 
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleOAuthCallback() {
+    handleOAuthCallback(): void {
       // #ifdef H5
-      const urlParams = new URLSearchParams(window.location.search)
+      const urlParams = new URLSearchParams((window as any).location.search)
       const code = urlParams.get('code')
       const state = urlParams.get('state')
       const error = urlParams.get('error')
@@ -233,12 +232,12 @@ export default {
         uni.showLoading({ title: this.texts.loggingIn || '登录中...' })
         try {
           if (state.startsWith('google_')) {
-            googleCallback(code, state).then(result => {
+            googleCallback(code, state).then((result: any) => {
               this.handleOAuthResult(result)
             })
           }
-          window.history.replaceState({}, document.title, window.location.pathname)
-        } catch (err) {
+          ;(window as any).history.replaceState({}, document.title, (window as any).location.pathname)
+        } catch (err: any) {
           uni.hideLoading()
           uni.showToast({ title: this.texts.loginFailed || '登录失败', icon: 'none' })
         }
@@ -246,25 +245,25 @@ export default {
       // #endif
     },
 
-    switchLoginType(type) {
+    switchLoginType(type: string): void {
       this.loginType = type
     },
 
-    toggleAgreement() {
+    toggleAgreement(): void {
       this.agreed = !this.agreed
     },
 
-    toggleMarketing() {
+    toggleMarketing(): void {
       this.marketingOptIn = !this.marketingOptIn
     },
 
-    handleBirthdayChange(e) {
+    handleBirthdayChange(e: any): void {
       this.birthday = e.detail.value
     },
 
-    initializeTestUser() {
+    initializeTestUser(): void {
       const registeredUsers = uni.getStorageSync('registeredUsers') || []
-      const hasTestUser = registeredUsers.some(user => user.email === 'test@example.com')
+      const hasTestUser = registeredUsers.some((user: any) => user.email === 'test@example.com')
 
       if (!hasTestUser) {
         const testUser = {
@@ -282,7 +281,7 @@ export default {
       }
     },
 
-    async handleGetCode() {
+    async handleGetCode(): Promise<void> {
       if (!this.email) {
         uni.showToast({
           title: this.texts.enterEmail,
@@ -291,7 +290,6 @@ export default {
         return
       }
 
-      // 简单的邮箱格式验证
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(this.email)) {
         uni.showToast({
@@ -310,7 +308,6 @@ export default {
 
         uni.hideLoading()
 
-        // 倒计时
         this.countdown = 60
         this.timer = setInterval(() => {
           if (this.countdown > 0) {
@@ -325,7 +322,7 @@ export default {
           title: this.texts.codeSent,
           icon: 'success'
         })
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         uni.showToast({
           title: error.message || this.texts.sendCodeFailed || '发送验证码失败',
@@ -334,7 +331,7 @@ export default {
       }
     },
 
-    handleLogin() {
+    handleLogin(): void {
       if (!this.email) {
         uni.showToast({
           title: this.texts.enterEmail,
@@ -402,7 +399,7 @@ export default {
       }
     },
 
-    async handleCodeLogin() {
+    async handleCodeLogin(): Promise<void> {
       if (!this.code) {
         uni.showToast({
           title: this.texts.enterCode,
@@ -430,7 +427,7 @@ export default {
             url: '/pages/profile/profile'
           })
         }, 500)
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         uni.showToast({
           title: error.message || this.texts.loginFailed,
@@ -439,7 +436,7 @@ export default {
       }
     },
 
-    async handlePasswordLogin() {
+    async handlePasswordLogin(): Promise<void> {
       try {
         uni.showLoading({
           title: this.texts.loggingIn || '登录中...'
@@ -454,13 +451,12 @@ export default {
           icon: 'success'
         })
 
-        // 跳转到首页
         setTimeout(() => {
           uni.switchTab({
             url: '/pages/profile/profile'
           })
         }, 500)
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
 
         if (this.timer) {
@@ -476,7 +472,7 @@ export default {
       }
     },
 
-    async handleRegister() {
+    async handleRegister(): Promise<void> {
       try {
         uni.showLoading({
           title: this.texts.registering || '注册中...'
@@ -500,13 +496,12 @@ export default {
           icon: 'success'
         })
 
-        // 跳转到首页
         setTimeout(() => {
           uni.switchTab({
             url: '/pages/profile/profile'
           })
         }, 500)
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
 
         if (this.timer) {
@@ -522,54 +517,54 @@ export default {
       }
     },
 
-    handleUserAgreement() {
+    handleUserAgreement(): void {
       uni.navigateTo({
         url: '/pagesMember/agreements/loginUserAgreement/loginUserAgreement'
       })
     },
 
-    handlePrivacy() {
+    handlePrivacy(): void {
       uni.navigateTo({
         url: '/pagesMember/agreements/loginPrivacy/loginPrivacy'
       })
     },
 
-    handleMixwareAgreement() {
+    handleMixwareAgreement(): void {
       uni.navigateTo({
         url: '/pagesMember/agreements/loginMixwareAgreement/loginMixwareAgreement'
       })
     },
 
-    async handleGoogleLogin() {
+    async handleGoogleLogin(): Promise<void> {
       uni.showLoading({
         title: this.texts.loggingIn || '正在登录...'
       })
 
       try {
         // #ifdef H5
-        const config = await getGoogleOAuthConfig()
+        const config: any = await getGoogleOAuthConfig()
         if (config.code === 1 || config.code === 0) {
           const { clientId, redirectUri } = config.data
           const state = 'google_' + Date.now()
           uni.setStorageSync('oauth_state', state)
           const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=profile email&state=${state}`
-          window.location.href = authUrl
+          ;(window as any).location.href = authUrl
         }
         // #endif
 
         // #ifdef APP-PLUS
-        const appConfig = await getGoogleOAuthConfig()
+        const appConfig: any = await getGoogleOAuthConfig()
         if (appConfig.code === 1 || appConfig.code === 0) {
           const { clientId, redirectUri } = appConfig.data
-          plus.oauth.getServices(services => {
-            const google = services.find(s => s.id === 'google')
+          ;(plus as any).oauth.getServices((services: any[]) => {
+            const google = services.find((s: any) => s.id === 'google')
             if (google) {
               google.authorize(
-                async e => {
-                  const result = await googleCallback(e.code, '')
+                async (e: any) => {
+                  const result: any = await googleCallback(e.code, '')
                   this.handleOAuthResult(result)
                 },
-                err => {
+                (err: any) => {
                   uni.hideLoading()
                   uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
                 }
@@ -584,7 +579,7 @@ export default {
           })
         }
         // #endif
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         uni.showToast({
           title: error.message || this.texts.googleLoginFailed,
@@ -593,14 +588,14 @@ export default {
       }
     },
 
-    async handleAppleLogin() {
+    async handleAppleLogin(): Promise<void> {
       uni.showLoading({
         title: this.texts.loggingIn || '正在登录...'
       })
 
       try {
         // #ifdef H5
-        if (typeof AppleID === 'undefined') {
+        if (typeof (window as any).AppleID === 'undefined') {
           uni.hideLoading()
           uni.showToast({
             title: this.texts.appleNotAvailable || 'Apple登录暂不可用',
@@ -609,19 +604,19 @@ export default {
           return
         }
         try {
-          const config = await getAppleConfig()
+          const config: any = await getAppleConfig()
           if (config.code !== 1 && config.code !== 0) {
             uni.hideLoading()
             uni.showToast({ title: this.texts.configFetchFailed || '配置获取失败', icon: 'none' })
             return
           }
-          AppleID.auth.init({
+          ;(window as any).AppleID.auth.init({
             clientId: config.data.clientId,
             scope: 'name email',
             redirectURI: config.data.redirectUri,
             usePopup: true
           })
-          const response = await AppleID.auth.signIn()
+          const response = await (window as any).AppleID.auth.signIn()
 
           const auth = response.authorization
           const userData = response.user || {}
@@ -635,7 +630,7 @@ export default {
             uni.setStorageSync('apple_user_email', userData.email)
           }
 
-          const result = await appleCallback({
+          const result: any = await appleCallback({
             code: auth.code,
             id_token: auth.id_token,
             user: auth.user,
@@ -643,7 +638,7 @@ export default {
             name: uni.getStorageSync('apple_user_name') || ''
           })
           this.handleOAuthResult(result)
-        } catch (err) {
+        } catch (err: any) {
           uni.hideLoading()
           if (err.error === 'user_cancelled_authorize') {
             uni.showToast({ title: this.texts.userCancelledAuth || '用户取消授权', icon: 'none' })
@@ -654,18 +649,15 @@ export default {
         // #endif
 
         // #ifdef APP-PLUS
-        // 使用 uni.login 官方API
         uni.login({
           provider: 'apple',
-          success: loginRes => {
-            // 获取用户信息
+          success: (loginRes: any) => {
             uni.getUserInfo({
               provider: 'apple',
-              success: async info => {
+              success: async (info: any) => {
                 const auth = info.authResult || {}
                 const userInfo = info.userInfo || {}
 
-                // 提取数据
                 const code = auth.code || auth.authorizationCode
                 const identityToken = auth.identityToken || auth.id_token
                 const user = auth.user || userInfo.openId
@@ -676,7 +668,6 @@ export default {
                     : '')
                 const email = userInfo.email
 
-                // 首次登录保存用户信息
                 if (fullName) {
                   uni.setStorageSync('apple_user_name', fullName)
                 }
@@ -685,7 +676,7 @@ export default {
                 }
 
                 try {
-                  const result = await appleCallback({
+                  const result: any = await appleCallback({
                     code,
                     id_token: identityToken,
                     user,
@@ -693,7 +684,7 @@ export default {
                     name: uni.getStorageSync('apple_user_name') || fullName || ''
                   })
                   this.handleOAuthResult(result)
-                } catch (err) {
+                } catch (err: any) {
                   uni.hideLoading()
                   uni.showToast({ title: this.texts.loginFailed || '登录失败', icon: 'none' })
                 }
@@ -707,7 +698,7 @@ export default {
               }
             })
           },
-          fail: err => {
+          fail: (err: any) => {
             uni.hideLoading()
             if (err.code === 1000) {
               uni.showToast({ title: this.texts.userCancelledAuth || '用户取消授权', icon: 'none' })
@@ -717,7 +708,7 @@ export default {
           }
         })
         // #endif
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         uni.showToast({
           title: error.message || this.texts.appleLoginFailed || 'Apple登录失败',
@@ -726,7 +717,7 @@ export default {
       }
     },
 
-    handleOAuthResult(result) {
+    handleOAuthResult(result: any): void {
       uni.hideLoading()
       if (result.code === 1 || result.code === 0) {
         const { token, userId, username, avatarUrl } = result.data

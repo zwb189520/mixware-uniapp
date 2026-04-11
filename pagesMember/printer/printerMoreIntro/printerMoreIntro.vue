@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="printer-more-intro-page">
     <view class="header-wrapper">
       <safe-area />
@@ -6,8 +6,8 @@
     </view>
     <view class="content-container">
       <printer-info-section :device-id="deviceId" @device-info-loaded="handleDeviceInfoLoaded" />
-      <firmware-settings :device-info="deviceInfo" />
-      <maintenance-section :device-info="deviceInfo" />
+      <firmware-settings :device-info="deviceInfo || undefined" />
+      <maintenance-section :device-info="deviceInfo || undefined" />
       <calibration-section />
       <action-buttons :device-id="deviceId" />
     </view>
@@ -15,7 +15,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import PrinterInfoSection from './components/PrinterInfoSection.vue'
 import FirmwareSettings from './components/FirmwareSettings.vue'
@@ -24,6 +23,12 @@ import CalibrationSection from './components/CalibrationSection.vue'
 import ActionButtons from './components/ActionButtons.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { getDefaultDevice } from '@/api/devices.ts'
+
+interface DeviceInfo {
+  deviceId: string
+  deviceName: string
+  [key: string]: any
+}
 
 export default {
   name: 'PrinterMoreIntro',
@@ -37,19 +42,19 @@ export default {
   },
   data() {
     return {
-      deviceId: '',
-      deviceInfo: null
+      deviceId: '' as string,
+      deviceInfo: null as DeviceInfo | null
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.printerMoreIntro || {}
     }
   },
-  async onLoad(options) {
+  async onLoad(options: any): Promise<void> {
     this.languageStore.loadLanguage()
     if (options.deviceId) {
       this.deviceId = options.deviceId
@@ -58,15 +63,15 @@ export default {
     }
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleDeviceInfoLoaded(info) {
+    handleDeviceInfoLoaded(info: DeviceInfo): void {
       this.deviceInfo = info
     },
-    async loadDefaultDevice() {
+    async loadDefaultDevice(): Promise<void> {
       try {
-        const res = await getDefaultDevice()
+        const res: any = await getDefaultDevice()
         if (res.data && res.data.deviceId) {
           this.deviceId = res.data.deviceId
         }

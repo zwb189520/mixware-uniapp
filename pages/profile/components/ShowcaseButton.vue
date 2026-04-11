@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="showcase-button" @click="handleShowcaseClick">
     <view class="button-content">
       <image src="/static/images/icon/my-works.png" mode="aspectFit" class="button-icon"></image>
@@ -11,7 +11,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 import { getPostList } from '@/api/community.ts'
 
@@ -19,30 +18,30 @@ export default {
   name: 'ShowcaseButton',
   data() {
     return {
-      worksCount: 0
+      worksCount: 0 as number
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.profile
     },
-    myWorksText() {
+    myWorksText(): string {
       return this.languageStore.texts.myWorks.title
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.checkWorksCount()
   },
   methods: {
-    async checkWorksCount() {
+    async checkWorksCount(): Promise<void> {
       try {
         const userInfo = uni.getStorageSync('userInfo')
         if (userInfo && userInfo.userId) {
-          const res = await getPostList({
+          const res: any = await getPostList({
             userId: userInfo.userId,
             current: 1,
             size: 1
@@ -51,11 +50,11 @@ export default {
             this.worksCount = res.data.total || res.data.records?.length || 0
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(e)
       }
     },
-    handleShowcaseClick() {
+    handleShowcaseClick(): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return

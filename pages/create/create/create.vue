@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page">
     <!-- 安全区域 -->
     <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
@@ -29,22 +29,29 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 import { createSession } from '@/api/session.ts'
+
+interface Tool {
+  id: string
+  text: string
+  description: string
+  icon: string
+  backgroundImage: string
+}
 
 export default {
   data() {
     return {
-      statusBarHeight: 0,
-      isNavigating: false
+      statusBarHeight: 0 as number,
+      isNavigating: false as boolean
     }
   },
   computed: {
-    texts() {
+    texts(): any {
       return useLanguageStore().texts.create
     },
-    tools() {
+    tools(): Tool[] {
       return [
         {
           id: 'photography',
@@ -84,24 +91,23 @@ export default {
       ]
     }
   },
-  onLoad() {
+  onLoad(): void {
     const systemInfo = uni.getSystemInfoSync()
-    this.statusBarHeight = systemInfo.statusBarHeight
+    this.statusBarHeight = systemInfo.statusBarHeight || 0
   },
-  onShow() {
+  onShow(): void {
     useLanguageStore().updateTabBar()
   },
   methods: {
-    getCardHeight(index) {
+    getCardHeight(index: number): number {
       return index === 4 ? 200 : 240
     },
-    getCardPositionClass(index) {
+    getCardPositionClass(index: number): string {
       return index === 4 ? 'ai-chat-full-width' : ''
     },
-    async handleToolClick(tool) {
+    async handleToolClick(tool: Tool): Promise<void> {
       if (this.isNavigating) return
 
-      // 检查登录状态
       const isLoggedIn = uni.getStorageSync('isLoggedIn')
       if (!isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
@@ -110,7 +116,7 @@ export default {
 
       this.isNavigating = true
 
-      const navigate = url => {
+      const navigate = (url: string) => {
         uni.navigateTo({
           url,
           complete: () => {
@@ -128,13 +134,13 @@ export default {
           break
         case 'aiChat':
           try {
-            const res = await createSession()
+            const res: any = await createSession()
             if ((res.code === 1 || res.code === 0) && res.data?.sessionId) {
               navigate(`/pages/create/createDetail/aiChat/aiChat?sessionId=${res.data.sessionId}`)
             } else {
               this.isNavigating = false
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('创建会话失败:', error)
             this.isNavigating = false
           }

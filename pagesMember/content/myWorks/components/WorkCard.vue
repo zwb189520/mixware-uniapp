@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="work-card">
     <image class="work-image" :src="work.image" mode="aspectFill" lazy-load></image>
     <view class="work-info">
@@ -12,7 +12,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 export default {
   name: 'WorkCard',
   props: {

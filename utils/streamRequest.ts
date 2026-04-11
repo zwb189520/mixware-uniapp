@@ -1,4 +1,4 @@
-﻿import { BASE_URL } from '../api/request.js'
+import { BASE_URL } from '../api/request.js'
 
 interface StreamRequestOptions {
   url?: string
@@ -81,7 +81,7 @@ export const streamRequest = ({
   const upperMethod = method.toUpperCase()
   const isGet = upperMethod === 'GET'
   const payload = isGet
-    ? null
+    ? undefined
     : requestHeaders['Content-Type'] === 'application/x-www-form-urlencoded'
       ? toQueryString(data)
       : JSON.stringify(data)
@@ -134,10 +134,11 @@ export const streamRequest = ({
     }
 
     try {
-      xhr.open(upperMethod, finalUrl)
+      xhr.open(upperMethod as 'GET' | 'POST', finalUrl!)
       Object.keys(requestHeaders).forEach(key => {
-        if (requestHeaders[key] !== undefined && requestHeaders[key] !== null) {
-          xhr.setRequestHeader(key, requestHeaders[key])
+        const headerValue = requestHeaders[key] as string
+        if (headerValue) {
+          (xhr as any).setRequestHeader(key, headerValue)
         }
       })
       xhr.send(payload)

@@ -6,9 +6,9 @@ export interface ModelTask {
   sourceModelUrl: string
   previewUrl: string
   scaleFactor: number
-  status: string
-  errorMsg: string
-  createdAt: string
+  status?: string
+  errorMsg?: string
+  createdAt?: string
   modelType?: string
 }
 

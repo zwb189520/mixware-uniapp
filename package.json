@@ -42,6 +42,7 @@
     "@dcloudio/uni-cli-shared": "3.0.0-5000620260331001",
     "@dcloudio/uni-stacktracey": "3.0.0-5000620260331001",
     "@dcloudio/vite-plugin-uni": "3.0.0-5000620260331001",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.58.1",
     "@typescript-eslint/parser": "^8.58.1",

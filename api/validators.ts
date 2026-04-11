@@ -1,10 +1,4 @@
-﻿// @ts-nocheck
-/**
- * 检查URL是否为不需要token的接口
- * @param {String} url 请求URL
- * @returns {Boolean} 是否需要token
- */
-export const isNoTokenUrl = url => {
+﻿export const isNoTokenUrl = (url: string): boolean => {
   if (!url) return false
 
   // 基础免登录路径 - 精确匹配或前缀匹配
@@ -60,16 +54,12 @@ export const isNoTokenUrl = url => {
   return false
 }
 
-/**
- * 检查当前页面是否为公共页面
- * @returns {Boolean}
- */
-export const isPublicPage = () => {
+export const isPublicPage = (): boolean => {
   try {
     const pages = getCurrentPages()
     if (pages.length === 0) return false
     const currentPage = pages[pages.length - 1]
-    const currentRoute = currentPage ? currentPage.route : ''
+    const currentRoute = currentPage ? (currentPage.route || '') : ''
 
     const publicPages = [
       'pages/explore/explore/explore',
@@ -86,12 +76,7 @@ export const isPublicPage = () => {
   }
 }
 
-/**
- * 检查响应是否表示token失效
- * @param {Object} res 响应对象
- * @returns {Boolean} 是否表示token失效
- */
-export const isTokenInvalid = res => {
+export const isTokenInvalid = (res: { statusCode?: number; data?: { message?: string; error?: string } }): boolean => {
   if (res.statusCode === 401) {
     return true
   }
@@ -111,17 +96,12 @@ export const isTokenInvalid = res => {
   return tokenErrorKeywords.some(keyword => errorMsg.includes(keyword.toLowerCase()))
 }
 
-/**
- * 检查响应数据是否表示用户不存在
- * @param {Object} data 响应数据
- * @returns {Boolean} 是否表示用户不存在
- */
-export const isUserNotFound = data => {
+export const isUserNotFound = (data: { code?: number | string; message?: string; msg?: string; error?: string } | null): boolean => {
   if (!data) {
     return false
   }
 
-  if (data.code === 100201) {
+  if (data.code === 100201 || data.code === '100201') {
     return true
   }
 
@@ -147,12 +127,7 @@ export const isUserNotFound = data => {
   return false
 }
 
-/**
- * 检查请求数据是否包含NaN
- * @param {Object} obj 对象
- * @returns {Boolean} 是否包含NaN
- */
-export const hasNaN = obj => {
+export const hasNaN = (obj: Record<string, unknown> | null | undefined): boolean => {
   if (!obj) return false
   return Object.values(obj).some(
     val =>

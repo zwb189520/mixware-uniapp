@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="device-success-page">
     <safe-area />
     <custom-navbar :title="pageTitle" @back="handleBack" />
@@ -47,7 +47,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { bindDevice, getDeviceInfo, setDefaultDevice } from '@/api/devices.ts'
@@ -62,45 +61,43 @@ export default {
   },
   data() {
     return {
-      printerId: null,
-      bindStatus: 'loading' // loading | success | failed
+      printerId: null as string | null,
+      bindStatus: 'loading' as 'loading' | 'success' | 'failed'
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.deviceSuccess
     },
-    pageTitle() {
+    pageTitle(): string {
       if (this.bindStatus === 'success') return this.texts.bindingSuccess || '绑定成功'
       if (this.bindStatus === 'failed') return this.texts.bindingFailed || '绑定失败'
       return this.texts.binding || '正在绑定'
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.printerId = options.printerId || null
     if (this.printerId) {
       this.bindPrinter()
     } else {
-      // 无 printerId（WiFi直连模式），直接显示成功
       this.bindStatus = 'success'
     }
   },
   methods: {
-    async bindPrinter() {
+    async bindPrinter(): Promise<void> {
       this.bindStatus = 'loading'
       console.log('开始绑定设备，设备ID:', this.printerId)
       try {
-        const res = await bindDevice({
+        const res: any = await bindDevice({
           deviceId: this.printerId
         })
         console.log('绑定API返回:', res)
-        // code=1/200 绑定成功；其他已绑定的错误码也视为成功继续流程
         const bindOk =
           res.code === 1 ||
           res.code === 200 ||
@@ -108,11 +105,11 @@ export default {
           (res.msg && res.msg.includes('已绑定'))
         if (bindOk) {
           console.log('绑定成功（或已绑定），开始获取设备信息...')
-          let deviceInfo = null
-          let deviceStatus = null
+          let deviceInfo: any = null
+          let deviceStatus: any = null
 
           try {
-            deviceInfo = await getDeviceInfo(this.printerId)
+            deviceInfo = await getDeviceInfo(this.printerId as string)
             console.log('设备信息获取完成:', deviceInfo)
             if (deviceInfo.code === 1 || deviceInfo.code === 200) {
               console.log('设备信息获取成功')
@@ -123,10 +120,9 @@ export default {
             console.error('获取设备信息出错:', infoError)
           }
 
-          // 获取设备MQTT授权信息
           try {
             console.log('开始获取设备MQTT授权信息...')
-            const deviceAuth = await getDeviceAuth(this.printerId)
+            const deviceAuth: any = await getDeviceAuth(this.printerId as string)
             console.log('设备授权信息获取完成:', deviceAuth)
             if (deviceAuth.code === 1 || deviceAuth.code === 200) {
               if (deviceAuth.data) {
@@ -142,7 +138,7 @@ export default {
 
           try {
             console.log('开始获取设备状态...')
-            deviceStatus = await getDeviceStatus(this.printerId)
+            deviceStatus = await getDeviceStatus(this.printerId as string)
             console.log('设备状态获取完成:', deviceStatus)
             if (deviceStatus.code === 1 || deviceStatus.code === 200) {
               console.log('设备状态获取成功')
@@ -153,14 +149,12 @@ export default {
             console.error('获取设备状态出错:', statusError)
           }
 
-          // 存储设备信息到本地缓存
           if (deviceInfo && (deviceInfo.code === 1 || deviceInfo.code === 200)) {
             uni.setStorageSync('currentDeviceInfo', deviceInfo.data)
             console.log('设备信息已存储到本地缓存:', deviceInfo.data)
 
-            // 设置为默认设备
             try {
-              const setDefaultRes = await setDefaultDevice(this.printerId)
+              const setDefaultRes: any = await setDefaultDevice(this.printerId as string)
               console.log('设置默认设备响应:', setDefaultRes)
             } catch (setDefaultError) {
               console.error('设置默认设备失败:', setDefaultError)
@@ -182,7 +176,6 @@ export default {
             console.log('设备状态已存储到本地缓存:', statusData)
           }
 
-          // 绑定成功，切换页面状态
           this.bindStatus = 'success'
         } else {
           console.log('绑定失败，code:', res.code)
@@ -194,15 +187,15 @@ export default {
       }
     },
 
-    retryBind() {
+    retryBind(): void {
       this.bindPrinter()
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleGoHome() {
+    handleGoHome(): void {
       uni.switchTab({
         url: '/pages/profile/profile'
       })

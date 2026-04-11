@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="action-buttons">
     <view class="action-button" @click="handleReconfigure">
       <text class="button-text">{{ texts.reconfigure || '重新配网' }}</text>
@@ -10,7 +10,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { deleteDevice } from '@/api/devices.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -23,20 +22,20 @@ export default {
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.printer
     }
   },
   methods: {
-    handleReconfigure() {
+    handleReconfigure(): void {
       uni.navigateTo({
         url: '/pagesMember/printer/addDevice/addDevice'
       })
     },
-    async handleUnbind() {
+    async handleUnbind(): Promise<void> {
       if (!this.deviceId) {
         uni.showToast({
           title: this.texts.deviceIdNotFound || '设备ID不存在',
@@ -48,7 +47,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmUnbind || '确认解除绑定',
         content: this.texts.confirmUnbindContent || '解除绑定后将无法控制此打印机，确定要继续吗？',
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             try {
               await deleteDevice(this.deviceId)
@@ -59,7 +58,7 @@ export default {
               setTimeout(() => {
                 uni.navigateBack()
               }, 1500)
-            } catch (error) {
+            } catch (error: any) {
               uni.showToast({
                 title: error.message || this.texts.unbindFailed || '解除绑定失败',
                 icon: 'none'

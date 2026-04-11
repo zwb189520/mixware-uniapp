@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <view class="nav-fixed">
       <safe-area />
@@ -108,12 +108,26 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { createPost } from '@/api/community'
 import { uploadFile } from '@/api/request'
+
+interface PostForm {
+  title: string
+  content: string
+  imageUrls: string[]
+  topics: string[]
+  modelId: string
+  status: string
+}
+
+interface ModelInfo {
+  id: string
+  name: string
+  image: string
+}
 
 export default {
   components: {
@@ -129,28 +143,27 @@ export default {
         topics: [],
         modelId: '',
         status: 'PUBLISHED'
-      },
-      modelInfo: null,
-      newTopic: '',
-      showTopicInput: false,
-      selectedTopics: [],
+      } as PostForm,
+      modelInfo: null as ModelInfo | null,
+      newTopic: '' as string,
+      showTopicInput: false as boolean,
+      selectedTopics: [] as string[],
       languageStore: useLanguageStore(),
-      from: ''
+      from: '' as string
     }
   },
   computed: {
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     },
-    canPublish() {
-      return this.postForm.title.trim() && this.postForm.content.trim()
+    canPublish(): boolean {
+      return this.postForm.title.trim() !== '' && this.postForm.content.trim() !== ''
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.languageStore.loadLanguage()
     this.from = options.from || ''
 
-    // 接收模型信息
     if (options.modelId) {
       this.postForm.modelId = options.modelId
       this.modelInfo = {
@@ -161,26 +174,24 @@ export default {
     }
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    // 监听话题输入，支持空格和逗号自动添加
-    handleTopicInput(e) {
+    handleTopicInput(e: any): void {
       const val = e.detail.value
       if (val.endsWith(' ') || val.endsWith(',') || val.endsWith('，')) {
         this.addTopic()
       }
     },
 
-    handleTopicBlur() {
+    handleTopicBlur(): void {
       if (!this.newTopic.trim()) {
         this.showTopicInput = false
       }
     },
 
-    // 选择图片
-    chooseImage() {
+    chooseImage(): void {
       if (this.postForm.imageUrls.length >= 9) {
         uni.showToast({ title: this.texts.maxImagesHint || '最多可上传9张图片', icon: 'none' })
         return
@@ -190,19 +201,17 @@ export default {
         count: 9 - this.postForm.imageUrls.length,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
-        success: res => {
+        success: (res: any) => {
           this.postForm.imageUrls = [...this.postForm.imageUrls, ...res.tempFilePaths]
         }
       })
     },
 
-    // 删除图片
-    deleteImage(index) {
+    deleteImage(index: number): void {
       this.postForm.imageUrls.splice(index, 1)
     },
 
-    // 添加话题
-    addTopic() {
+    addTopic(): void {
       const topic = this.newTopic.trim().replace(/[,，]/g, '')
       if (topic && !this.selectedTopics.includes(topic)) {
         if (this.selectedTopics.length >= 5) {
@@ -219,8 +228,7 @@ export default {
       this.showTopicInput = false
     },
 
-    // 移除话题
-    removeTopic(topic) {
+    removeTopic(topic: string): void {
       const index = this.selectedTopics.indexOf(topic)
       if (index !== -1) {
         this.selectedTopics.splice(index, 1)
@@ -228,9 +236,7 @@ export default {
       }
     },
 
-    // 发布帖子
-    async handlePublish() {
-      // 检查是否可以发布
+    async handlePublish(): Promise<void> {
       if (!this.canPublish) {
         if (!this.postForm.title.trim()) {
           uni.showToast({ title: this.texts.enterTitle || '请输入标题', icon: 'none' })
@@ -243,14 +249,12 @@ export default {
       uni.showLoading({ title: this.texts.publishing })
 
       try {
-        // 先上传图片
-        const uploadedImageUrls = []
+        const uploadedImageUrls: string[] = []
         console.log('开始上传图片，本地图片数量:', this.postForm.imageUrls.length)
         for (const imageUrl of this.postForm.imageUrls) {
-          // 上传所有本地图片（非http开头的都是本地图片）
           if (!imageUrl.startsWith('http')) {
             console.log('上传图片:', imageUrl.substring(0, 50) + '...')
-            const uploadRes = await uploadFile('/upload/image', imageUrl)
+            const uploadRes: any = await uploadFile('/upload/image', imageUrl)
             console.log('上传结果:', JSON.stringify(uploadRes))
             if (uploadRes.code === 1 && uploadRes.data) {
               let uploadedUrl = uploadRes.data.url || uploadRes.data.fileUrl
@@ -268,9 +272,7 @@ export default {
         }
         console.log('上传完成，图片URL列表:', uploadedImageUrls)
 
-        // 创建帖子数据
         let finalContent = this.postForm.content
-        // 如果有话题，自动拼接到内容末尾，确保话题能显示（针对后端可能不存储 topics 的兜底）
         if (this.postForm.topics && this.postForm.topics.length > 0) {
           const topicString = this.postForm.topics.map(t => `#${t}#`).join(' ')
           if (!finalContent.includes(topicString)) {
@@ -282,20 +284,18 @@ export default {
           ...this.postForm,
           content: finalContent,
           imageUrls: uploadedImageUrls,
-          topics: this.postForm.topics, // 保持数组
-          tags: this.postForm.topics.join(',') // 同时也发送逗号分隔的字符串，增加兼容性
+          topics: this.postForm.topics,
+          tags: this.postForm.topics.join(',')
         }
 
-        const res = await createPost(postData)
+        const res: any = await createPost(postData)
         if (res.code === 0 || res.code === 1) {
           uni.hideLoading()
           uni.showToast({ title: this.texts.publishSuccess, icon: 'success' })
 
-          // 触发帖子创建事件，通知模型详情页刷新作品展示
           console.log('触发 postCreated 事件，modelId:', this.postForm.modelId)
           uni.$emit('postCreated', this.postForm.modelId)
 
-          // 设置标记，让模型详情页在 onShow 时刷新
           uni.setStorageSync('needRefreshShowcase', this.postForm.modelId)
 
           setTimeout(() => {
@@ -306,7 +306,7 @@ export default {
             }
           }, 1500)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('发布帖子失败:', error)
         uni.hideLoading()
         uni.showToast({ title: this.texts.publishFailed, icon: 'none' })

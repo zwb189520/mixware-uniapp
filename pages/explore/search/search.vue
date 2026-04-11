@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="search-page">
     <safe-area />
     <!-- 顶部搜索栏 -->
@@ -80,7 +80,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { getModelPage } from '@/api/models.ts'
@@ -89,6 +88,23 @@ import { useExploreStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
 
+interface ModelItem {
+  id: string | number
+  name: string
+  desc: string
+  image: string
+  author: string
+  authorAvatar: string
+  likes: number
+  isLiked: boolean
+  viewCount: number
+}
+
+interface SearchResults {
+  leftList: ModelItem[]
+  rightList: ModelItem[]
+}
+
 export default {
   components: {
     WaterfallLayout,
@@ -96,33 +112,31 @@ export default {
   },
   data() {
     return {
-      localKeyword: '',
-      showResults: false,
-      searchHistory: [],
-      hotTags: [],
+      localKeyword: '' as string,
+      showResults: false as boolean,
+      searchHistory: [] as string[],
+      hotTags: [] as string[],
       searchResults: {
         leftList: [],
         rightList: []
-      }
+      } as SearchResults
     }
   },
   computed: {
-    placeholder() {
+    placeholder(): string {
       return this.texts.searchPlaceholder || '搜索模型'
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.languageStore.loadLanguage()
     this.loadSearchHistory()
     this.loadHotTags()
 
-    // 如果从外部传递了关键词，则自动填充并执行搜索
     if (options.keyword) {
       const keyword = decodeURIComponent(options.keyword)
-      // 只有在本地关键词为空时才设置，避免覆盖用户正在输入的内容
       if (!this.localKeyword) {
         this.localKeyword = keyword
         this.$nextTick(() => {
@@ -145,66 +159,59 @@ export default {
     }
   },
   methods: {
-    loadSearchHistory() {
+    loadSearchHistory(): void {
       try {
-        const history = uni.getStorageSync('searchHistory') || []
-        this.searchHistory = history.slice(0, 10) // 限制最多10条历史记录
+        const history: string[] = uni.getStorageSync('searchHistory') || []
+        this.searchHistory = history.slice(0, 10)
       } catch (e) {
         this.searchHistory = []
       }
     },
 
-    saveSearchHistory(keyword) {
+    saveSearchHistory(keyword: string): void {
       if (!keyword.trim()) return
 
       try {
-        let history = uni.getStorageSync('searchHistory') || []
-        // 移除重复项
+        let history: string[] = uni.getStorageSync('searchHistory') || []
         history = history.filter(item => item !== keyword)
-        // 添加到开头
         history.unshift(keyword)
-        // 限制最多10条
         history = history.slice(0, 10)
         uni.setStorageSync('searchHistory', history)
         this.searchHistory = history
-      } catch (e) {
+      } catch (e: any) {
         console.error('保存搜索历史失败:', e)
       }
     },
 
-    async loadHotTags() {
+    async loadHotTags(): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) return
       try {
-        // 优先使用store中的热门标签
         if (this.storeHotTags && this.storeHotTags.length > 0) {
           this.hotTags = this.storeHotTags
           return
         }
 
-        const res = await getHotExamples(20)
+        const res: any = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
             this.hotTags = res.data
-              .map(item => item.title || item.describe || '')
-              .filter(tag => tag.trim())
+              .map((item: any) => item.title || item.describe || '')
+              .filter((tag: string) => tag.trim())
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载热门标签失败:', error)
       }
     },
 
-    handleInput(event) {
-      // 实时更新本地关键字，但不触发搜索
+    handleInput(event: any): void {
       this.localKeyword = event.detail.value
-
-      // 如果输入为空，显示搜索历史和热门搜索
       if (!this.localKeyword.trim()) {
         this.showResults = false
       }
     },
 
-    async handleSearch() {
+    async handleSearch(): Promise<void> {
       if (!this.localKeyword.trim()) {
         uni.showToast({
           title: this.texts.inputKeyword || '请输入搜索关键词',
@@ -217,13 +224,13 @@ export default {
       await this.performSearch(this.localKeyword)
     },
 
-    async performSearch(keyword) {
+    async performSearch(keyword: string): Promise<void> {
       uni.showLoading({
         title: this.texts.searching || '搜索中...'
       })
 
       try {
-        const res = await getModelPage({
+        const res: any = await getModelPage({
           current: 1,
           size: 20,
           name: keyword
@@ -233,9 +240,6 @@ export default {
           const results = this.formatSearchResults(res.data.records)
           this.searchResults = results
           this.showResults = true
-
-          const resultCount = results.leftList.length + results.rightList.length
-          // 不显示找到多少个结果的提示
         } else {
           this.searchResults = { leftList: [], rightList: [] }
           this.showResults = true
@@ -244,7 +248,7 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('搜索失败:', error)
         uni.showToast({
           title: this.texts.searchFailed || '搜索失败，请稍后重试',
@@ -255,8 +259,8 @@ export default {
       }
     },
 
-    formatSearchResults(models) {
-      const fixImageUrl = url => {
+    formatSearchResults(models: any[]): SearchResults {
+      const fixImageUrl = (url: string): string => {
         if (!url) return '/static/images/logo.png'
         if (url.includes('localhost:9000')) {
           return url.replace('localhost:9000', '47.102.212.37:9000')
@@ -267,7 +271,7 @@ export default {
         return url
       }
 
-      const formattedModels = models.map(model => ({
+      const formattedModels: ModelItem[] = models.map(model => ({
         id: model.modelId,
         name: model.name || '未命名模型',
         desc: model.description || model.name || '暂无描述',
@@ -283,9 +287,8 @@ export default {
         viewCount: model.viewCount || 0
       }))
 
-      // 分成左右两列
-      const leftList = []
-      const rightList = []
+      const leftList: ModelItem[] = []
+      const rightList: ModelItem[] = []
 
       formattedModels.forEach((model, index) => {
         if (index % 2 === 0) {
@@ -298,30 +301,30 @@ export default {
       return { leftList, rightList }
     },
 
-    handleCancel() {
+    handleCancel(): void {
       uni.navigateBack()
     },
 
-    clearKeyword() {
+    clearKeyword(): void {
       this.localKeyword = ''
       this.showResults = false
     },
 
-    useHistory(keyword) {
+    useHistory(keyword: string): void {
       this.localKeyword = keyword
       this.performSearch(keyword)
     },
 
-    handleTagClick(tag) {
+    handleTagClick(tag: string): void {
       this.localKeyword = tag
       this.performSearch(tag)
     },
 
-    clearHistory() {
+    clearHistory(): void {
       uni.showModal({
         title: this.texts.clearHistoryTitle || '确认清除',
         content: this.texts.clearHistoryContent || '确定要清除搜索历史吗？',
-        success: res => {
+        success: (res: any) => {
           if (res.confirm) {
             uni.removeStorageSync('searchHistory')
             this.searchHistory = []
@@ -334,7 +337,7 @@ export default {
       })
     },
 
-    handleModelClick(item) {
+    handleModelClick(item: ModelItem): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
@@ -346,12 +349,10 @@ export default {
       })
     },
 
-    handleAuthorClick(item) {
-      // 处理作者点击事件
+    handleAuthorClick(item: ModelItem): void {
     },
 
-    async toggleLike(item) {
-      // 处理点赞事件
+    async toggleLike(item: ModelItem): Promise<void> {
       uni.showToast({
         title: this.texts.likeFeatureUnavailable || '点赞功能暂时不可用',
         icon: 'none'

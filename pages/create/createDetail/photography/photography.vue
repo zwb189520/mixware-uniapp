@@ -42,7 +42,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { imageToModel } from '@/api/hunyuan3d.ts'
@@ -56,29 +55,29 @@ export default {
   },
   data() {
     return {
-      uploadedImage: null,
-      isGenerating: false
+      uploadedImage: null as string | null,
+      isGenerating: false as boolean
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.create
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleMore() {
+    handleMore(): void {
       uni.showActionSheet({
         itemList: [this.texts.share, this.texts.report, this.texts.help],
-        success: res => {
+        success: (res: any) => {
           switch (res.tapIndex) {
             case 0:
               uni.showShareMenu()
@@ -93,12 +92,12 @@ export default {
         }
       })
     },
-    handleUpload() {
+    handleUpload(): void {
       uni.chooseImage({
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
-        success: res => {
+        success: (res: any) => {
           const tempFilePaths = res.tempFilePaths[0]
           this.uploadedImage = tempFilePaths
           uni.showToast({
@@ -106,7 +105,7 @@ export default {
             icon: 'success'
           })
         },
-        fail: err => {
+        fail: () => {
           uni.showToast({
             title: this.texts.uploadFailed,
             icon: 'none'
@@ -115,14 +114,14 @@ export default {
       })
     },
 
-    handleImageClick() {
+    handleImageClick(): void {
       uni.showActionSheet({
         itemList: [this.texts.viewLargeImage, this.texts.changeImage],
-        success: res => {
+        success: (res: any) => {
           if (res.tapIndex === 0) {
             uni.previewImage({
-              urls: [this.uploadedImage],
-              current: this.uploadedImage
+              urls: [this.uploadedImage as string],
+              current: this.uploadedImage as string
             })
           } else if (res.tapIndex === 1) {
             setTimeout(() => {
@@ -133,7 +132,7 @@ export default {
       })
     },
 
-    async handleGenerate3D() {
+    async handleGenerate3D(): Promise<void> {
       if (!this.uploadedImage) {
         uni.showToast({
           title: this.texts.pleaseUpload,
@@ -149,7 +148,7 @@ export default {
           title: this.texts.generating3D
         })
 
-        const res = await imageToModel(this.uploadedImage, '')
+        const res: any = await imageToModel(this.uploadedImage, '')
         console.log('完整响应数据:', res)
 
         uni.hideLoading()
@@ -158,14 +157,14 @@ export default {
           const jobId = res.data.JobId || res.data.taskId
 
           try {
-            const taskRes = await createModelTask({
+            const taskRes: any = await createModelTask({
               sourceModelUrl: this.uploadedImage,
               previewUrl: this.uploadedImage,
               scaleFactor: 1
             })
-            if ((taskRes as any).code === 1 && (taskRes as any).data?.taskId) {
+            if (taskRes.code === 1 && taskRes.data?.taskId) {
               await updateModelTask({
-                taskId: (taskRes as any).data.taskId,
+                taskId: taskRes.data.taskId,
                 jobId: jobId,
                 sourceModelUrl: this.uploadedImage,
                 previewUrl: this.uploadedImage,
@@ -193,7 +192,7 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('生成3D模型失败:', error)
         uni.hideLoading()
         uni.showToast({

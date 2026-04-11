@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="maintenance-section">
     <view class="section-title">
       <text>{{ texts.maintenanceInfo || '保养信息' }}</text>
@@ -39,16 +39,15 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
   name: 'MaintenanceSection',
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.printer
     }
   },
@@ -60,28 +59,24 @@ export default {
   },
   data() {
     return {
-      filamentLife: 100,
-      nozzleLife: 100,
-      lastCleanDate: '-',
-      totalPrintTime: '-'
+      filamentLife: 100 as number,
+      nozzleLife: 100 as number,
+      lastCleanDate: '-' as string,
+      totalPrintTime: '-' as string
     }
   },
   watch: {
     deviceInfo: {
-      handler(newVal) {
+      handler(newVal: any): void {
         if (newVal) {
-          // 处理打印总时长 (秒转小时)
           if (newVal.printStatsTotalDuration !== undefined) {
             const hours = (newVal.printStatsTotalDuration / 3600).toFixed(1)
             this.totalPrintTime = hours + (this.texts.hours || '小时')
           }
 
-          // 上次清洁时间可以用状态更新时间暂代，或者保持现有占位
           if (newVal.statusUpdateTime) {
             this.lastCleanDate = newVal.statusUpdateTime.split(' ')[0]
           }
-
-          // 耗材和喷嘴寿命接口暂未提供，暂时设为100或保持现状
         }
       },
       immediate: true

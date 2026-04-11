@@ -1,14 +1,26 @@
-// @ts-nocheck
 import { isPublicPage, isTokenInvalid, isUserNotFound } from './validators.ts'
 import { setCache, generateCacheKey } from './cache.ts'
 import { useUserStore } from '../stores/modules/user.ts'
 
-/**
- * 执行登出逻辑
- * 清除本地存储的token和用户信息
- * @param {Boolean} isUserNotFoundFlag 是否为用户不存在的情况
- */
-export const handleLogout = (isUserNotFoundFlag = false) => {
+interface ApiResponse {
+  statusCode: number
+  data: {
+    code?: number | string
+    msg?: string
+    message?: string
+    error?: string
+    [key: string]: unknown
+  }
+}
+
+interface RequestOptions {
+  showLoading?: boolean
+  method?: string
+  silent?: boolean
+  [key: string]: unknown
+}
+
+export const handleLogout = (isUserNotFoundFlag = false): void => {
   try {
     // 通过 Store 统一清除登录信息，确保状态一致
     const userStore = useUserStore()
@@ -45,26 +57,8 @@ export const handleLogout = (isUserNotFoundFlag = false) => {
   }
 }
 
-/**
- * 处理请求成功响应
- * @param {Object} res 响应对象
- * @param {Object} options 配置选项
- * @param {String} url 请求URL
- * @param {Object} data 请求数据
- * @param {Boolean} cache 是否缓存
- * @param {Number} cacheTime 缓存时间
- * @returns {Object|null} 处理后的数据或null
- */
-/**
- * 判断当前请求是否为当前登录用户自身的接口
- * 只有操作自身账户的接口返回"用户不存在"才应触发登出
- * 查看他人主页等接口返回"用户不存在"不应影响当前用户的登录态
- * @param {String} url 请求URL
- * @returns {Boolean}
- */
-const isSelfUserUrl = url => {
+const isSelfUserUrl = (url: string): boolean => {
   if (!url) return false
-  // 明确属于当前用户自身操作的接口
   const selfPaths = [
     '/users/me',
     '/users/updateUserInfo',
@@ -75,7 +69,14 @@ const isSelfUserUrl = url => {
   return selfPaths.some(path => url.includes(path))
 }
 
-export const handleSuccess = (res, options, url, data, cache, cacheTime) => {
+export const handleSuccess = (
+  res: ApiResponse,
+  options: RequestOptions,
+  url: string,
+  data: Record<string, unknown>,
+  cache: boolean,
+  cacheTime: number
+): unknown => {
   if (options.showLoading) {
     uni.hideLoading()
   }
@@ -100,11 +101,7 @@ export const handleSuccess = (res, options, url, data, cache, cacheTime) => {
   return null
 }
 
-/**
- * 处理 429 限流
- * @param {String} url 请求URL
- */
-const handleRateLimit = url => {
+const handleRateLimit = (url: string): void => {
   console.warn('请求频率超限 (429):', url)
   uni.showToast({
     title: '操作太频繁，请稍后再试',
@@ -113,14 +110,9 @@ const handleRateLimit = url => {
   })
 }
 
-/**
- * 处理服务端 5xx 错误
- * @param {Number} statusCode HTTP状态码
- * @param {String} url 请求URL
- */
-const handleServerError = (statusCode, url) => {
+const handleServerError = (statusCode: number, url: string): void => {
   console.error(`服务端错误 (${statusCode}):`, url)
-  const msgMap = {
+  const msgMap: Record<number, string> = {
     500: '服务器内部错误，请稍后重试',
     502: '网关错误，请稍后重试',
     503: '服务暂时不可用，请稍后重试',
@@ -133,14 +125,7 @@ const handleServerError = (statusCode, url) => {
   })
 }
 
-/**
- * 处理请求错误响应
- * @param {Object} res 响应对象
- * @param {Object} options 配置选项
- * @param {String} url 请求URL
- * @returns {Boolean} 是否已处理
- */
-export const handleError = (res, options, url) => {
+export const handleError = (res: ApiResponse, options: RequestOptions, url: string): boolean => {
   if (options.showLoading) {
     uni.hideLoading()
   }
@@ -199,13 +184,7 @@ export const handleError = (res, options, url) => {
   return false
 }
 
-/**
- * 处理网络错误
- * @param {Object} err 错误对象
- * @param {Object} options 配置选项
- * @param {String} url 请求URL
- */
-export const handleNetworkError = (err, options, url) => {
+export const handleNetworkError = (err: Record<string, unknown>, options: RequestOptions, url: string): void => {
   if (options.showLoading) {
     uni.hideLoading()
   }
@@ -220,7 +199,7 @@ export const handleNetworkError = (err, options, url) => {
   })
 
   let errorMessage = '网络错误，请稍后重试'
-  const errMsg = err.errMsg || err.message || ''
+  const errMsg = String(err.errMsg || err.message || '')
   if (errMsg) {
     if (errMsg.includes('timeout')) {
       errorMessage = '请求超时，请检查网络连接'

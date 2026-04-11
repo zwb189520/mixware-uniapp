@@ -70,7 +70,7 @@ const handleDeleteAccount = () => {
     content: texts.value.deleteAccountContent,
     confirmText: texts.value.confirm,
     cancelText: texts.value.cancel,
-    success: res => {
+    success: (res: any) => {
       if (res.confirm) {
         performDeleteAccount()
       }

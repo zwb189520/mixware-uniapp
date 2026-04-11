@@ -1,81 +1,90 @@
-﻿// @ts-nocheck
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useStorageSync } from '../../composables/modules/useStorageSync'
 
-export const useExploreStore = defineStore('explore', () => {
-  // 基础状态
-  const currentTab = ref('daily')
-  const keyword = ref('')
-  const showSearch = ref(false)
-  const hotTags = ref([])
-  const dailyModels = ref([])
-  const hotModels = ref([])
-  const categoryModels = ref([])
-  const loading = ref(false)
+interface Model {
+  id: string | number
+  isLiked?: boolean
+  likes?: number
+  [key: string]: any
+}
 
-  // 使用通用 Hook 管理存储
+interface StorageState {
+  dailyModels: Model[]
+  hotModels: Model[]
+  categoryModels: Model[]
+  hotTags: string[]
+}
+
+export const useExploreStore = defineStore('explore', () => {
+  const currentTab = ref<string>('daily')
+  const keyword = ref<string>('')
+  const showSearch = ref<boolean>(false)
+  const hotTags = ref<string[]>([])
+  const dailyModels = ref<Model[]>([])
+  const hotModels = ref<Model[]>([])
+  const categoryModels = ref<Model[]>([])
+  const loading = ref<boolean>(false)
+
   const {
     state: storageState,
     initFromStorage,
     saveToStorage
-  } = useStorageSync('exploreData', {
+  } = useStorageSync<StorageState>('exploreData', {
     dailyModels: [],
     hotModels: [],
     categoryModels: [],
     hotTags: []
   })
 
-  // 计算属性 - 瀑布流布局
-  const dailyLeftList = computed(() => dailyModels.value.filter((_, i) => i % 2 === 0))
-  const dailyRightList = computed(() => dailyModels.value.filter((_, i) => i % 2 === 1))
-  const hotLeftList = computed(() => hotModels.value.filter((_, i) => i % 2 === 0))
-  const hotRightList = computed(() => hotModels.value.filter((_, i) => i % 2 === 1))
-  const categoryLeftList = computed(() => categoryModels.value.filter((_, i) => i % 2 === 0))
-  const categoryRightList = computed(() => categoryModels.value.filter((_, i) => i % 2 === 1))
+  const dailyLeftList = computed(() => dailyModels.value.filter((_: Model, i: number) => i % 2 === 0))
+  const dailyRightList = computed(() => dailyModels.value.filter((_: Model, i: number) => i % 2 === 1))
+  const hotLeftList = computed(() => hotModels.value.filter((_: Model, i: number) => i % 2 === 0))
+  const hotRightList = computed(() => hotModels.value.filter((_: Model, i: number) => i % 2 === 1))
+  const categoryLeftList = computed(() => categoryModels.value.filter((_: Model, i: number) => i % 2 === 0))
+  const categoryRightList = computed(() => categoryModels.value.filter((_: Model, i: number) => i % 2 === 1))
 
-  // 设置方法
-  function setCurrentTab(tab) {
+  function setCurrentTab(tab: string): void {
     currentTab.value = tab
   }
 
-  function setKeyword(value) {
+  function setKeyword(value: string): void {
     keyword.value = value
   }
 
-  function setShowSearch(value) {
+  function setShowSearch(value: boolean): void {
     showSearch.value = value
   }
 
-  function setHotTags(tags) {
+  function setHotTags(tags: string[]): void {
     hotTags.value = tags
     storageState.value.hotTags = tags
   }
 
-  function setDailyModels(models) {
+  function setDailyModels(models: Model[]): void {
     dailyModels.value = models
     storageState.value.dailyModels = models
     persistToStorage()
   }
 
-  function setHotModels(models) {
+  function setHotModels(models: Model[]): void {
     hotModels.value = models
     storageState.value.hotModels = models
     persistToStorage()
   }
 
-  function setCategoryModels(models) {
+  function setCategoryModels(models: Model[]): void {
     categoryModels.value = models
     storageState.value.categoryModels = models
     persistToStorage()
   }
 
-  function setLoading(value) {
+  function setLoading(value: boolean): void {
     loading.value = value
   }
 
-  function updateModelLike(modelId, isLiked, likes) {
-    const updateInList = list => {
+  function updateModelLike(modelId: string | number, isLiked: boolean, likes: number): void {
+    const updateInList = (list: Model[]) => {
       const model = list.find(m => m.id === modelId)
       if (model) {
         model.isLiked = isLiked
@@ -87,8 +96,7 @@ export const useExploreStore = defineStore('explore', () => {
     updateInList(categoryModels.value)
   }
 
-  // 保存到本地存储
-  function persistToStorage() {
+  function persistToStorage(): void {
     storageState.value = {
       dailyModels: dailyModels.value,
       hotModels: hotModels.value,
@@ -98,8 +106,7 @@ export const useExploreStore = defineStore('explore', () => {
     saveToStorage()
   }
 
-  // 清除所有数据
-  function clearAll() {
+  function clearAll(): void {
     dailyModels.value = []
     hotModels.value = []
     categoryModels.value = []

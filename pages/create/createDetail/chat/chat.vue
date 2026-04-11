@@ -58,13 +58,18 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { textToModel } from '@/api/hunyuan3d.ts'
 import { createModelTask, updateModelTask } from '@/api/modelTasks.ts'
 import { audioOffline } from '@/api/audio.ts'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface Message {
+  id: string
+  role: string
+  content: string
+}
 
 export default {
   components: {
@@ -73,34 +78,34 @@ export default {
   },
   data() {
     return {
-      promptText: '',
-      isGenerating: false,
-      messages: [],
-      scrollIntoView: '',
-      bottomAnchorId: 'chat-bottom-anchor',
-      isRecording: false,
-      recorderManager: null
+      promptText: '' as string,
+      isGenerating: false as boolean,
+      messages: [] as Message[],
+      scrollIntoView: '' as string,
+      bottomAnchorId: 'chat-bottom-anchor' as string,
+      isRecording: false as boolean,
+      recorderManager: null as any
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.create
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleMore() {
+    handleMore(): void {
       uni.showActionSheet({
         itemList: [this.texts.share, this.texts.report, this.texts.help],
-        success: res => {
+        success: (res: any) => {
           switch (res.tapIndex) {
             case 0:
               uni.showShareMenu()
@@ -115,7 +120,7 @@ export default {
         }
       })
     },
-    async handleGenerate3D() {
+    async handleGenerate3D(): Promise<void> {
       const content = this.promptText.trim()
       if (!content) {
         uni.showToast({
@@ -127,7 +132,7 @@ export default {
 
       this.isGenerating = true
 
-      const userMsg = {
+      const userMsg: Message = {
         id: `user-${Date.now()}`,
         role: 'user',
         content
@@ -141,7 +146,7 @@ export default {
           title: this.texts.generating3D
         })
 
-        const res = await textToModel(content)
+        const res: any = await textToModel(content)
 
         uni.hideLoading()
 
@@ -156,25 +161,25 @@ export default {
           const jobId = res.data.taskId || res.data.JobId || res.data.RequestId
 
           try {
-            const taskRes = await createModelTask({
+            const taskRes: any = await createModelTask({
               sourceModelUrl: '',
               previewUrl: '',
               scaleFactor: 1
             })
-            if ((taskRes as any).code === 1 && (taskRes as any).data?.taskId) {
+            if (taskRes.code === 1 && taskRes.data?.taskId) {
               await updateModelTask({
-                taskId: (taskRes as any).data.taskId,
+                taskId: taskRes.data.taskId,
                 jobId: jobId,
                 sourceModelUrl: '',
                 previewUrl: '',
                 scaleFactor: 1
               })
             }
-          } catch (e) {
+          } catch (e: any) {
             console.error('创建模型任务记录失败:', e)
           }
 
-          const aiMsg = {
+          const aiMsg: Message = {
             id: `ai-${Date.now()}`,
             role: 'assistant',
             content: this.texts.modelGenerating
@@ -196,7 +201,7 @@ export default {
           const errorMsg = res.data?.message || res.msg || this.texts.generateFailed
           console.error('生成失败:', errorMsg, '完整响应:', res)
 
-          const aiMsg = {
+          const aiMsg: Message = {
             id: `ai-${Date.now()}`,
             role: 'assistant',
             content: errorMsg
@@ -209,10 +214,10 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
 
-        const aiMsg = {
+        const aiMsg: Message = {
           id: `ai-${Date.now()}`,
           role: 'assistant',
           content: error.message || this.texts.generate3DFailed
@@ -228,21 +233,21 @@ export default {
         this.isGenerating = false
       }
     },
-    handleStop() {
+    handleStop(): void {
       this.isGenerating = false
       uni.hideLoading()
     },
-    initRecorder() {
+    initRecorder(): void {
       if (!this.recorderManager) {
         this.recorderManager = uni.getRecorderManager()
-        this.recorderManager.onStop(async res => {
+        this.recorderManager.onStop(async (res: any) => {
           if (res.duration < 500) {
             uni.showToast({ title: this.texts.recordingTooShort || '录音时间太短', icon: 'none' })
             return
           }
           uni.showLoading({ title: this.texts.recognizing || '识别中...' })
           try {
-            const result = await audioOffline(res.tempFilePath)
+            const result: any = await audioOffline(res.tempFilePath)
             uni.hideLoading()
             if (result.code === 1 || result.code === 0) {
               this.promptText = result.data || ''
@@ -255,7 +260,7 @@ export default {
                 icon: 'none'
               })
             }
-          } catch (err) {
+          } catch (err: any) {
             uni.hideLoading()
             console.error('语音识别失败:', err)
             uni.showToast({ title: this.texts.recognitionFailed || '识别失败', icon: 'none' })
@@ -263,7 +268,7 @@ export default {
         })
       }
     },
-    startRecord() {
+    startRecord(): void {
       this.initRecorder()
       this.recorderManager.start({
         format: 'mp3',
@@ -271,19 +276,19 @@ export default {
       })
       this.isRecording = true
     },
-    stopRecord() {
+    stopRecord(): void {
       if (this.isRecording) {
         this.recorderManager.stop()
         this.isRecording = false
       }
     },
-    cancelRecord() {
+    cancelRecord(): void {
       if (this.isRecording) {
         this.recorderManager.stop()
         this.isRecording = false
       }
     },
-    scrollToBottom() {
+    scrollToBottom(): void {
       this.$nextTick(() => {
         const anchor = `chat-bottom-anchor-${Date.now()}`
         this.bottomAnchorId = anchor

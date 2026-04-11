@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <safe-area />
     <custom-navbar :title="texts.workDetail" @back="handleBack" />
@@ -140,7 +140,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { getDeviceList, setDefaultDevice } from '@/api/devices.ts'
@@ -153,43 +152,48 @@ import {
 } from '@/api/iot.ts'
 import { getDeviceStatus } from '@/api/devices.ts'
 
+interface Device {
+  id: string
+  name: string
+}
+
 export default {
   components: { CustomNavbar },
   data() {
     return {
-      workId: '',
-      modelName: '',
-      modelImage: '',
-      deviceId: '',
-      printerName: '',
-      printerStatus: '',
-      firmwareVersion: '',
-      currentTemp: 0,
-      targetTemp: 200,
-      currentProgress: 0,
-      estimatedPrintTimeSeconds: 0,
-      printTimeHms: '',
-      filamentLengthM: 0,
-      isPrinting: false,
-      isPaused: false,
-      isDownloading: false,
-      gcodeUrl: '',
-      modelDimensions: '',
-      printTime: '',
-      materialWeight: '',
-      deviceList: [],
-      currentDevice: { id: '', name: '' },
-      statusTimer: null // 状态轮询定时器
+      workId: '' as string,
+      modelName: '' as string,
+      modelImage: '' as string,
+      deviceId: '' as string,
+      printerName: '' as string,
+      printerStatus: '' as string,
+      firmwareVersion: '' as string,
+      currentTemp: 0 as number,
+      targetTemp: 200 as number,
+      currentProgress: 0 as number,
+      estimatedPrintTimeSeconds: 0 as number,
+      printTimeHms: '' as string,
+      filamentLengthM: 0 as number,
+      isPrinting: false as boolean,
+      isPaused: false as boolean,
+      isDownloading: false as boolean,
+      gcodeUrl: '' as string,
+      modelDimensions: '' as string,
+      printTime: '' as string,
+      materialWeight: '' as string,
+      deviceList: [] as Device[],
+      currentDevice: { id: '', name: '' } as Device,
+      statusTimer: null as ReturnType<typeof setInterval> | null
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     },
-    displayStatus() {
+    displayStatus(): string {
       if (this.printerStatus === 'Offline') return '离线'
       if (this.isPrinting) return this.texts.printing || '打印中'
       if (this.isPaused) return this.texts.paused || '已暂停'
@@ -202,7 +206,7 @@ export default {
       if (s === 'Busy') return this.texts.busy || '忙碌'
       return s || this.texts.idle || '空闲'
     },
-    statusDotClass() {
+    statusDotClass(): string {
       if (this.isPrinting) return 'dot-printing'
       if (this.isPaused) return 'dot-paused'
       const s = this.printerStatus
@@ -212,14 +216,14 @@ export default {
       if (s === 'Downloading') return 'dot-downloading'
       return 'dot-idle'
     },
-    statusBadgeClass() {
+    statusBadgeClass(): string {
       if (this.printerStatus === 'Offline') return 'badge-offline'
       if (this.isPrinting) return 'badge-printing'
       if (this.isPaused) return 'badge-paused'
       if (this.isDownloading) return 'badge-downloading'
       return 'badge-idle'
     },
-    statusTextClass() {
+    statusTextClass(): string {
       if (this.printerStatus === 'Offline') return 'text-offline'
       if (this.isPrinting) return 'text-printing'
       if (this.isPaused) return 'text-paused'
@@ -227,12 +231,11 @@ export default {
       return 'text-idle'
     }
   },
-  async onLoad(options) {
+  async onLoad(options: any): Promise<void> {
     this.workId = options.workId || ''
     console.log('printDetail onLoad options:', options)
     console.log('接收到的 workId:', this.workId)
 
-    // 如果有完整参数，直接使用
     if (options.modelName) {
       try {
         this.modelName = decodeURIComponent(options.modelName)
@@ -276,14 +279,13 @@ export default {
         this.printTimeHms = options.printTimeHms || ''
       }
       try {
-        this.filamentLengthM = decodeURIComponent(options.filamentLengthM)
+        this.filamentLengthM = Number(decodeURIComponent(options.filamentLengthM))
       } catch {
-        this.filamentLengthM = options.filamentLengthM || 0
+        this.filamentLengthM = Number(options.filamentLengthM) || 0
       }
       this.deviceId = options.deviceId || ''
       this.isPrinting = options.autoStart === 'true'
     } else if (this.workId) {
-      // 只有 workId，从任务详情接口获取
       this.deviceId = options.deviceId || ''
       await this.loadWorkDetail()
     }
@@ -292,21 +294,20 @@ export default {
     this.loadFirmwareInfo()
     this.$nextTick(() => {
       this.loadDeviceList().then(() => {
-        // 设备列表加载完成后再启动轮询
         this.startStatusPolling()
       })
     })
   },
-  onUnload() {
-    this.stopStatusPolling() // 页面卸载时停止轮询
+  onUnload(): void {
+    this.stopStatusPolling()
   },
   methods: {
-    async loadDeviceList() {
+    async loadDeviceList(): Promise<void> {
       try {
-        const res = await getDeviceList()
+        const res: any = await getDeviceList()
         const records = res?.data?.records ?? []
         this.deviceList = Array.isArray(records)
-          ? records.map(device => ({
+          ? records.map((device: any) => ({
               id: device.id || device.deviceId,
               name:
                 device.deviceName ||
@@ -332,13 +333,13 @@ export default {
         console.error('加载设备列表失败:', error)
       }
     },
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleImageError() {
+    handleImageError(): void {
       this.modelImage = '/static/images/logo.png'
     },
-    showDeviceSelector() {
+    showDeviceSelector(): void {
       if (this.deviceList.length === 0) {
         uni.showToast({ title: this.texts.noAvailableDevice || '暂无可用设备', icon: 'none' })
         return
@@ -346,7 +347,7 @@ export default {
       const itemList = this.deviceList.map(d => d.name)
       uni.showActionSheet({
         itemList,
-        success: async res => {
+        success: async (res: any) => {
           const selected = this.deviceList[res.tapIndex]
           this.currentDevice = selected
           this.deviceId = selected.id
@@ -360,25 +361,24 @@ export default {
         }
       })
     },
-    async loadFirmwareInfo() {
+    async loadFirmwareInfo(): Promise<void> {
       if (!this.deviceId) return
 
       try {
-        const res = await getFirmwareInfo(this.deviceId)
+        const res: any = await getFirmwareInfo(this.deviceId)
         if (res.code === 1 && res.data) {
           this.firmwareVersion = res.data.version || res.data.currentVersion || ''
         }
       } catch (e) {
         console.log('获取固件信息失败（非关键错误）:', e)
-        // 固件信息获取失败不影响主要功能，静默处理
       }
     },
-    async handlePause() {
+    async handlePause(): Promise<void> {
       if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
         title: this.texts.pausePrint || '暂停打印',
         content: this.texts.confirmPausePrint || '确认暂停打印？',
-        success: async res => {
+        success: async (res: any) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.pausing || '暂停中...' })
@@ -387,7 +387,7 @@ export default {
             this.isPaused = true
             this.isPrinting = false
             this._toast(this.texts.printPaused || '打印已暂停', 'success')
-          } catch (e) {
+          } catch (e: any) {
             uni.hideLoading()
             const errorMsg = e?.message || e?.msg || this.texts.pausePrintFailed || '暂停失败'
             this._toast(errorMsg)
@@ -395,12 +395,12 @@ export default {
         }
       })
     },
-    async handleResume() {
+    async handleResume(): Promise<void> {
       if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
         title: this.texts.resumePrint || '恢复打印',
         content: this.texts.confirmResumePrint || '确认恢复打印？',
-        success: async res => {
+        success: async (res: any) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.resuming || '恢复中...' })
@@ -409,7 +409,7 @@ export default {
             this.isPaused = false
             this.isPrinting = true
             this._toast(this.texts.printResumed || '打印已恢复', 'success')
-          } catch (e) {
+          } catch (e: any) {
             uni.hideLoading()
             const errorMsg = e?.message || e?.msg || this.texts.resumePrintFailed || '恢复失败'
             this._toast(errorMsg)
@@ -417,12 +417,12 @@ export default {
         }
       })
     },
-    async handleCancel() {
+    async handleCancel(): Promise<void> {
       if (!this.deviceId) return this._toast(this.texts.deviceIdNotFound || '设备ID不存在')
       uni.showModal({
         title: this.texts.cancelPrint || '取消打印',
         content: this.texts.confirmCancelPrint || '确认取消打印？此操作不可撤销。',
-        success: async res => {
+        success: async (res: any) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.stopping || '正在停止...' })
@@ -432,7 +432,7 @@ export default {
             this.isPrinting = false
             this._toast(this.texts.printCancelled || '已取消打印', 'success')
             setTimeout(() => uni.navigateBack(), 1500)
-          } catch (e) {
+          } catch (e: any) {
             uni.hideLoading()
             const errorMsg =
               e?.message || e?.msg || this.texts.stopPrintFailed || '停止失败，请重试'
@@ -441,23 +441,23 @@ export default {
         }
       })
     },
-    async handleRestart() {
+    async handleRestart(): Promise<void> {
       if (!this.deviceId || !this.workId)
         return this._toast(this.texts.missingRequiredParams || '缺少必要参数')
       uni.showModal({
         title: this.texts.restartPrint || '重新打印',
         content: this.texts.confirmRestartPrint || '确认重新开始打印？',
-        success: async res => {
+        success: async (res: any) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.restarting || '重启中...' })
-            await sendRestartCommand(this.deviceId, this.workId)
+            await sendRestartCommand(this.deviceId)
             uni.hideLoading()
             this.isPaused = false
             this.isPrinting = true
             this.currentProgress = 0
             this._toast(this.texts.printRestarted || '已重新开始打印', 'success')
-          } catch (e) {
+          } catch (e: any) {
             uni.hideLoading()
             const errorMsg = e?.message || e?.msg || this.texts.restartPrintFailed || '重启失败'
             this._toast(errorMsg)
@@ -465,16 +465,15 @@ export default {
         }
       })
     },
-    _toast(title, icon = 'none') {
+    _toast(title: string, icon: 'success' | 'loading' | 'none' = 'none'): void {
       uni.showToast({ title, icon })
     },
 
-    // 加载任务详情
-    async loadWorkDetail() {
+    async loadWorkDetail(): Promise<void> {
       try {
         uni.showLoading({ title: this.texts.loading || '加载中...' })
         const { getPrintTaskDetail } = await import('@/api/printTasks.ts')
-        const res = await getPrintTaskDetail(this.workId)
+        const res: any = await getPrintTaskDetail(this.workId)
         if (res.code === 1 && res.data) {
           const data = res.data
           console.log('任务详情返回:', data)
@@ -490,11 +489,10 @@ export default {
           this.currentProgress = data.progress || 0
           console.log('设置后的 deviceId:', this.deviceId)
 
-          // 如果没有 modelName，用 modelId 获取模型详情
           if (!this.modelName && data.modelId) {
             try {
               const { getModelDetail } = await import('@/api/models.ts')
-              const modelRes = await getModelDetail(data.modelId)
+              const modelRes: any = await getModelDetail(data.modelId)
               if (modelRes.code === 1 && modelRes.data) {
                 this.modelName = modelRes.data.name || ''
                 if (!this.modelImage || this.modelImage === '/static/images/logo.png') {
@@ -515,58 +513,49 @@ export default {
       }
     },
 
-    // 开始轮询设备状态
-    startStatusPolling() {
+    startStatusPolling(): void {
       if (!this.deviceId) {
         console.log('deviceId 为空，不启动轮询')
         return
       }
-      this.fetchDeviceStatus() // 立即获取一次
+      this.fetchDeviceStatus()
       this.statusTimer = setInterval(() => {
         this.fetchDeviceStatus()
-      }, 3000) // 每3秒轮询一次
+      }, 3000)
     },
 
-    // 停止轮询
-    stopStatusPolling() {
+    stopStatusPolling(): void {
       if (this.statusTimer) {
         clearInterval(this.statusTimer)
         this.statusTimer = null
       }
     },
 
-    // 获取设备状态
-    async fetchDeviceStatus() {
+    async fetchDeviceStatus(): Promise<void> {
       if (!this.deviceId) return
       try {
-        const res = await getDeviceStatus(this.deviceId)
+        const res: any = await getDeviceStatus(this.deviceId)
         console.log('设备状态返回:', res)
         console.log('message内容:', res.data?.message)
         if (res.code === 1 || res.code === 0) {
           const data = res.data
-          // 更新设备状态
           this.printerStatus = data?.printState || ''
-          // 根据真实状态更新 isPrinting 和 isPaused
           const printState = data?.printState
           this.isPrinting = printState === 'Printing'
           this.isPaused = printState === 'Paused' || printState === 'Pausing'
           this.isDownloading = printState === 'Downloading'
-          // 设备离线处理
           if (data?.deviceState === 'offline') {
             this.printerStatus = 'Offline'
           }
-          // 从message字段解析温度和进度
           if (data?.message) {
             this.parseMessage(data.message, printState)
           }
-          // 解析预计耗时和耗材
           if (data?.printTimeHms !== undefined) {
             this.printTimeHms = data.printTimeHms
           }
           if (data?.filamentLengthM !== undefined) {
             this.filamentLengthM = data.filamentLengthM
           }
-          // 检查是否完成（必须进度100%且状态为空闲）
           if (
             this.currentProgress >= 100 &&
             (printState === 'StandingBy' || printState === 'Idle')
@@ -579,14 +568,11 @@ export default {
       }
     },
 
-    // 解析设备上报的message
-    parseMessage(message, printState) {
+    parseMessage(message: string, printState: string): void {
       try {
-        // 清理message中的换行和多余空格
         const cleanMessage = message.replace(/\s+/g, ' ').trim()
         const msgObj = JSON.parse(cleanMessage)
 
-        // 提取温度（所有状态都显示）
         if (msgObj.temperature !== undefined) {
           this.currentTemp = Number(msgObj.temperature)
         }
@@ -594,16 +580,12 @@ export default {
           this.targetTemp = Number(msgObj.target)
         }
 
-        // 打印中状态才更新进度，待机/空闲保持当前进度（防止完成后跳回0%）
         if (printState === 'Printing') {
           if (msgObj.progress !== undefined) {
-            // 进度是0-1的小数，转为百分比
             this.currentProgress = Math.round(Number(msgObj.progress) * 100)
           }
         }
-        // 注意：不在else里重置进度，避免完成后跳转前显示0%
 
-        // 解析打印持续时间（支持数字秒或字符串如 "4m 34"）
         if (msgObj.print_duration !== undefined) {
           if (typeof msgObj.print_duration === 'string' && msgObj.print_duration.includes('m')) {
             this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.print_duration)
@@ -611,7 +593,6 @@ export default {
             this.estimatedPrintTimeSeconds = Number(msgObj.print_duration)
           }
         }
-        // 解析total_duration（格式如 "22h 43m 42s"）
         if (msgObj.total_duration !== undefined) {
           this.estimatedPrintTimeSeconds = this.parseDuration(msgObj.total_duration)
         }
@@ -627,16 +608,14 @@ export default {
       }
     },
 
-    // 更新进度时检查是否完成
-    updateProgress(progress) {
+    updateProgress(progress: number): void {
       this.currentProgress = progress
       if (progress >= 100) {
         this.isPrinting = false
         this.checkPrintComplete()
       }
     },
-    // 打印完成后跳转
-    goToPrintComplete() {
+    goToPrintComplete(): void {
       this.stopStatusPolling()
       const printTimeStr = this.printTimeHms || this.printTime || ''
       const materialStr = this.filamentLengthM
@@ -647,15 +626,13 @@ export default {
       })
     },
 
-    // 监听打印完成（当进度达到100%且状态为空闲时）
-    checkPrintComplete() {
+    checkPrintComplete(): void {
       if (this.currentProgress >= 100 && !this.isPrinting && !this.isPaused) {
         this.goToPrintComplete()
       }
     },
 
-    // 格式化时间（秒转分钟/小时）
-    formatTime(seconds) {
+    formatTime(seconds: number): string {
       if (!seconds || seconds <= 0) return '0分钟'
       const hours = Math.floor(seconds / 3600)
       const minutes = Math.floor((seconds % 3600) / 60)
@@ -665,8 +642,7 @@ export default {
       return `${secs}秒`
     },
 
-    // 解析时间字符串（如 "22h 43m 42s" 或 "2h 24m 5s"）转为秒
-    parseDuration(durationStr) {
+    parseDuration(durationStr: string): number {
       if (!durationStr || typeof durationStr !== 'string') return 0
       let totalSeconds = 0
       const hourMatch = durationStr.match(/(\d+)h/)

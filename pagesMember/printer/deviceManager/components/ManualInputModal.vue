@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view v-show="visible" class="modal-mask" @click="handleCancel">
     <view class="modal-content" @click.stop>
       <view class="modal-decoration">
@@ -47,7 +47,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 export default {
   name: 'ManualInputModal',
   props: {
@@ -81,39 +80,39 @@ export default {
     }
   },
   computed: {
-    displayTitle() {
+    displayTitle(): string {
       return this.title || '输入'
     },
-    displayPlaceholder() {
+    displayPlaceholder(): string {
       return this.placeholder || '请输入内容'
     },
-    displayHint() {
+    displayHint(): string {
       return this.hint || ''
     },
-    displayConfirmText() {
+    displayConfirmText(): string {
       return this.confirmText || '确认'
     },
-    displayCancelText() {
+    displayCancelText(): string {
       return this.cancelText || '取消'
     }
   },
   data() {
     return {
-      inputValue: ''
+      inputValue: '' as string
     }
   },
   watch: {
-    visible(newVal) {
+    visible(newVal: boolean): void {
       if (newVal) {
         this.inputValue = ''
       }
     }
   },
   methods: {
-    handleConfirm() {
+    handleConfirm(): void {
       if (!this.inputValue.trim()) {
         uni.showToast({
-          title: this.texts.pleaseEnterContent || '请输入内容',
+          title: '请输入内容',
           icon: 'none'
         })
         return
@@ -121,7 +120,7 @@ export default {
       this.$emit('confirm', this.inputValue.trim())
       this.$emit('update:visible', false)
     },
-    handleCancel() {
+    handleCancel(): void {
       this.$emit('cancel')
       this.$emit('update:visible', false)
     }

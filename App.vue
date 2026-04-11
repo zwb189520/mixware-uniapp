@@ -118,7 +118,7 @@ export default {
                 confirmText: this.texts.settings || '设置',
                 success: (modalResult: { confirm: boolean }) => {
                   if (modalResult.confirm) {
-                    plus.runtime.openSettings()
+                    ;(plus.runtime as any).openSettings()
                   }
                   resolve(false)
                 }

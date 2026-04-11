@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view v-if="visible" class="wifi-modal-overlay" @tap="handleClose">
     <view class="wifi-modal-content" @tap.stop>
       <!-- 头部 -->
@@ -43,16 +43,20 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface WiFiItem {
+  ssid: string
+  signal: number
+}
 
 export default {
   name: 'WiFiSelectorModal',
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.printerMoreIntro
     }
   },
@@ -62,18 +66,18 @@ export default {
       default: false
     },
     wifiList: {
-      type: Array,
+      type: Array as () => WiFiItem[],
       default: () => []
     }
   },
   methods: {
-    handleClose() {
+    handleClose(): void {
       this.$emit('close')
     },
-    handleRefresh() {
+    handleRefresh(): void {
       this.$emit('refresh')
     },
-    handleSelectWiFi(wifi) {
+    handleSelectWiFi(wifi: WiFiItem): void {
       this.$emit('select', wifi.ssid)
     }
   }

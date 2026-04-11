@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="model-card" @click="handleCardClick">
     <image
       class="card-img"
@@ -30,32 +30,41 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
+interface Model {
+  id: string | number
+  name: string
+  desc: string
+  image: string
+  author: string
+  authorAvatar: string
+  likes: number
+  isLiked: boolean
+  viewCount?: number
+}
+
 export default {
   name: 'ModelCard',
   props: {
     model: {
-      type: Object,
+      type: Object as () => Model,
       required: true
     }
   },
   methods: {
-    handleCardClick() {
+    handleCardClick(): void {
       this.$emit('card-click', this.model)
     },
-    handleLikeClick() {
+    handleLikeClick(): void {
       this.$emit('like-click', this.model)
     },
-    handleAuthorClick() {
+    handleAuthorClick(): void {
       this.$emit('author-click', this.model)
     },
-    handleImageError(e) {
-      // 移动端图片加载失败时显示默认图片
+    handleImageError(e: any): void {
       this.model.image = '/static/images/logo.png'
       this.$emit('image-error', e)
     },
-    handleAvatarError(e) {
-      // 移动端头像加载失败时显示默认头像
+    handleAvatarError(e: any): void {
       this.model.authorAvatar = '/static/images/user-avatar.png'
       this.$emit('avatar-error', e)
     }

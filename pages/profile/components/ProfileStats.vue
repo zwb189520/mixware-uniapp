@@ -12,15 +12,20 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguage } from '@/composables'
 import { useLanguageStore } from '@/stores'
+
+interface StatItem {
+  id: number
+  name: string
+  icon: string
+}
 
 export default {
   name: 'ProfileStats',
   data() {
     return {
-      stats: []
+      stats: [] as StatItem[]
     }
   },
   setup() {
@@ -28,16 +33,16 @@ export default {
     const languageStore = useLanguageStore()
     return { texts, languageStore }
   },
-  mounted() {
+  mounted(): void {
     this.updateStats()
   },
   watch: {
-    'languageStore.texts'() {
+    'languageStore.texts'(): void {
       this.updateStats()
     }
   },
   methods: {
-    updateStats() {
+    updateStats(): void {
       const allTexts = this.languageStore.texts
       this.stats = [
         {
@@ -62,7 +67,7 @@ export default {
         }
       ]
     },
-    handleStatClick(stat) {
+    handleStatClick(stat: StatItem): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return

@@ -50,6 +50,15 @@ import SafeArea from '@/components/safe-area/safe-area.vue'
 import { getPrintTasks } from '@/api/printTasks.ts'
 import { useLanguageStore } from '@/stores/index.ts'
 
+interface PrintTask {
+  taskId: number | string
+  previewUrl: string
+  status: string
+  deviceId: string
+  createdAt: string
+  errorMsg: string
+}
+
 export default {
   name: 'PrintTasks',
   components: {
@@ -58,50 +67,50 @@ export default {
   },
   data() {
     return {
-      taskList: [],
-      loading: false,
-      current: 1,
-      size: 20,
-      total: 0
+      taskList: [] as PrintTask[],
+      loading: false as boolean,
+      current: 1 as number,
+      size: 20 as number,
+      total: 0 as number
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.printTasks || {}
     }
   },
-  onShow() {
+  onShow(): void {
     this.languageStore.loadLanguage()
     this.loadTasks()
   },
-  onReachBottom() {
+  onReachBottom(): void {
     if (this.taskList.length < this.total) {
       this.current++
       this.loadTasks()
     }
   },
   methods: {
-    async loadTasks() {
+    async loadTasks(): Promise<void> {
       if (this.loading) return
       this.loading = true
       try {
-        const res = await getPrintTasks({
+        const res: any = await getPrintTasks({
           current: this.current,
           size: this.size
         })
-        if (((res as any).code === 0 || (res as any).code === 1) && (res as any).data) {
-          const records = (res as any).data.records || []
+        if ((res.code === 0 || res.code === 1) && res.data) {
+          const records = res.data.records || []
           if (this.current === 1) {
             this.taskList = records
           } else {
             this.taskList = [...this.taskList, ...records]
           }
-          this.total = (res as any).data.total || 0
+          this.total = res.data.total || 0
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载打印任务失败:', error)
         uni.showToast({
           title: error.message || this.texts.loadFailed || '加载失败',
@@ -111,16 +120,16 @@ export default {
         this.loading = false
       }
     },
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    handleTaskClick(task) {
+    handleTaskClick(task: PrintTask): void {
       uni.navigateTo({
         url: `/pages/explore/printDetail/printDetail?workId=${task.taskId}&deviceId=${task.deviceId || ''}`
       })
     },
-    getStatusClass(status) {
-      const statusMap = {
+    getStatusClass(status: string): string {
+      const statusMap: Record<string, string> = {
         pending: 'status-pending',
         processing: 'status-processing',
         completed: 'status-completed',
@@ -128,8 +137,8 @@ export default {
       }
       return statusMap[status] || 'status-default'
     },
-    getStatusText(status) {
-      const statusTextMap = {
+    getStatusText(status: string): string {
+      const statusTextMap: Record<string, string> = {
         pending: this.texts.statusPending || '待处理',
         processing: this.texts.statusProcessing || '处理中',
         completed: this.texts.statusCompleted || '已完成',
@@ -137,7 +146,7 @@ export default {
       }
       return statusTextMap[status] || status
     },
-    formatTime(time) {
+    formatTime(time: string): string {
       if (!time) return ''
       return time.replace('T', ' ').split('.')[0]
     }

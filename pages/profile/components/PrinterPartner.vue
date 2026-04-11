@@ -77,11 +77,21 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
 import { getDeviceList, setDefaultDevice, deleteDevice } from '@/api/devices'
 import { closeBluetooth } from '@/utils/bluetooth'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface Printer {
+  id?: string
+  deviceId?: string
+  deviceName?: string
+  name?: string
+  deviceImage?: string
+  image?: string
+  deviceStatus?: number
+  status?: number
+}
 
 export default {
   name: 'PrinterPartner',
@@ -90,28 +100,28 @@ export default {
   },
   data() {
     return {
-      isBound: false,
-      printerList: [],
-      showAddPrinter: false
+      isBound: false as boolean,
+      printerList: [] as Printer[],
+      showAddPrinter: false as boolean
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.profile
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.checkPrinterStatus()
   },
-  onShow() {
+  onShow(): void {
     this.checkPrinterStatus()
   },
   methods: {
-    goToDeviceManager() {
+    goToDeviceManager(): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -120,14 +130,14 @@ export default {
         url: '/pagesMember/printer/deviceManager/deviceManager'
       })
     },
-    handleFindPartner() {
+    handleFindPartner(): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
       this.showAddPrinter = true
     },
-    handlePrinterIntro(printer) {
+    handlePrinterIntro(printer: Printer): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -136,7 +146,7 @@ export default {
         url: `/pagesMember/printer/printerIntro/printerIntro?deviceId=${printer.id || printer.deviceId}`
       })
     },
-    async handleUnbind(printer) {
+    async handleUnbind(printer: Printer): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
@@ -146,24 +156,21 @@ export default {
       uni.showModal({
         title: this.texts.unbindConfirmation,
         content: this.texts.unbindContent,
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             try {
-              const result = await deleteDevice(deviceId)
+              const result: any = await deleteDevice(deviceId as string)
               console.log('解绑结果:', result)
 
-              // 重置蓝牙适配器
               try {
                 await closeBluetooth()
                 console.log('蓝牙适配器已关闭')
 
-                // 等待500ms让系统完全释放资源
-                await new Promise(resolve => setTimeout(resolve, 500))
+                await new Promise<void>(resolve => setTimeout(resolve, 500))
 
-                // 重新初始化蓝牙适配器
                 await import('@/utils/bluetooth').then(module => module.initBluetooth())
                 console.log('蓝牙适配器已重新初始化')
-              } catch (bluetoothError) {
+              } catch (bluetoothError: any) {
                 console.error('重置蓝牙适配器失败:', bluetoothError)
               }
 
@@ -172,7 +179,7 @@ export default {
                 icon: 'success'
               })
               await this.checkPrinterStatus()
-            } catch (error) {
+            } catch (error: any) {
               console.error('解绑失败:', error)
               uni.showToast({
                 title: this.texts.unbindFailed,
@@ -183,26 +190,25 @@ export default {
         }
       })
     },
-    async onSelectPrinter(printerId) {
-      // 跳转到配网页面
+    async onSelectPrinter(printerId: string): Promise<void> {
       uni.navigateTo({
         url: `/pagesMember/printer/addDevice/addDevice?deviceId=${printerId}`
       })
       this.showAddPrinter = false
     },
-    onCancelAddPrinter() {
+    onCancelAddPrinter(): void {
       this.showAddPrinter = false
     },
-    async checkPrinterStatus() {
+    async checkPrinterStatus(): Promise<void> {
       try {
-        const res = await getDeviceList()
+        const res: any = await getDeviceList()
         console.log('PrinterPartner getDeviceList 返回:', JSON.stringify(res, null, 2))
         if (res.data && res.data.records && res.data.records.length > 0) {
           this.isBound = true
           this.printerList = res.data.records
           console.log(
             '设备列表:',
-            this.printerList.map(p => ({
+            this.printerList.map((p: Printer) => ({
               id: p.id || p.deviceId,
               deviceStatus: p.deviceStatus,
               status: p.status
@@ -212,7 +218,7 @@ export default {
           this.isBound = false
           this.printerList = []
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('获取设备列表失败:', error)
         this.isBound = false
         this.printerList = []

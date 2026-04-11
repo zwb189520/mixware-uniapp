@@ -182,9 +182,8 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import CommentSection from './components/CommentSection.vue'
+import CommentSection from './components/commentSection.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import {
   getPostDetail,
@@ -199,6 +198,42 @@ import {
 } from '@/api/community'
 import { getModelDetail } from '@/api/models'
 
+interface PostDetail {
+  postId: number
+  userId: string
+  username: string
+  avatarUrl: string
+  title: string
+  content: string
+  modelId: string
+  modelName: string
+  imageUrls: string[]
+  topics: string[]
+  likeCount: number
+  commentCount: number
+  shareCount: number
+  viewCount: number
+  isLiked: boolean
+  isFollowing: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface Comment {
+  id: number | string
+  postId: number | string
+  userId: string
+  userName: string
+  userAvatar: string
+  content: string
+  time: string
+  likes: number
+  isLiked: boolean
+  replyCount: number
+  parentCommentId: number | string | null
+  replies: Comment[]
+}
+
 export default {
   components: {
     CustomNavbar,
@@ -206,15 +241,15 @@ export default {
   },
   data() {
     return {
-      postId: '',
-      workTitle: '作品详情',
-      userName: '',
-      userAvatar: '',
-      modelImage: '',
-      description: '',
-      comments: [],
-      currentImageIndex: 0,
-      loading: false,
+      postId: '' as string,
+      workTitle: '作品详情' as string,
+      userName: '' as string,
+      userAvatar: '' as string,
+      modelImage: '' as string,
+      description: '' as string,
+      comments: [] as Comment[],
+      currentImageIndex: 0 as number,
+      loading: false as boolean,
       postDetail: {
         postId: 0,
         userId: '',
@@ -234,29 +269,28 @@ export default {
         isFollowing: false,
         createdAt: '',
         updatedAt: ''
-      },
-      commentText: '',
-      replyTargetId: null,
-      replyTargetName: '',
-      isPopupOpen: false,
-      keyboardHeight: 0,
-      currentUserId: '',
-      currentUserAvatar: '/static/images/Default avatar.png',
-      currentUserName: ''
+      } as PostDetail,
+      commentText: '' as string,
+      replyTargetId: null as number | string | null,
+      replyTargetName: '' as string,
+      isPopupOpen: false as boolean,
+      keyboardHeight: 0 as number,
+      currentUserId: '' as string,
+      currentUserAvatar: '/static/images/Default avatar.png' as string,
+      currentUserName: '' as string
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     },
-    imageUrls() {
+    imageUrls(): string[] {
       if (!this.postDetail.imageUrls || this.postDetail.imageUrls.length === 0) {
         return []
       }
-      // 修复图片URL，将localhost替换为实际域名
       return this.postDetail.imageUrls.map(url => {
         if (!url) return '/static/images/logo.png'
         if (url.includes('localhost:9000')) {
@@ -266,7 +300,7 @@ export default {
       })
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     this.postId = options.postId || options.workId || options.id || ''
     this.workTitle = options.title ? decodeURIComponent(options.title) : '作品详情'
     this.modelImage = options.image ? decodeURIComponent(options.image) : ''
@@ -291,16 +325,15 @@ export default {
       })
     }
   },
-  onShow() {
-    // 页面显示时重新加载帖子详情，确保点赞状态最新
+  onShow(): void {
     if (this.postId) {
       this.loadPostDetail()
     }
   },
   methods: {
-    async loadModelPreview(modelId) {
+    async loadModelPreview(modelId: string): Promise<void> {
       try {
-        const res = await getModelDetail(modelId)
+        const res: any = await getModelDetail(modelId)
         if (res.code === 1 && res.data && res.data.previewUrl) {
           let previewUrl = res.data.previewUrl
           if (previewUrl.includes('localhost:9000')) {
@@ -308,45 +341,42 @@ export default {
           }
           this.modelImage = previewUrl
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('加载模型预览图失败:', e)
       }
     },
-    goToModel(modelId) {
+    goToModel(modelId: string): void {
       if (!modelId) return
       uni.navigateTo({
         url: `/pages/explore/modelDetail/modelDetail?id=${modelId}`
       })
     },
 
-    getCurrentUserId() {
+    getCurrentUserId(): void {
       const userInfo = uni.getStorageSync('userInfo')
       this.currentUserId = userInfo?.userId || ''
       this.currentUserAvatar = userInfo?.avatar || '/static/images/Default avatar.png'
       this.currentUserName = userInfo?.nickname || userInfo?.username || this.texts?.me || '我'
     },
 
-    async loadPostDetail() {
+    async loadPostDetail(): Promise<void> {
       this.loading = true
 
       try {
-        const res = await getPostDetail(String(this.postId))
+        const res: any = await getPostDetail(String(this.postId))
 
         if (res.code === 0 || res.code === 1) {
           const postData = res.data
-          // 统一点赞字段
           postData.isLiked = postData.isLiked || postData.liked || false
           postData.likeCount = postData.likeCount || postData.likes || 0
-          // 过滤imageUrls中的无效路径（blob和file://）
           if (postData.imageUrls && Array.isArray(postData.imageUrls)) {
             const validImageUrls = postData.imageUrls.filter(
-              imgUrl => imgUrl && !(imgUrl.startsWith('blob:') || imgUrl.startsWith('file://'))
+              (imgUrl: string) => imgUrl && !(imgUrl.startsWith('blob:') || imgUrl.startsWith('file://'))
             )
             postData.imageUrls = validImageUrls.length > 0 ? validImageUrls : postData.imageUrls
           } else {
             postData.imageUrls = []
           }
-          // 过滤用户头像中的无效路径
           if (
             postData.avatarUrl &&
             (postData.avatarUrl.startsWith('blob:') || postData.avatarUrl.startsWith('file://'))
@@ -354,29 +384,25 @@ export default {
             postData.avatarUrl = '/static/images/Default avatar.png'
           }
 
-          // 处理话题数据，确保是数组格式
           let topicsData = postData.topics || postData.tags || []
 
-          // 如果后端返回 null 或空，尝试从正文中解析 #话题#
           if (
             (!topicsData || (Array.isArray(topicsData) && topicsData.length === 0)) &&
             postData.content
           ) {
             const contentTopics = postData.content.match(/#([^#\s]+)#/g)
             if (contentTopics) {
-              topicsData = contentTopics.map(t => t.replace(/#/g, ''))
+              topicsData = contentTopics.map((t: string) => t.replace(/#/g, ''))
             }
           }
 
           if (topicsData) {
             if (typeof topicsData === 'string') {
               try {
-                // 尝试解析 JSON 数组
                 const parsed = JSON.parse(topicsData)
                 topicsData = Array.isArray(parsed) ? parsed : [topicsData]
-              } catch (e) {
-                // 如果不是 JSON，尝试按逗号或空格分割
-                topicsData = topicsData.split(/[,\\s，\n]+/).filter(t => t.trim())
+              } catch (e: any) {
+                topicsData = topicsData.split(/[,\\s，\n]+/).filter((t: string) => t.trim())
               }
             } else if (!Array.isArray(topicsData)) {
               topicsData = [String(topicsData)]
@@ -384,17 +410,15 @@ export default {
           } else {
             topicsData = []
           }
-          // 移除重复并清理
-          postData.topics = [...new Set(topicsData.map(t => String(t).trim()))].filter(t => t)
+          const topicsSet = new Set(topicsData.map((t: any) => String(t).trim()))
+          postData.topics = Array.from(topicsSet).filter((t: unknown) => t as string)
 
           this.postDetail = postData
           this.userName = this.postDetail.username
           this.userAvatar = this.postDetail.avatarUrl
-          // 过滤掉正文中的 #话题# 文本，避免重复显示
           this.description = (this.postDetail.content || '').replace(/#[^#\s]+#/g, '').trim()
           this.workTitle = this.postDetail.title || '作品详情'
 
-          // 获取模型预览图
           if (this.postDetail.modelId) {
             this.loadModelPreview(this.postDetail.modelId)
           } else if (this.postDetail.imageUrls && this.postDetail.imageUrls.length > 0) {
@@ -410,7 +434,7 @@ export default {
             icon: 'none'
           })
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('加载帖子详情失败:', e)
         uni.showToast({
           title: this.texts.loadFailed || '加载失败',
@@ -421,68 +445,63 @@ export default {
       }
     },
 
-    async checkUserInteractions() {
+    async checkUserInteractions(): Promise<void> {
       if (!this.postId || String(this.postId) === 'NaN' || String(this.postId) === 'undefined')
         return
 
       try {
-        // 后端 getPostDetail 返回的 isLiked 不正确，需要调用 checkLikeStatus 获取真实状态
         try {
-          const likeRes = await checkLikeStatus('POST', this.postId)
+          const likeRes: any = await checkLikeStatus('POST', this.postId)
           if (likeRes.code === 0 || likeRes.code === 1) {
             this.postDetail.isLiked = likeRes.data
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('检查点赞状态失败:', e)
         }
 
-        // 只在需要时才调用关注状态检查（如果后端没有返回）
         if (
           this.postDetail.isFollowing === undefined &&
           this.postDetail.userId &&
           this.postDetail.userId !== 'local_user'
         ) {
           try {
-            const followRes = await checkFollowStatus(this.postDetail.userId)
+            const followRes: any = await checkFollowStatus(this.postDetail.userId)
             if (followRes.code === 0 || followRes.code === 1) {
               this.postDetail.isFollowing = followRes.data
             }
-          } catch (e) {
+          } catch (e: any) {
             console.error('检查关注状态失败:', e)
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('检查用户交互状态失败:', e)
       }
     },
 
-    async loadComments() {
+    async loadComments(): Promise<void> {
       try {
-        const res = await getPostComments(this.postId)
+        const res: any = await getPostComments(this.postId)
 
         if ((res.code === 0 || res.code === 1) && res.data && res.data.length > 0) {
           this.comments = this.transformComments(res.data)
         } else {
-          // 尝试加载本地存储的评论
           this.loadLocalComments()
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('加载评论失败:', e)
-        // 尝试加载本地存储的评论
         this.loadLocalComments()
       }
     },
 
-    saveLocalComments() {
+    saveLocalComments(): void {
       if (this.postId) {
         const key = `comments_${this.postId}`
         uni.setStorageSync(key, this.comments)
-        // 同时更新详情中的评论数
         this.updateLocalPostCommentCount()
       }
     },
 
-    loadLocalComments() {
+    loadLocalComments(): boolean {
       if (this.postId) {
         const key = `comments_${this.postId}`
         const localComments = uni.getStorageSync(key)
@@ -495,7 +514,7 @@ export default {
       return false
     },
 
-    calculateCommentCount(comments) {
+    calculateCommentCount(comments: Comment[]): number {
       let count = comments.length
       comments.forEach(c => {
         if (c.replies) count += c.replies.length
@@ -503,9 +522,9 @@ export default {
       return count
     },
 
-    updateLocalPostCommentCount() {
+    updateLocalPostCommentCount(): void {
       if (String(this.postId).startsWith('mock_')) {
-        let allLocalPosts = uni.getStorageSync('local_all_posts') || []
+        let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
         let postIndex = allLocalPosts.findIndex(p => String(p.id) === String(this.postId))
         if (postIndex !== -1) {
           allLocalPosts[postIndex].commentCount = this.postDetail.commentCount
@@ -514,9 +533,9 @@ export default {
       }
     },
 
-    updateLocalPostLike() {
+    updateLocalPostLike(): void {
       if (String(this.postId).startsWith('mock_')) {
-        let allLocalPosts = uni.getStorageSync('local_all_posts') || []
+        let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
         let postIndex = allLocalPosts.findIndex(p => String(p.id) === String(this.postId))
         if (postIndex !== -1) {
           allLocalPosts[postIndex].isLiked = this.postDetail.isLiked
@@ -526,7 +545,7 @@ export default {
       }
     },
 
-    transformComments(apiComments) {
+    transformComments(apiComments: any[]): Comment[] {
       return apiComments.map(comment => ({
         id: comment.commentId,
         postId: comment.postId,
@@ -543,7 +562,7 @@ export default {
       }))
     },
 
-    formatTime(timestamp) {
+    formatTime(timestamp: string): string {
       if (!timestamp) return ''
 
       const now = new Date().getTime()
@@ -568,7 +587,7 @@ export default {
       }
     },
 
-    async handlePostLike() {
+    async handlePostLike(): Promise<void> {
       this.postDetail.isLiked = !this.postDetail.isLiked
       this.postDetail.likeCount += this.postDetail.isLiked ? 1 : -1
 
@@ -581,19 +600,17 @@ export default {
 
       if (!isMock) {
         try {
-          const res = await toggleLike('POST', this.postId)
+          const res: any = await toggleLike('POST', this.postId)
           if (res.code === 0 || res.code === 1) {
-            // toggleLike 接口返回的 data 有问题，调用 checkLikeStatus 获取真实状态
-            const checkRes = await checkLikeStatus('POST', this.postId)
+            const checkRes: any = await checkLikeStatus('POST', this.postId)
             if (checkRes.code === 0 || checkRes.code === 1) {
               this.postDetail.isLiked = checkRes.data
             }
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('点赞失败:', e)
         }
       } else {
-        // 如果是本地 mock ID，更新本地存储
         if (
           this.postId &&
           (String(this.postId).startsWith('mock_') || String(this.postId) === '1')
@@ -603,8 +620,7 @@ export default {
       }
     },
 
-    async handleFollow() {
-      // 防止关注自己
+    async handleFollow(): Promise<void> {
       if (
         this.postDetail.userId &&
         this.currentUserId &&
@@ -617,11 +633,9 @@ export default {
         return
       }
 
-      // 本地立即更新UI
       const isFollowingBefore = this.postDetail.isFollowing
       this.postDetail.isFollowing = !this.postDetail.isFollowing
 
-      // 发送事件通知，让其他页面更新关注统计
       uni.$emit('followStatusChanged', {
         userId: this.postDetail.userId,
         isFollowing: this.postDetail.isFollowing
@@ -634,7 +648,6 @@ export default {
         icon: 'success'
       })
 
-      // 如果不是 mock 用户，调用接口
       if (
         this.postDetail.userId &&
         !String(this.postDetail.userId).includes('user') &&
@@ -642,33 +655,28 @@ export default {
         String(this.postDetail.userId) !== '1'
       ) {
         try {
-          const res = await toggleFollow(this.postDetail.userId)
+          const res: any = await toggleFollow(this.postDetail.userId)
 
           if (res.code === 0) {
             const isFollowing = res.data
             this.postDetail.isFollowing = isFollowing
-            // 发送事件通知，让其他页面更新关注统计
             uni.$emit('followStatusChanged', {
               userId: this.postDetail.userId,
               isFollowing: isFollowing
             })
           } else {
-            // 接口返回失败，回滚UI
             this.postDetail.isFollowing = isFollowingBefore
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('关注失败:', e)
-          // 接口调用失败，回滚UI
           this.postDetail.isFollowing = isFollowingBefore
         }
       }
     },
 
-    async handleCommentLike(commentId) {
-      // 本地更新
+    async handleCommentLike(commentId: number | string): Promise<void> {
       this.updateCommentLikeLocal(commentId)
 
-      // 如果不是 mock ID，调用接口
       const isMock =
         !this.postId ||
         String(this.postId).includes('mock') ||
@@ -677,18 +685,18 @@ export default {
         String(this.postId) === 'undefined'
       if (!isMock) {
         try {
-          const res = await toggleLike('COMMENT', commentId)
+          const res: any = await toggleLike('COMMENT', String(commentId))
 
           if (res.code === 0) {
             this.loadComments()
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('评论点赞失败:', e)
         }
       }
     },
 
-    updateCommentLikeLocal(commentId) {
+    updateCommentLikeLocal(commentId: number | string): void {
       for (const comment of this.comments) {
         if (comment.id === commentId) {
           comment.isLiked = !comment.isLiked
@@ -713,7 +721,7 @@ export default {
       }
     },
 
-    handleCommentReply(data) {
+    handleCommentReply(data: { commentId: number | string; userName: string }): void {
       const { commentId, userName } = data
       this.replyTargetId = commentId
       this.replyTargetName = userName
@@ -721,15 +729,15 @@ export default {
       this.isPopupOpen = true
     },
 
-    handleKeyboardShow(e) {
+    handleKeyboardShow(e: any): void {
       this.keyboardHeight = e.detail?.height || 0
     },
 
-    handleKeyboardHide() {
+    handleKeyboardHide(): void {
       this.keyboardHeight = 0
     },
 
-    closeCommentPopup() {
+    closeCommentPopup(): void {
       this.isPopupOpen = false
       this.replyTargetId = null
       this.replyTargetName = ''
@@ -737,15 +745,14 @@ export default {
       this.keyboardHeight = 0
     },
 
-    moveHandle() {
-      // 禁止穿透
+    moveHandle(): void {
       return
     },
 
-    handleUploadImage() {
+    handleUploadImage(): void {
       uni.chooseImage({
         count: 1,
-        success: res => {
+        success: (res: any) => {
           uni.showToast({
             title: this.texts.imageUploadInDev || '图片上传功能开发中',
             icon: 'none'
@@ -754,19 +761,18 @@ export default {
       })
     },
 
-    async handlePublish() {
+    async handlePublish(): Promise<void> {
       if (!this.commentText.trim()) return
 
       const content = this.commentText.trim()
       const parentId = this.replyTargetId
 
-      // 本地立即添加评论/回复 (乐观更新)
       if (parentId) {
         this.handleReplySubmit({ commentId: parentId, content })
       } else {
-        // 添加主评论
-        const newComment = {
+        const newComment: Comment = {
           id: Date.now(),
+          postId: this.postId,
           userId: this.currentUserId,
           userName: this.currentUserName || this.texts.me || '我',
           userAvatar: this.currentUserAvatar || '/static/images/Default avatar.png',
@@ -774,12 +780,13 @@ export default {
           time: this.texts.justNow || '刚刚',
           likes: 0,
           isLiked: false,
+          replyCount: 0,
+          parentCommentId: null,
           replies: []
         }
         this.comments.unshift(newComment)
         this.postDetail.commentCount++
 
-        // 如果是 mock post，保存到本地存储
         if (!this.postId || String(this.postId).includes('mock') || String(this.postId) === '1') {
           this.saveLocalComments()
         }
@@ -787,10 +794,9 @@ export default {
 
       this.closeCommentPopup()
 
-      // 如果有真实的postId，调用接口
       if (this.postId && !String(this.postId).includes('mock') && String(this.postId) !== '1') {
         try {
-          const res = await createComment({
+          const res: any = await createComment({
             postId: this.postId,
             content: content,
             parentCommentId: parentId
@@ -799,7 +805,7 @@ export default {
           if (res.code === 0) {
             this.loadComments()
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('发布评论失败:', e)
           uni.showToast({ title: this.texts.publishFailed || '发布失败', icon: 'none' })
         }
@@ -808,9 +814,8 @@ export default {
       }
     },
 
-    async handleReplySubmit(data) {
-      // 本地添加回复 (递归查找父评论)
-      let parentComment = null
+    async handleReplySubmit(data: { commentId: number | string; content: string }): Promise<void> {
+      let parentComment: Comment | null = null
       for (const c of this.comments) {
         if (c.id === data.commentId) {
           parentComment = c
@@ -819,22 +824,26 @@ export default {
         if (c.replies && c.replies.length > 0) {
           const found = c.replies.find(r => r.id === data.commentId)
           if (found) {
-            parentComment = c // 统一添加到主评论的回复列表中
+            parentComment = c
             break
           }
         }
       }
 
       if (parentComment) {
-        const newReply = {
+        const newReply: Comment = {
           id: Date.now(),
+          postId: this.postId,
           userId: this.currentUserId,
           userName: this.texts.me || '我',
           userAvatar: this.userAvatar || '/static/images/Default avatar.png',
           content: data.content,
           time: this.texts.justNow || '刚刚',
           likes: 0,
-          isLiked: false
+          isLiked: false,
+          replyCount: 0,
+          parentCommentId: data.commentId,
+          replies: []
         }
         if (!parentComment.replies) {
           parentComment.replies = []
@@ -842,7 +851,6 @@ export default {
         parentComment.replies.push(newReply)
         this.postDetail.commentCount++
 
-        // 如果是 mock post，保存到本地存储
         if (!this.postId || String(this.postId).includes('mock') || String(this.postId) === '1') {
           this.saveLocalComments()
         }
@@ -850,10 +858,9 @@ export default {
         uni.showToast({ title: this.texts.replySuccess || '回复成功', icon: 'success' })
       }
 
-      // 如果有真实的postId，调用接口
       if (this.postId && !String(this.postId).includes('mock') && String(this.postId) !== '1') {
         try {
-          const res = await createComment({
+          const res: any = await createComment({
             postId: this.postId,
             content: data.content,
             parentCommentId: data.commentId
@@ -862,17 +869,17 @@ export default {
           if (res.code === 0) {
             this.loadComments()
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('回复失败:', e)
         }
       }
     },
 
-    async handleCommentDelete(commentId) {
+    async handleCommentDelete(commentId: number | string): Promise<void> {
       uni.showModal({
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteComment || '确定要删除这条评论吗？',
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             const isMock =
               !this.postId ||
@@ -882,13 +889,13 @@ export default {
               String(this.postId) === 'undefined'
             if (!isMock) {
               try {
-                const result = await deleteComment(commentId)
+                const result: any = await deleteComment(String(commentId))
                 if (result.code === 0) {
                   uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
                   this.loadComments()
                   this.postDetail.commentCount--
                 }
-              } catch (e) {
+              } catch (e: any) {
                 console.error('删除评论失败:', e)
                 uni.showToast({ title: this.texts.deleteFailed || '删除失败', icon: 'none' })
               }
@@ -901,7 +908,7 @@ export default {
       })
     },
 
-    deleteCommentLocal(commentId) {
+    deleteCommentLocal(commentId: number | string): void {
       for (let i = 0; i < this.comments.length; i++) {
         if (this.comments[i].id === commentId) {
           this.comments.splice(i, 1)
@@ -926,7 +933,7 @@ export default {
       }
     },
 
-    previewImages(index) {
+    previewImages(index: number): void {
       this.currentImageIndex = index
       uni.previewImage({
         urls: this.imageUrls,
@@ -934,18 +941,18 @@ export default {
       })
     },
 
-    handleInputTrigger() {
+    handleInputTrigger(): void {
       this.replyTargetId = null
       this.replyTargetName = ''
       this.commentText = ''
       this.isPopupOpen = true
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleMore() {
+    handleMore(): void {
       const isAuthor =
         String(this.postDetail.userId) === String(this.currentUserId) ||
         String(this.postDetail.userId) === 'local_user'
@@ -957,17 +964,17 @@ export default {
 
       uni.showActionSheet({
         itemList: [this.texts.delete || '删除'],
-        success: res => {
+        success: (res: any) => {
           this.handleDeletePost()
         }
       })
     },
 
-    async handleDeletePost() {
+    async handleDeletePost(): Promise<void> {
       uni.showModal({
         title: this.texts.tip || '提示',
         content: this.texts.confirmDeletePost || '确定要删除这篇作品吗？',
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             try {
               const isMock =
@@ -977,10 +984,9 @@ export default {
                 String(this.postId) === 'NaN' ||
                 String(this.postId) === 'undefined'
               if (!isMock) {
-                const result = await deletePost(this.postId)
+                const result: any = await deletePost(this.postId)
                 if (result.code === 0 || result.code === 1) {
                   uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
-                  // 发送事件通知列表页刷新
                   uni.$emit('postDeleted', this.postId)
                   setTimeout(() => {
                     uni.navigateBack()
@@ -992,14 +998,13 @@ export default {
                   })
                 }
               } else {
-                // 处理本地 mock 数据的删除
                 this.deleteLocalPost()
                 uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
                 setTimeout(() => {
                   uni.navigateBack()
                 }, 1500)
               }
-            } catch (e) {
+            } catch (e: any) {
               console.error('删除帖子失败:', e)
               uni.showToast({ title: this.texts.deleteFailed || '删除失败', icon: 'none' })
             }
@@ -1008,39 +1013,33 @@ export default {
       })
     },
 
-    deleteLocalPost() {
+    deleteLocalPost(): void {
       if (!this.postId) return
 
-      // 1. 从详情页本地缓存中删除 (如果存了的话)
       uni.removeStorageSync(`post_detail_${this.postId}`)
 
-      // 2. 从作品列表中删除 (针对特定的 modelId)
       const modelId = this.postDetail && this.postDetail.modelId
       if (modelId) {
-        let localPosts = uni.getStorageSync(`local_posts_${modelId}`) || []
+        let localPosts: any[] = uni.getStorageSync(`local_posts_${modelId}`) || []
         localPosts = localPosts.filter(p => String(p.id) !== String(this.postId))
         uni.setStorageSync(`local_posts_${modelId}`, localPosts)
       }
 
-      // 3. 从总列表中删除
-      let allLocalPosts = uni.getStorageSync('local_all_posts') || []
+      let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
       allLocalPosts = allLocalPosts.filter(p => String(p.id) !== String(this.postId))
       uni.setStorageSync('local_all_posts', allLocalPosts)
 
-      // 4. 如果是 newlyCreatedPost，也移除
-      const newlyCreated = uni.getStorageSync('newlyCreatedPost')
+      const newlyCreated: any = uni.getStorageSync('newlyCreatedPost')
       if (newlyCreated && String(newlyCreated.id) === String(this.postId)) {
         uni.removeStorageSync('newlyCreatedPost')
       }
 
-      // 5. 清除对应的评论
       uni.removeStorageSync(`comments_${this.postId}`)
 
-      // 6. 发送删除事件
       uni.$emit('postDeleted', this.postId)
     },
 
-    handleViewMoreComments() {
+    handleViewMoreComments(): void {
       uni.navigateTo({
         url: `/pages/explore/commentList/commentList?postId=${this.postId}&postAuthorId=${this.postDetail.userId}`
       })

@@ -1,15 +1,17 @@
-﻿import { ref } from 'vue'
+import { ref } from 'vue'
 
-/**
- * 用户相关组合式函数
- * @returns {Object} 用户相关方法和状态
- */
+interface UserInfo {
+  id?: string | number
+  username?: string
+  [key: string]: any
+}
+
 export function useUser() {
-  const userInfo = ref(null)
+  const userInfo = ref<UserInfo | null>(null)
   const isLoggedIn = ref(false)
   const loading = ref(false)
 
-  const checkLoginStatus = () => {
+  const checkLoginStatus = (): boolean => {
     try {
       const loginStatus = uni.getStorageSync('isLoggedIn')
       const userData = uni.getStorageSync('userInfo')
@@ -26,7 +28,7 @@ export function useUser() {
     }
   }
 
-  const setUserInfo = userData => {
+  const setUserInfo = (userData: UserInfo | null): void => {
     userInfo.value = userData
     if (userData) {
       uni.setStorageSync('userInfo', userData)
@@ -35,7 +37,7 @@ export function useUser() {
     }
   }
 
-  const setLoginStatus = status => {
+  const setLoginStatus = (status: boolean): void => {
     isLoggedIn.value = status
     uni.setStorageSync('isLoggedIn', status)
 
@@ -45,12 +47,12 @@ export function useUser() {
     }
   }
 
-  const logout = () => {
+  const logout = (): Promise<boolean> => {
     return new Promise(resolve => {
       uni.showModal({
         title: '提示',
         content: '确定要退出登录吗？',
-        success: res => {
+        success: (res: any) => {
           if (res.confirm) {
             setLoginStatus(false)
             uni.$emit('userLogout')
@@ -63,7 +65,7 @@ export function useUser() {
     })
   }
 
-  const requireLogin = callback => {
+  const requireLogin = (callback?: () => void): boolean => {
     if (checkLoginStatus()) {
       callback && callback()
       return true

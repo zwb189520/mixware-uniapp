@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="session-list-page">
     <safe-area />
     <custom-navbar :title="texts.sessionList" @back="goBack">
@@ -59,13 +59,19 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useChatStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
 import { getSessionList, createSession, setCurrentSession } from '@/api/session.ts'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
+
+interface Session {
+  sessionId: string
+  title?: string
+  updateTime?: string
+  createTime?: string
+}
 
 export default {
   components: {
@@ -86,15 +92,14 @@ export default {
   },
   data() {
     return {
-      loading: false,
-
-      page: 1,
-      size: 20,
-      hasMore: true
+      loading: false as boolean,
+      page: 1 as number,
+      size: 20 as number,
+      hasMore: true as boolean
     }
   },
   computed: {
-    texts() {
+    texts(): any {
       return (
         this.languageStore.texts.create?.sessionList || {
           title: '会话列表',
@@ -116,7 +121,7 @@ export default {
         }
       )
     },
-    loadingText() {
+    loadingText(): any {
       return {
         contentdown: this.texts.contentdown || '上拉加载更多',
         contentrefresh: this.texts.contentrefresh || '加载中...',
@@ -124,20 +129,20 @@ export default {
       }
     }
   },
-  onLoad() {
+  onLoad(): void {
     this.loadSessionList()
   },
   methods: {
-    async loadSessionList() {
+    async loadSessionList(): Promise<void> {
       if (this.loading) return
       this.loading = true
 
       try {
-        const res = await getSessionList(this.page, this.size)
+        const res: any = await getSessionList(this.page, this.size)
         console.log('会话列表响应:', res)
         if (res.code === 1 || res.code === 0) {
           const data = res.data || {}
-          const records = data.records || []
+          const records: Session[] = data.records || []
           console.log('会话记录:', records)
 
           if (this.page === 1) {
@@ -150,7 +155,7 @@ export default {
 
           this.hasMore = records.length === this.size
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载会话列表失败:', error)
         uni.showToast({
           title: this.texts.loadFailed,
@@ -161,11 +166,11 @@ export default {
       }
     },
 
-    async createNewSession() {
+    async createNewSession(): Promise<void> {
       try {
-        const res = await createSession()
+        const res: any = await createSession()
         if (res.code === 1 || res.code === 0) {
-          const session = res.data
+          const session: Session = res.data
           if (session && session.sessionId) {
             this.chatStore.addSession(session)
 
@@ -176,7 +181,7 @@ export default {
             })
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('创建会话失败:', error)
         uni.showToast({
           title: this.texts.createSessionFailed || '创建会话失败',
@@ -185,7 +190,7 @@ export default {
       }
     },
 
-    async selectSession(index) {
+    async selectSession(index: number): Promise<void> {
       const session = this.sessionList[index]
       if (!session) return
 
@@ -193,7 +198,7 @@ export default {
 
       try {
         await setCurrentSession(session.sessionId)
-      } catch (error) {
+      } catch (error: any) {
         console.error('设置当前会话失败:', error)
       }
 
@@ -202,11 +207,11 @@ export default {
       })
     },
 
-    showActionMenu(index) {
+    showActionMenu(index: number): void {
       const session = this.sessionList[index]
       uni.showActionSheet({
         itemList: [this.texts.deleteSession || '删除会话'],
-        success: res => {
+        success: (res: any) => {
           if (res.tapIndex === 0) {
             this.deleteSession(index)
           }
@@ -214,18 +219,15 @@ export default {
       })
     },
 
-    async deleteSession(index) {
+    async deleteSession(index: number): Promise<void> {
       const session = this.sessionList[index]
 
       uni.showModal({
         title: this.texts.tip || '提示',
         content: this.texts.deleteConfirm,
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             try {
-              // 这里需要调用删除会话的API
-              // await deleteSession(session.sessionId)
-
               this.chatStore.removeSession(index)
               uni.showToast({
                 title: this.texts.deleteSuccess,
@@ -243,11 +245,11 @@ export default {
       })
     },
 
-    formatTime(timeStr) {
+    formatTime(timeStr: string): string {
       if (!timeStr) return ''
       const date = new Date(timeStr)
       const now = new Date()
-      const diff = now - date
+      const diff = now.getTime() - date.getTime()
 
       if (diff < 60000) {
         return this.texts.justNow || '刚刚'
@@ -262,7 +264,7 @@ export default {
       }
     },
 
-    goBack() {
+    goBack(): void {
       uni.navigateBack()
     }
   }

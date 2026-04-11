@@ -1,16 +1,15 @@
-﻿<template>
+<template>
   <view class="printer-image-container">
     <image class="printer-image" :src="printerImage" mode="aspectFit" />
   </view>
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 export default {
   name: 'PrinterImage',
   data() {
     return {
-      printerImage: '/static/images/3Dprinter.png'
+      printerImage: '/static/images/3Dprinter.png' as string
     }
   }
 }

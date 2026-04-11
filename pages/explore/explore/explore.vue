@@ -207,9 +207,8 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
-import SearchBar from './components/SearchBar.vue'
-import CategoryTabs from './components/CategoryTabs.vue'
+import SearchBar from './components/searchBar.vue'
+import CategoryTabs from './components/categoryTabs.vue'
 import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import {
   getModelPage,
@@ -226,6 +225,24 @@ import { parseSnCode } from '@/api/devices.ts'
 import { useExploreStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface ModelItem {
+  id: string
+  name: string
+  desc: string
+  image: string
+  author: string
+  authorAvatar: string
+  likes: number
+  isLiked: boolean
+  viewCount: number
+  category: string
+}
+
+interface TabItem {
+  label: string
+  value: string
+}
 
 export default {
   components: {
@@ -279,10 +296,10 @@ export default {
     }
   },
   computed: {
-    texts() {
+    texts(): any {
       return this.languageStore.texts.explore
     },
-    tabs() {
+    tabs(): TabItem[] {
       return [
         { label: this.texts.dailyRecommend, value: 'daily' },
         { label: this.texts.hotCreate, value: 'hot' },
@@ -292,56 +309,53 @@ export default {
   },
   data() {
     return {
-      activeIndex: 0,
-      slideDirection: 'right',
-      refreshing: false,
-      refreshingText: '下拉刷新',
-      refreshHeight: 0,
-      refreshOpacity: 0,
-      refreshStep: 1,
-      pullDistance: 0,
-      startY: 0,
-      isPulling: false,
-      startX: 0,
-      isHorizontalSwipe: false,
-      showTabsModal: false,
-      isSticky: false
+      activeIndex: 0 as number,
+      slideDirection: 'right' as string,
+      refreshing: false as boolean,
+      refreshingText: '下拉刷新' as string,
+      refreshHeight: 0 as number,
+      refreshOpacity: 0 as number,
+      refreshStep: 1 as number,
+      pullDistance: 0 as number,
+      startY: 0 as number,
+      isPulling: false as boolean,
+      startX: 0 as number,
+      isHorizontalSwipe: false as boolean,
+      showTabsModal: false as boolean,
+      isSticky: false as boolean
     }
   },
-  onLoad() {
+  onLoad(): void {
     this.exploreStore.initFromStorage()
     this.languageStore.loadLanguage()
     this.loadModels()
     this.loadHotTags()
 
-    // 监听帖子删除事件
     uni.$on('postDeleted', () => {
       this.loadModels()
     })
-    // 监听模型点赞状态变化
-    uni.$on('modelLikeChanged', data => {
+    uni.$on('modelLikeChanged', (data: any) => {
       if (data && data.modelId) {
         this.exploreStore.updateModelLike(data.modelId, data.isLiked, data.likes)
       }
     })
   },
-  onShow() {
-    // 页面显示时更新TabBar语言
+  onShow(): void {
     this.languageStore.updateTabBar()
   },
-  onUnload() {
+  onUnload(): void {
     uni.$off('postDeleted')
     uni.$off('modelLikeChanged')
   },
   methods: {
-    onTouchStart(e) {
+    onTouchStart(e: any): void {
       if (this.refreshing) return
       this.startY = e.touches[0].clientY
       this.startX = e.touches[0].clientX
       this.isPulling = false
       this.isHorizontalSwipe = false
     },
-    onTouchMove(e) {
+    onTouchMove(e: any): void {
       if (this.refreshing) return
       const currentY = e.touches[0].clientY
       const currentX = e.touches[0].clientX
@@ -351,14 +365,11 @@ export default {
       const absDiffY = Math.abs(diffY)
       this.pullDistance = diffY
 
-      // 还没确定方向时，判断主方向
       if (!this.isHorizontalSwipe && !this.isPulling) {
         if (absDiffX > absDiffY && absDiffX > 10) {
-          // 横向为主
           this.isHorizontalSwipe = true
           return
         } else if (absDiffY > absDiffX && absDiffY > 10) {
-          // 纵向为主
           this.isPulling = true
         }
       }
@@ -391,7 +402,7 @@ export default {
         this.isSticky = true
       }
     },
-    handleScroll(e) {
+    handleScroll(e: any): void {
       if (!this.refreshing) {
         if (e.detail.scrollTop > 0) {
           this.isSticky = true
@@ -400,7 +411,7 @@ export default {
         }
       }
     },
-    onTouchEnd() {
+    onTouchEnd(): void {
       if (this.isHorizontalSwipe) {
         this.isHorizontalSwipe = false
         this.refreshHeight = 0
@@ -425,7 +436,7 @@ export default {
       }
       this.isPulling = false
     },
-    async onRefresh() {
+    async onRefresh(): Promise<void> {
       this.refreshStep = 3
       await this.loadModels({ current: 1, size: 100 })
       this.refreshStep = 4
@@ -438,27 +449,26 @@ export default {
         this.refreshingText = ''
       }, 800)
     },
-    loadMore() {},
-    async loadHotTags() {
+    loadMore(): void {},
+    async loadHotTags(): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) return
       try {
-        const res = await getHotExamples(20)
+        const res: any = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
             this.exploreStore.setHotTags(
-              res.data.map(item => item.title || item.describe || '').filter(tag => tag.trim())
+              res.data.map((item: any) => item.title || item.describe || '').filter((tag: string) => tag.trim())
             )
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载热门标签失败:', error)
       }
     },
-    async loadModels(params = {}) {
+    async loadModels(params: any = {}): Promise<void> {
       this.exploreStore.setLoading(true)
       try {
-        // 查询所有模型，不限制用户
-        const res = await getModelPage({
+        const res: any = await getModelPage({
           current: params.current || 1,
           size: params.size || 100
         })
@@ -466,18 +476,17 @@ export default {
         if (res.code === 1 && res.data && res.data.records) {
           this.assignModelsToTabs(res.data.records)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('获取模型列表失败:', error)
       } finally {
         this.exploreStore.setLoading(false)
       }
     },
 
-    // 映射API分类到tab分类 - 优化移动端显示
-    mapCategoryToTab(apiCategory) {
+    mapCategoryToTab(apiCategory: string): string {
       if (!apiCategory) return 'daily'
 
-      const categoryMap = {
+      const categoryMap: Record<string, string> = {
         日用居家: 'daily',
         玩具手办: 'hot',
         亲子互动: 'category',
@@ -489,12 +498,12 @@ export default {
       return categoryMap[apiCategory] || 'daily'
     },
 
-    assignModelsToTabs(models) {
+    assignModelsToTabs(models: any[]): void {
       if (!models.length) {
         return
       }
 
-      const fixImageUrl = url => {
+      const fixImageUrl = (url: string): string => {
         if (!url) return '/static/images/logo.png'
         if (url.includes('localhost:9000')) {
           return url.replace('localhost:9000', '47.102.212.37:9000')
@@ -505,7 +514,7 @@ export default {
         return url
       }
 
-      const formattedModels = models.map(model => ({
+      const formattedModels: ModelItem[] = models.map((model: any) => ({
         id: model.modelId,
         name: model.name || '未命名模型',
         desc: model.name || model.description || '暂无描述',
@@ -521,9 +530,9 @@ export default {
       }))
 
       const tabData = {
-        daily: formattedModels.filter(m => m.category === 'daily'),
-        hot: formattedModels.filter(m => m.category === 'hot' || m.viewCount > 1000),
-        category: formattedModels.filter(m => m.category !== 'daily' && m.category !== 'hot')
+        daily: formattedModels.filter((m: ModelItem) => m.category === 'daily'),
+        hot: formattedModels.filter((m: ModelItem) => m.category === 'hot' || m.viewCount > 1000),
+        category: formattedModels.filter((m: ModelItem) => m.category !== 'daily' && m.category !== 'hot')
       }
 
       this.dailyModels = tabData.daily
@@ -534,19 +543,18 @@ export default {
       this.exploreStore.setHotModels(this.hotModels)
       this.exploreStore.setCategoryModels(this.categoryModels)
 
-      // 登录后获取真实点赞状态
       if (uni.getStorageSync('isLoggedIn')) {
         this.loadLikeStatus(formattedModels)
       }
     },
 
-    async loadLikeStatus(models) {
+    async loadLikeStatus(models: ModelItem[]): Promise<void> {
       try {
-        const checkPromises = models.map(model =>
+        const checkPromises = models.map((model: ModelItem) =>
           checkModelLike(model.id).catch(() => ({ code: 0, data: false }))
         )
-        const results = await Promise.all(checkPromises)
-        results.forEach((res, index) => {
+        const results: any[] = await Promise.all(checkPromises)
+        results.forEach((res: any, index: number) => {
           if (res.code === 1) {
             const model = models[index]
             const newIsLiked = res.data === true
@@ -555,12 +563,12 @@ export default {
             }
           }
         })
-      } catch (e) {
+      } catch (e: any) {
         console.warn('获取点赞状态失败:', e)
       }
     },
 
-    switchTab(tab) {
+    switchTab(tab: string): void {
       const tabs = ['daily', 'hot', 'category']
       const tabIndex = tabs.indexOf(tab)
       if (tabIndex !== -1) {
@@ -571,11 +579,11 @@ export default {
         uni.pageScrollTo({ scrollTop: 0, duration: 0 })
       })
     },
-    handleSearch() {
+    handleSearch(): void {
       this.searchModels(this.keyword)
       this.exploreStore.setShowSearch(false)
     },
-    async searchModels(keyword) {
+    async searchModels(keyword: string): Promise<void> {
       if (!keyword.trim()) {
         uni.showToast({
           title: this.texts.pleaseEnterKeyword || '请输入搜索关键词',
@@ -586,21 +594,21 @@ export default {
 
       this.exploreStore.setLoading(true)
       try {
-        const res = await getModelPage({
+        const res: any = await getModelPage({
           current: 1,
           size: 20,
           name: keyword
         })
 
         if (res.code === 1 && res.data && res.data.records) {
-          const fixImageUrl = url => {
+          const fixImageUrl = (url: string): string => {
             if (!url) return '/static/images/logo.png'
             return url
               .replace('localhost:9000', '47.102.212.37:9000')
               .replace('api/uploads/image', '9000/image')
           }
 
-          const formattedModels = res.data.records.map(model => ({
+          const formattedModels: ModelItem[] = res.data.records.map((model: any) => ({
             id: model.modelId,
             name: model.name || '未命名模型',
             desc: model.description || model.name || '暂无描述',
@@ -635,7 +643,7 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('搜索失败:', error)
         uni.showToast({
           title: this.texts.searchFailed || '搜索失败，请稍后重试',
@@ -645,17 +653,17 @@ export default {
         this.exploreStore.setLoading(false)
       }
     },
-    handleScan() {
+    handleScan(): void {
       uni.scanCode({
         onlyFromCamera: true,
         scanType: ['qrCode', 'barCode'],
-        success: res => {
+        success: (res: any) => {
           console.log('扫码成功:', res)
           if (res.result) {
             this.handleScanResult(res.result)
           }
         },
-        fail: err => {
+        fail: (err: any) => {
           console.error('扫码失败:', err)
           uni.showToast({
             title: this.texts.scanFailed || '扫码失败',
@@ -664,11 +672,11 @@ export default {
         }
       })
     },
-    async handleScanResult(result) {
+    async handleScanResult(result: string): Promise<void> {
       if (result) {
         uni.showLoading({ title: this.texts.parsing || '解析中...' })
         try {
-          const res = await parseSnCode(result)
+          const res: any = await parseSnCode(result)
           uni.hideLoading()
 
           if (res.data) {
@@ -684,7 +692,7 @@ export default {
               icon: 'none'
             })
           }
-        } catch (error) {
+        } catch (error: any) {
           uni.hideLoading()
           console.error('解析SN码失败:', error)
           uni.showToast({
@@ -694,12 +702,12 @@ export default {
         }
       }
     },
-    handleCamera() {},
-    handleTagClick(tag) {
+    handleCamera(): void {},
+    handleTagClick(tag: string): void {
       this.exploreStore.setKeyword(tag)
       this.searchModels(tag)
     },
-    handleModelClick(item) {
+    handleModelClick(item: ModelItem): void {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
@@ -710,8 +718,8 @@ export default {
         url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
       })
     },
-    handleAuthorClick(item) {},
-    async toggleLike(item) {
+    handleAuthorClick(item: ModelItem): void {},
+    async toggleLike(item: ModelItem): Promise<void> {
       if (!uni.getStorageSync('isLoggedIn')) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
@@ -724,7 +732,7 @@ export default {
       }
 
       try {
-        const res = item.isLiked ? await unlikeModel(item.id) : await likeModel(item.id)
+        const res: any = item.isLiked ? await unlikeModel(item.id) : await likeModel(item.id)
         if (res.code === 1) {
           const newIsLiked = !item.isLiked
           const newLikes = item.likes + (newIsLiked ? 1 : -1)
@@ -735,12 +743,11 @@ export default {
             icon: 'success'
           })
         } else if (res.code === 100003) {
-          // 状态不一致，自动纠正
           const realIsLiked = res.msg && res.msg.includes('已点赞')
           this.exploreStore.updateModelLike(item.id, realIsLiked, item.likes)
           uni.showToast({ title: res.msg, icon: 'none' })
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('点赞操作失败:', error)
         uni.showToast({
           title: error.message || this.texts.operationFailed,
@@ -749,9 +756,9 @@ export default {
       }
     },
 
-    goToSearchPage() {
+    goToSearchPage(): void {
       const pages = getCurrentPages()
-      const currentPageRoute = pages[pages.length - 1].route
+      const currentPageRoute = (pages[pages.length - 1] as any).route
       if (currentPageRoute === 'pages/explore/search/search') {
         return
       }
@@ -761,22 +768,21 @@ export default {
       })
     },
 
-    handleSearchClick() {
+    handleSearchClick(): void {
       this.goToSearchPage()
     },
 
-    selectTab(index) {
+    selectTab(index: number): void {
       this.activeIndex = index
       this.showTabsModal = false
     },
 
-    toggleTabsModal() {
+    toggleTabsModal(): void {
       this.showTabsModal = !this.showTabsModal
     },
 
-    async uploadModel() {
-      // 步骤提示
-      const modalRes = await this.showModalPromise({
+    async uploadModel(): Promise<void> {
+      const modalRes: any = await this.showModalPromise({
         title: this.texts.uploadSteps || '上传步骤',
         content:
           this.texts.uploadStepsContent ||
@@ -785,8 +791,7 @@ export default {
       if (!modalRes.confirm) return
 
       try {
-        // 选择预览图片
-        const imgRes = await this.chooseImagePromise({ count: 1 })
+        const imgRes: any = await this.chooseImagePromise({ count: 1 })
         const imgPath = imgRes.tempFilePaths[0]
         uni.showToast({
           title: this.texts.imageSelected || '已选择图片',
@@ -794,8 +799,7 @@ export default {
           duration: 1000
         })
 
-        // 选择STL文件
-        const stlRes = await this.chooseFilePromise({ count: 1, type: 'all' })
+        const stlRes: any = await this.chooseFilePromise({ count: 1, type: 'all' })
         const stlFile = stlRes.tempFiles[0]
         const stlPath = stlFile.path
         const stlName = stlFile.name || 'model.stl'
@@ -805,9 +809,8 @@ export default {
           duration: 1000
         })
 
-        // 选择分类
         const categories = ['日用居家', '玩具手办', '亲子互动', '学习探索', '其他', '高速打印']
-        const sheetRes = await this.showActionSheetPromise({ itemList: categories })
+        const sheetRes: any = await this.showActionSheetPromise({ itemList: categories })
         const selectedCategory = categories[sheetRes.tapIndex]
         uni.showToast({
           title: this.texts.categorySelected || '已选择分类',
@@ -815,8 +818,7 @@ export default {
           duration: 1000
         })
 
-        // 输入模型名称
-        const inputRes = await this.showModalPromise({
+        const inputRes: any = await this.showModalPromise({
           title: this.texts.modelName || '模型名称',
           content: '',
           placeholderText: stlName.replace('.stl', '').replace('.STL', ''),
@@ -825,11 +827,9 @@ export default {
         if (!inputRes.confirm) return
         const finalName = inputRes.content || stlName.replace('.stl', '').replace('.STL', '')
 
-        // 开始上传
         uni.showLoading({ title: this.texts.uploading || '上传中...' })
 
-        // 上传图片
-        const imgUploadRes = await uploadImages([imgPath])
+        const imgUploadRes: any = await uploadImages([imgPath])
         if (!imgUploadRes || imgUploadRes.length === 0) {
           throw new Error('图片上传失败: 没有返回数据')
         }
@@ -838,19 +838,16 @@ export default {
           throw new Error(`图片上传失败: ${imgResult?.msg || imgResult?.message || '未知错误'}`)
         }
 
-        // 上传STL文件
-        const stlUploadRes = await uploadModelFile(stlPath)
+        const stlUploadRes: any = await uploadModelFile(stlPath)
         if (stlUploadRes.code !== 1 && stlUploadRes.code !== 200) {
           throw new Error(
             `STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`
           )
         }
 
-        // 获取用户信息
         const userInfo = uni.getStorageSync('userInfo')
         const userId = userInfo?.userId || userInfo?.id || ''
 
-        // 添加模型记录
         const previewUrl = imgUploadRes[0].data.files
           ? imgUploadRes[0].data.files[0].fileUrl
           : imgUploadRes[0].data
@@ -869,7 +866,7 @@ export default {
         uni.hideLoading()
         uni.showToast({ title: this.texts.uploadSuccess || '上传成功', icon: 'success' })
         this.loadModels()
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         uni.showToast({
           title: error.message || this.texts.uploadFailed || '上传失败',
@@ -878,33 +875,31 @@ export default {
       }
     },
 
-    // Promise 封装
-    showModalPromise(options) {
+    showModalPromise(options: any): Promise<any> {
       return new Promise(resolve => {
         uni.showModal({ ...options, success: resolve, fail: () => resolve({ cancel: true }) })
       })
     },
-    showActionSheetPromise(options) {
+    showActionSheetPromise(options: any): Promise<any> {
       return new Promise((resolve, reject) => {
         uni.showActionSheet({ ...options, success: resolve, fail: reject })
       })
     },
-    chooseImagePromise(options) {
+    chooseImagePromise(options: any): Promise<any> {
       return new Promise((resolve, reject) => {
         uni.chooseImage({ ...options, success: resolve, fail: reject })
       })
     },
-    chooseFilePromise(options) {
+    chooseFilePromise(options: any): Promise<any> {
       return new Promise((resolve, reject) => {
         // #ifdef H5
         if (typeof uni.chooseFile === 'function') {
           uni.chooseFile({ ...options, success: resolve, fail: reject })
         } else {
-          // H5 降级使用 input
           const input = document.createElement('input')
           input.type = 'file'
           input.accept = '.stl,.STL'
-          input.onchange = e => {
+          input.onchange = (e: any) => {
             const file = e.target.files[0]
             if (file) {
               resolve({ tempFiles: [{ path: file, name: file.name }] })
@@ -919,7 +914,6 @@ export default {
         if (typeof uni.chooseFile === 'function') {
           uni.chooseFile({ ...options, success: resolve, fail: reject })
         } else {
-          // APP 端使用 chooseImage 作为降级方案
           uni.showToast({ title: 'APP端请使用文件管理器选择STL文件', icon: 'none' })
           reject(new Error('APP端不支持文件选择'))
         }

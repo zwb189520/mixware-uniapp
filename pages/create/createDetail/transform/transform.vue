@@ -1,11 +1,10 @@
-﻿<template>
+<template>
   <view class="transform-page">
     <text>Transform Page</text>
   </view>
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 export default {
   name: 'TransformPage'
 }

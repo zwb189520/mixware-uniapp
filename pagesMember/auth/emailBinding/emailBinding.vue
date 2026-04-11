@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="email-binding-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -33,7 +33,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
@@ -47,57 +46,57 @@ export default {
   },
   data() {
     return {
-      email: '',
-      code: '',
-      countdown: 0,
-      timer: null,
-      isEditing: false
+      email: '' as string,
+      code: '' as string,
+      countdown: 0 as number,
+      timer: null as ReturnType<typeof setInterval> | null,
+      isEditing: false as boolean
     }
   },
 
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.accountSecurity.emailBinding
     },
-    hasEmail() {
+    hasEmail(): boolean {
       return !!this.email
     },
-    isChangeEmail() {
+    isChangeEmail(): boolean {
       return this.hasEmail && this.isEditing
     }
   },
 
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.loadUserInfo()
   },
 
-  beforeDestroy() {
+  beforeDestroy(): void {
     if (this.timer) {
       clearInterval(this.timer)
     }
   },
 
   methods: {
-    loadUserInfo() {
-      const userInfo = uni.getStorageSync('userInfo') || {}
+    loadUserInfo(): void {
+      const userInfo: any = uni.getStorageSync('userInfo') || {}
       if (userInfo.email) {
         this.email = userInfo.email
       }
     },
-    handleChangeEmail() {
+    handleChangeEmail(): void {
       this.isEditing = true
       this.email = ''
       this.code = ''
     },
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    async handleGetCode() {
+    async handleGetCode(): Promise<void> {
       if (!this.email) {
         uni.showToast({
           title: this.texts.enterEmail,
@@ -113,7 +112,7 @@ export default {
         this.timer = setInterval(() => {
           this.countdown--
           if (this.countdown <= 0) {
-            clearInterval(this.timer)
+            clearInterval(this.timer as ReturnType<typeof setInterval>)
           }
         }, 1000)
 
@@ -121,7 +120,7 @@ export default {
           title: this.texts.codeSent,
           icon: 'success'
         })
-      } catch (error) {
+      } catch (error: any) {
         uni.showToast({
           title: error.msg || this.texts.codeSendFailed,
           icon: 'none'
@@ -129,7 +128,7 @@ export default {
       }
     },
 
-    async handleSubmit() {
+    async handleSubmit(): Promise<void> {
       if (!this.email || !this.code) {
         uni.showToast({
           title: this.texts.fillAllFields,
@@ -143,10 +142,10 @@ export default {
           title: this.texts.binding
         })
 
-        const userInfo = uni.getStorageSync('userInfo') || {}
+        const userInfo: any = uni.getStorageSync('userInfo') || {}
         await updateUserInfo({
           username: userInfo.username,
-          avatarUrl: userInfo.avatar,
+          avatar: userInfo.avatar,
           email: this.email,
           birthday: userInfo.birthday
         })
@@ -169,7 +168,7 @@ export default {
             url: '/pagesMember/auth/login/login'
           })
         }, 1500)
-      } catch (error) {
+      } catch (error: any) {
         uni.hideLoading()
         uni.showToast({
           title: error.msg || this.texts.bindFailed,

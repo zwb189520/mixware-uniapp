@@ -1,5 +1,14 @@
-// @ts-nocheck
-export function initBluetooth() {
+interface BluetoothDevice {
+  deviceId: string
+  name?: string
+  localName?: string
+  RSSI?: number
+  advertisData?: ArrayBuffer
+  advertisServiceUUIDs?: string[]
+  displayName?: string
+}
+
+export function initBluetooth(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     uni.openBluetoothAdapter({
       success: resolve,
@@ -8,7 +17,7 @@ export function initBluetooth() {
   })
 }
 
-export function closeBluetooth() {
+export function closeBluetooth(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     uni.closeBluetoothAdapter({
       success: resolve,
@@ -17,7 +26,7 @@ export function closeBluetooth() {
   })
 }
 
-export function startBluetoothScan() {
+export function startBluetoothScan(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     uni.startBluetoothDevicesDiscovery({
       allowDuplicatesKey: false,
@@ -27,7 +36,7 @@ export function startBluetoothScan() {
   })
 }
 
-export function stopBluetoothScan() {
+export function stopBluetoothScan(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     uni.stopBluetoothDevicesDiscovery({
       success: resolve,
@@ -36,27 +45,24 @@ export function stopBluetoothScan() {
   })
 }
 
-export function getBluetoothDevices(boundDevices = []) {
+export function getBluetoothDevices(boundDevices: BluetoothDevice[] = []): Promise<BluetoothDevice[]> {
   return new Promise((resolve, reject) => {
     uni.getBluetoothDevices({
-      success: res => {
+      success: (res: any) => {
         const devices = res.devices || []
         console.log('所有蓝牙设备:', devices)
 
-        // 显示所有设备，包括没有名称的
-        const processedDevices = devices.map(device => ({
+        const processedDevices = devices.map((device: any) => ({
           ...device,
           displayName: device.name || device.localName || device.deviceId || '未知设备'
         }))
 
-        // 过滤WG开头的设备
-        const wgDevices = processedDevices.filter(device => {
+        const wgDevices = processedDevices.filter((device: any) => {
           const name = device.name || device.localName || ''
           return name.toUpperCase().startsWith('WG')
         })
 
-        // 过滤掉已绑定的设备
-        const unboundWgDevices = wgDevices.filter(device => {
+        const unboundWgDevices = wgDevices.filter((device: any) => {
           return !boundDevices.some(boundDevice => boundDevice.deviceId === device.deviceId)
         })
 
@@ -69,7 +75,7 @@ export function getBluetoothDevices(boundDevices = []) {
   })
 }
 
-export function connectToDevice(deviceId) {
+export function connectToDevice(deviceId: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     uni.createBLEConnection({
       deviceId,
@@ -79,7 +85,7 @@ export function connectToDevice(deviceId) {
   })
 }
 
-export function getDeviceServices(deviceId) {
+export function getDeviceServices(deviceId: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     uni.getBLEDeviceServices({
       deviceId,
@@ -89,16 +95,14 @@ export function getDeviceServices(deviceId) {
   })
 }
 
-// 数据转换工具函数
-function ab2hex(buffer) {
-  const hexArr = Array.prototype.map.call(new Uint8Array(buffer), function (bit) {
+function ab2hex(buffer: ArrayBuffer): string {
+  const hexArr = Array.prototype.map.call(new Uint8Array(buffer), function (bit: number) {
     return ('00' + bit.toString(16)).slice(-2)
   })
   return hexArr.join('')
 }
 
-// UTF-8 编码/解码函数
-function str2utf8(str) {
+function str2utf8(str: string): Uint8Array {
   const utf8 = []
   for (let i = 0; i < str.length; i++) {
     let charcode = str.charCodeAt(i)
@@ -123,7 +127,7 @@ function str2utf8(str) {
   return new Uint8Array(utf8)
 }
 
-function utf82str(utf8) {
+function utf82str(utf8: Uint8Array): string {
   let str = ''
   let i = 0
   while (i < utf8.length) {
@@ -161,20 +165,18 @@ function utf82str(utf8) {
   return str
 }
 
-function ab2str(buffer) {
+function ab2str(buffer: ArrayBuffer): string {
   return utf82str(new Uint8Array(buffer))
 }
 
-// writeType: 'write' 需要等设备 ATT Write Response，间隔需要足够长
-// writeType: 'writeNoResponse' 无需等待，速度快但设备必须支持
 function writeInChunks(
-  deviceId,
-  serviceId,
-  characteristicId,
-  buffer,
-  writeType = 'write',
-  chunkSize = 180
-) {
+  deviceId: string,
+  serviceId: string,
+  characteristicId: string,
+  buffer: ArrayBuffer,
+  writeType: 'write' | 'writeNoResponse' = 'write',
+  chunkSize: number = 180
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const bytes = new Uint8Array(buffer)
     let offset = 0
@@ -203,7 +205,7 @@ function writeInChunks(
           offset = end
           setTimeout(writeNext, interval)
         },
-        fail: err => {
+        fail: (err: any) => {
           console.error('分包写入失败:', err)
           reject(err)
         }
@@ -214,8 +216,7 @@ function writeInChunks(
   })
 }
 
-// 请求 WiFi 权限
-export const requestWifiPermission = () => {
+export const requestWifiPermission = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     // #ifdef APP-PLUS
     const permissions = getWifiPermissions()
@@ -232,16 +233,16 @@ export const requestWifiPermission = () => {
     // 先检查权限状态
     try {
       const main = plus.android.runtimeMainActivity()
-      const pkName = main.getPackageName()
+      const pkName = (main as any).getPackageName()
       const Permission = plus.android.importClass('android.content.pm.PackageManager')
-      const pm = main.getPackageManager()
+      const pm = (main as any).getPackageManager()
 
       let allGranted = true
-      const missingPermissions = []
+      const missingPermissions: string[] = []
 
       for (let i = 0; i < permissions.length; i++) {
         const perm = permissions[i]
-        const hasPermission = pm.checkPermission(perm, pkName) === Permission.PERMISSION_GRANTED
+        const hasPermission = (pm as any).checkPermission(perm, pkName) === (Permission as any).PERMISSION_GRANTED
         console.log(`权限 ${perm} 状态: ${hasPermission ? '已授予' : '未授予'}`)
         if (!hasPermission) {
           allGranted = false
@@ -290,7 +291,7 @@ export const requestWifiPermission = () => {
               '应用需要 WiFi 和定位权限才能扫描 WiFi 网络。权限已被拒绝，请在系统设置中手动开启权限。',
             confirmText: '去设置',
             cancelText: '取消',
-            success: res => {
+            success: (res: any) => {
               if (res.confirm) {
                 // 打开应用设置页面
                 plus.runtime.openURL('app-settings://')
@@ -318,12 +319,12 @@ export const requestWifiPermission = () => {
                       ) {
                         resolve()
                       } else {
-                        const error = new Error('WiFi 权限被拒绝，请在设置中开启 WiFi 和定位权限')
+                        const error = new Error('WiFi 权限被拒绝，请在设置中开启 WiFi 和定位权限') as any
                         error.errMsg = error.message
                         reject(error)
                       }
                     },
-                    err => {
+                    (err: any) => {
                       reject(err)
                     }
                   )
@@ -347,7 +348,7 @@ export const requestWifiPermission = () => {
           }
         }
       },
-      err => {
+      (err: any) => {
         console.error('请求 WiFi 权限失败:', err)
         reject(new Error('请求 WiFi 权限失败: ' + (err.message || err)))
       }
@@ -361,13 +362,12 @@ export const requestWifiPermission = () => {
   })
 }
 
-// 获取 Android 版本
-const getAndroidVersion = () => {
+const getAndroidVersion = (): number => {
   // #ifdef APP-PLUS
   try {
     const main = plus.android.runtimeMainActivity()
     const Build = plus.android.importClass('android.os.Build')
-    return Build.SDK_INT || 0
+    return (Build as any).SDK_INT || 0
   } catch (e) {
     console.warn('获取 Android 版本失败:', e)
     return 0
@@ -378,8 +378,7 @@ const getAndroidVersion = () => {
   // #endif
 }
 
-// 获取需要的 WiFi 权限列表
-const getWifiPermissions = () => {
+const getWifiPermissions = (): string[] => {
   // #ifdef APP-PLUS
   const sdkVersion = getAndroidVersion()
   const permissions = [
@@ -401,8 +400,7 @@ const getWifiPermissions = () => {
   // #endif
 }
 
-// 初始化 WiFi 模块
-export const initWifi = () => {
+export const initWifi = (): Promise<unknown> => {
   return new Promise(async (resolve, reject) => {
     // #ifdef APP-PLUS
 
@@ -423,11 +421,11 @@ export const initWifi = () => {
     }
 
     uni.startWifi({
-      success: res => {
+      success: (res: any) => {
         console.log('WiFi 模块初始化成功', res)
         resolve(res)
       },
-      fail: err => {
+      fail: (err: any) => {
         console.error('WiFi 模块初始化失败', err)
         reject(err)
       }
@@ -442,8 +440,7 @@ export const initWifi = () => {
   })
 }
 
-// 获取 WiFi 列表
-export const getWifiList = () => {
+export const getWifiList = (): Promise<unknown[]> => {
   return new Promise((resolve, reject) => {
     // #ifdef APP-PLUS
 
@@ -455,26 +452,26 @@ export const getWifiList = () => {
     }
 
     // 定义监听器函数（用于后续清理）
-    let wifiListListener = null
+    let wifiListListener: any = null
     let isResolved = false // 防止重复 resolve
 
     // 清理监听器的函数
     // 注意：uni-wifi 插件的 offGetWifiList 不需要传入 callback，会直接清空所有监听器
-    const cleanup = () => {
+    const cleanup = (): void => {
       if (typeof uni.offGetWifiList === 'function') {
         try {
           // 不传入 callback，直接清空所有监听器（插件内部实现会忽略参数）
           uni.offGetWifiList()
         } catch (e) {
           // 如果清理失败，静默处理（插件内部会自动清理）
-          console.warn('清理监听器失败（可忽略，插件会自动清理）:', e)
+          console.warn('清理监听器失败（可忽略，插件会自动清理）:', e as any)
         }
       }
       wifiListListener = null
     }
 
     // 先设置监听器（uni-wifi 插件要求监听器在 getWifiList 之前设置）
-    wifiListListener = res => {
+    wifiListListener = (res: any) => {
       if (isResolved) return // 防止重复处理
       isResolved = true
       console.log('扫描到的 WiFi 列表', res.wifiList)
@@ -488,7 +485,7 @@ export const getWifiList = () => {
         uni.onGetWifiList(wifiListListener)
       } catch (e) {
         console.error('注册 WiFi 列表监听器失败:', e)
-        reject(new Error('注册 WiFi 列表监听器失败: ' + (e.message || e)))
+        reject(new Error('注册 WiFi 列表监听器失败: ' + ((e as any).message || e)))
         return
       }
     } else {
@@ -516,7 +513,7 @@ export const getWifiList = () => {
           clearTimeout(timeoutTimer)
         }
       },
-      fail: err => {
+      fail: (err: any) => {
         console.error('获取 WiFi 列表失败', err)
         clearTimeout(timeoutTimer)
         cleanup()
@@ -533,8 +530,7 @@ export const getWifiList = () => {
   })
 }
 
-// 连接指定 WiFi
-export const connectWifi = ({ SSID, BSSID, password }) => {
+export const connectWifi = ({ SSID, BSSID, password }: { SSID: string; BSSID?: string; password?: string }): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     console.log({
       SSID,
@@ -546,11 +542,11 @@ export const connectWifi = ({ SSID, BSSID, password }) => {
       SSID,
       BSSID, // 安卓需要
       password, // 如果 WiFi 有密码
-      success: res => {
+      success: (res: any) => {
         console.log(`连接 WiFi 成功: ${SSID}`, res)
         resolve(res)
       },
-      fail: err => {
+      fail: (err: any) => {
         console.error(`连接 WiFi 失败: ${SSID}`, err)
         reject(err)
       }
@@ -558,8 +554,7 @@ export const connectWifi = ({ SSID, BSSID, password }) => {
   })
 }
 
-// 关闭 WiFi 模块
-export const stopWifi = () => {
+export const stopWifi = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     // #ifdef APP-PLUS
 
@@ -571,11 +566,11 @@ export const stopWifi = () => {
     }
 
     uni.stopWifi({
-      success: res => {
+      success: (res: any) => {
         console.log('WiFi 模块已关闭', res)
         resolve(res)
       },
-      fail: err => {
+      fail: (err: any) => {
         console.warn('关闭 WiFi 模块失败', err)
         // 不 reject，静默处理
         resolve()
@@ -590,8 +585,7 @@ export const stopWifi = () => {
   })
 }
 
-// 获取当前连接 WiFi 信息
-export function getConnectedWifiInfo() {
+export function getConnectedWifiInfo(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     // 先确保 startWifi 已初始化（你已有 initWifi）
 
@@ -600,17 +594,17 @@ export function getConnectedWifiInfo() {
     uni.startWifi({
       success: () => {
         uni.getConnectedWifi({
-          success(res) {
+          success(res: any) {
             // res.wifi 是当前连接的 wifi info（不同平台字段略有差异）
             resolve(res.wifi || null)
           },
-          fail(err) {
+          fail(err: any) {
             console.error('getConnectedWifi fail:', err)
             reject(err)
           }
         })
       },
-      fail(err) {
+      fail(err: any) {
         console.error('startWifi fail:', err)
         reject(err)
       }
@@ -633,16 +627,14 @@ export function getConnectedWifiInfo() {
   })
 }
 
-// 通过蓝牙获取WiFi列表的函数
-export function subscribeToWiFiList(deviceId) {
+export function subscribeToWiFiList(deviceId: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let accumulatedData = ''
     let lastReceiveTime = Date.now()
-    let receiveTimeoutId = null
+    let receiveTimeoutId: any = null
     let isResolved = false
 
-    // 统一清理函数：清除定时器并移除 BLE 监听器
-    const cleanup = globalTimeoutId => {
+    const cleanup = (globalTimeoutId: any): void => {
       if (receiveTimeoutId) {
         clearTimeout(receiveTimeoutId)
         receiveTimeoutId = null
@@ -651,11 +643,11 @@ export function subscribeToWiFiList(deviceId) {
       try {
         uni.offBLECharacteristicValueChange(onCharacteristicChange)
       } catch (e) {
-        // 部分平台不支持传入 callback 参数，忽略
+        console.warn('清理监听器失败（可忽略，插件会自动清理）:', e as any)
       }
     }
 
-    const onCharacteristicChange = res => {
+    const onCharacteristicChange = (res: any): void => {
       if (isResolved) return
       try {
         const wifiData = ab2str(res.value)
@@ -667,25 +659,25 @@ export function subscribeToWiFiList(deviceId) {
         if (!receiveTimeoutId) {
           receiveTimeoutId = setTimeout(checkReceiveComplete, 800)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log('解析异常:', error)
       }
     }
 
-    const checkReceiveComplete = () => {
+    const checkReceiveComplete = (): void => {
       if (isResolved) return
       if (Date.now() - lastReceiveTime >= 1000 && accumulatedData.length > 0) {
         isResolved = true
         try {
-          let wifiList = []
+          let wifiList: any[] = []
           if (accumulatedData.includes('#split#') && accumulatedData.includes('#endsplit')) {
             const startIndex = accumulatedData.indexOf('#split#') + 7
             const endIndex = accumulatedData.indexOf('#endsplit')
             const wifiContent = accumulatedData.substring(startIndex, endIndex)
             const wifiItems = wifiContent.split('||')
             wifiList = wifiItems
-              .filter(item => item)
-              .map(item => ({
+              .filter((item: string) => item)
+              .map((item: string) => ({
                 ssid: item,
                 signal: 0
               }))
@@ -695,23 +687,23 @@ export function subscribeToWiFiList(deviceId) {
             const wifiContent = accumulatedData.substring(startIndex, endIndex)
             const wifiItems = wifiContent.split(',')
             wifiList = wifiItems
-              .map(item => {
+              .map((item: string) => {
                 const parts = item.split('||')
                 return {
                   ssid: parts[0] || '',
                   signal: parts[1] ? parseInt(parts[1]) : 0
                 }
               })
-              .filter(item => item.ssid)
+              .filter((item: any) => item.ssid)
           }
           cleanup(timeoutId)
           resolve(wifiList)
-        } catch (error) {
+        } catch (error: any) {
           cleanup(timeoutId)
           resolve([])
         }
       } else {
-        receiveTimeoutId = setTimeout(checkReceiveComplete, 300)
+        receiveTimeoutId = setTimeout(checkReceiveComplete, 300) as any
       }
     }
 
@@ -740,7 +732,7 @@ export function subscribeToWiFiList(deviceId) {
           value: requestBuffer
         })
       },
-      fail: error => {
+      fail: (error: any) => {
         isResolved = true
         cleanup(timeoutId)
         reject(error)
@@ -749,16 +741,16 @@ export function subscribeToWiFiList(deviceId) {
   })
 }
 
-export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
+export function sendWiFiConfig(deviceId: string, serverUrl: string, ssid: string, password: string): Promise<void> {
   return new Promise((resolve, reject) => {
     uni.getBLEDeviceCharacteristics({
       deviceId,
       serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-      success: res => {
+      success: (res: any) => {
         console.log('设备特征值:', res.characteristics)
 
         const writeCharacteristic = res.characteristics.find(
-          c => c.uuid.includes('2AD2') && (c.properties.write || c.properties.writeNoResponse)
+          (c: any) => c.uuid.includes('2AD2') && (c.properties.write || c.properties.writeNoResponse)
         )
 
         if (!writeCharacteristic) {
@@ -781,15 +773,15 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
             console.log('通知启用成功')
             setTimeout(async () => {
               // 先等 MTU 协商完成，避免与后续写入并发冲突
-              await new Promise(mtuResolve => {
+              await new Promise<void>(mtuResolve => {
                 uni.setBLEMTU({
                   deviceId: deviceId,
                   mtu: 512,
-                  success: mtuRes => {
+                  success: (mtuRes: any) => {
                     console.log('MTU设置成功:', mtuRes)
                     mtuResolve()
                   },
-                  fail: mtuErr => {
+                  fail: (mtuErr: any) => {
                     console.log('MTU设置失败或不支持:', mtuErr)
                     mtuResolve() // 失败也继续，不阻塞
                   }
@@ -813,7 +805,7 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  serverBuffer,
+                  serverBuffer.buffer as ArrayBuffer,
                   writeType
                 )
                 console.log('服务器URL发送成功')
@@ -830,7 +822,7 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  wifiBuffer,
+                  wifiBuffer.buffer as ArrayBuffer,
                   writeType
                 )
                 console.log('WiFi配置发送成功')
@@ -845,7 +837,7 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  triggerBuffer,
+                  triggerBuffer.buffer as ArrayBuffer,
                   writeType
                 )
                 console.log('配网触发命令发送成功')
@@ -860,25 +852,25 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
                   deviceId,
                   '0000181A-0000-1000-8000-00805F9B34FB',
                   writeCharacteristic.uuid,
-                  endBuffer,
+                  endBuffer.buffer as ArrayBuffer,
                   writeType
                 )
                 console.log('配网结束命令发送成功')
 
                 resolve()
-              } catch (err) {
+              } catch (err: any) {
                 console.error('发送失败:', err)
                 reject(new Error(`发送失败: ${err.errMsg || err.message}`))
               }
             }, 500)
           },
-          fail: err => {
+          fail: (err: any) => {
             console.error('启用通知失败:', err)
             reject(new Error(`启用通知失败: ${err.errMsg || err.message}`))
           }
         })
       },
-      fail: err => {
+      fail: (err: any) => {
         console.error('获取特征值失败:', err)
         reject(new Error(`获取特征值失败: ${err.errMsg || err.message}`))
       }
@@ -886,16 +878,16 @@ export function sendWiFiConfig(deviceId, serverUrl, ssid, password) {
   })
 }
 
-export function subscribeToConfigResult(deviceId) {
+export function subscribeToConfigResult(deviceId: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    let timeoutId
+    let timeoutId: any
     let isResolved = false
 
     // 统一清理函数：清除超时并移除 BLE 监听器
     const cleanup = () => {
       if (timeoutId) {
         clearTimeout(timeoutId)
-        timeoutId = null
+        timeoutId = null as any
       }
       try {
         uni.offBLECharacteristicValueChange(resultHandler)
@@ -904,7 +896,7 @@ export function subscribeToConfigResult(deviceId) {
       }
     }
 
-    const resultHandler = res => {
+    const resultHandler = (res: any): void => {
       if (isResolved) return
       try {
         const resultData = ab2str(res.value)
@@ -963,7 +955,7 @@ export function subscribeToConfigResult(deviceId) {
         console.log('配网结果通知已启用 (0x2AD4)')
         uni.onBLECharacteristicValueChange(resultHandler)
       },
-      fail: err => {
+      fail: (err: any) => {
         console.error('启用配网结果通知失败 (0x2AD4):', err)
         // 降级尝试 0x2AD3
         uni.notifyBLECharacteristicValueChange({
@@ -975,7 +967,7 @@ export function subscribeToConfigResult(deviceId) {
             console.log('配网结果通知已启用 (0x2AD3)')
             uni.onBLECharacteristicValueChange(resultHandler)
           },
-          fail: err2 => {
+          fail: (err2: any) => {
             console.error('启用配网结果通知失败 (0x2AD3):', err2)
             isResolved = true
             cleanup()

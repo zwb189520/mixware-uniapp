@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="rotation-panel" v-if="visible">
     <view class="panel-header">
       <text class="reset-btn" @tap="handleReset">{{ texts.reset || '重置' }}</text>
@@ -99,8 +99,15 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface RotationData {
+  axis: string
+  value: number
+  x: number
+  y: number
+  z: number
+}
 
 export default {
   name: 'RotationPanel',
@@ -111,67 +118,67 @@ export default {
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.explore || {}
     }
   },
   data() {
     return {
-      rotationX: 0,
-      rotationY: 0,
-      rotationZ: 0,
-      rulerOffsetX: 180,
-      rulerOffsetY: 180,
-      rulerOffsetZ: 180,
-      touchStartX: 0,
-      touchStartOffset: 0,
-      currentAxis: ''
+      rotationX: 0 as number,
+      rotationY: 0 as number,
+      rotationZ: 0 as number,
+      rulerOffsetX: 180 as number,
+      rulerOffsetY: 180 as number,
+      rulerOffsetZ: 180 as number,
+      touchStartX: 0 as number,
+      touchStartOffset: 0 as number,
+      currentAxis: '' as string
     }
   },
   watch: {
-    visible(val) {
+    visible(val: boolean): void {
       if (val) {
         this.$emit('open')
       }
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
   },
   methods: {
-    onRulerTouchStart(axis, e) {
+    onRulerTouchStart(axis: string, e: TouchEvent): void {
       this.currentAxis = axis
       this.touchStartX = e.touches[0].clientX
-      this.touchStartOffset = this[`rulerOffset${axis.toUpperCase()}`]
+      this.touchStartOffset = (this as any)[`rulerOffset${axis.toUpperCase()}`]
     },
-    onRulerTouchMove(axis, e) {
+    onRulerTouchMove(axis: string, e: TouchEvent): void {
       const deltaX = this.touchStartX - e.touches[0].clientX
       let newOffset = this.touchStartOffset + deltaX
       newOffset = Math.max(0, Math.min(360, newOffset))
-      this[`rulerOffset${axis.toUpperCase()}`] = newOffset
+      ;(this as any)[`rulerOffset${axis.toUpperCase()}`] = newOffset
       const value = Math.round(newOffset - 180)
-      this[`rotation${axis.toUpperCase()}`] = value
+      ;(this as any)[`rotation${axis.toUpperCase()}`] = value
       this.$emit('rotationChanging', {
         axis,
         value,
         x: this.rotationX,
         y: this.rotationY,
         z: this.rotationZ
-      })
+      } as RotationData)
     },
-    onRulerTouchEnd() {
+    onRulerTouchEnd(): void {
       this.$emit('rotationChange', {
         axis: this.currentAxis,
-        value: this[`rotation${this.currentAxis.toUpperCase()}`],
+        value: (this as any)[`rotation${this.currentAxis.toUpperCase()}`],
         x: this.rotationX,
         y: this.rotationY,
         z: this.rotationZ
-      })
+      } as RotationData)
     },
-    handleReset() {
+    handleReset(): void {
       this.rotationX = 0
       this.rotationY = 0
       this.rotationZ = 0
@@ -180,17 +187,17 @@ export default {
       this.rulerOffsetZ = 180
       this.$emit('reset')
     },
-    handleClose() {
+    handleClose(): void {
       this.$emit('close')
     },
-    getRotation() {
+    getRotation(): { x: number; y: number; z: number } {
       return {
         x: this.rotationX,
         y: this.rotationY,
         z: this.rotationZ
       }
     },
-    setRotation(x, y, z) {
+    setRotation(x: number, y: number, z: number): void {
       this.rotationX = x
       this.rotationY = y
       this.rotationZ = z

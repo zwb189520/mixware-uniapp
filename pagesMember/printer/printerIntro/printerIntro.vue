@@ -31,7 +31,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import PrinterNameSelector from './components/PrinterNameSelector.vue'
 import PrinterStatus from './components/PrinterStatus.vue'
@@ -56,47 +55,47 @@ export default {
   },
   data() {
     return {
-      printerStatus: 'StandingBy',
-      progress: 0,
-      estimatedTime: '',
-      printTimeHms: '',
-      filamentLengthM: 0,
-      estimatedPrintTimeSeconds: 0,
-      showEncouragement: true,
-      deviceId: '',
-      statusTimer: null
+      printerStatus: 'StandingBy' as string,
+      progress: 0 as number,
+      estimatedTime: '' as string,
+      printTimeHms: '' as string,
+      filamentLengthM: 0 as number,
+      estimatedPrintTimeSeconds: 0 as number,
+      showEncouragement: true as boolean,
+      deviceId: '' as string,
+      statusTimer: null as ReturnType<typeof setInterval> | null
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.printerIntro || {}
     }
   },
-  onLoad(options) {
+  onLoad(options: any): void {
     console.log('printerIntro页面接收到的options:', options)
     if (options.deviceId) {
       this.deviceId = options.deviceId
       console.log('设置deviceId:', this.deviceId)
     }
   },
-  onShow() {
+  onShow(): void {
     this.languageStore.loadLanguage()
     this.initDevice()
   },
-  onHide() {
+  onHide(): void {
     this.stopStatusPolling()
   },
-  onUnload() {
+  onUnload(): void {
     this.stopStatusPolling()
   },
   methods: {
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
-    async initDevice() {
+    async initDevice(): Promise<void> {
       try {
         if (!this.deviceId) {
           await this.loadDefaultDevice()
@@ -113,20 +112,19 @@ export default {
         })
       }
     },
-    startStatusPolling() {
+    startStatusPolling(): void {
       this.stopStatusPolling()
       this.statusTimer = setInterval(() => {
         this.loadDeviceStatus()
       }, 3000)
     },
-    stopStatusPolling() {
+    stopStatusPolling(): void {
       if (this.statusTimer) {
         clearInterval(this.statusTimer)
         this.statusTimer = null
       }
     },
-    async loadDefaultDevice() {
-      // 如果已经有deviceId了，就不需要再加载默认设备
+    async loadDefaultDevice(): Promise<void> {
       console.log('loadDefaultDevice方法被调用，当前deviceId:', this.deviceId)
       if (this.deviceId) {
         console.log('已有deviceId，跳过加载默认设备')
@@ -134,13 +132,13 @@ export default {
       }
 
       try {
-        const res = await getDefaultDevice()
+        const res: any = await getDefaultDevice()
         console.log('getDefaultDevice响应:', res)
         if (res.data && res.data.deviceId) {
           this.deviceId = res.data.deviceId
           console.log('从默认设备获取到deviceId:', this.deviceId)
         } else {
-          const listRes = await getDeviceList()
+          const listRes: any = await getDeviceList()
           console.log('getDeviceList响应:', listRes)
           if (listRes.data && listRes.data.records && listRes.data.records.length > 0) {
             const firstDevice = listRes.data.records[0]
@@ -153,12 +151,11 @@ export default {
         console.error('获取默认设备失败:', error)
       }
     },
-    async loadDeviceStatus() {
+    async loadDeviceStatus(): Promise<void> {
       if (!this.deviceId) return
 
       try {
-        const res = await getDeviceStatus(this.deviceId)
-        // 打印后端返回的完整信息
+        const res: any = await getDeviceStatus(this.deviceId)
         console.log('--- [设备状态调试] ---')
         console.log('接口响应:', JSON.stringify(res, null, 2))
         if (res.data) {
@@ -169,7 +166,6 @@ export default {
         if ((res.code === 1 || res.code === 200) && res.data) {
           const status = res.data
 
-          // 检查是否为全空数据（后端可能返回了对象但里面全是 null）
           if (status.deviceId === null && status.deviceState === null) {
             console.warn('--- [状态异常] 后端返回了空状态对象，请检查设备是否已激活或上报数据 ---')
             this.printerStatus = 'offline'
@@ -204,7 +200,6 @@ export default {
           if (status.message) {
             this.parseMessage(status.message, status.printState)
           }
-          // 从message解析已打印时间
           if (status.printTimeHms !== undefined && this.estimatedPrintTimeSeconds === 0) {
             this.estimatedTime = status.printTimeHms
           }
@@ -219,22 +214,21 @@ export default {
         this.printerStatus = 'offline'
       }
     },
-    handlePrinterChange(printer) {
+    handlePrinterChange(printer: any): void {
       this.deviceId = printer.id
       this.loadDeviceStatus()
     },
 
-    handleMoreInfo() {
+    handleMoreInfo(): void {
       uni.navigateTo({
         url: '/pagesMember/printer/printerMoreIntro/printerMoreIntro'
       })
     },
 
-    parseMessage(message, printState) {
+    parseMessage(message: string, printState: string): void {
       try {
         const cleanMessage = message.replace(/\s+/g, ' ').trim()
         const msgObj = JSON.parse(cleanMessage)
-        // 从message解析进度
         if (msgObj.progress !== undefined && printState === 'Printing') {
           this.progress = Math.round(Number(msgObj.progress) * 100)
         }
@@ -253,7 +247,7 @@ export default {
       }
     },
 
-    parseDuration(durationStr) {
+    parseDuration(durationStr: string): number {
       if (!durationStr || typeof durationStr !== 'string') return 0
       let totalSeconds = 0
       const hourMatch = durationStr.match(/(\d+)h/)
@@ -265,7 +259,7 @@ export default {
       return totalSeconds
     },
 
-    formatTime(seconds) {
+    formatTime(seconds: number): string {
       if (!seconds || seconds <= 0) return '0分钟'
       const hours = Math.floor(seconds / 3600)
       const minutes = Math.floor((seconds % 3600) / 60)
@@ -275,7 +269,7 @@ export default {
       return `${secs}秒`
     },
 
-    addMinutesToTimeStr(timeStr, minutesToAdd) {
+    addMinutesToTimeStr(timeStr: string, minutesToAdd: number): string {
       if (!timeStr || typeof timeStr !== 'string') return timeStr
       let totalMinutes = 0
       const hourMatch = timeStr.match(/(\d+)\s*小时/)

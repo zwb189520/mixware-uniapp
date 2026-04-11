@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="my-works-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -45,7 +45,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import WorkCard from './components/WorkCard.vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
@@ -54,6 +53,18 @@ import { getModelRecords, getPrintRecords } from '@/api/operationRecords.ts'
 import { deleteModel } from '@/api/models.ts'
 import { getPostList, getLikedPosts } from '@/api/community.ts'
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface WorkItem {
+  id: number | string
+  title: string
+  image: string
+  printTime: string
+  printDate: string
+  type: string
+  status: string
+  isPost?: boolean
+  isLiked?: boolean
+}
 
 export default {
   name: 'MyWorks',
@@ -65,46 +76,45 @@ export default {
   },
   data() {
     return {
-      worksList: [],
-      loading: false,
-      selectedWork: null,
-      showActionSheet: false,
-      showCustomActionSheet: false,
-      actionSheetItems: [],
-      cancelText: '取消',
-      activeTab: 'works'
+      worksList: [] as WorkItem[],
+      loading: false as boolean,
+      selectedWork: null as WorkItem | null,
+      showActionSheet: false as boolean,
+      showCustomActionSheet: false as boolean,
+      actionSheetItems: [] as string[],
+      cancelText: '取消' as string,
+      activeTab: 'works' as 'works' | 'likes'
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore?.texts?.myWorks || {}
     }
   },
   watch: {
     'languageStore.language': {
-      handler() {
+      handler(): void {
         this.cancelText = this.texts.cancel || '取消'
       },
       immediate: true
     },
     'languageStore.texts': {
-      handler() {
+      handler(): void {
         this.cancelText = this.texts.cancel || '取消'
       },
       immediate: true,
       deep: true
     }
   },
-  onShow() {
+  onShow(): void {
     this.languageStore.loadLanguage()
     if (uni.getStorageSync('needRefreshWorks')) {
       uni.removeStorageSync('needRefreshWorks')
     }
     this.loadData()
-    // 先移除旧监听再注册，避免 onShow 多次触发导致重复叠加
     uni.$off('refreshLikedPosts')
     uni.$on('refreshLikedPosts', () => {
       if (this.activeTab === 'likes') {
@@ -112,31 +122,31 @@ export default {
       }
     })
   },
-  onHide() {
+  onHide(): void {
     uni.$off('refreshLikedPosts')
   },
   methods: {
-    switchTab(tab) {
+    switchTab(tab: 'works' | 'likes'): void {
       if (this.activeTab === tab) return
       this.activeTab = tab
       this.loadData()
     },
-    async loadData() {
+    async loadData(): Promise<void> {
       if (this.activeTab === 'works') {
         await this.loadWorks()
       } else {
         await this.loadLikedPosts()
       }
     },
-    async loadLikedPosts() {
+    async loadLikedPosts(): Promise<void> {
       this.loading = true
       try {
-        const res = await getLikedPosts({
+        const res: any = await getLikedPosts({
           current: 1,
           size: 100
         })
         if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
-          this.worksList = res.data.records.map(post => ({
+          this.worksList = res.data.records.map((post: any) => ({
             id: post.postId,
             title: post.title,
             image:
@@ -164,18 +174,18 @@ export default {
       }
     },
 
-    async loadWorks() {
+    async loadWorks(): Promise<void> {
       this.loading = true
       try {
-        const userInfo = uni.getStorageSync('userInfo')
+        const userInfo: any = uni.getStorageSync('userInfo')
         if (userInfo && userInfo.userId) {
-          const res = await getPostList({
+          const res: any = await getPostList({
             userId: userInfo.userId,
             current: 1,
             size: 100
           })
           if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
-            let apiPosts = res.data.records.map(post => ({
+            let apiPosts: WorkItem[] = res.data.records.map((post: any) => ({
               id: post.postId,
               title: post.title,
               image:
@@ -192,7 +202,7 @@ export default {
               isPost: true
             }))
 
-            const newlyCreatedPost = uni.getStorageSync('newlyCreatedPost')
+            const newlyCreatedPost: any = uni.getStorageSync('newlyCreatedPost')
             if (newlyCreatedPost && String(newlyCreatedPost.userId) === String(userInfo?.userId)) {
               if (!apiPosts.some(ap => String(ap.id) === String(newlyCreatedPost.id))) {
                 apiPosts.unshift({
@@ -215,7 +225,7 @@ export default {
             this.worksList = apiPosts
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('加载作品失败:', error)
         uni.showToast({
           title: error.message || this.texts.loadFailed || '加载失败',
@@ -226,11 +236,11 @@ export default {
       }
     },
 
-    handleBack() {
+    handleBack(): void {
       uni.navigateBack()
     },
 
-    handleWorkClick(work) {
+    handleWorkClick(work: WorkItem): void {
       if (work.isPost) {
         uni.navigateTo({
           url: `/pages/explore/showcaseWorksDetail/showcaseWorksDetail?postId=${work.id}&title=${encodeURIComponent(work.title || '')}&image=${encodeURIComponent(work.image || '')}`
@@ -246,20 +256,20 @@ export default {
       this.showCustomActionSheet = true
     },
 
-    handleActionSheetSelect(res) {
+    handleActionSheetSelect(res: { tapIndex: number }): void {
       if (res.tapIndex === 0) {
-        this.handlePrintPoster(this.selectedWork)
+        this.handlePrintPoster(this.selectedWork as WorkItem)
       } else if (res.tapIndex === 1) {
-        this.handleDeleteWork(this.selectedWork)
+        this.handleDeleteWork(this.selectedWork as WorkItem)
       }
       this.showCustomActionSheet = false
     },
 
-    handleActionSheetCancel() {
+    handleActionSheetCancel(): void {
       this.showCustomActionSheet = false
     },
 
-    handleDeleteWork(work) {
+    handleDeleteWork(work: WorkItem): void {
       const deleteConfirmText = this.texts.deleteConfirm || '确认删除'
       const deleteConfirmContentText =
         this.texts.deleteConfirmContent || '确定要删除这个作品吗？此操作不可恢复。'
@@ -273,10 +283,10 @@ export default {
         content: deleteConfirmContentText,
         confirmText: confirmText,
         cancelText: cancelText,
-        success: async res => {
+        success: async (res: any) => {
           if (res.confirm) {
             try {
-              const response = await deleteModel(work.id)
+              const response: any = await deleteModel(work.id as number)
               if (response.code === 1) {
                 uni.showToast({ title: deleteSuccessText, icon: 'success' })
                 this.worksList = this.worksList.filter(item => item.id !== work.id)
@@ -292,7 +302,7 @@ export default {
       })
     },
 
-    handlePrintPoster(work) {
+    handlePrintPoster(work: WorkItem): void {
       uni.showToast({ title: this.texts.generatingPoster || '正在生成海报...', icon: 'loading' })
       setTimeout(() => {
         uni.showToast({ title: this.texts.posterGenerated || '海报生成成功', icon: 'success' })

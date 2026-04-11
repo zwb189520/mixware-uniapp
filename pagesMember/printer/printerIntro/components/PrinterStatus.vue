@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="status-container">
     <view class="status-icon">
       <view :class="['status-dot', `status-${statusClass}`]"></view>
@@ -8,7 +8,6 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
 
 export default {
@@ -20,15 +19,15 @@ export default {
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    statusText() {
+    statusText(): string {
       const texts = this.languageStore?.texts?.printerIntro?.printStatus || {}
       return texts[this.status] || this.status
     },
-    statusClass() {
-      const statusMap = {
+    statusClass(): string {
+      const statusMap: Record<string, string> = {
         Printing: 'printing',
         Downloading: 'printing',
         Initializing: 'printing',

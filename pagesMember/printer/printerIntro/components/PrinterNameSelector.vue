@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="printer-name-container">
     <text class="printer-name">{{ currentPrinter.name }}</text>
     <view class="dropdown-icon" @click="toggleDropdown">
@@ -25,8 +25,12 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { getDeviceList, setDefaultDevice } from '@/api/devices.ts'
+
+interface Printer {
+  id: string
+  name: string
+}
 
 export default {
   name: 'PrinterNameSelector',
@@ -38,16 +42,16 @@ export default {
   },
   data() {
     return {
-      showDropdown: false,
+      showDropdown: false as boolean,
       currentPrinter: {
         id: '',
         name: '选择设备'
-      },
-      printers: []
+      } as Printer,
+      printers: [] as Printer[]
     }
   },
   watch: {
-    deviceId(newVal) {
+    deviceId(newVal: string): void {
       console.log(
         'PrinterNameSelector组件接收到新的deviceId:',
         newVal,
@@ -65,17 +69,17 @@ export default {
       }
     }
   },
-  async mounted() {
+  async mounted(): Promise<void> {
     await this.loadDevices()
   },
   methods: {
-    async loadDevices() {
+    async loadDevices(): Promise<void> {
       try {
-        const res = await getDeviceList()
+        const res: any = await getDeviceList()
         const records = res?.data?.records ?? []
 
         this.printers = Array.isArray(records)
-          ? records.map(device => ({
+          ? records.map((device: any) => ({
               id: device.id || device.deviceId,
               name: device.deviceName || device.name || device.deviceId || '未命名设备'
             }))
@@ -97,13 +101,13 @@ export default {
         console.error('扫描设备失败:', error)
       }
     },
-    toggleDropdown() {
+    toggleDropdown(): void {
       this.showDropdown = !this.showDropdown
     },
-    handleDropdownClick() {
+    handleDropdownClick(): void {
       this.showDropdown = false
     },
-    async selectPrinter(printer) {
+    async selectPrinter(printer: Printer): Promise<void> {
       this.currentPrinter = printer
       this.showDropdown = false
 

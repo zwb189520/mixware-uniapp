@@ -1,10 +1,6 @@
-﻿import { useLanguageStore } from '@/stores'
+import { useLanguageStore } from '@/stores'
 import { computed, onMounted } from 'vue'
 
-/**
- * 语言相关组合式函数
- * @returns {Object} 语言相关方法和状态
- */
 export function useLanguage() {
   const languageStore = useLanguageStore()
 
@@ -14,20 +10,20 @@ export function useLanguage() {
   )
   const languageLabel = computed(() => (languageStore.language === 'en' ? 'English' : '中文'))
 
-  const loadLanguage = () => {
+  const loadLanguage = (): void => {
     languageStore.loadLanguage()
   }
 
-  const setLanguage = lang => {
+  const setLanguage = (lang: string): void => {
     languageStore.setLanguage(lang)
   }
 
-  const showLanguageSelector = () => {
+  const showLanguageSelector = (): Promise<string | undefined> => {
     const options = ['中文', 'English']
     return new Promise(resolve => {
       uni.showActionSheet({
         itemList: options,
-        success: res => {
+        success: (res: any) => {
           if (typeof res.tapIndex === 'number') {
             const lang = res.tapIndex === 1 ? 'en' : 'zh'
             setLanguage(lang)

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="medal-detail-page">
     <view class="safe-area-top" :style="{ height: statusBarHeight + 'px' }"></view>
     <view class="header">
@@ -30,40 +30,47 @@
 </template>
 
 <script lang="ts">
-// @ts-nocheck
 import { useLanguageStore } from '@/stores/index.ts'
+
+interface Medal {
+  id: number
+  name: string
+  image: string
+  description: string
+  achieved: boolean
+}
 
 export default {
   name: 'MedalDetail',
   data() {
     return {
-      statusBarHeight: 0,
-      medals: []
+      statusBarHeight: 0 as number,
+      medals: [] as Medal[]
     }
   },
   computed: {
-    languageStore() {
+    languageStore(): any {
       return useLanguageStore()
     },
-    texts() {
+    texts(): any {
       return this.languageStore.texts.medalDetail
     }
   },
-  mounted() {
+  mounted(): void {
     this.languageStore.loadLanguage()
     this.updateMedals()
   },
   watch: {
-    'languageStore.language'() {
+    'languageStore.language'(): void {
       this.updateMedals()
     }
   },
-  onLoad() {
+  onLoad(): void {
     const systemInfo = uni.getSystemInfoSync()
     this.statusBarHeight = systemInfo.statusBarHeight
   },
   methods: {
-    updateMedals() {
+    updateMedals(): void {
       this.medals = [
         {
           id: 1,
@@ -123,7 +130,7 @@ export default {
         }
       ]
     },
-    goBack() {
+    goBack(): void {
       uni.navigateBack()
     }
   }
