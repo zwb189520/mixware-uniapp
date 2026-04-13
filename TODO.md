@@ -1,109 +1,82 @@
 # 项目优化清单
 
-## P0 - 紧急
+## P0 - 紧急（阻塞开发）
 
-### 1. 统一状态管理入口 ✅ 已完成
-- [x] 创建`useStorage` composable统一管理本地存储
-- [x] 重构`api/users.ts`中的`_syncLoginToStore`，只操作Store
-- [x] 修改`useUser.ts`，使用useUserStore替代直接Storage调用
-- [x] 消除`api/devices.ts`中的直接Storage调用
-- [x] 修改核心页面：`PrinterPartner.vue`、`explore.vue`
-- [x] 修改所有用户认证相关页面，使用userStore替代直接Storage调用
+### 1. 拆分language.ts ⚠️ 最高优先级
+**问题**：单文件2339行，严重影响首屏加载性能和可维护性
 
-**已修改文件：**
-- `pages/explore/3Dpreviewdetail/preview3DDetail.vue` ✅
-- `pages/create/createDetail/draw1/draw1.vue` ✅
-- `pages/create/create/create.vue` ✅
-- `pagesMember/user/profileEdit/profileEdit.vue` ✅
-- `pagesMember/auth/emailBinding/emailBinding.vue` ✅
-- `pages/explore/modelDetail/modelDetail.vue` ✅
-- `pages/explore/commentList/commentList.vue` ✅
-- `pagesMember/user/accountSecurity/accountSecurity.vue` ✅
-- `pagesMember/content/modelTasks/modelTasks.vue` ✅
-- `pagesMember/content/myWorks/myWorks.vue` ✅
-- `pagesMember/user/followList/followList.vue` ✅
-- `pagesMember/user/settings/components/settingsMenu.vue` ✅
-- `pages/explore/printComplete/printComplete.vue` ✅
-- `pages/profile/components/ProfileMedals.vue` ✅
-- `pages/explore/showcaseWorksDetail/showcaseWorksDetail.vue` ✅
-- `pages/explore/search/search.vue` ✅
-- `pages/profile/components/ShowcaseButton.vue` ✅
-- `pages/profile/components/ProfileStats.vue` ✅
-- `pages/profile/components/ProfileUserInfo.vue` ✅
+**执行步骤**：
+- [ ] 创建目录结构 `stores/modules/language/`
+- [ ] 按模块拆分：common、login、explore、create、profile、settings、printer
+- [ ] 实现动态导入（按需加载）
+- [ ] 更新所有引用
+- [ ] 测试多语言切换功能
 
-**保留本地缓存的文件（非用户认证相关）：**
-- `pages/create/createDetail/aiChat/aiChat.vue` - AI会话缓存
-- `pagesMember/auth/login/login.vue` - 注册用户缓存、Apple登录缓存
-- `pagesMember/message/components/list.vue` - 消息缓存
-- `pagesMember/content/myLikes/myLikes.vue` - 点赞缓存
+**预期收益**：
+- 首屏加载时间减少 60%+
+- 代码可维护性大幅提升
+- 支持按需加载语言包
 
 ---
 
-### 2. 拆分language.ts
-- [ ] 按模块拆分成独立文件
-- [ ] 使用动态导入减少首屏加载
+### 2. 统一API响应码处理 ⚠️ 高优先级
+**问题**：后端响应码混乱（0/1/200），业务逻辑分散
 
-**目标结构：**
-```
-stores/modules/language/
-├── index.ts          # 入口
-├── zh/
-│   ├── common.ts
-│   ├── login.ts
-│   ├── explore.ts
-│   ├── create.ts
-│   ├── profile.ts
-│   └── settings.ts
-└── en/
-    └── ...同上
-```
+**执行步骤**：
+- [ ] 创建 `utils/apiResponse.ts` 统一处理函数
+- [ ] 定义标准响应码枚举
+- [ ] 重构所有API调用处的响应判断
+- [ ] 添加统一的错误处理中间件
+
+**涉及文件**：
+- `api/request.ts`
+- 所有API调用文件（约30+文件）
 
 ---
 
-## P1 - 重要
+## P1 - 重要（影响代码质量）
 
-### 3. 迁移Options API → Composition API
-- [ ] 核心页面优先：
-  - [ ] `pages/explore/explore/explore.vue`
-  - [ ] `pages/explore/3Dpreviewdetail/preview3DDetail.vue`
-  - [ ] `pagesMember/auth/login/login.vue`
-  - [ ] `pagesMember/printer/addDevice/addDevice.vue`
-- [ ] 组件逐步迁移
+### 3. 合并蓝牙重复代码
+**问题**：`bluetooth.ts` 和 `bluetooth-ble.ts` 存在大量重复逻辑
 
-**已完成：**
-- [x] `pages/create/create/create.vue`
+**执行步骤**：
+- [ ] 分析两个文件的共同逻辑
+- [ ] 提取公共方法到 `bluetoothCommon.ts`
+- [ ] 重构两个文件使用公共方法
+- [ ] 测试蓝牙配网功能
 
 ---
 
-### 4. 消除any类型 ✅ 已完成
-- [x] `utils/bluetooth.ts` - 39处 → 0
-- [x] `pages/explore/3Dpreviewdetail/preview3DDetail.vue` - 22处 → 0
-- [x] `pagesMember/printer/addDevice/addDevice.vue` - 15处 → 0
-- [x] `types/uni.d.ts` - 补充完整uni-app类型定义
-- [ ] 其他高频any文件
+### 4. 迁移Options API → Composition API
+**问题**：代码风格不统一，影响可维护性
+
+**优先级顺序**：
+1. [ ] `pages/explore/explore/explore.vue` - 核心页面
+2. [ ] `pages/explore/3Dpreviewdetail/preview3DDetail.vue` - 核心功能
+3. [ ] `pagesMember/auth/login/login.vue` - 认证流程
+4. [ ] `pagesMember/printer/addDevice/addDevice.vue` - 设备配网
+5. [ ] 其他组件逐步迁移
 
 ---
 
-### 5. 提取登录处理公共逻辑 ✅ 已完成
-- [x] 创建`handleLoginSuccess(userInfo, token)`函数
-- [x] 统一avatar处理逻辑（移至Store.login方法）
-- [x] 统一Store同步逻辑
-- [x] 重构以下函数：
-  - `loginWithPassword`
-  - `loginByCodeWithHandler`
-  - `registerWithHandler`
-  - `thirdPartyLoginWithHandler`
+### 5. 消除剩余any类型
+**问题**：类型安全性不足
+
+**高频文件**：
+- [ ] `pages/explore/modelDetail/modelDetail.vue` - 36处
+- [ ] `pages/create/createDetail/aiChat/aiChat.vue` - 30处
+- [ ] `pagesMember/auth/login/login.vue` - 28处
+- [ ] 其他文件按需处理
 
 ---
 
-## P2 - 一般
+## P2 - 一般（优化体验）
 
-### 6. Token安全加固
-- [ ] APP端使用原生安全存储：
-  - iOS: Keychain
-  - Android: EncryptedSharedPreferences / Keystore
-- [ ] userInfo敏感信息加密存储
-- [ ] 考虑Token刷新机制
+### 6. 请求防抖/节流
+- [ ] 创建 `composables/modules/useDebounce.ts`
+- [ ] 创建 `composables/modules/useThrottle.ts`
+- [ ] 搜索接口添加防抖
+- [ ] 点赞/收藏接口添加节流
 
 ---
 
@@ -111,59 +84,100 @@ stores/modules/language/
 - [ ] `api/iot.ts` connectSSE添加自动重连
 - [ ] 添加心跳检测
 - [ ] 添加连接状态管理
+- [ ] 断线重连机制
 
 ---
 
-### 8. 请求防抖/节流
-- [ ] 搜索接口添加防抖
-- [ ] 点赞/收藏接口添加节流
-- [ ] 创建`useDebounce`、`useThrottle` composables
+### 8. Token安全加固
+- [ ] APP端使用原生安全存储
+  - iOS: Keychain
+  - Android: EncryptedSharedPreferences
+- [ ] userInfo敏感信息加密
+- [ ] Token刷新机制
 
 ---
 
-### 9. 代码去重
-- [ ] 合并`bluetooth.ts`和`bluetooth-ble.ts`重复逻辑
-- [ ] 提取蓝牙配网公共方法
-- [ ] 统一错误处理模式
+## P3 - 低优先级（长期优化）
 
----
-
-### 10. API层规范
-- [ ] `printTasks.ts`改用泛型
-- [ ] `modelTasks.ts`改用泛型
-- [ ] 统一后端响应码处理（0/1/200）
-
----
-
-## P3 - 低优先级
-
-### 11. 单元测试
+### 9. 单元测试
 - [ ] API层测试
 - [ ] Store测试
 - [ ] 工具函数测试
+- [ ] 核心业务逻辑测试
 
 ---
 
-### 12. 性能优化
+### 10. 性能优化
 - [ ] 图片懒加载
 - [ ] 模型加载进度优化
 - [ ] 首屏加载优化
+- [ ] 代码分割优化
+
+---
+
+## 已完成 ✅
+
+### ✅ P0 - 统一状态管理入口
+- 创建 `useStorage` composable
+- 重构所有直接Storage调用
+- 统一用户认证状态管理
+
+### ✅ P1 - 提取登录处理公共逻辑
+- 创建 `handleLoginSuccess` 统一处理
+- 统一avatar处理逻辑
+- 重构所有登录相关函数
+
+### ✅ P1 - 消除核心文件any类型
+- `utils/bluetooth.ts` - 39处 → 0
+- `pages/explore/3Dpreviewdetail/preview3DDetail.vue` - 22处 → 0
+- `pagesMember/printer/addDevice/addDevice.vue` - 15处 → 0
+- 补充完整uni-app类型定义
+
+### ✅ P0 - 修复TypeScript类型错误
+- 修复所有编译阻塞错误
+- 统一API响应类型定义
+- 完善Comment、Model等核心类型
+
+---
+
+## 执行建议
+
+### 本周重点（P0）：
+1. **拆分language.ts** - 预计2-3天
+   - 这是当前最大的技术债
+   - 直接影响用户体验（首屏加载）
+   - 为后续优化打基础
+
+2. **统一API响应码** - 预计1-2天
+   - 消除潜在bug
+   - 提升代码一致性
+
+### 下周重点（P1）：
+3. **合并蓝牙重复代码** - 预计1天
+4. **开始Options API迁移** - 长期任务，每周迁移1-2个文件
+
+### 长期规划（P2-P3）：
+- 按需添加防抖/节流
+- 逐步完善测试覆盖
+- 持续性能优化
 
 ---
 
 ## 统计
 
-| 优先级 | 数量 | 状态 |
-|--------|------|------|
-| P0 | 2 | 1完成，1待处理 |
-| P1 | 3 | 1完成，2待处理 |
-| P2 | 5 | 待处理 |
-| P3 | 2 | 待处理 |
+| 优先级 | 任务数 | 预计工时 | 状态 |
+|--------|--------|----------|------|
+| P0 | 2 | 3-5天 | 待处理 |
+| P1 | 3 | 5-7天 | 进行中 |
+| P2 | 3 | 3-4天 | 待处理 |
+| P3 | 2 | 长期 | 待处理 |
 
 ---
 
 ## 更新日志
 
 - 2026-04-11: 初始化TODO列表
-- 2026-04-11: 完成P0-1核心部分（统一状态管理入口）
-- 2026-04-11: 完成P1-5（提取登录处理公共逻辑）
+- 2026-04-11: 完成统一状态管理入口
+- 2026-04-11: 完成提取登录处理公共逻辑
+- 2026-04-13: 完成TypeScript类型错误修复
+- 2026-04-13: 重新评估优先级，更新TODO列表

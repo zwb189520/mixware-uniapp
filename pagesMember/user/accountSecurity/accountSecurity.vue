@@ -86,7 +86,7 @@ const performDeleteAccount = async () => {
     })
 
     const id = userStore.userId
-    const response = (await deleteUser(id)) as any
+    const response = (await deleteUser(Number(id))) as any
 
     if (response.code === 200 || response.code === 0 || response.code === 1) {
       uni.showToast({

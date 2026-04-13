@@ -198,6 +198,51 @@ import {
 } from '@/api/community'
 import { getModelDetail } from '@/api/models'
 
+type LanguageStore = ReturnType<typeof useLanguageStore>
+type UserStore = ReturnType<typeof useUserStore>
+
+interface PageOptions {
+  postId?: string
+  workId?: string
+  id?: string
+  title?: string
+  image?: string
+}
+
+interface ApiResponse<T = unknown> {
+  code: number
+  data?: T
+  msg?: string
+}
+
+interface PostData {
+  postId?: number
+  userId?: string
+  username?: string
+  avatarUrl?: string
+  title?: string
+  content?: string
+  modelId?: string
+  modelName?: string
+  imageUrls?: string[]
+  topics?: string[]
+  tags?: string[]
+  likeCount?: number
+  commentCount?: number
+  shareCount?: number
+  viewCount?: number
+  isLiked?: boolean
+  liked?: boolean
+  likes?: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+interface LocalPost {
+  id: string | number
+  commentCount?: number
+}
+
 interface PostDetail {
   postId: number
   userId: string
@@ -221,17 +266,22 @@ interface PostDetail {
 
 interface Comment {
   id: number | string
-  postId: number | string
+  commentId?: number | string
+  postId?: number | string
   userId: string
+  username?: string
   userName: string
+  avatarUrl?: string
   userAvatar: string
   content: string
   time: string
+  createdAt?: string
+  likeCount?: number
   likes: number
   isLiked: boolean
   replyCount: number
-  parentCommentId: number | string | null
-  replies: Comment[]
+  parentCommentId?: number | string | null
+  replies?: Comment[]
 }
 
 export default {
@@ -281,13 +331,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): LanguageStore {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): UserStore {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     },
     imageUrls(): string[] {
@@ -303,7 +353,7 @@ export default {
       })
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: PageOptions): void {
     this.postId = options.postId || options.workId || options.id || ''
     this.workTitle = options.title ? decodeURIComponent(options.title) : '作品详情'
     this.modelImage = options.image ? decodeURIComponent(options.image) : ''
@@ -336,7 +386,7 @@ export default {
   methods: {
     async loadModelPreview(modelId: string): Promise<void> {
       try {
-        const res: any = await getModelDetail(modelId)
+        const res: ApiResponse<{ previewUrl?: string }> = await getModelDetail(modelId)
         if (res.code === 1 && res.data && res.data.previewUrl) {
           let previewUrl = res.data.previewUrl
           if (previewUrl.includes('localhost:9000')) {
@@ -344,7 +394,7 @@ export default {
           }
           this.modelImage = previewUrl
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('加载模型预览图失败:', e)
       }
     },
@@ -356,7 +406,7 @@ export default {
     },
 
     getCurrentUserId(): void {
-      this.currentUserId = this.userStore.userId || ''
+      this.currentUserId = String(this.userStore.userId || '')
       this.currentUserAvatar = this.userStore.avatar || '/static/images/Default avatar.png'
       this.currentUserName = this.userStore.userName || this.texts?.me || '我'
     },
@@ -365,10 +415,17 @@ export default {
       this.loading = true
 
       try {
-        const res: any = await getPostDetail(String(this.postId))
+        const res: ApiResponse<PostData> = await getPostDetail(String(this.postId))
 
         if (res.code === 0 || res.code === 1) {
           const postData = res.data
+          if (!postData) {
+            uni.showToast({
+              title: this.texts.postNotFound || '帖子不存在',
+              icon: 'none'
+            })
+            return
+          }
           postData.isLiked = postData.isLiked || postData.liked || false
           postData.likeCount = postData.likeCount || postData.likes || 0
           if (postData.imageUrls && Array.isArray(postData.imageUrls)) {
@@ -400,11 +457,12 @@ export default {
 
           if (topicsData) {
             if (typeof topicsData === 'string') {
+              const topicsStr: string = topicsData
               try {
-                const parsed = JSON.parse(topicsData)
-                topicsData = Array.isArray(parsed) ? parsed : [topicsData]
-              } catch (e: any) {
-                topicsData = topicsData.split(/[,\\s，\n]+/).filter((t: string) => t.trim())
+                const parsed = JSON.parse(topicsStr)
+                topicsData = Array.isArray(parsed) ? parsed : [topicsStr]
+              } catch (e: unknown) {
+                topicsData = topicsStr.split(/[,\\s，\n]+/).filter((t: string) => t.trim())
               }
             } else if (!Array.isArray(topicsData)) {
               topicsData = [String(topicsData)]
@@ -412,10 +470,29 @@ export default {
           } else {
             topicsData = []
           }
-          const topicsSet = new Set(topicsData.map((t: any) => String(t).trim()))
+          const topicsSet = new Set((topicsData as string[]).map((t: string) => String(t).trim()))
           postData.topics = Array.from(topicsSet).filter((t: unknown) => t as string)
 
-          this.postDetail = postData
+          this.postDetail = {
+            postId: postData.postId || 0,
+            userId: postData.userId || '',
+            username: postData.username || '',
+            avatarUrl: postData.avatarUrl || '',
+            title: postData.title || '',
+            content: postData.content || '',
+            modelId: postData.modelId || '',
+            modelName: postData.modelName || '',
+            imageUrls: postData.imageUrls || [],
+            topics: postData.topics || [],
+            likeCount: postData.likeCount || 0,
+            commentCount: postData.commentCount || 0,
+            shareCount: postData.shareCount || 0,
+            viewCount: postData.viewCount || 0,
+            isLiked: postData.isLiked || false,
+            isFollowing: false,
+            createdAt: postData.createdAt || '',
+            updatedAt: postData.updatedAt || ''
+          }
           this.userName = this.postDetail.username
           this.userAvatar = this.postDetail.avatarUrl
           this.description = (this.postDetail.content || '').replace(/#[^#\s]+#/g, '').trim()
@@ -436,7 +513,7 @@ export default {
             icon: 'none'
           })
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('加载帖子详情失败:', e)
         uni.showToast({
           title: this.texts.loadFailed || '加载失败',
@@ -453,11 +530,11 @@ export default {
 
       try {
         try {
-          const likeRes: any = await checkLikeStatus('POST', this.postId)
+          const likeRes: ApiResponse<{ liked: boolean }> = await checkLikeStatus('POST', this.postId)
           if (likeRes.code === 0 || likeRes.code === 1) {
-            this.postDetail.isLiked = likeRes.data
+            this.postDetail.isLiked = likeRes.data?.liked || false
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('检查点赞状态失败:', e)
         }
 
@@ -467,29 +544,42 @@ export default {
           this.postDetail.userId !== 'local_user'
         ) {
           try {
-            const followRes: any = await checkFollowStatus(this.postDetail.userId)
+            const followRes: ApiResponse<{ following: boolean }> = await checkFollowStatus(this.postDetail.userId)
             if (followRes.code === 0 || followRes.code === 1) {
-              this.postDetail.isFollowing = followRes.data
+              this.postDetail.isFollowing = followRes.data?.following || false
             }
-          } catch (e: any) {
+          } catch (e: unknown) {
             console.error('检查关注状态失败:', e)
           }
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('检查用户交互状态失败:', e)
       }
     },
 
     async loadComments(): Promise<void> {
       try {
-        const res: any = await getPostComments(this.postId)
+        const res: ApiResponse<Array<{
+          commentId?: number | string
+          postId?: number | string
+          userId?: string | number
+          username?: string
+          avatarUrl?: string
+          content: string
+          createdAt?: string
+          likeCount?: number
+          isLiked?: boolean
+          replyCount?: number
+          parentCommentId?: number | string | null
+          replies?: unknown[]
+        }>> = await getPostComments(this.postId)
 
         if ((res.code === 0 || res.code === 1) && res.data && res.data.length > 0) {
           this.comments = this.transformComments(res.data)
         } else {
           this.loadLocalComments()
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('加载评论失败:', e)
         this.loadLocalComments()
       }
@@ -506,7 +596,7 @@ export default {
     loadLocalComments(): boolean {
       if (this.postId) {
         const key = `comments_${this.postId}`
-        const localComments = uni.getStorageSync(key)
+        const localComments = uni.getStorageSync(key) as Comment[] | undefined
         if (localComments && localComments.length > 0) {
           this.comments = localComments
           this.postDetail.commentCount = this.calculateCommentCount(localComments)
@@ -526,7 +616,7 @@ export default {
 
     updateLocalPostCommentCount(): void {
       if (String(this.postId).startsWith('mock_')) {
-        let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
+        let allLocalPosts: LocalPost[] = uni.getStorageSync('local_all_posts') || []
         let postIndex = allLocalPosts.findIndex(p => String(p.id) === String(this.postId))
         if (postIndex !== -1) {
           allLocalPosts[postIndex].commentCount = this.postDetail.commentCount
@@ -537,30 +627,42 @@ export default {
 
     updateLocalPostLike(): void {
       if (String(this.postId).startsWith('mock_')) {
-        let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
+        let allLocalPosts: LocalPost[] = uni.getStorageSync('local_all_posts') || []
         let postIndex = allLocalPosts.findIndex(p => String(p.id) === String(this.postId))
         if (postIndex !== -1) {
-          allLocalPosts[postIndex].isLiked = this.postDetail.isLiked
-          allLocalPosts[postIndex].likes = this.postDetail.likeCount
+          allLocalPosts[postIndex].commentCount = this.postDetail.commentCount
           uni.setStorageSync('local_all_posts', allLocalPosts)
         }
       }
     },
 
-    transformComments(apiComments: any[]): Comment[] {
+    transformComments(apiComments: Array<{
+      commentId?: number | string
+      postId?: number | string
+      userId?: string | number
+      username?: string
+      avatarUrl?: string
+      content: string
+      createdAt?: string
+      likeCount?: number
+      isLiked?: boolean
+      replyCount?: number
+      parentCommentId?: number | string | null
+      replies?: unknown[]
+    }>): Comment[] {
       return apiComments.map(comment => ({
-        id: comment.commentId,
-        postId: comment.postId,
-        userId: comment.userId,
-        userName: comment.username,
-        userAvatar: comment.avatarUrl,
+        id: comment.commentId || 0,
+        postId: comment.postId || 0,
+        userId: String(comment.userId || ''),
+        userName: comment.username || '',
+        userAvatar: comment.avatarUrl || '',
         content: comment.content,
-        time: this.formatTime(comment.createdAt),
-        likes: comment.likeCount,
-        isLiked: comment.isLiked,
-        replyCount: comment.replyCount,
-        parentCommentId: comment.parentCommentId,
-        replies: comment.replies ? this.transformComments(comment.replies) : []
+        time: this.formatTime(comment.createdAt || ''),
+        likes: comment.likeCount || 0,
+        isLiked: comment.isLiked || false,
+        replyCount: comment.replyCount || 0,
+        parentCommentId: comment.parentCommentId || null,
+        replies: comment.replies ? this.transformComments(comment.replies as typeof apiComments) : []
       }))
     },
 
@@ -602,14 +704,14 @@ export default {
 
       if (!isMock) {
         try {
-          const res: any = await toggleLike('POST', this.postId)
+          const res: ApiResponse = await toggleLike('POST', this.postId)
           if (res.code === 0 || res.code === 1) {
-            const checkRes: any = await checkLikeStatus('POST', this.postId)
+            const checkRes: ApiResponse<{ liked: boolean }> = await checkLikeStatus('POST', this.postId)
             if (checkRes.code === 0 || checkRes.code === 1) {
-              this.postDetail.isLiked = checkRes.data
+              this.postDetail.isLiked = checkRes.data?.liked || false
             }
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('点赞失败:', e)
         }
       } else {
@@ -657,10 +759,10 @@ export default {
         String(this.postDetail.userId) !== '1'
       ) {
         try {
-          const res: any = await toggleFollow(this.postDetail.userId)
+          const res: ApiResponse<{ following: boolean }> = await toggleFollow(this.postDetail.userId)
 
           if (res.code === 0) {
-            const isFollowing = res.data
+            const isFollowing = res.data?.following || false
             this.postDetail.isFollowing = isFollowing
             uni.$emit('followStatusChanged', {
               userId: this.postDetail.userId,
@@ -669,7 +771,7 @@ export default {
           } else {
             this.postDetail.isFollowing = isFollowingBefore
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('关注失败:', e)
           this.postDetail.isFollowing = isFollowingBefore
         }
@@ -687,12 +789,12 @@ export default {
         String(this.postId) === 'undefined'
       if (!isMock) {
         try {
-          const res: any = await toggleLike('COMMENT', String(commentId))
+          const res: ApiResponse = await toggleLike('COMMENT', String(commentId))
 
           if (res.code === 0) {
             this.loadComments()
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('评论点赞失败:', e)
         }
       }
@@ -702,7 +804,7 @@ export default {
       for (const comment of this.comments) {
         if (comment.id === commentId) {
           comment.isLiked = !comment.isLiked
-          comment.likes += comment.isLiked ? 1 : -1
+          comment.likes = (comment.likes || 0) + (comment.isLiked ? 1 : -1)
           if (String(this.postId).includes('mock') || String(this.postId) === '1') {
             this.saveLocalComments()
           }
@@ -712,7 +814,7 @@ export default {
           for (const reply of comment.replies) {
             if (reply.id === commentId) {
               reply.isLiked = !reply.isLiked
-              reply.likes += reply.isLiked ? 1 : -1
+              reply.likes = (reply.likes || 0) + (reply.isLiked ? 1 : -1)
               if (String(this.postId).includes('mock') || String(this.postId) === '1') {
                 this.saveLocalComments()
               }
@@ -754,7 +856,7 @@ export default {
     handleUploadImage(): void {
       uni.chooseImage({
         count: 1,
-        success: (res: any) => {
+        success: (res: { tempFilePaths?: string[] }) => {
           uni.showToast({
             title: this.texts.imageUploadInDev || '图片上传功能开发中',
             icon: 'none'
@@ -798,7 +900,7 @@ export default {
 
       if (this.postId && !String(this.postId).includes('mock') && String(this.postId) !== '1') {
         try {
-          const res: any = await createComment({
+          const res: ApiResponse = await createComment({
             postId: this.postId,
             content: content,
             parentCommentId: parentId
@@ -807,7 +909,7 @@ export default {
           if (res.code === 0) {
             this.loadComments()
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('发布评论失败:', e)
           uni.showToast({ title: this.texts.publishFailed || '发布失败', icon: 'none' })
         }
@@ -862,7 +964,7 @@ export default {
 
       if (this.postId && !String(this.postId).includes('mock') && String(this.postId) !== '1') {
         try {
-          const res: any = await createComment({
+          const res: ApiResponse = await createComment({
             postId: this.postId,
             content: data.content,
             parentCommentId: data.commentId
@@ -871,7 +973,7 @@ export default {
           if (res.code === 0) {
             this.loadComments()
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('回复失败:', e)
         }
       }
@@ -881,7 +983,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteComment || '确定要删除这条评论吗？',
-        success: async (res: any) => {
+        success: async (res: { confirm: boolean }) => {
           if (res.confirm) {
             const isMock =
               !this.postId ||
@@ -891,13 +993,13 @@ export default {
               String(this.postId) === 'undefined'
             if (!isMock) {
               try {
-                const result: any = await deleteComment(String(commentId))
+                const result: ApiResponse = await deleteComment(String(commentId))
                 if (result.code === 0) {
                   uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
                   this.loadComments()
                   this.postDetail.commentCount--
                 }
-              } catch (e: any) {
+              } catch (e: unknown) {
                 console.error('删除评论失败:', e)
                 uni.showToast({ title: this.texts.deleteFailed || '删除失败', icon: 'none' })
               }
@@ -920,10 +1022,11 @@ export default {
           }
           return
         }
-        if (this.comments[i].replies && this.comments[i].replies.length > 0) {
-          for (let j = 0; j < this.comments[i].replies.length; j++) {
-            if (this.comments[i].replies[j].id === commentId) {
-              this.comments[i].replies.splice(j, 1)
+        const replies = this.comments[i].replies
+        if (replies && replies.length > 0) {
+          for (let j = 0; j < replies.length; j++) {
+            if (replies[j].id === commentId) {
+              replies.splice(j, 1)
               this.postDetail.commentCount--
               if (String(this.postId).includes('mock') || String(this.postId) === '1') {
                 this.saveLocalComments()
@@ -966,7 +1069,7 @@ export default {
 
       uni.showActionSheet({
         itemList: [this.texts.delete || '删除'],
-        success: (res: any) => {
+        success: (res: { tapIndex: number }) => {
           this.handleDeletePost()
         }
       })
@@ -976,7 +1079,7 @@ export default {
       uni.showModal({
         title: this.texts.tip || '提示',
         content: this.texts.confirmDeletePost || '确定要删除这篇作品吗？',
-        success: async (res: any) => {
+        success: async (res: { confirm: boolean }) => {
           if (res.confirm) {
             try {
               const isMock =
@@ -986,7 +1089,7 @@ export default {
                 String(this.postId) === 'NaN' ||
                 String(this.postId) === 'undefined'
               if (!isMock) {
-                const result: any = await deletePost(this.postId)
+                const result: ApiResponse = await deletePost(this.postId)
                 if (result.code === 0 || result.code === 1) {
                   uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
                   uni.$emit('postDeleted', this.postId)
@@ -1006,7 +1109,7 @@ export default {
                   uni.navigateBack()
                 }, 1500)
               }
-            } catch (e: any) {
+            } catch (e: unknown) {
               console.error('删除帖子失败:', e)
               uni.showToast({ title: this.texts.deleteFailed || '删除失败', icon: 'none' })
             }
@@ -1022,16 +1125,16 @@ export default {
 
       const modelId = this.postDetail && this.postDetail.modelId
       if (modelId) {
-        let localPosts: any[] = uni.getStorageSync(`local_posts_${modelId}`) || []
+        let localPosts: LocalPost[] = uni.getStorageSync(`local_posts_${modelId}`) || []
         localPosts = localPosts.filter(p => String(p.id) !== String(this.postId))
         uni.setStorageSync(`local_posts_${modelId}`, localPosts)
       }
 
-      let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
+      let allLocalPosts: LocalPost[] = uni.getStorageSync('local_all_posts') || []
       allLocalPosts = allLocalPosts.filter(p => String(p.id) !== String(this.postId))
       uni.setStorageSync('local_all_posts', allLocalPosts)
 
-      const newlyCreated: any = uni.getStorageSync('newlyCreatedPost')
+      const newlyCreated: LocalPost | undefined = uni.getStorageSync('newlyCreatedPost') as LocalPost | undefined
       if (newlyCreated && String(newlyCreated.id) === String(this.postId)) {
         uni.removeStorageSync('newlyCreatedPost')
       }

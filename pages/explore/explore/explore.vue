@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="page-container">
     <!-- 顶部背景 -->
     <view class="header" :class="{ 'header-hidden': isSticky }">
@@ -221,13 +221,18 @@ import {
 import { uploadImages } from '@/api/upload.ts'
 import { uploadModelFile } from '@/api/upload.ts'
 import { getHotExamples } from '@/api/session.ts'
+import type { HotExample } from '@/types/api'
 import { parseSnCode } from '@/api/devices.ts'
 import { useExploreStore, useUserStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
 
+type ExploreStore = ReturnType<typeof useExploreStore>
+type LanguageStore = ReturnType<typeof useLanguageStore>
+type UserStore = ReturnType<typeof useUserStore>
+
 interface ModelItem {
-  id: string
+  id: string | number
   name: string
   desc: string
   image: string
@@ -237,6 +242,61 @@ interface ModelItem {
   isLiked: boolean
   viewCount: number
   category: string
+}
+
+interface TabItem {
+  label: string
+  value: string
+}
+
+interface ApiResponse<T = unknown> {
+  code: number
+  data?: T
+  msg?: string
+}
+
+interface ModelRecord {
+  id: string | number
+  name?: string
+  describe?: string
+  title?: string
+  previewUrl?: string
+  userName?: string
+  userAvatar?: string
+  likes?: number
+  isLiked?: boolean
+  viewCount?: number
+  category?: string
+}
+
+interface TouchEvent {
+  touches: Array<{ clientX: number; clientY: number }>
+}
+
+interface ScrollEvent {
+  detail: { scrollTop: number }
+}
+
+interface ModelLikeChangedData {
+  modelId: string
+  isLiked: boolean
+  likes: number
+}
+
+interface LoadModelsParams {
+  refresh?: boolean
+  page?: number
+  size?: number
+  current?: number
+}
+
+interface UploadResponse {
+  code: number
+  data?: {
+    fileUrl?: string
+    url?: string
+    files?: Array<{ fileUrl: string }>
+  }
 }
 
 interface TabItem {
@@ -298,7 +358,7 @@ export default {
     }
   },
   computed: {
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     },
     tabs(): TabItem[] {
@@ -336,7 +396,7 @@ export default {
     uni.$on('postDeleted', () => {
       this.loadModels()
     })
-    uni.$on('modelLikeChanged', (data: any) => {
+    uni.$on('modelLikeChanged', (data: ModelLikeChangedData) => {
       if (data && data.modelId) {
         this.exploreStore.updateModelLike(data.modelId, data.isLiked, data.likes)
       }
@@ -350,14 +410,14 @@ export default {
     uni.$off('modelLikeChanged')
   },
   methods: {
-    onTouchStart(e: any): void {
+    onTouchStart(e: TouchEvent): void {
       if (this.refreshing) return
       this.startY = e.touches[0].clientY
       this.startX = e.touches[0].clientX
       this.isPulling = false
       this.isHorizontalSwipe = false
     },
-    onTouchMove(e: any): void {
+    onTouchMove(e: TouchEvent): void {
       if (this.refreshing) return
       const currentY = e.touches[0].clientY
       const currentX = e.touches[0].clientX
@@ -404,7 +464,7 @@ export default {
         this.isSticky = true
       }
     },
-    handleScroll(e: any): void {
+    handleScroll(e: ScrollEvent): void {
       if (!this.refreshing) {
         if (e.detail.scrollTop > 0) {
           this.isSticky = true
@@ -455,30 +515,30 @@ export default {
     async loadHotTags(): Promise<void> {
       if (!this.userStore.isLoggedIn) return
       try {
-        const res: any = await getHotExamples(20)
+        const res: ApiResponse<HotExample[]> = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
             this.exploreStore.setHotTags(
-              res.data.map((item: any) => item.title || item.describe || '').filter((tag: string) => tag.trim())
+              res.data.map((item) => item.content || '').filter((tag: string) => tag.trim())
             )
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('加载热门标签失败:', error)
       }
     },
-    async loadModels(params: any = {}): Promise<void> {
+    async loadModels(params: LoadModelsParams = {}): Promise<void> {
       this.exploreStore.setLoading(true)
       try {
-        const res: any = await getModelPage({
-          current: params.current || 1,
+        const res: ApiResponse<{ records: ModelRecord[] }> = await getModelPage({
+          current: params.page || 1,
           size: params.size || 100
         })
 
         if (res.code === 1 && res.data && res.data.records) {
           this.assignModelsToTabs(res.data.records)
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('获取模型列表失败:', error)
       } finally {
         this.exploreStore.setLoading(false)
@@ -500,7 +560,7 @@ export default {
       return categoryMap[apiCategory] || 'daily'
     },
 
-    assignModelsToTabs(models: any[]): void {
+    assignModelsToTabs(models: ModelRecord[]): void {
       if (!models.length) {
         return
       }
@@ -516,19 +576,19 @@ export default {
         return url
       }
 
-      const formattedModels: ModelItem[] = models.map((model: any) => ({
-        id: model.modelId,
+      const formattedModels: ModelItem[] = models.map((model) => ({
+        id: model.id,
         name: model.name || '未命名模型',
-        desc: model.name || model.description || '暂无描述',
-        image: fixImageUrl(model.previewUrl),
-        author: model.username || '',
-        authorAvatar: model.avatarUrl
-          ? fixImageUrl(model.avatarUrl)
+        desc: model.name || model.describe || '暂无描述',
+        image: fixImageUrl(model.previewUrl || ''),
+        author: model.userName || '',
+        authorAvatar: model.userAvatar
+          ? fixImageUrl(model.userAvatar)
           : '/static/images/Default avatar.png',
-        likes: model.likeCount || 0,
+        likes: model.likes || 0,
         isLiked: model.isLiked || false,
         viewCount: model.viewCount || 0,
-        category: this.mapCategoryToTab(model.category)
+        category: this.mapCategoryToTab(model.category || '')
       }))
 
       const tabData = {
@@ -553,19 +613,19 @@ export default {
     async loadLikeStatus(models: ModelItem[]): Promise<void> {
       try {
         const checkPromises = models.map((model: ModelItem) =>
-          checkModelLike(model.id).catch(() => ({ code: 0, data: false }))
+          checkModelLike(model.id).catch(() => ({ code: 0, data: { liked: false } }))
         )
-        const results: any[] = await Promise.all(checkPromises)
-        results.forEach((res: any, index: number) => {
+        const results: Array<ApiResponse<{ liked: boolean }>> = await Promise.all(checkPromises)
+        results.forEach((res, index: number) => {
           if (res.code === 1) {
             const model = models[index]
-            const newIsLiked = res.data === true
+            const newIsLiked = res.data?.liked === true
             if (model.isLiked !== newIsLiked) {
               this.exploreStore.updateModelLike(model.id, newIsLiked, model.likes)
             }
           }
         })
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.warn('获取点赞状态失败:', e)
       }
     },
