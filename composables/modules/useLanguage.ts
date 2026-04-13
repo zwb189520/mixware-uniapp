@@ -23,7 +23,7 @@ export function useLanguage() {
     return new Promise(resolve => {
       uni.showActionSheet({
         itemList: options,
-        success: (res: any) => {
+        success: (res: { tapIndex: number }) => {
           if (typeof res.tapIndex === 'number') {
             const lang = res.tapIndex === 1 ? 'en' : 'zh'
             setLanguage(lang)

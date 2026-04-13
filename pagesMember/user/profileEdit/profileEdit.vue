@@ -43,9 +43,10 @@
 <script lang="ts">
 import { updateUserInfo } from '@/api/users.ts'
 import { BASE_URL } from '@/api/request.ts'
+import { API } from '@/constants/index.ts'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface UserInfo {
   id: string
@@ -74,6 +75,9 @@ export default {
   computed: {
     languageStore(): any {
       return useLanguageStore()
+    },
+    userStore(): any {
+      return useUserStore()
     },
     texts(): any {
       return this.languageStore.texts.profileEdit
@@ -134,7 +138,7 @@ export default {
       }
 
       if (this.tempAvatar) {
-        const token = uni.getStorageSync('token') || ''
+        const token = this.userStore.token || ''
         uni.uploadFile({
           url: `${BASE_URL}/upload/image`,
           filePath: this.tempAvatar,
@@ -149,7 +153,7 @@ export default {
                 if (uploadData.code === 1 && uploadData.data) {
                   let avatarUrl = uploadData.data.url || uploadData.data.fileUrl
                   if (!avatarUrl && uploadData.data.originalFileName) {
-                    avatarUrl = `http://app.mixwarebot.cn:9000/image/${uploadData.data.originalFileName}`
+                    avatarUrl = `${API.UPLOAD_IMAGE_URL}/${uploadData.data.originalFileName}`
                   }
                   if (avatarUrl) {
                     saveUserInfo(avatarUrl)
@@ -241,7 +245,7 @@ export default {
     },
 
     loadUserInfo(): void {
-      const userInfo = uni.getStorageSync('userInfo') || {}
+      const userInfo = this.userStore.userInfo || {}
       this.userInfo = { ...this.userInfo, ...userInfo }
     }
   }

@@ -48,7 +48,7 @@
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { getModelTasks } from '@/api/modelTasks.ts'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface TaskItem {
   taskId: number | string
@@ -79,6 +79,9 @@ export default {
     languageStore(): any {
       return useLanguageStore()
     },
+    userStore(): any {
+      return useUserStore()
+    },
     texts(): any {
       return this.languageStore?.texts?.modelTasks || {}
     }
@@ -98,7 +101,7 @@ export default {
       if (this.loading) return
       this.loading = true
       try {
-        const userInfo: any = uni.getStorageSync('userInfo')
+        const userInfo: any = this.userStore.userInfo
         console.log('用户信息:', userInfo)
         console.log('userId:', userInfo?.userId)
         const res: any = await getModelTasks({

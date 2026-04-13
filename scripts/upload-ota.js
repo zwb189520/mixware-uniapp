@@ -3,7 +3,7 @@ const https = require('https')
 const http = require('http')
 const path = require('path')
 
-const API_BASE = 'http://app.mixwarebot.cn:8080/api'
+const API_BASE = process.env.VITE_API_BASE_URL || 'https://app.mixwarebot.cn/api'
 const PACKAGE_URL = 'https://app.liuyingyong.cn/build/download/32cc1d80-272e-11f1-b5af-3fa97a11790f'
 const TOKEN =
   'YhK1EyKGZwMAwXA5lSKjcCKaUjBsYgNMEhAwo2AtQSHogyGYQCKYMkEiYBQ0kzCiwjEEMTJ5JwUIFRAKEgFENSJCwAB2kDRksxKecTHhMwPcJyE5cyIKoCB/cDOdZDNjJDEEcHZoViGxIzNu8wKOsiHWYUOiUwL4kTLC8zAnwBIO0TT/kwIQ5AChskGbljN1pXVeVhOpIBMewSGPggOskTG0kxKkcjHXMAJCcxWWkwMLYAQcVxGhkkFLNiF+t1fbxjPHMQF3kyGyQVJUoTGuYDJqQwRyABC'

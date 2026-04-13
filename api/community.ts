@@ -1,11 +1,8 @@
 ﻿import { get, post, postFormWithQuery, del } from './request'
+import type { ApiResponse, CommunityPost, Comment, PaginatedData } from '@/types/api'
 
-/**
- * 获取帖子详情
- * @param postId - 帖子 ID
- */
-export function getPostDetail(postId: string): Promise<unknown> {
-  return get(
+export function getPostDetail(postId: string): Promise<ApiResponse<CommunityPost>> {
+  return get<CommunityPost>(
     `/community/posts/${postId}`,
     {},
     {
@@ -15,69 +12,36 @@ export function getPostDetail(postId: string): Promise<unknown> {
   )
 }
 
-/**
- * 获取帖子列表
- * @param params - 查询参数
- */
-export function getPostList(params: Record<string, unknown> = {}): Promise<unknown> {
-  return get('/community/posts', params)
+export function getPostList(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<CommunityPost>>> {
+  return get<PaginatedData<CommunityPost>>('/community/posts', params)
 }
 
-/**
- * 获取点赞过的帖子列表
- * @param params - 查询参数
- */
-export function getLikedPosts(params: Record<string, unknown> = {}): Promise<unknown> {
-  return get('/community/posts/liked', params)
+export function getLikedPosts(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<CommunityPost>>> {
+  return get<PaginatedData<CommunityPost>>('/community/posts/liked', params)
 }
 
-/**
- * 创建帖子
- * @param postData - 帖子数据
- */
-export function createPost(postData: Record<string, unknown>): Promise<unknown> {
-  return post('/community/posts', postData)
+export function createPost(postData: Record<string, unknown>): Promise<ApiResponse<CommunityPost>> {
+  return post<CommunityPost>('/community/posts', postData)
 }
 
-/**
- * 删除帖子
- * @param postId - 帖子 ID
- */
-export function deletePost(postId: string): Promise<unknown> {
-  return del(`/community/posts/${postId}`)
+export function deletePost(postId: string): Promise<ApiResponse<null>> {
+  return del<null>(`/community/posts/${postId}`)
 }
 
-/**
- * 获取帖子评论
- * @param postId - 帖子 ID
- */
-export function getPostComments(postId: string): Promise<unknown> {
-  return get(`/community/posts/${postId}/comments`)
+export function getPostComments(postId: string): Promise<ApiResponse<Comment[]>> {
+  return get<Comment[]>(`/community/posts/${postId}/comments`)
 }
 
-/**
- * 创建评论
- * @param commentData - 评论数据
- */
-export function createComment(commentData: Record<string, unknown>): Promise<unknown> {
-  return post('/community/comments', commentData)
+export function createComment(commentData: Record<string, unknown>): Promise<ApiResponse<Comment>> {
+  return post<Comment>('/community/comments', commentData)
 }
 
-/**
- * 删除评论
- * @param commentId - 评论 ID
- */
-export function deleteComment(commentId: string): Promise<unknown> {
-  return del(`/community/comments/${commentId}`)
+export function deleteComment(commentId: string): Promise<ApiResponse<null>> {
+  return del<null>(`/community/comments/${commentId}`)
 }
 
-/**
- * 切换点赞状态
- * @param targetType - 目标类型
- * @param targetId - 目标 ID
- */
-export function toggleLike(targetType: string, targetId: string): Promise<unknown> {
-  return postFormWithQuery(
+export function toggleLike(targetType: string, targetId: string): Promise<ApiResponse<{ liked: boolean }>> {
+  return postFormWithQuery<{ liked: boolean }>(
     '/community/likes',
     {},
     {
@@ -87,46 +51,25 @@ export function toggleLike(targetType: string, targetId: string): Promise<unknow
   )
 }
 
-/**
- * 检查点赞状态
- * @param targetType - 目标类型
- * @param targetId - 目标 ID
- */
-export function checkLikeStatus(targetType: string, targetId: string): Promise<unknown> {
-  return get('/community/likes/check', {
+export function checkLikeStatus(targetType: string, targetId: string): Promise<ApiResponse<{ liked: boolean }>> {
+  return get<{ liked: boolean }>('/community/likes/check', {
     targetType,
     targetId
   })
 }
 
-/**
- * 切换关注状态
- * @param userId - 用户 ID
- */
-export function toggleFollow(userId: string): Promise<unknown> {
-  return post(`/community/follows/${userId}`)
+export function toggleFollow(userId: string): Promise<ApiResponse<{ following: boolean }>> {
+  return post<{ following: boolean }>(`/community/follows/${userId}`)
 }
 
-/**
- * 检查关注状态
- * @param userId - 用户 ID
- */
-export function checkFollowStatus(userId: string): Promise<unknown> {
-  return get(`/community/follows/check/${userId}`)
+export function checkFollowStatus(userId: string): Promise<ApiResponse<{ following: boolean }>> {
+  return get<{ following: boolean }>(`/community/follows/check/${userId}`)
 }
 
-/**
- * 获取关注列表
- * @param userId - 用户 ID
- */
-export function getFollowingList(userId: string): Promise<unknown> {
+export function getFollowingList(userId: string): Promise<ApiResponse<{ userId: string; userName: string; avatar: string }[]>> {
   return get(`/community/users/${userId}/followings`)
 }
 
-/**
- * 获取粉丝列表
- * @param userId - 用户 ID
- */
-export function getFollowersList(userId: string): Promise<unknown> {
+export function getFollowersList(userId: string): Promise<ApiResponse<{ userId: string; userName: string; avatar: string }[]>> {
   return get(`/community/users/${userId}/followers`)
 }

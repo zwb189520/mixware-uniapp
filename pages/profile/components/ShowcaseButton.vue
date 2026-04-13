@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import { getPostList } from '@/api/community.ts'
 
 export default {
@@ -24,6 +24,9 @@ export default {
   computed: {
     languageStore(): any {
       return useLanguageStore()
+    },
+    userStore(): any {
+      return useUserStore()
     },
     texts(): any {
       return this.languageStore.texts.profile
@@ -39,7 +42,7 @@ export default {
   methods: {
     async checkWorksCount(): Promise<void> {
       try {
-        const userInfo = uni.getStorageSync('userInfo')
+        const userInfo = this.userStore.userInfo
         if (userInfo && userInfo.userId) {
           const res: any = await getPostList({
             userId: userInfo.userId,
@@ -55,7 +58,7 @@ export default {
       }
     },
     handleShowcaseClick(): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }

@@ -1,4 +1,5 @@
-import { BASE_URL } from '../api/request.js'
+import { BASE_URL } from '../api/request.ts'
+import { getToken } from '../api/utils.ts'
 
 interface StreamRequestOptions {
   url?: string
@@ -63,13 +64,7 @@ export const streamRequest = ({
     return { abort: () => {} }
   }
 
-  const token = (() => {
-    try {
-      return uni.getStorageSync('token') || ''
-    } catch (e) {
-      return ''
-    }
-  })()
+  const token = getToken(true)
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...headers
@@ -150,7 +145,9 @@ export const streamRequest = ({
       abort: () => {
         try {
           xhr.abort()
-        } catch (e) {}
+        } catch {
+          console.warn('XHR abort failed')
+        }
       }
     }
   }

@@ -27,7 +27,12 @@ import { getDefaultDevice } from '@/api/devices.ts'
 interface DeviceInfo {
   deviceId: string
   deviceName: string
-  [key: string]: any
+  status?: string
+  model?: string
+  firmware?: string
+  snCode?: string
+  bindTime?: string
+  remark?: string
 }
 
 export default {

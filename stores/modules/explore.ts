@@ -1,13 +1,7 @@
 ﻿import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useStorageSync } from '../../composables/modules/useStorageSync'
-
-interface Model {
-  id: string | number
-  isLiked?: boolean
-  likes?: number
-  [key: string]: any
-}
+import type { Model } from '@/types/api'
 
 interface StorageState {
   dailyModels: Model[]

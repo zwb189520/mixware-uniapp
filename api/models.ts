@@ -1,4 +1,5 @@
 ﻿import { post, get, put, del, postWithQuery } from './request'
+import type { ApiResponse, Model, PaginatedData } from '@/types/api'
 
 interface ModelData {
   name?: string
@@ -20,11 +21,10 @@ interface ModelData {
     height?: number
     depth?: number
   }
-  [key: string]: any
 }
 
-export function addModel(modelData: ModelData): Promise<unknown> {
-  return post('/models/add', {
+export function addModel(modelData: ModelData): Promise<ApiResponse<Model>> {
+  return post<Model>('/models/add', {
     name: modelData.name || '',
     category: modelData.category || '',
     previewUrl: modelData.previewUrl || '',
@@ -35,40 +35,40 @@ export function addModel(modelData: ModelData): Promise<unknown> {
   })
 }
 
-export function getModelList(params: Record<string, unknown> = {}): Promise<unknown> {
-  return get('/models/page', params)
+export function getModelList(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<Model>>> {
+  return get<PaginatedData<Model>>('/models/page', params)
 }
 
-export function getModelDetail(modelId: string | number): Promise<unknown> {
-  return get(`/models/${modelId}`)
+export function getModelDetail(modelId: string | number): Promise<ApiResponse<Model>> {
+  return get<Model>(`/models/${modelId}`)
 }
 
-export function updateModel(modelId: string | number, updateData: Record<string, unknown>): Promise<unknown> {
-  return put(`/models/update/${modelId}`, updateData)
+export function updateModel(modelId: string | number, updateData: Record<string, unknown>): Promise<ApiResponse<Model>> {
+  return put<Model>(`/models/update/${modelId}`, updateData)
 }
 
-export function deleteModel(modelId: string | number): Promise<unknown> {
-  return del(`/models/${modelId}`)
+export function deleteModel(modelId: string | number): Promise<ApiResponse<null>> {
+  return del<null>(`/models/${modelId}`)
 }
 
-export function likeModel(modelId: string | number): Promise<unknown> {
-  return postWithQuery('/model-like/like', null, { modelId })
+export function likeModel(modelId: string | number): Promise<ApiResponse<null>> {
+  return postWithQuery<null>('/model-like/like', null, { modelId })
 }
 
-export function unlikeModel(modelId: string | number): Promise<unknown> {
-  return postWithQuery('/model-like/unlike', null, { modelId })
+export function unlikeModel(modelId: string | number): Promise<ApiResponse<null>> {
+  return postWithQuery<null>('/model-like/unlike', null, { modelId })
 }
 
-export function checkModelLike(modelId: string | number): Promise<unknown> {
-  return get('/model-like/check', { modelId })
+export function checkModelLike(modelId: string | number): Promise<ApiResponse<{ liked: boolean }>> {
+  return get<{ liked: boolean }>('/model-like/check', { modelId })
 }
 
-export function getModelPage(params: Record<string, unknown> = {}): Promise<unknown> {
-  return get('/models/page', params)
+export function getModelPage(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<Model>>> {
+  return get<PaginatedData<Model>>('/models/page', params)
 }
 
-export function getMyModels(params: Record<string, unknown> = {}): Promise<unknown> {
-  return get('/models/my', params)
+export function getMyModels(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<Model>>> {
+  return get<PaginatedData<Model>>('/models/my', params)
 }
 
 export function processModelData(modelData: ModelData | null): {
@@ -146,10 +146,10 @@ function extractFileType(url: string): string {
   }
 }
 
-export function scaleAndSliceModel(data: Record<string, unknown>): Promise<unknown> {
-  return post('/models/scaleAndSlice', data)
+export function scaleAndSliceModel(data: Record<string, unknown>): Promise<ApiResponse<{ taskId: string }>> {
+  return post<{ taskId: string }>('/models/scaleAndSlice', data)
 }
 
-export function getScaleAndSliceStatus(taskId: string | number): Promise<unknown> {
-  return get(`/models/scaleAndSlice/status/${taskId}`)
+export function getScaleAndSliceStatus(taskId: string | number): Promise<ApiResponse<{ status: string; progress: number; gcodeUrl?: string }>> {
+  return get<{ status: string; progress: number; gcodeUrl?: string }>(`/models/scaleAndSlice/status/${taskId}`)
 }

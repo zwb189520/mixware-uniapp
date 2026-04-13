@@ -80,7 +80,7 @@
 import AddPrinterModal from '@/components/add-printer-modal/add-printer-modal.vue'
 import { getDeviceList, setDefaultDevice, deleteDevice } from '@/api/devices'
 import { closeBluetooth } from '@/utils/bluetooth'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface Printer {
   id?: string
@@ -109,6 +109,9 @@ export default {
     languageStore(): any {
       return useLanguageStore()
     },
+    userStore(): any {
+      return useUserStore()
+    },
     texts(): any {
       return this.languageStore.texts.profile
     }
@@ -122,7 +125,7 @@ export default {
   },
   methods: {
     goToDeviceManager(): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
@@ -131,14 +134,14 @@ export default {
       })
     },
     handleFindPartner(): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
       this.showAddPrinter = true
     },
     handlePrinterIntro(printer: Printer): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
@@ -147,7 +150,7 @@ export default {
       })
     },
     async handleUnbind(printer: Printer): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }

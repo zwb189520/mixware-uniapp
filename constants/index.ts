@@ -2,6 +2,7 @@
   BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://app.mixwarebot.cn/api',
   IMAGE_URL: import.meta.env.VITE_IMAGE_URL || 'https://app.mixwarebot.cn',
   UPLOAD_IMAGE_URL: import.meta.env.VITE_UPLOAD_IMAGE_URL || 'https://app.mixwarebot.cn/image',
+  WEB_URL: import.meta.env.VITE_WEB_URL || 'https://app.mixwarebot.cn',
   TIMEOUT: 10000,
   DEFAULT_CACHE_TIME: 5 * 60 * 1000,
   USER_CACHE_TIME: 10 * 60 * 1000,

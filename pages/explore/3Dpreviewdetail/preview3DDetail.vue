@@ -124,8 +124,15 @@ import { getTaskStatus, cancelTask } from '@/api/hunyuan3d.ts'
 import { uploadModelFile } from '@/api/upload.ts'
 import Preview3D from '@/components/cc-threeJs/preview3D.vue'
 import RotationPanel from './rotation-panel/rotation-panel.vue'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import { API } from '@/constants/index'
+
+type LanguageStore = ReturnType<typeof useLanguageStore>
+type UserStore = ReturnType<typeof useUserStore>
+
+interface UniSwitchChangeEvent {
+  detail: { value: boolean }
+}
 
 interface Dimensions {
   x: number
@@ -140,7 +147,7 @@ interface ModelInfo {
   modelFile?: string
   modelUrl?: string
   previewUrl?: string
-  modelParam?: string | Record<string, any>
+  modelParam?: string | Record<string, unknown>
 }
 
 interface Rotation {
@@ -163,7 +170,69 @@ interface TaskData {
 
 interface TaskResponse {
   code?: number
+  msg?: string
   data?: TaskData
+}
+
+interface PageOptions {
+  id?: string
+  name?: string
+  modelUrl?: string
+  url?: string
+  modelType?: string
+  modelImage?: string
+  imageUrl?: string
+  dimensions?: string
+}
+
+interface ModelDetailResponse {
+  code: number
+  data?: {
+    modelId?: string | number
+    name?: string
+    downloadUrl?: string
+    modelFile?: string
+    modelUrl?: string
+    previewUrl?: string
+    modelParam?: string | Record<string, unknown>
+  }
+}
+
+interface DefaultDeviceResponse {
+  code: number
+  data?: {
+    deviceId?: string
+    deviceName?: string
+    data?: {
+      deviceId?: string
+      deviceName?: string
+    }
+  }
+}
+
+interface ThreeJSObject {
+  traverse: (callback: (child: ThreeJSChild) => void) => void
+}
+
+interface ThreeJSChild {
+  isMesh?: boolean
+  material?: ThreeJSMaterial | ThreeJSMaterial[]
+  name?: string
+}
+
+interface ThreeJSMaterial {
+  color?: { setHex: (color: number) => void }
+  needsUpdate?: boolean
+}
+
+interface UploadResponse {
+  code: number
+  data?: {
+    fileUrl?: string
+    url?: string
+    path?: string
+    files?: Array<{ fileUrl: string }>
+  }
 }
 
 export default {
@@ -205,10 +274,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): LanguageStore {
       return useLanguageStore()
     },
-    texts(): any {
+    userStore(): UserStore {
+      return useUserStore()
+    },
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     },
     topBarStyle(): Record<string, string> {
@@ -235,7 +307,7 @@ export default {
       return `${this.texts.size}: 0mm(X)×0mm(Y)×0mm(Z)`
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: PageOptions): void {
     this.languageStore.loadLanguage()
     this.modelId = options.id || ''
 
@@ -310,7 +382,7 @@ export default {
       if (!url) return ''
       let normalized = url.replace(/[`'"\s]/g, '').trim()
       if (normalized && !normalized.startsWith('http')) {
-        normalized = 'http://' + normalized
+        normalized = 'https://' + normalized
       }
       return normalized
     },
@@ -330,7 +402,7 @@ export default {
         .replace('api/uploads/image', '9000/image')
     },
 
-    parseDimensions(data: any): Dimensions | null {
+    parseDimensions(data: { x?: number; y?: number; z?: number; modelParam?: string | Record<string, unknown> }): Dimensions | null {
       if (!data) return null
       if (data.x && data.y && data.z) {
         return {
@@ -422,7 +494,7 @@ export default {
     async loadModelDetail(): Promise<void> {
       try {
         this.loading = true
-        const res: any = await getModelDetail(this.modelId)
+        const res: ModelDetailResponse = await getModelDetail(this.modelId)
         if (res && res.data) {
           const data = res.data
           this.modelInfo = data
@@ -444,12 +516,13 @@ export default {
             this.showPreview = true
           }, 1000)
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(
           '获取模型详情失败:',
           error instanceof Error ? error.message : error ? JSON.stringify(error) : '未知错误'
         )
-        if (error.message.includes(this.texts.modelNotExist)) {
+        const errorMsg = error instanceof Error ? error.message : ''
+        if (errorMsg.includes(this.texts.modelNotExist)) {
           uni.showToast({ title: this.texts.modelNotExist, icon: 'none' })
         } else {
           uni.showToast({ title: this.texts.loadModelInfoFailed, icon: 'none' })
@@ -547,7 +620,7 @@ export default {
     async handleCancelGenerate(): Promise<void> {
       try {
         uni.showLoading({ title: this.texts.cancelling || '正在取消...' })
-        const res: any = await cancelTask(this.modelId)
+        const res = await cancelTask(this.modelId) as TaskResponse
         uni.hideLoading()
 
         if (res.code === 1 || res.code === 0) {
@@ -617,8 +690,8 @@ export default {
         const res = await fetch(baseUrl + '/upload/image', {
           method: 'POST',
           headers: {
-            Authorization: uni.getStorageSync('token')
-              ? `Bearer ${uni.getStorageSync('token')}`
+            Authorization: this.userStore.token
+              ? `Bearer ${this.userStore.token}`
               : ''
           },
           body: formData
@@ -634,7 +707,7 @@ export default {
       }
       // #endif
     },
-    onModelLoadError(error: any): void {
+    onModelLoadError(error: Error | string | Record<string, unknown>): void {
       this.loading = false
       console.error(
         '模型加载失败:',
@@ -666,7 +739,7 @@ export default {
       }
     },
 
-    onModelClick(event: any): void {
+    onModelClick(event: { isSame?: boolean }): void {
       console.log('模型被点击:', event)
 
       if (event.isSame === false) {
@@ -712,7 +785,7 @@ export default {
       }
     },
 
-    onBoundaryCheck(data: any): void {
+    onBoundaryCheck(data: { isOutOfBounds: boolean }): void {
       console.log('边界检测:', data)
       this.isOutOfBounds = data.isOutOfBounds
 
@@ -723,7 +796,7 @@ export default {
       }
     },
 
-    onScaleUpdate(data: any): void {
+    onScaleUpdate(data: { scalePercent?: number }): void {
       console.log('缩放更新:', data)
       if (data.scalePercent) {
         this.scalePercent = data.scalePercent
@@ -762,15 +835,15 @@ export default {
       // #endif
     },
 
-    _doSetColor(target: any, color: number): boolean {
+    _doSetColor(target: ThreeJSObject, color: number): boolean {
       if (!target) return false
       let found = false
-      target.traverse((child: any) => {
+      target.traverse((child: ThreeJSChild) => {
         if (child.isMesh && child.material) {
           found = true
           console.log('找到mesh:', child.name || 'unnamed')
           if (Array.isArray(child.material)) {
-            child.material.forEach((mat: any) => {
+            child.material.forEach((mat: ThreeJSMaterial) => {
               if (mat.color) {
                 mat.color.setHex(color)
                 mat.needsUpdate = true
@@ -797,18 +870,18 @@ export default {
       }
       return typeMap[ext] || ''
     },
-    onScaleChange(e: any): void {
+    onScaleChange(e: { detail: { value: number } }): void {
       this.scalePercent = e.detail.value
       this.modelScale = this.scalePercent / 100
       this.applyModelScale()
     },
-    onScaleChanging(e: any): void {
+    onScaleChanging(e: { detail: { value: number } }): void {
       this.scalePercent = e.detail.value
       this.modelScale = this.scalePercent / 100
       this.applyModelScale()
     },
-    onSupportChange(e: any): void {
-      this.addSupports = e.detail.value
+    onSupportChange(e: Event & { detail?: { value: boolean } }): void {
+      this.addSupports = e.detail?.value ?? false
     },
     applyModelScale(): void {
       // #ifdef APP
@@ -1019,7 +1092,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteModelContent || '确定要删除当前模型吗？',
-        success: (res: any) => {
+        success: (res: { confirm: boolean }) => {
           if (res.confirm) {
             // #ifdef APP
             if (this.$refs.preview3d && (this.$refs.preview3d as any).$refs.stageApp) {
@@ -1052,7 +1125,7 @@ export default {
         return
       }
 
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
@@ -1075,11 +1148,11 @@ export default {
           if (filePath) {
             try {
               console.log('开始上传文件:', filePath)
-              const uploadRes: any = await uploadModelFile(filePath)
+              const uploadRes: UploadResponse = await uploadModelFile(filePath)
               console.log('上传响应:', uploadRes)
               if (uploadRes.code === 1 && uploadRes.data) {
                 modifiedModelUrl =
-                  uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path
+                  uploadRes.data.url || uploadRes.data.fileUrl || uploadRes.data.path || ''
                 console.log('修改后的模型上传成功:', modifiedModelUrl)
               }
             } catch (err) {
@@ -1110,7 +1183,7 @@ export default {
             formData.append('file', blob, `modified_${Date.now()}.stl`)
 
             const baseUrl = API.BASE_URL.endsWith('/') ? API.BASE_URL.slice(0, -1) : API.BASE_URL
-            const token = uni.getStorageSync('token')
+            const token = this.userStore.token
 
             try {
               const res = await fetch(baseUrl + '/upload/model', {
@@ -1134,7 +1207,7 @@ export default {
 
         uni.showLoading({ title: this.texts.gettingDeviceInfo || '获取设备信息...' })
 
-        const deviceRes: any = await getDefaultDevice()
+        const deviceRes: DefaultDeviceResponse = await getDefaultDevice()
         console.log('默认设备响应:', deviceRes)
         console.log('默认设备数据:', deviceRes.data)
 
@@ -1168,12 +1241,13 @@ export default {
         uni.navigateTo({
           url: `/pages/explore/sliceProcessing/sliceProcessing?modelId=${this.modelId}&modelName=${encodeURIComponent(this.modelName)}&modelImage=${encodeURIComponent(imageUrl)}&deviceId=${deviceId}&modelUrl=${encodeURIComponent(modifiedModelUrl || '')}&dimensions=${dimensionsParam}&scalePercent=${this.scalePercent}&addSupports=${this.addSupports}`
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
         console.error('获取设备信息失败:', error)
+        const errorMsg = error instanceof Error ? error.message : ''
         uni.showToast({
           title:
-            error.message || this.texts.getDeviceInfoFailed || '获取设备信息失败，请检查打印机连接',
+            errorMsg || this.texts.getDeviceInfoFailed || '获取设备信息失败，请检查打印机连接',
           icon: 'none'
         })
       }

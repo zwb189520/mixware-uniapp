@@ -69,6 +69,7 @@ import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import WifiSelectorModal from './components/WifiSelectorModal.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
+import { API } from '@/constants/index.ts'
 import {
   connectToDevice,
   subscribeToWiFiList,
@@ -77,6 +78,15 @@ import {
   initWifi,
   getWifiList
 } from '@/utils/bluetooth.ts'
+import type { BluetoothError, BLECharacteristic } from '@/types/bluetooth.d'
+
+type LanguageStore = ReturnType<typeof useLanguageStore>
+
+interface GetBLEDeviceCharacteristicsResult {
+  characteristics: BLECharacteristic[]
+  errMsg: string
+  errCode?: number
+}
 
 interface WiFiItem {
   ssid: string
@@ -88,6 +98,34 @@ interface ConfigResult {
   message?: string
 }
 
+interface PageOptions {
+  deviceId?: string
+}
+
+interface BluetoothService {
+  uuid: string
+  isPrimary: boolean
+}
+
+interface PhoneWiFiInfo {
+  SSID?: string
+  name?: string
+  signalStrength?: number
+}
+
+interface BLEServiceResult {
+  services: BluetoothService[]
+}
+
+interface MappedCharacteristic {
+  uuid: string
+  shortUuid: string
+  read: boolean
+  write: boolean
+  notify: boolean
+  indicate: boolean
+}
+
 export default {
   name: 'AddDevice',
   components: {
@@ -96,10 +134,10 @@ export default {
     SafeArea
   },
   computed: {
-    languageStore(): any {
+    languageStore(): LanguageStore {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.addDevice || {}
     }
   },
@@ -116,7 +154,7 @@ export default {
       scanStatus: 'scanning' as 'scanning' | 'stopped' | 'failed' | 'success'
     }
   },
-  async onLoad(options: any): Promise<void> {
+  async onLoad(options: PageOptions): Promise<void> {
     this.bluetoothDeviceId = options.deviceId || ''
     if (this.bluetoothDeviceId) {
       await this.loadWiFiList()
@@ -137,8 +175,8 @@ export default {
             console.log('蓝牙连接已断开')
             this.bluetoothDeviceId = ''
           },
-          fail: (err: any) => {
-            if (err.code !== 10004) {
+          fail: (err: BluetoothError) => {
+            if (err.errCode !== 10004) {
               console.log('断开蓝牙连接失败:', err)
             }
           }
@@ -163,7 +201,9 @@ export default {
         console.log('清除BLE特征値监听...')
         try {
           uni.offBLECharacteristicValueChange()
-        } catch (e) {}
+        } catch {
+          console.log('清除BLE监听失败，可能未注册')
+        }
 
         if (this.bluetoothDeviceId) {
           console.log('断开旧BLE连接...')
@@ -208,7 +248,7 @@ export default {
         console.log('蓝牙设备连接成功')
 
         console.log('正在获取设备服务...')
-        const services: any = await this.getDeviceServices(this.bluetoothDeviceId)
+        const services: BluetoothService[] = await this.getDeviceServices(this.bluetoothDeviceId)
         console.log('设备服务列表:', services)
 
         console.log('正在订阅WiFi列表...')
@@ -259,10 +299,10 @@ export default {
         console.log('WiFi模块初始化成功')
 
         console.log('正在获取WiFi列表...')
-        const wifiList: any[] = await getWifiList()
+        const wifiList = await getWifiList() as PhoneWiFiInfo[]
         console.log('获取到的WiFi列表:', wifiList)
 
-        this.wifiList = wifiList.map((wifi: any) => ({
+        this.wifiList = wifiList.map((wifi: PhoneWiFiInfo) => ({
           ssid: wifi.SSID || wifi.name || 'Unknown',
           signal: wifi.signalStrength || 0
         }))
@@ -338,15 +378,15 @@ export default {
       this.reloadWiFiList()
     },
 
-    getDeviceServices(deviceId: string): Promise<any[]> {
+    getDeviceServices(deviceId: string): Promise<BluetoothService[]> {
       return new Promise((resolve, reject) => {
         uni.getBLEDeviceServices({
           deviceId,
-          success: (res: any) => {
+          success: (res: BLEServiceResult) => {
             console.log('获取服务成功:', res)
             resolve(res.services || [])
           },
-          fail: (error: any) => {
+          fail: (error: BluetoothError) => {
             console.log('获取服务失败:', error)
             reject(error)
           }
@@ -354,14 +394,14 @@ export default {
       })
     },
 
-    getDeviceCharacteristics(deviceId: string, serviceId: string): Promise<any[]> {
+    getDeviceCharacteristics(deviceId: string, serviceId: string): Promise<MappedCharacteristic[]> {
       return new Promise((resolve, reject) => {
         uni.getBLEDeviceCharacteristics({
           deviceId,
           serviceId,
-          success: (res: any) => {
+          success: (res: GetBLEDeviceCharacteristicsResult) => {
             console.log('获取特征值成功:', res)
-            const characteristics = (res.characteristics || []).map((char: any) => ({
+            const characteristics = (res.characteristics || []).map((char: BLECharacteristic) => ({
               uuid: char.uuid,
               shortUuid: char.uuid.substring(4, 8),
               read: char.properties?.read || false,
@@ -370,7 +410,7 @@ export default {
               indicate: char.properties?.indicate || false
             }))
             console.log('特征值详细信息:')
-            characteristics.forEach((char: any, index: number) => {
+            characteristics.forEach((char: MappedCharacteristic, index: number) => {
               console.log(`  ${index + 1}. ${char.shortUuid} (${char.uuid})`)
               console.log(
                 `     read: ${char.read}, write: ${char.write}, notify: ${char.notify}, indicate: ${char.indicate}`
@@ -378,7 +418,7 @@ export default {
             })
             resolve(characteristics)
           },
-          fail: (error: any) => {
+          fail: (error: BluetoothError) => {
             console.log('获取特征值失败:', error)
             reject(error)
           }
@@ -416,13 +456,16 @@ export default {
           try {
             await connectToDevice(this.bluetoothDeviceId)
             console.log('蓝牙设备连接/已连接')
-          } catch (connErr: any) {
-            const msg = connErr.errMsg || connErr.message || ''
+          } catch (connErr: unknown) {
+            const errObj = connErr as { errMsg?: string; message?: string }
+            const msg = errObj.errMsg || errObj.message || ''
             if (!msg.includes('already connect') && !msg.includes('connected')) {
               console.log('蓝牙重连失败，尝试重新初始化...', connErr)
               try {
                 uni.offBLECharacteristicValueChange()
-              } catch (e) {}
+              } catch {
+                console.log('清除BLE监听失败')
+              }
               await new Promise<void>(resolve => {
                 uni.closeBluetoothAdapter({ success: () => resolve(), fail: () => resolve() })
               })
@@ -447,7 +490,7 @@ export default {
 
           console.log('1. 开始订阅配网结果...')
           const resultPromise: Promise<ConfigResult> = subscribeToConfigResult(this.bluetoothDeviceId)
-          const serverUrl = 'http://app.mixwarebot.cn/api/iot/auth'
+          const serverUrl = `${API.BASE_URL}/iot/auth`
           console.log('2. 准备发送服务器URL:', serverUrl)
 
           await sendWiFiConfig(
@@ -510,7 +553,7 @@ export default {
                 })
               }, 1000)
             },
-            fail: (err: any) => {
+            fail: (err: BluetoothError) => {
               console.log('WiFi连接失败:', err)
               uni.hideLoading()
               this.isConnecting = false

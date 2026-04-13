@@ -182,7 +182,7 @@ import {
   getModelPage
 } from '@/api/models.ts'
 import { getPostList, toggleLike, checkLikeStatus } from '@/api/community.ts'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface ModelInfo {
   id: string
@@ -258,6 +258,9 @@ export default {
     languageStore(): any {
       return useLanguageStore()
     },
+    userStore(): any {
+      return useUserStore()
+    },
     texts(): any {
       return this.languageStore.texts.explore
     },
@@ -319,7 +322,7 @@ export default {
     },
     async loadShowcaseWorks(): Promise<void> {
       if (!this.modelId) return
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         this.showcaseWorks = []
         return
       }
@@ -368,7 +371,7 @@ export default {
       this.showExpandBtn = estimatedLines > 5
     },
     async checkFavoriteStatus(): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) return
+      if (!this.userStore.isLoggedIn) return
       try {
         const res: any = await getFavoriteModels()
         if (res.code === 1 && res.data) {
@@ -395,7 +398,7 @@ export default {
 
       this.loading = true
       try {
-        const isLoggedIn = uni.getStorageSync('isLoggedIn')
+        const isLoggedIn = this.userStore.isLoggedIn
 
         const detailRes: any = await getModelDetail(id)
         if (!detailRes || (detailRes.code !== 0 && detailRes.code !== 1)) {
@@ -540,7 +543,7 @@ export default {
     },
 
     async handleLike(): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
@@ -586,7 +589,7 @@ export default {
     },
 
     async handleCollect(): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
@@ -641,7 +644,7 @@ export default {
     },
 
     handleCreatePost(): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }
@@ -777,7 +780,7 @@ export default {
     },
 
     async handleWorkLike(work: ShowcaseWork): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }

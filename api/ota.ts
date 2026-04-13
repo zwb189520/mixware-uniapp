@@ -1,9 +1,14 @@
 import { get } from './request'
+import type { ApiResponse } from '@/types/api'
 
-/**
- * 检查OTA更新
- * @param version 当前版本号
- */
-export function checkUpdate(version: string) {
-  return get('/ota/app/checkUpdate', { version })
+interface OtaUpdateInfo {
+  hasUpdate: boolean
+  latestVersion: string
+  downloadUrl: string
+  remark?: string
+  force?: boolean
+}
+
+export function checkUpdate(version: string): Promise<ApiResponse<OtaUpdateInfo>> {
+  return get<OtaUpdateInfo>('/ota/app/checkUpdate', { version })
 }

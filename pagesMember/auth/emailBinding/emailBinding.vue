@@ -35,7 +35,7 @@
 <script lang="ts">
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import { sendVerificationCode, updateUserInfo } from '@/api/users.ts'
 
 export default {
@@ -57,6 +57,9 @@ export default {
   computed: {
     languageStore(): any {
       return useLanguageStore()
+    },
+    userStore(): any {
+      return useUserStore()
     },
     texts(): any {
       return this.languageStore.texts.accountSecurity.emailBinding
@@ -82,7 +85,7 @@ export default {
 
   methods: {
     loadUserInfo(): void {
-      const userInfo: any = uni.getStorageSync('userInfo') || {}
+      const userInfo: any = this.userStore.userInfo || {}
       if (userInfo.email) {
         this.email = userInfo.email
       }
@@ -142,7 +145,7 @@ export default {
           title: this.texts.binding
         })
 
-        const userInfo: any = uni.getStorageSync('userInfo') || {}
+        const userInfo: any = this.userStore.userInfo || {}
         await updateUserInfo({
           username: userInfo.username,
           avatar: userInfo.avatar,

@@ -32,9 +32,10 @@ import { computed, onMounted } from 'vue'
 import { deleteUser } from '@/api/users'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore, useUserStore } from '@/stores'
 
 const languageStore = useLanguageStore()
+const userStore = useUserStore()
 
 const texts = computed(() => languageStore.texts.accountSecurity)
 
@@ -84,7 +85,7 @@ const performDeleteAccount = async () => {
       title: texts.value.deleting
     })
 
-    const id = uni.getStorageSync('id') || uni.getStorageSync('userId')
+    const id = userStore.userId
     const response = (await deleteUser(id)) as any
 
     if (response.code === 200 || response.code === 0 || response.code === 1) {

@@ -53,7 +53,7 @@
 <script lang="ts">
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { getFollowingList, getFollowersList, toggleFollow } from '@/api/community'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface FollowUser {
   userId: string
@@ -81,6 +81,9 @@ export default {
     languageStore(): any {
       return useLanguageStore()
     },
+    userStore(): any {
+      return useUserStore()
+    },
     texts(): any {
       return this.languageStore.texts.followList
     },
@@ -92,7 +95,7 @@ export default {
     }
   },
   onLoad(options: any): void {
-    this.userId = options.userId || uni.getStorageSync('userInfo')?.userId || ''
+    this.userId = options.userId || this.userStore.userId || ''
     this.activeTab = options.tab || 'following'
     this.languageStore.loadLanguage()
 
@@ -132,7 +135,7 @@ export default {
 
     async handleFollowToggle(user: FollowUser): Promise<void> {
       try {
-        const currentUserId = uni.getStorageSync('userInfo')?.userId || ''
+        const currentUserId = this.userStore.userId || ''
         if (user.userId && currentUserId && String(user.userId) === String(currentUserId)) {
           uni.showToast({
             title: this.texts.cannotFollowSelf || '不能关注自己',

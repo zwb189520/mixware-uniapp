@@ -1,72 +1,32 @@
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useUserStore } from '@/stores/index.ts'
 
 interface UserInfo {
   id?: string | number
+  userId?: string | number
   username?: string
-  [key: string]: any
+  nickname?: string
+  avatar?: string
+  email?: string
+  phone?: string
 }
 
 export function useUser() {
-  const userInfo = ref<UserInfo | null>(null)
-  const isLoggedIn = ref(false)
-  const loading = ref(false)
+  const userStore = useUserStore()
+
+  const userInfo = computed<UserInfo | null>(() => userStore.userInfo as UserInfo | null)
+  const isLoggedIn = computed(() => userStore.isLoggedIn)
+  const userId = computed(() => userStore.userId)
+  const userName = computed(() => userStore.userName)
+  const avatar = computed(() => userStore.avatar)
+  const token = computed(() => userStore.token)
 
   const checkLoginStatus = (): boolean => {
-    try {
-      const loginStatus = uni.getStorageSync('isLoggedIn')
-      const userData = uni.getStorageSync('userInfo')
-
-      isLoggedIn.value = !!loginStatus
-      userInfo.value = userData || null
-
-      return isLoggedIn.value
-    } catch (error) {
-      console.error('检查登录状态失败:', error)
-      isLoggedIn.value = false
-      userInfo.value = null
-      return false
-    }
-  }
-
-  const setUserInfo = (userData: UserInfo | null): void => {
-    userInfo.value = userData
-    if (userData) {
-      uni.setStorageSync('userInfo', userData)
-    } else {
-      uni.removeStorageSync('userInfo')
-    }
-  }
-
-  const setLoginStatus = (status: boolean): void => {
-    isLoggedIn.value = status
-    uni.setStorageSync('isLoggedIn', status)
-
-    if (!status) {
-      userInfo.value = null
-      uni.removeStorageSync('userInfo')
-    }
-  }
-
-  const logout = (): Promise<boolean> => {
-    return new Promise(resolve => {
-      uni.showModal({
-        title: '提示',
-        content: '确定要退出登录吗？',
-        success: (res: any) => {
-          if (res.confirm) {
-            setLoginStatus(false)
-            uni.$emit('userLogout')
-            resolve(true)
-          } else {
-            resolve(false)
-          }
-        }
-      })
-    })
+    return userStore.isLoggedIn
   }
 
   const requireLogin = (callback?: () => void): boolean => {
-    if (checkLoginStatus()) {
+    if (userStore.isLoggedIn) {
       callback && callback()
       return true
     } else {
@@ -77,14 +37,37 @@ export function useUser() {
     }
   }
 
+  const logout = (): Promise<boolean> => {
+    return new Promise(resolve => {
+      uni.showModal({
+        title: '提示',
+        content: '确定要退出登录吗？',
+        success: (res: { confirm: boolean; cancel: boolean }) => {
+          if (res.confirm) {
+            userStore.logout()
+            resolve(true)
+          } else {
+            resolve(false)
+          }
+        }
+      })
+    })
+  }
+
+  const setUserInfo = (info: Partial<UserInfo>): void => {
+    userStore.setUserInfo(info as any)
+  }
+
   return {
     userInfo,
     isLoggedIn,
-    loading,
+    userId,
+    userName,
+    avatar,
+    token,
     checkLoginStatus,
-    setUserInfo,
-    setLoginStatus,
+    requireLogin,
     logout,
-    requireLogin
+    setUserInfo
   }
 }

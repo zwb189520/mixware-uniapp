@@ -118,7 +118,9 @@ export function subscribeToConfigResultByPlugin(deviceId: string): Promise<Confi
       if (timeoutId) clearTimeout(timeoutId)
       try {
         lib.onNotityBleData(lib.getSericUUID(), lib.getNotityUUID(), false, () => {})
-      } catch (e) {}
+      } catch {
+        console.warn('[BLE插件] 取消通知监听失败')
+      }
     }
 
     timeoutId = setTimeout(() => {
@@ -163,5 +165,7 @@ export function closePluginBle(): void {
   try {
     getBleLib().close()
     console.log('[BLE插件] 已断开连接')
-  } catch (e) {}
+  } catch {
+    console.warn('[BLE插件] 断开连接失败')
+  }
 }

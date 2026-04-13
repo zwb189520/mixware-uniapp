@@ -183,7 +183,7 @@
 <script lang="ts">
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import { getPostComments, toggleLike, createComment, deleteComment } from '@/api/community'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface Comment {
   id: number | string
@@ -226,6 +226,9 @@ export default {
     languageStore(): any {
       return useLanguageStore()
     },
+    userStore(): any {
+      return useUserStore()
+    },
     texts(): any {
       return this.languageStore.texts.commentList
     },
@@ -263,8 +266,7 @@ export default {
   },
   methods: {
     getCurrentUserId(): void {
-      const userInfo = uni.getStorageSync('userInfo')
-      this.currentUserId = userInfo?.userId || ''
+      this.currentUserId = this.userStore.userId || ''
     },
 
     async loadComments(): Promise<void> {
@@ -295,7 +297,7 @@ export default {
     loadLocalComments(): boolean {
       if (this.postId) {
         const key = `comments_${this.postId}`
-        const localComments = uni.getStorageSync(key)
+        const localComments = uni.getStorageSync(key) as Comment[] | undefined
         if (localComments && localComments.length > 0) {
           this.comments = localComments
           this.totalComments = this.calculateCommentCount(localComments)

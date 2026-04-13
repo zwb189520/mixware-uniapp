@@ -21,6 +21,7 @@
 
 <script lang="ts">
 import { useLanguage } from '@/composables'
+import { useUserStore } from '@/stores/index.ts'
 
 interface Medal {
   id: number
@@ -38,7 +39,8 @@ export default {
   },
   setup() {
     const { texts } = useLanguage()
-    return { texts }
+    const userStore = useUserStore()
+    return { texts, userStore }
   },
   mounted(): void {
     this.updateMedals()
@@ -102,7 +104,7 @@ export default {
       ]
     },
     handleMedalClick(): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }

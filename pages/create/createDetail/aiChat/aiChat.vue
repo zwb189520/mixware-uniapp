@@ -106,7 +106,7 @@ import MarkdownIt from 'markdown-it'
 import mpHtml from '@/components/mp-html/mp-html.vue'
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
-import { useChatStore } from '@/stores/index.ts'
+import { useChatStore, useUserStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -133,12 +133,14 @@ export default {
   setup() {
     const chatStore = useChatStore()
     const languageStore = useLanguageStore()
+    const userStore = useUserStore()
     const { sessionId, sessionTitle, sessionDescribe, examples, messages, loading, inputValue } =
       storeToRefs(chatStore)
 
     return {
       chatStore,
       languageStore,
+      userStore,
       sessionId,
       sessionTitle,
       sessionDescribe,
@@ -207,8 +209,8 @@ export default {
   methods: {
     loadSessionFromStorage(): boolean {
       try {
-        const storedSessionId = uni.getStorageSync('aiChatSessionId')
-        const storedSessionData = uni.getStorageSync('aiChatSessionData')
+        const storedSessionId = uni.getStorageSync('aiChatSessionId') as string | undefined
+        const storedSessionData = uni.getStorageSync('aiChatSessionData') as Record<string, unknown> | undefined
 
         if (storedSessionId && storedSessionData) {
           this.chatStore.setSessionId(storedSessionId)

@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts">
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import { logout } from '@/api/users.ts'
 
 interface MenuItem {
@@ -51,6 +51,9 @@ export default {
   computed: {
     languageStore(): any {
       return useLanguageStore()
+    },
+    userStore(): any {
+      return useUserStore()
     },
     languageLabel(): string {
       return this.languageStore.language === 'en' ? 'English' : '中文'
@@ -86,7 +89,7 @@ export default {
   },
   methods: {
     checkLoginStatus(): void {
-      this.isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+      this.isLoggedIn = this.userStore.isLoggedIn || false
     },
     updateMenuItems(): void {
       this.menuItems = [
@@ -110,7 +113,7 @@ export default {
     },
     handleMenuClick(item: MenuItem): void {
       if (item.id === 1) {
-        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+        const isLoggedIn = this.userStore.isLoggedIn || false
         if (!isLoggedIn) {
           uni.navigateTo({
             url: '/pagesMember/auth/login/login'
@@ -121,7 +124,7 @@ export default {
           })
         }
       } else if (item.id === 2) {
-        const isLoggedIn = uni.getStorageSync('isLoggedIn') || false
+        const isLoggedIn = this.userStore.isLoggedIn || false
         if (!isLoggedIn) {
           uni.navigateTo({
             url: '/pagesMember/auth/login/login'

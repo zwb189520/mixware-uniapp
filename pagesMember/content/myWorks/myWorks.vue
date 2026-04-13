@@ -52,7 +52,7 @@ import CustomActionSheet from './components/CustomActionSheet.vue'
 import { getModelRecords, getPrintRecords } from '@/api/operationRecords.ts'
 import { deleteModel } from '@/api/models.ts'
 import { getPostList, getLikedPosts } from '@/api/community.ts'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface WorkItem {
   id: number | string
@@ -89,6 +89,9 @@ export default {
   computed: {
     languageStore(): any {
       return useLanguageStore()
+    },
+    userStore(): any {
+      return useUserStore()
     },
     texts(): any {
       return this.languageStore?.texts?.myWorks || {}
@@ -177,7 +180,7 @@ export default {
     async loadWorks(): Promise<void> {
       this.loading = true
       try {
-        const userInfo: any = uni.getStorageSync('userInfo')
+        const userInfo: any = this.userStore.userInfo
         if (userInfo && userInfo.userId) {
           const res: any = await getPostList({
             userId: userInfo.userId,

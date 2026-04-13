@@ -222,7 +222,7 @@ import { uploadImages } from '@/api/upload.ts'
 import { uploadModelFile } from '@/api/upload.ts'
 import { getHotExamples } from '@/api/session.ts'
 import { parseSnCode } from '@/api/devices.ts'
-import { useExploreStore } from '@/stores/index.ts'
+import { useExploreStore, useUserStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -259,6 +259,7 @@ export default {
   setup() {
     const exploreStore = useExploreStore()
     const languageStore = useLanguageStore()
+    const userStore = useUserStore()
     const {
       currentTab,
       keyword,
@@ -279,6 +280,7 @@ export default {
     return {
       exploreStore,
       languageStore,
+      userStore,
       currentTab,
       keyword,
       showSearch,
@@ -451,7 +453,7 @@ export default {
     },
     loadMore(): void {},
     async loadHotTags(): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) return
+      if (!this.userStore.isLoggedIn) return
       try {
         const res: any = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
@@ -543,7 +545,7 @@ export default {
       this.exploreStore.setHotModels(this.hotModels)
       this.exploreStore.setCategoryModels(this.categoryModels)
 
-      if (uni.getStorageSync('isLoggedIn')) {
+      if (this.userStore.isLoggedIn) {
         this.loadLikeStatus(formattedModels)
       }
     },
@@ -708,7 +710,7 @@ export default {
       this.searchModels(tag)
     },
     handleModelClick(item: ModelItem): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
         })
@@ -720,7 +722,7 @@ export default {
     },
     handleAuthorClick(item: ModelItem): void {},
     async toggleLike(item: ModelItem): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
         })
@@ -845,7 +847,7 @@ export default {
           )
         }
 
-        const userInfo = uni.getStorageSync('userInfo')
+        const userInfo = this.userStore.userInfo
         const userId = userInfo?.userId || userInfo?.id || ''
 
         const previewUrl = imgUploadRes[0].data.files

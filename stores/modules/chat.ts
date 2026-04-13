@@ -1,11 +1,15 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useStorageSync } from '../../composables/modules/useStorageSync'
 
 interface Message {
+  id?: string
   role: string
   content: string
-  [key: string]: any
+  timestamp?: number
+  html?: string
+  images?: string[]
+  showSaveBtn?: boolean
 }
 
 interface Example {
@@ -18,7 +22,7 @@ interface Session {
   title?: string
   describe?: string
   examples?: Example[]
-  [key: string]: any
+  createdAt?: number
 }
 
 interface StorageState {

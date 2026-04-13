@@ -184,7 +184,7 @@
 <script lang="ts">
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
 import CommentSection from './components/commentSection.vue'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import {
   getPostDetail,
   getPostComments,
@@ -284,6 +284,9 @@ export default {
     languageStore(): any {
       return useLanguageStore()
     },
+    userStore(): any {
+      return useUserStore()
+    },
     texts(): any {
       return this.languageStore.texts.explore
     },
@@ -353,10 +356,9 @@ export default {
     },
 
     getCurrentUserId(): void {
-      const userInfo = uni.getStorageSync('userInfo')
-      this.currentUserId = userInfo?.userId || ''
-      this.currentUserAvatar = userInfo?.avatar || '/static/images/Default avatar.png'
-      this.currentUserName = userInfo?.nickname || userInfo?.username || this.texts?.me || '我'
+      this.currentUserId = this.userStore.userId || ''
+      this.currentUserAvatar = this.userStore.avatar || '/static/images/Default avatar.png'
+      this.currentUserName = this.userStore.userName || this.texts?.me || '我'
     },
 
     async loadPostDetail(): Promise<void> {

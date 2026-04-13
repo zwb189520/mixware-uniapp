@@ -61,16 +61,27 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow, onHide } from '@dcloudio/uni-app'
 import { uploadModelFile, uploadImage } from '@/api/upload'
 import { createModelTask } from '@/api/modelTasks.ts'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore, useUserStore } from '@/stores'
 import { API } from '@/constants/index'
+
+interface ModelDataForPrint {
+  id?: string
+  name?: string
+  url?: string
+  modelType?: string
+  dimensions?: { x: number; y: number; z: number }
+}
 
 interface WebviewMessage {
   action?: string
   snapshot?: string
   stl?: string
-  data?: any
-  sketchData?: { data?: { spaces?: { objects: any[] }[] } }
-  [key: string]: any
+  data?: string | ModelDataForPrint
+  sketchData?: { data?: { spaces?: { objects: unknown[] }[] } }
+  modelUrl?: string
+  modelName?: string
+  status?: string
+  error?: string
 }
 
 interface ModelDimensions {
@@ -80,8 +91,8 @@ interface ModelDimensions {
 }
 
 const languageStore = useLanguageStore()
-const url = ref('http://app.mixwarebot.cn/?token=uniapp_user_123')
-// const url = ref('http://192.168.0.43:8081/?token=uniapp_user_123')
+const userStore = useUserStore()
+const url = ref(`${API.WEB_URL}/?token=uniapp_user_123`)
 const statusBarHeight = ref(0)
 const postNumber = ref(0)
 const webviewContext = ref<any>(null)
@@ -367,7 +378,7 @@ const uploadSnapshotAndExportSTL = async (base64: string) => {
       fetch(baseUrl + '/upload/image', {
         method: 'POST',
         headers: {
-          Authorization: uni.getStorageSync('token') ? `Bearer ${uni.getStorageSync('token')}` : ''
+          Authorization: userStore.token ? `Bearer ${userStore.token}` : ''
         },
         body: formData
       })
@@ -543,10 +554,11 @@ const handleWebviewMessage = (evt: any) => {
       saveAndShareStl(msg.stl)
     }
   } else if (msg.action === 'stlData' && msg.data) {
+    const stlData = typeof msg.data === 'string' ? msg.data : ''
     if (isPrinting.value) {
-      uploadAndNavigateToPrint(msg.data)
+      uploadAndNavigateToPrint(stlData)
     } else {
-      saveAndShareStl(msg.data)
+      saveAndShareStl(stlData)
     }
   }
 
@@ -573,17 +585,19 @@ const handleWebviewMessage = (evt: any) => {
   }
 
   if (msg.action === 'modelDataForPrint') {
-    const modelData = msg.data
-    const modelId = modelData.id || 'custom_' + Date.now()
-    const modelNameVal =
-      modelData.name || modelName.value || texts.value.unnamedModel || '未命名模型'
-    const modelUrl = modelData.url || ''
-    const modelType = modelData.modelType || 'stl'
-    const dimensions = modelData.dimensions || { x: 0, y: 0, z: 0 }
+    const modelData = typeof msg.data === 'object' ? msg.data : null
+    if (modelData) {
+      const modelId = modelData.id || 'custom_' + Date.now()
+      const modelNameVal =
+        modelData.name || modelName.value || texts.value.unnamedModel || '未命名模型'
+      const modelUrl = modelData.url || ''
+      const modelType = modelData.modelType || 'stl'
+      const dimensions = modelData.dimensions || { x: 0, y: 0, z: 0 }
 
-    uni.navigateTo({
-      url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=${modelType}&dimensions=${encodeURIComponent(JSON.stringify(dimensions))}`
-    })
+      uni.navigateTo({
+        url: `/pages/explore/3Dpreviewdetail/preview3DDetail?id=${modelId}&name=${encodeURIComponent(modelNameVal)}&url=${encodeURIComponent(modelUrl)}&modelType=${modelType}&dimensions=${encodeURIComponent(JSON.stringify(dimensions))}`
+      })
+    }
   }
 }
 
@@ -870,7 +884,7 @@ const uploadBlobToServer = (tempPath: string, blob: Blob): Promise<any> => {
     const formData = new FormData()
     formData.append('file', blob, 'model.stl')
 
-    const token = uni.getStorageSync('token') || ''
+    const token = userStore.token || ''
 
     fetch(url, {
       method: 'POST',

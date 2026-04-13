@@ -3,7 +3,10 @@ import { ref } from 'vue'
 interface Device {
   id?: string | number
   deviceId?: string
-  [key: string]: any
+  name?: string
+  status?: string
+  model?: string
+  firmware?: string
 }
 
 export function useDevice() {

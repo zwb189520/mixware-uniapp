@@ -6,7 +6,7 @@ export function checkBluetoothPermission() {
         success: () => {
           resolve(true)
         },
-        fail: (error: any) => {
+        fail: (error: { errMsg: string }) => {
           console.error('蓝牙权限申请失败:', error)
           wx.showModal({
             title: '需要蓝牙权限',
@@ -14,7 +14,7 @@ export function checkBluetoothPermission() {
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: (res: any) => {
+                success: (res: { authSetting: Record<string, boolean> }) => {
                   resolve(res.authSetting['scope.bluetooth'] || false)
                 }
               })
@@ -38,7 +38,7 @@ export function checkLocationPermission() {
         success: () => {
           resolve(true)
         },
-        fail: (error: any) => {
+        fail: (error: { errMsg: string }) => {
           console.error('位置权限申请失败:', error)
           wx.showModal({
             title: '需要位置权限',
@@ -46,7 +46,7 @@ export function checkLocationPermission() {
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: (res: any) => {
+                success: (res: { authSetting: Record<string, boolean> }) => {
                   resolve(res.authSetting['scope.userLocation'] || false)
                 }
               })
@@ -56,7 +56,6 @@ export function checkLocationPermission() {
         }
       })
     } else {
-      // 非微信环境，直接返回true
       console.log('非微信环境，跳过位置权限检查')
       resolve(true)
     }

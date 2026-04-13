@@ -3,6 +3,7 @@ import { generateCacheKey, getCache, clearCache, clearUrlCache, setCache } from 
 import { isNoTokenUrl } from './validators.ts'
 import { handleSuccess, handleError, handleNetworkError } from './errorHandler.ts'
 import { install } from './interceptor.ts'
+import type { ApiResponse } from '@/types/api'
 import {
   buildUrl,
   appendQueryParams,
@@ -56,7 +57,7 @@ export const generateRequestId = (url: string, method: string): string => {
   return `${method.toUpperCase()}_${url}_${Date.now()}`
 }
 
-export const request = (options: RequestOptions = {}): Promise<unknown> => {
+export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiResponse<T>> => {
   return new Promise((resolve, reject) => {
     const {
       url,
@@ -72,7 +73,7 @@ export const request = (options: RequestOptions = {}): Promise<unknown> => {
       const cachedData = getCache(cacheKey)
       if (cachedData) {
         console.log('使用缓存数据:', url)
-        resolve(cachedData)
+        resolve(cachedData as ApiResponse<T>)
         return
       }
     }
@@ -115,7 +116,7 @@ export const request = (options: RequestOptions = {}): Promise<unknown> => {
       if (options.showLoading) {
         uni.hideLoading()
       }
-      resolve({ code: 401, msg: '未登录', data: null })
+      resolve({ code: 401, msg: '未登录', data: undefined })
       return
     }
 
@@ -149,7 +150,7 @@ export const request = (options: RequestOptions = {}): Promise<unknown> => {
 
         const successData = handleSuccess(res as any, options, url ?? '', data as Record<string, unknown>, cache, cacheTime)
         if (successData !== null) {
-          resolve(successData)
+          resolve(successData as ApiResponse<T>)
           return
         }
 
@@ -173,8 +174,8 @@ export const request = (options: RequestOptions = {}): Promise<unknown> => {
   })
 }
 
-export const get = (url: string, params: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
-  return request({
+export const get = <T = unknown>(url: string, params: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+  return request<T>({
     url,
     method: 'GET',
     data: params,
@@ -182,8 +183,8 @@ export const get = (url: string, params: unknown = {}, options: RequestOptions =
   })
 }
 
-export const post = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
-  return request({
+export const post = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+  return request<T>({
     url,
     method: 'POST',
     data,
@@ -191,12 +192,12 @@ export const post = (url: string, data: unknown = {}, options: RequestOptions = 
   })
 }
 
-export const postWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
+export const postWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
   }
-  return request({
+  return request<T>({
     url: finalUrl,
     method: 'POST',
     data,
@@ -208,8 +209,8 @@ export const postWithQuery = (url: string, data: unknown = {}, queryParams: Reco
   })
 }
 
-export const put = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
-  return request({
+export const put = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+  return request<T>({
     url,
     method: 'PUT',
     data,
@@ -217,12 +218,12 @@ export const put = (url: string, data: unknown = {}, options: RequestOptions = {
   })
 }
 
-export const putWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
+export const putWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
   }
-  return request({
+  return request<T>({
     url: finalUrl,
     method: 'PUT',
     data,
@@ -230,8 +231,8 @@ export const putWithQuery = (url: string, data: unknown = {}, queryParams: Recor
   })
 }
 
-export const del = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
-  return request({
+export const del = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+  return request<T>({
     url,
     method: 'DELETE',
     data,
@@ -239,12 +240,12 @@ export const del = (url: string, data: unknown = {}, options: RequestOptions = {
   })
 }
 
-export const delWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
+export const delWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
   }
-  return request({
+  return request<T>({
     url: finalUrl,
     method: 'DELETE',
     data,
@@ -252,10 +253,10 @@ export const delWithQuery = (url: string, data: unknown = {}, queryParams: Recor
   })
 }
 
-export const postForm = (url: string, data: unknown = {}, options: RequestOptions = {}): Promise<unknown> => {
+export const postForm = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
   const formData = objectToFormUrlencoded(data as Record<string, unknown>)
 
-  return request({
+  return request<T>({
     url,
     method: 'POST',
     data: formData,
@@ -267,7 +268,7 @@ export const postForm = (url: string, data: unknown = {}, options: RequestOption
   })
 }
 
-export const postFormWithQuery = (url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<unknown> => {
+export const postFormWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
   const formData = objectToFormUrlencoded(data as Record<string, unknown>)
 
   let finalUrl = url
@@ -275,7 +276,7 @@ export const postFormWithQuery = (url: string, data: unknown = {}, queryParams: 
     finalUrl = appendQueryParams(url, queryParams)
   }
 
-  return request({
+  return request<T>({
     url: finalUrl,
     method: 'POST',
     data: formData,
@@ -293,7 +294,7 @@ interface UploadOptions extends RequestOptions {
   [key: string]: unknown
 }
 
-export const uploadFile = (url: string, filePath: string, options: UploadOptions = {}): Promise<unknown> => {
+export const uploadFile = <T = unknown>(url: string, filePath: string, options: UploadOptions = {}): Promise<ApiResponse<T>> => {
   return new Promise((resolve, reject) => {
     const { name = 'file', formData = {}, header = {} } = options
 

@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { useLanguage } from '@/composables'
-import { useLanguageStore } from '@/stores'
+import { useLanguageStore, useUserStore } from '@/stores'
 
 interface StatItem {
   id: number
@@ -31,7 +31,8 @@ export default {
   setup() {
     const { texts } = useLanguage()
     const languageStore = useLanguageStore()
-    return { texts, languageStore }
+    const userStore = useUserStore()
+    return { texts, languageStore, userStore }
   },
   mounted(): void {
     this.updateStats()
@@ -68,7 +69,7 @@ export default {
       ]
     },
     handleStatClick(stat: StatItem): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({ url: '/pagesMember/auth/login/login' })
         return
       }

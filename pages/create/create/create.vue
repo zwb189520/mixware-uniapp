@@ -30,7 +30,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useLanguageStore } from '@/stores/index.ts'
+import { onLoad, onShow } from '@dcloudio/uni-app'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import { createSession } from '@/api/session.ts'
 import type { CreateTexts } from '@/types/language.ts'
 
@@ -43,6 +44,7 @@ interface Tool {
 }
 
 const languageStore = useLanguageStore()
+const userStore = useUserStore()
 const statusBarHeight = ref(0)
 const isNavigating = ref(false)
 
@@ -97,7 +99,7 @@ const getCardPositionClass = (index: number): string => {
 const handleToolClick = async (tool: Tool): Promise<void> => {
   if (isNavigating.value) return
 
-  const isLoggedIn = uni.getStorageSync('isLoggedIn')
+  const isLoggedIn = userStore.isLoggedIn
   if (!isLoggedIn) {
     uni.navigateTo({ url: '/pagesMember/auth/login/login' })
     return

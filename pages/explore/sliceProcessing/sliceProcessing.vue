@@ -133,7 +133,10 @@ export default {
     if (options.dimensions) {
       try {
         this.originalDimensions = JSON.parse(decodeURIComponent(options.dimensions))
-      } catch (e) {}
+      } catch {
+        this.originalDimensions = { x: 0, y: 0, z: 0 }
+        console.warn('解析模型尺寸失败，使用默认值')
+      }
     }
 
     this.scalePercent = parseFloat(options.scalePercent) || 100

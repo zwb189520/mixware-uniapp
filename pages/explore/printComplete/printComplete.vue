@@ -72,7 +72,7 @@
 
 <script lang="ts">
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import { get } from '@/api/request.ts'
 import { getPrintRecords } from '@/api/operationRecords.ts'
 import { getUserInfo } from '@/api/users.ts'
@@ -114,6 +114,9 @@ export default {
   computed: {
     languageStore(): any {
       return useLanguageStore()
+    },
+    userStore(): any {
+      return useUserStore()
     },
     texts(): any {
       return this.languageStore.texts.explore
@@ -192,7 +195,7 @@ export default {
 
     async loadUserInfo(): Promise<void> {
       try {
-        const userId = uni.getStorageSync('userId') || uni.getStorageSync('id')
+        const userId = this.userStore.userId
 
         if (!userId) {
           console.log('未找到用户ID，使用默认信息')

@@ -113,6 +113,7 @@ import SafeArea from '@/components/safe-area/safe-area.vue'
 import { useLanguageStore } from '@/stores/index.ts'
 import { createPost } from '@/api/community'
 import { uploadFile } from '@/api/request'
+import { API } from '@/constants/index.ts'
 
 interface PostForm {
   title: string
@@ -259,7 +260,7 @@ export default {
             if (uploadRes.code === 1 && uploadRes.data) {
               let uploadedUrl = uploadRes.data.url || uploadRes.data.fileUrl
               if (!uploadedUrl && uploadRes.data.originalFileName) {
-                uploadedUrl = `http://app.mixwarebot.cn:9000/image/${uploadRes.data.originalFileName}`
+                uploadedUrl = `${API.UPLOAD_IMAGE_URL}/${uploadRes.data.originalFileName}`
               }
               console.log('上传成功，URL:', uploadedUrl)
               uploadedImageUrls.push(uploadedUrl)

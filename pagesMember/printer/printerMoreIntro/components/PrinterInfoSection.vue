@@ -41,7 +41,9 @@ interface DeviceInfoData {
   snCode: string
   deviceId: string
   bindTime: string
-  [key: string]: any
+  status?: string
+  model?: string
+  firmware?: string
 }
 
 export default {

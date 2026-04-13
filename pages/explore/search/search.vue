@@ -84,7 +84,7 @@ import WaterfallLayout from '@/components/waterfall-layout/waterfall-layout.vue'
 import SafeArea from '@/components/safe-area/safe-area.vue'
 import { getModelPage } from '@/api/models.ts'
 import { getHotExamples } from '@/api/session.ts'
-import { useExploreStore } from '@/stores/index.ts'
+import { useExploreStore, useUserStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
 
@@ -150,11 +150,13 @@ export default {
   setup() {
     const exploreStore = useExploreStore()
     const languageStore = useLanguageStore()
+    const userStore = useUserStore()
     const { hotTags: storeHotTags } = storeToRefs(exploreStore)
 
     return {
       exploreStore,
       languageStore,
+      userStore,
       storeHotTags
     }
   },
@@ -184,7 +186,7 @@ export default {
     },
 
     async loadHotTags(): Promise<void> {
-      if (!uni.getStorageSync('isLoggedIn')) return
+      if (!this.userStore.isLoggedIn) return
       try {
         if (this.storeHotTags && this.storeHotTags.length > 0) {
           this.hotTags = this.storeHotTags
@@ -338,7 +340,7 @@ export default {
     },
 
     handleModelClick(item: ModelItem): void {
-      if (!uni.getStorageSync('isLoggedIn')) {
+      if (!this.userStore.isLoggedIn) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
         })

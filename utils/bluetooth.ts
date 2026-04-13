@@ -1,11 +1,27 @@
-interface BluetoothDevice {
-  deviceId: string
-  name?: string
-  localName?: string
-  RSSI?: number
-  advertisData?: ArrayBuffer
-  advertisServiceUUIDs?: string[]
-  displayName?: string
+import type {
+  BluetoothDevice,
+  GetBluetoothDevicesResult,
+  BluetoothError,
+  BLECharacteristicValueChangeResult,
+  WiFiListItem,
+  SetBLEMTUResult,
+  BluetoothSuccessResult,
+  WiFiInfo
+} from '@/types/bluetooth.d'
+
+interface LocalGetBLEDeviceCharacteristicsResult {
+  characteristics: Array<{
+    uuid: string
+    properties: {
+      read?: boolean
+      write?: boolean
+      writeNoResponse?: boolean
+      notify?: boolean
+      indicate?: boolean
+    }
+  }>
+  errMsg: string
+  errCode?: number
 }
 
 export function initBluetooth(): Promise<unknown> {
@@ -48,21 +64,21 @@ export function stopBluetoothScan(): Promise<unknown> {
 export function getBluetoothDevices(boundDevices: BluetoothDevice[] = []): Promise<BluetoothDevice[]> {
   return new Promise((resolve, reject) => {
     uni.getBluetoothDevices({
-      success: (res: any) => {
+      success: (res: GetBluetoothDevicesResult) => {
         const devices = res.devices || []
         console.log('所有蓝牙设备:', devices)
 
-        const processedDevices = devices.map((device: any) => ({
+        const processedDevices = devices.map((device: BluetoothDevice) => ({
           ...device,
           displayName: device.name || device.localName || device.deviceId || '未知设备'
         }))
 
-        const wgDevices = processedDevices.filter((device: any) => {
+        const wgDevices = processedDevices.filter((device: BluetoothDevice) => {
           const name = device.name || device.localName || ''
           return name.toUpperCase().startsWith('WG')
         })
 
-        const unboundWgDevices = wgDevices.filter((device: any) => {
+        const unboundWgDevices = wgDevices.filter((device: BluetoothDevice) => {
           return !boundDevices.some(boundDevice => boundDevice.deviceId === device.deviceId)
         })
 
@@ -205,7 +221,7 @@ function writeInChunks(
           offset = end
           setTimeout(writeNext, interval)
         },
-        fail: (err: any) => {
+        fail: (err: BluetoothError) => {
           console.error('分包写入失败:', err)
           reject(err)
         }
@@ -291,7 +307,7 @@ export const requestWifiPermission = (): Promise<void> => {
               '应用需要 WiFi 和定位权限才能扫描 WiFi 网络。权限已被拒绝，请在系统设置中手动开启权限。',
             confirmText: '去设置',
             cancelText: '取消',
-            success: (res: any) => {
+            success: (res: { confirm: boolean }) => {
               if (res.confirm) {
                 // 打开应用设置页面
                 plus.runtime.openURL('app-settings://')
@@ -324,7 +340,7 @@ export const requestWifiPermission = (): Promise<void> => {
                         reject(error)
                       }
                     },
-                    (err: any) => {
+                    (err: Error) => {
                       reject(err)
                     }
                   )
@@ -348,9 +364,9 @@ export const requestWifiPermission = (): Promise<void> => {
           }
         }
       },
-      (err: any) => {
+      (err: Error) => {
         console.error('请求 WiFi 权限失败:', err)
-        reject(new Error('请求 WiFi 权限失败: ' + (err.message || err)))
+        reject(new Error('请求 WiFi 权限失败: ' + err.message))
       }
     )
     // #endif
@@ -421,11 +437,11 @@ export const initWifi = (): Promise<unknown> => {
     }
 
     uni.startWifi({
-      success: (res: any) => {
+      success: (res: BluetoothSuccessResult) => {
         console.log('WiFi 模块初始化成功', res)
         resolve(res)
       },
-      fail: (err: any) => {
+      fail: (err: BluetoothError) => {
         console.error('WiFi 模块初始化失败', err)
         reject(err)
       }
@@ -452,7 +468,7 @@ export const getWifiList = (): Promise<unknown[]> => {
     }
 
     // 定义监听器函数（用于后续清理）
-    let wifiListListener: any = null
+    let wifiListListener: ((res: { wifiList: WiFiListItem[] }) => void) | null = null
     let isResolved = false // 防止重复 resolve
 
     // 清理监听器的函数
@@ -471,21 +487,25 @@ export const getWifiList = (): Promise<unknown[]> => {
     }
 
     // 先设置监听器（uni-wifi 插件要求监听器在 getWifiList 之前设置）
-    wifiListListener = (res: any) => {
-      if (isResolved) return // 防止重复处理
+    wifiListListener = (res: { wifiList: Array<{ SSID?: string; ssid?: string; signalStrength?: number; signal?: number }> }) => {
+      if (isResolved) return
       isResolved = true
       console.log('扫描到的 WiFi 列表', res.wifiList)
-      cleanup() // 立即清理监听器
-      resolve(res.wifiList || [])
+      cleanup()
+      const mappedList: WiFiListItem[] = (res.wifiList || []).map(wifi => ({
+        ssid: wifi.SSID || wifi.ssid || '',
+        signal: wifi.signalStrength || wifi.signal || 0
+      }))
+      resolve(mappedList)
     }
 
     // 注册监听器（在调用 getWifiList 之前）
     if (typeof uni.onGetWifiList === 'function') {
       try {
-        uni.onGetWifiList(wifiListListener)
+        ;(uni.onGetWifiList as (callback: typeof wifiListListener) => void)(wifiListListener)
       } catch (e) {
         console.error('注册 WiFi 列表监听器失败:', e)
-        reject(new Error('注册 WiFi 列表监听器失败: ' + ((e as any).message || e)))
+        reject(new Error('注册 WiFi 列表监听器失败: ' + ((e as Error).message || String(e))))
         return
       }
     } else {
@@ -513,7 +533,7 @@ export const getWifiList = (): Promise<unknown[]> => {
           clearTimeout(timeoutTimer)
         }
       },
-      fail: (err: any) => {
+      fail: (err: BluetoothError) => {
         console.error('获取 WiFi 列表失败', err)
         clearTimeout(timeoutTimer)
         cleanup()
@@ -540,13 +560,13 @@ export const connectWifi = ({ SSID, BSSID, password }: { SSID: string; BSSID?: s
 
     uni.connectWifi({
       SSID,
-      BSSID, // 安卓需要
-      password, // 如果 WiFi 有密码
-      success: (res: any) => {
+      BSSID,
+      password,
+      success: (res: BluetoothSuccessResult) => {
         console.log(`连接 WiFi 成功: ${SSID}`, res)
         resolve(res)
       },
-      fail: (err: any) => {
+      fail: (err: BluetoothError) => {
         console.error(`连接 WiFi 失败: ${SSID}`, err)
         reject(err)
       }
@@ -566,13 +586,12 @@ export const stopWifi = (): Promise<void> => {
     }
 
     uni.stopWifi({
-      success: (res: any) => {
+      success: (res: BluetoothSuccessResult) => {
         console.log('WiFi 模块已关闭', res)
-        resolve(res)
+        resolve()
       },
-      fail: (err: any) => {
+      fail: (err: BluetoothError) => {
         console.warn('关闭 WiFi 模块失败', err)
-        // 不 reject，静默处理
         resolve()
       }
     })
@@ -592,19 +611,18 @@ export function getConnectedWifiInfo(): Promise<unknown> {
     // #ifdef APP-PLUS
 
     uni.startWifi({
-      success: () => {
+      success() {
         uni.getConnectedWifi({
-          success(res: any) {
-            // res.wifi 是当前连接的 wifi info（不同平台字段略有差异）
+          success(res: { wifi: WiFiInfo }) {
             resolve(res.wifi || null)
           },
-          fail(err: any) {
+          fail(err: BluetoothError) {
             console.error('getConnectedWifi fail:', err)
             reject(err)
           }
         })
       },
-      fail(err: any) {
+      fail(err: BluetoothError) {
         console.error('startWifi fail:', err)
         reject(err)
       }
@@ -631,10 +649,10 @@ export function subscribeToWiFiList(deviceId: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let accumulatedData = ''
     let lastReceiveTime = Date.now()
-    let receiveTimeoutId: any = null
+    let receiveTimeoutId: ReturnType<typeof setTimeout> | null = null
     let isResolved = false
 
-    const cleanup = (globalTimeoutId: any): void => {
+    const cleanup = (globalTimeoutId: ReturnType<typeof setTimeout> | null): void => {
       if (receiveTimeoutId) {
         clearTimeout(receiveTimeoutId)
         receiveTimeoutId = null
@@ -647,7 +665,7 @@ export function subscribeToWiFiList(deviceId: string): Promise<unknown> {
       }
     }
 
-    const onCharacteristicChange = (res: any): void => {
+    const onCharacteristicChange = (res: BLECharacteristicValueChangeResult): void => {
       if (isResolved) return
       try {
         const wifiData = ab2str(res.value)
@@ -659,7 +677,7 @@ export function subscribeToWiFiList(deviceId: string): Promise<unknown> {
         if (!receiveTimeoutId) {
           receiveTimeoutId = setTimeout(checkReceiveComplete, 800)
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.log('解析异常:', error)
       }
     }
@@ -669,7 +687,7 @@ export function subscribeToWiFiList(deviceId: string): Promise<unknown> {
       if (Date.now() - lastReceiveTime >= 1000 && accumulatedData.length > 0) {
         isResolved = true
         try {
-          let wifiList: any[] = []
+          let wifiList: WiFiListItem[] = []
           if (accumulatedData.includes('#split#') && accumulatedData.includes('#endsplit')) {
             const startIndex = accumulatedData.indexOf('#split#') + 7
             const endIndex = accumulatedData.indexOf('#endsplit')
@@ -694,16 +712,16 @@ export function subscribeToWiFiList(deviceId: string): Promise<unknown> {
                   signal: parts[1] ? parseInt(parts[1]) : 0
                 }
               })
-              .filter((item: any) => item.ssid)
+              .filter((item: WiFiListItem) => item.ssid)
           }
           cleanup(timeoutId)
           resolve(wifiList)
-        } catch (error: any) {
+        } catch (error: unknown) {
           cleanup(timeoutId)
           resolve([])
         }
       } else {
-        receiveTimeoutId = setTimeout(checkReceiveComplete, 300) as any
+        receiveTimeoutId = setTimeout(checkReceiveComplete, 300)
       }
     }
 
@@ -729,10 +747,10 @@ export function subscribeToWiFiList(deviceId: string): Promise<unknown> {
           deviceId,
           serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
           characteristicId: '00002AD2-0000-1000-8000-00805F9B34FB',
-          value: requestBuffer
+          value: requestBuffer.buffer as ArrayBuffer
         })
       },
-      fail: (error: any) => {
+      fail: (error: BluetoothError) => {
         isResolved = true
         cleanup(timeoutId)
         reject(error)
@@ -746,11 +764,11 @@ export function sendWiFiConfig(deviceId: string, serverUrl: string, ssid: string
     uni.getBLEDeviceCharacteristics({
       deviceId,
       serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-      success: (res: any) => {
+      success: (res: LocalGetBLEDeviceCharacteristicsResult) => {
         console.log('设备特征值:', res.characteristics)
 
         const writeCharacteristic = res.characteristics.find(
-          (c: any) => c.uuid.includes('2AD2') && (c.properties.write || c.properties.writeNoResponse)
+          (c) => c.uuid.includes('2AD2') && (c.properties.write || c.properties.writeNoResponse)
         )
 
         if (!writeCharacteristic) {
@@ -777,13 +795,13 @@ export function sendWiFiConfig(deviceId: string, serverUrl: string, ssid: string
                 uni.setBLEMTU({
                   deviceId: deviceId,
                   mtu: 512,
-                  success: (mtuRes: any) => {
+                  success: (mtuRes: SetBLEMTUResult) => {
                     console.log('MTU设置成功:', mtuRes)
                     mtuResolve()
                   },
-                  fail: (mtuErr: any) => {
+                  fail: (mtuErr: BluetoothError) => {
                     console.log('MTU设置失败或不支持:', mtuErr)
-                    mtuResolve() // 失败也继续，不阻塞
+                    mtuResolve()
                   }
                 })
               })
@@ -858,45 +876,44 @@ export function sendWiFiConfig(deviceId: string, serverUrl: string, ssid: string
                 console.log('配网结束命令发送成功')
 
                 resolve()
-              } catch (err: any) {
+              } catch (err: unknown) {
                 console.error('发送失败:', err)
-                reject(new Error(`发送失败: ${err.errMsg || err.message}`))
+                const error = err as BluetoothError
+                reject(new Error(`发送失败: ${error.errMsg || String(err)}`))
               }
             }, 500)
           },
-          fail: (err: any) => {
+          fail: (err: BluetoothError) => {
             console.error('启用通知失败:', err)
-            reject(new Error(`启用通知失败: ${err.errMsg || err.message}`))
+            reject(new Error(`启用通知失败: ${err.errMsg}`))
           }
         })
       },
-      fail: (err: any) => {
+      fail: (err: BluetoothError) => {
         console.error('获取特征值失败:', err)
-        reject(new Error(`获取特征值失败: ${err.errMsg || err.message}`))
+        reject(new Error(`获取特征值失败: ${err.errMsg}`))
       }
     })
   })
 }
 
-export function subscribeToConfigResult(deviceId: string): Promise<any> {
+export function subscribeToConfigResult(deviceId: string): Promise<{ success: boolean; message: string }> {
   return new Promise((resolve, reject) => {
-    let timeoutId: any
+    let timeoutId: ReturnType<typeof setTimeout>
     let isResolved = false
 
-    // 统一清理函数：清除超时并移除 BLE 监听器
     const cleanup = () => {
       if (timeoutId) {
         clearTimeout(timeoutId)
-        timeoutId = null as any
+        timeoutId = null as unknown as ReturnType<typeof setTimeout>
       }
       try {
         uni.offBLECharacteristicValueChange(resultHandler)
       } catch (e) {
-        // 部分平台不支持传入 callback 参数，忽略
       }
     }
 
-    const resultHandler = (res: any): void => {
+    const resultHandler = (res: BLECharacteristicValueChangeResult): void => {
       if (isResolved) return
       try {
         const resultData = ab2str(res.value)
@@ -955,9 +972,8 @@ export function subscribeToConfigResult(deviceId: string): Promise<any> {
         console.log('配网结果通知已启用 (0x2AD4)')
         uni.onBLECharacteristicValueChange(resultHandler)
       },
-      fail: (err: any) => {
+      fail: (err: BluetoothError) => {
         console.error('启用配网结果通知失败 (0x2AD4):', err)
-        // 降级尝试 0x2AD3
         uni.notifyBLECharacteristicValueChange({
           deviceId,
           serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
@@ -967,13 +983,13 @@ export function subscribeToConfigResult(deviceId: string): Promise<any> {
             console.log('配网结果通知已启用 (0x2AD3)')
             uni.onBLECharacteristicValueChange(resultHandler)
           },
-          fail: (err2: any) => {
+          fail: (err2: BluetoothError) => {
             console.error('启用配网结果通知失败 (0x2AD3):', err2)
             isResolved = true
             cleanup()
             reject(
               new Error(
-                `启用配网结果通知失败: ${err.errMsg || err.message}, 备用: ${err2.errMsg || err2.message}`
+                `启用配网结果通知失败: ${err.errMsg}, 备用: ${err2.errMsg}`
               )
             )
           }

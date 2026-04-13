@@ -61,23 +61,22 @@ interface ApiRes {
   data?: Record<string, unknown>
 }
 
-function _syncLoginToStore(userInfo: UserInfo, token: unknown): void {
+function handleLoginSuccess(data: Record<string, unknown> | undefined, email?: string): void {
+  if (!data) return
+  const { token, userId, username, avatarUrl, id, accountStatus, birthday } = data
   const userStore = useUserStore()
-  userStore.setToken(String(token ?? ''))
-  userStore.setUserInfo(userInfo)
-
-  if (userInfo.userId) uni.setStorageSync('userId', userInfo.userId)
-  if (userInfo.id) uni.setStorageSync('id', userInfo.id)
-  if (userInfo.username) uni.setStorageSync('username', userInfo.username)
-  if (userInfo.email) uni.setStorageSync('email', userInfo.email)
-  if (userInfo.accountStatus !== undefined)
-    uni.setStorageSync('accountStatus', userInfo.accountStatus)
-  uni.setStorageSync('isLoggedIn', true)
-
-  uni.$emit('userLogin', userInfo)
+  userStore.login(String(token ?? ''), {
+    userId: userId as number | undefined,
+    id: id as number | undefined,
+    username: username as string | undefined,
+    nickname: username as string | undefined,
+    avatar: avatarUrl as string | undefined,
+    email: email,
+    accountStatus: accountStatus as number | undefined,
+    birthday: birthday as string | undefined
+  })
 }
 
-// 定义userInfoDTO的类型
 export interface UserInfoDTO {
   userId?: number
   id?: number
@@ -97,7 +96,6 @@ export function updateUserStatus(userId: number, accountStatus: number) {
   return putWithQuery(`/users/status/${userId}`, {}, { accountStatus })
 }
 
-// 定义thirdPartyLoginDTO的类型
 export interface ThirdPartyLoginDTO {
   email?: string
   password?: string
@@ -137,24 +135,9 @@ export function loginByCodeWithHandler(email: string, verificationCode: string):
   return post('/users/loginByCode', { email, verificationCode }).then(res => {
     const r = res as ApiRes
     if (!r.data) {
-      throw new Error(r.msg || '????')
+      throw new Error(r.msg || '登录失败')
     }
-    const { token, userId, username, avatarUrl, id, accountStatus, birthday } = r.data
-
-    let finalAvatarUrl = (avatarUrl as string) || '/static/images/Default avatar.png'
-    if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
-
-    const userInfo: UserInfo = {
-      userId: userId as number | undefined,
-      id: id as number | undefined,
-      username: username as string | undefined,
-      nickname: username as string | undefined,
-      avatar: finalAvatarUrl,
-      email,
-      accountStatus: accountStatus as number | undefined,
-      birthday: birthday as string | undefined
-    }
-    _syncLoginToStore(userInfo, token)
+    handleLoginSuccess(r.data, email)
     return res
   })
 }
@@ -198,7 +181,7 @@ export function sendVerificationCodeWithHandler(email: string): Promise<unknown>
   return post('/users/sendVerificationCode', { email }).then(res => {
     const r = res as ApiRes
     if (r.code !== 1 && r.code !== 200) {
-      throw new Error(r.msg || texts.sendCodeFailed || '???????')
+      throw new Error(r.msg || texts.sendCodeFailed || '发送验证码失败')
     }
     return res
   })
@@ -208,22 +191,9 @@ export function loginWithPassword(email: string, password: string): Promise<unkn
   return post('/users/login', { email, password }).then(res => {
     const r = res as ApiRes
     if (!r.data) {
-      throw new Error(r.msg || '?????')
+      throw new Error(r.msg || '登录失败')
     }
-    const { token, userId, username, avatarUrl, birthday } = r.data
-
-    let finalAvatarUrl = (avatarUrl as string) || '/static/images/Default avatar.png'
-    if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
-
-    const userInfo: UserInfo = {
-      userId: userId as number | undefined,
-      username: username as string | undefined,
-      nickname: username as string | undefined,
-      avatar: finalAvatarUrl,
-      email,
-      birthday: birthday as string | undefined
-    }
-    _syncLoginToStore(userInfo, token)
+    handleLoginSuccess(r.data, email)
     return res
   })
 }
@@ -233,29 +203,18 @@ export function registerWithHandler(registerData: RegisterDTO): Promise<unknown>
   const texts = languageStore.texts.login || {}
 
   const errorCodeMap: Record<number, string> = {
-    100209: texts.emailExists || '?????',
-    100210: texts.codeError || '?????',
-    100211: texts.codeExpired || '??????'
+    100209: texts.emailExists || '邮箱已存在',
+    100210: texts.codeError || '验证码错误',
+    100211: texts.codeExpired || '验证码已过期'
   }
 
   return post('/users/register', registerData).then(res => {
     const r = res as ApiRes
     if (r.code !== 1 && r.code !== 200) {
-      const errorMsg = errorCodeMap[r.code ?? 0] || r.msg || texts.registerFailed || '????'
+      const errorMsg = errorCodeMap[r.code ?? 0] || r.msg || texts.registerFailed || '注册失败'
       throw new Error(errorMsg)
     }
-    const { token, userId, username, avatarUrl } = r.data ?? {}
-
-    let finalAvatarUrl = (avatarUrl as string) || '/static/images/Default avatar.png'
-    if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
-
-    const userInfo: UserInfo = {
-      userId: userId as number | undefined,
-      username: username as string | undefined,
-      nickname: registerData.username || (username as string | undefined),
-      avatar: finalAvatarUrl
-    }
-    _syncLoginToStore(userInfo, token)
+    handleLoginSuccess(r.data, registerData.email)
     return res
   })
 }
@@ -267,18 +226,11 @@ export function deleteUser(userId: number): Promise<unknown> {
 export function thirdPartyLoginWithHandler(platform: string, code: string, extraData: Record<string, unknown> = {}): Promise<unknown> {
   return post('/users/thirdPartyLogin', { platform, code, ...extraData }).then(res => {
     const r = res as ApiRes
-    const { token, userId, username, avatarUrl } = r.data ?? {}
-
-    let finalAvatarUrl = (avatarUrl as string) || (extraData.avatarUrl as string) || '/static/images/Default avatar.png'
-    if (finalAvatarUrl.startsWith('blob:')) finalAvatarUrl = '/static/images/Default avatar.png'
-
-    const userInfo: UserInfo = {
-      userId: userId as number | undefined,
-      username: username as string | undefined,
-      nickname: (username as string | undefined) || (extraData.nickname as string | undefined),
-      avatar: finalAvatarUrl
-    }
-    _syncLoginToStore(userInfo, token)
+    handleLoginSuccess({
+      ...r.data,
+      avatarUrl: r.data?.avatarUrl || extraData.avatarUrl,
+      username: r.data?.username || extraData.nickname
+    })
     return res
   })
 }

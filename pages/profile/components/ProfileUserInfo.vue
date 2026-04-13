@@ -31,16 +31,15 @@
 </template>
 
 <script lang="ts">
-import { useLanguage } from '@/composables'
 import { useUser } from '@/composables'
 import { getFollowingList, getFollowersList } from '@/api/community'
-import { useLanguageStore } from '@/stores/index.ts'
+import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 import { computed } from 'vue'
 
 interface UserInfo {
   nickname: string
   avatar: string
-  userId?: string
+  userId?: string | number
 }
 
 export default {
@@ -57,12 +56,14 @@ export default {
   },
   setup() {
     const { isLoggedIn, checkLoginStatus, setUserInfo } = useUser()
+    const userStore = useUserStore()
 
     return {
       texts: computed(() => useLanguageStore().texts.profile),
       isLoggedIn,
       checkLoginStatus,
-      setUserInfo
+      setUserInfo,
+      userStore
     }
   },
   mounted(): void {
@@ -115,7 +116,7 @@ export default {
       this.checkLoginStatus()
 
       if (this.isLoggedIn) {
-        const storedUserInfo = uni.getStorageSync('userInfo') || {}
+        const storedUserInfo = this.userStore.userInfo || {}
 
         if (storedUserInfo && Object.keys(storedUserInfo).length > 0) {
           let avatarUrl = storedUserInfo.avatar || '/static/images/Default avatar.png'
@@ -125,7 +126,11 @@ export default {
             this.setUserInfo(storedUserInfo)
           }
 
-          this.userInfo = { ...storedUserInfo }
+          this.userInfo = {
+            nickname: storedUserInfo.nickname || '用户昵称',
+            avatar: storedUserInfo.avatar || '/static/images/Default avatar.png',
+            userId: storedUserInfo.userId
+          }
           this.loadFollowStats()
         } else {
           this.resetUserInfo()
@@ -136,7 +141,7 @@ export default {
     },
 
     async loadFollowStats(): Promise<void> {
-      const userId = this.userInfo.userId || uni.getStorageSync('userInfo')?.userId
+      const userId = String(this.userInfo.userId || this.userStore.userId || '')
       if (!userId) return
 
       try {
@@ -157,7 +162,7 @@ export default {
     },
 
     goToFollowList(tab: string): void {
-      const userId = this.userInfo.userId || uni.getStorageSync('userInfo')?.userId
+      const userId = String(this.userInfo.userId || this.userStore.userId || '')
       if (!userId) return
 
       uni.navigateTo({
