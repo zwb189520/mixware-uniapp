@@ -81,16 +81,16 @@
         </view>
         <view class="device-row" style="margin-top: 16rpx">
           <text class="device-label">{{ texts.printedTime || '已打印时间' }}</text>
-          <text class="device-value">{{ formatTime(estimatedPrintTimeSeconds) || '0分钟' }}</text>
+          <text class="device-value">{{ formatTime(estimatedPrintTimeSeconds) }}</text>
         </view>
         <view class="device-row" style="margin-top: 12rpx">
           <text class="device-label">{{ texts.estimatedTotalTime || '预计总耗时（约）' }}</text>
-          <text class="device-value">{{ printTimeHms || '未知' }}</text>
+          <text class="device-value">{{ printTimeHms || (texts.unknown || '未知') }}</text>
         </view>
         <view class="device-row" style="margin-top: 12rpx">
           <text class="device-label">{{ texts.estimatedFilament || '预计耗材' }}</text>
           <text class="device-value"
-            >{{ filamentLengthM ? Number(filamentLengthM).toFixed(2) : '0.00' }} 米</text
+            >{{ filamentLengthM ? Number(filamentLengthM).toFixed(2) : '0.00' }} {{ texts.meter || '米' }}</text
           >
         </view>
         <!-- 控制按钮 -->
@@ -619,7 +619,7 @@ export default {
       this.stopStatusPolling()
       const printTimeStr = this.printTimeHms || this.printTime || ''
       const materialStr = this.filamentLengthM
-        ? `${Number(this.filamentLengthM).toFixed(2)}米`
+        ? `${Number(this.filamentLengthM).toFixed(2)}${this.texts.meter || '米'}`
         : this.materialWeight || ''
       uni.navigateTo({
         url: `/pages/explore/printComplete/printComplete?modelId=${encodeURIComponent(this.workId || '')}&modelName=${encodeURIComponent(this.modelName || '')}&modelImage=${encodeURIComponent(this.modelImage || '/static/images/logo.png')}&printTime=${encodeURIComponent(printTimeStr)}&material=${encodeURIComponent(materialStr)}&size=${encodeURIComponent(this.modelDimensions || '')}`
@@ -633,13 +633,14 @@ export default {
     },
 
     formatTime(seconds: number): string {
-      if (!seconds || seconds <= 0) return '0分钟'
+      const texts = this.texts
+      if (!seconds || seconds <= 0) return '0' + (texts.minutes || '分钟')
       const hours = Math.floor(seconds / 3600)
       const minutes = Math.floor((seconds % 3600) / 60)
       const secs = Math.floor(seconds % 60)
-      if (hours > 0) return `${hours}小时${minutes}分${secs}秒`
-      if (minutes > 0) return `${minutes}分${secs}秒`
-      return `${secs}秒`
+      if (hours > 0) return `${hours}${texts.hours || '小时'}${minutes}${texts.minutes?.replace(/s$/, '') || '分'}${secs}${texts.seconds || '秒'}`
+      if (minutes > 0) return `${minutes}${texts.minutes?.replace(/s$/, '') || '分'}${secs}${texts.seconds || '秒'}`
+      return `${secs}${texts.seconds || '秒'}`
     },
 
     parseDuration(durationStr: string): number {

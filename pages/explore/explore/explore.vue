@@ -226,6 +226,7 @@ import { parseSnCode } from '@/api/devices.ts'
 import { useExploreStore, useUserStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
 import { useLanguageStore } from '@/stores/index.ts'
+import { API } from '@/constants/index.ts'
 
 type ExploreStore = ReturnType<typeof useExploreStore>
 type LanguageStore = ReturnType<typeof useLanguageStore>
@@ -256,14 +257,20 @@ interface ApiResponse<T = unknown> {
 }
 
 interface ModelRecord {
-  id: string | number
+  id?: string | number
+  modelId?: string | number
   name?: string
   describe?: string
   title?: string
   previewUrl?: string
   userName?: string
+  username?: string
   userAvatar?: string
+  avatarUrl?: string
+  authorAvatar?: string
+  author?: string
   likes?: number
+  likeCount?: number
   isLiked?: boolean
   viewCount?: number
   category?: string
@@ -396,9 +403,10 @@ export default {
     uni.$on('postDeleted', () => {
       this.loadModels()
     })
-    uni.$on('modelLikeChanged', (data: ModelLikeChangedData) => {
-      if (data && data.modelId) {
-        this.exploreStore.updateModelLike(data.modelId, data.isLiked, data.likes)
+    uni.$on('modelLikeChanged', (data: unknown) => {
+      const likeData = data as ModelLikeChangedData
+      if (likeData && likeData.modelId) {
+        this.exploreStore.updateModelLike(likeData.modelId, likeData.isLiked, likeData.likes)
       }
     })
   },
@@ -538,7 +546,7 @@ export default {
         if (res.code === 1 && res.data && res.data.records) {
           this.assignModelsToTabs(res.data.records)
         }
-      } catch (error: unknown) {
+        } catch (error: unknown) {
         console.error('获取模型列表失败:', error)
       } finally {
         this.exploreStore.setLoading(false)
@@ -576,20 +584,22 @@ export default {
         return url
       }
 
-      const formattedModels: ModelItem[] = models.map((model) => ({
-        id: model.id,
-        name: model.name || '未命名模型',
-        desc: model.name || model.describe || '暂无描述',
-        image: fixImageUrl(model.previewUrl || ''),
-        author: model.userName || '',
-        authorAvatar: model.userAvatar
-          ? fixImageUrl(model.userAvatar)
-          : '/static/images/Default avatar.png',
-        likes: model.likes || 0,
-        isLiked: model.isLiked || false,
-        viewCount: model.viewCount || 0,
-        category: this.mapCategoryToTab(model.category || '')
-      }))
+      const formattedModels: ModelItem[] = models
+        .filter((model) => model.modelId || model.id)
+        .map((model) => ({
+          id: (model.modelId || model.id) as string | number,
+          name: model.name || '未命名模型',
+          desc: model.name || model.describe || '暂无描述',
+          image: fixImageUrl(model.previewUrl || ''),
+          author: model.userName || model.username || model.author || '',
+          authorAvatar: (model.userAvatar || model.avatarUrl || model.authorAvatar)
+            ? fixImageUrl(model.userAvatar || model.avatarUrl || model.authorAvatar || '')
+            : '/static/images/Default avatar.png',
+          likes: model.likes || model.likeCount || 0,
+          isLiked: model.isLiked || false,
+          viewCount: model.viewCount || 0,
+          category: this.mapCategoryToTab(model.category || '')
+        }))
 
       const tabData = {
         daily: formattedModels.filter((m: ModelItem) => m.category === 'daily'),
@@ -670,8 +680,9 @@ export default {
               .replace('api/uploads/image', '9000/image')
           }
 
+          console.log('API返回的模型数据:', res.data.records)
           const formattedModels: ModelItem[] = res.data.records.map((model: any) => ({
-            id: model.modelId,
+            id: model.modelId || model.id,
             name: model.name || '未命名模型',
             desc: model.description || model.name || '暂无描述',
             image: fixImageUrl(model.previewUrl),
@@ -774,6 +785,10 @@ export default {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
         })
+        return
+      }
+      if (!item.id) {
+        uni.showToast({ title: '模型ID无效', icon: 'none' })
         return
       }
       uni.navigateTo({

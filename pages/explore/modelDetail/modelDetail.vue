@@ -183,6 +183,7 @@ import {
 } from '@/api/models.ts'
 import { getPostList, toggleLike, checkLikeStatus } from '@/api/community.ts'
 import { useLanguageStore, useUserStore } from '@/stores/index.ts'
+import { API } from '@/constants/index.ts'
 
 interface ModelInfo {
   id: string
@@ -272,10 +273,13 @@ export default {
     }
   },
   onLoad(options: any): void {
+    console.log('onLoad options:', options)
     this.languageStore.loadLanguage()
-    if (options.id) {
-      this.modelId = options.id
-      this.loadModelDetail(options.id)
+    const modelId = options.id || options.modelId
+    console.log('modelId:', modelId, 'type:', typeof modelId)
+    if (modelId && String(modelId) !== 'undefined' && String(modelId) !== 'null') {
+      this.modelId = modelId
+      this.loadModelDetail(modelId)
     } else {
       uni.showToast({
         title: this.texts.modelIdNotExist,
@@ -286,14 +290,15 @@ export default {
       }, 1500)
     }
 
-    uni.$on('postDeleted', (deletedPostId: string | number) => {
+    uni.$on('postDeleted', () => {
       if (this.modelId) {
         this.refreshShowcaseWorks()
       }
     })
 
-    uni.$on('postCreated', (modelId: string | number) => {
-      if (modelId && String(modelId) === String(this.modelId)) {
+    uni.$on('postCreated', (data: unknown) => {
+      const createdModelId = data as string | number
+      if (createdModelId && String(createdModelId) === String(this.modelId)) {
         this.refreshShowcaseWorks()
       }
     })
@@ -406,11 +411,21 @@ export default {
         }
 
         const data = detailRes.data || {}
+        console.log('API返回数据:', data)
+        console.log('previewUrl:', data.previewUrl)
+        
         const fixImageUrl = (url: string): string => {
           if (!url) return ''
-          return url
-            .replace('localhost:9000', '47.102.212.37:9000')
-            .replace('api/uploads/image', '9000/image')
+          console.log('处理图片URL:', url)
+          // 如果是完整URL，直接返回
+          if (url.startsWith('http://') || url.startsWith('https://')) {
+            console.log('处理后:', url)
+            return url
+          }
+          // 如果是相对路径，拼接IMAGE_URL
+          const result = `${API.IMAGE_URL}${url.startsWith('/') ? url : '/' + url}`
+          console.log('处理后:', result)
+          return result
         }
 
         this.modelInfo = {
@@ -830,8 +845,11 @@ export default {
       return categoryMap[category] || category || ''
     },
 
-    formatPrintTime(timeStr: string): string {
+    formatPrintTime(timeStr: string | number | unknown): string {
       if (!timeStr) return ''
+      if (typeof timeStr !== 'string') {
+        timeStr = String(timeStr)
+      }
 
       if (this.languageStore.language === 'en') {
         const match = timeStr.match(/(\d+)小时(\d+)分钟/)
