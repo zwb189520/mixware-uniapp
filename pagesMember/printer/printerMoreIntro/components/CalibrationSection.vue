@@ -38,10 +38,10 @@ interface CalibrationOption {
 export default {
   name: 'CalibrationSection',
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.printerMoreIntro || {}
     },
     calibrationOptions(): CalibrationOption[] {

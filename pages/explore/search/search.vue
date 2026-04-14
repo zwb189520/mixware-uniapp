@@ -126,11 +126,11 @@ export default {
     placeholder(): string {
       return this.texts.searchPlaceholder || '搜索模型'
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: Record<string, string>): void {
     this.languageStore.loadLanguage()
     this.loadSearchHistory()
     this.loadHotTags()
@@ -180,7 +180,7 @@ export default {
         history = history.slice(0, 10)
         uni.setStorageSync('searchHistory', history)
         this.searchHistory = history
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('保存搜索历史失败:', e)
       }
     },
@@ -193,21 +193,21 @@ export default {
           return
         }
 
-        const res: any = await getHotExamples(20)
+        const res = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
-            this.hotTags = res.data
-              .map((item: any) => item.title || item.describe || '')
+            this.hotTags = (res.data as unknown as Record<string, unknown>[])
+              .map((item: Record<string, unknown>) => (item.title || item.describe || '') as string)
               .filter((tag: string) => tag.trim())
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('加载热门标签失败:', error)
       }
     },
 
-    handleInput(event: any): void {
-      this.localKeyword = event.detail.value
+    handleInput(event: unknown): void {
+      this.localKeyword = (event as { detail: { value: string } }).detail.value
       if (!this.localKeyword.trim()) {
         this.showResults = false
       }
@@ -232,14 +232,14 @@ export default {
       })
 
       try {
-        const res: any = await getModelPage({
+        const res = await getModelPage({
           current: 1,
           size: 20,
           name: keyword
         })
 
         if (res.code === 1 && res.data && res.data.records) {
-          const results = this.formatSearchResults(res.data.records)
+          const results = this.formatSearchResults(res.data.records as unknown as Record<string, unknown>[])
           this.searchResults = results
           this.showResults = true
         } else {
@@ -250,7 +250,7 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('搜索失败:', error)
         uni.showToast({
           title: this.texts.searchFailed || '搜索失败，请稍后重试',
@@ -261,7 +261,7 @@ export default {
       }
     },
 
-    formatSearchResults(models: any[]): SearchResults {
+    formatSearchResults(models: Record<string, unknown>[]): SearchResults {
       const fixImageUrl = (url: string): string => {
         if (!url) return '/static/images/logo.png'
         if (url.includes('localhost:9000')) {
@@ -274,19 +274,19 @@ export default {
       }
 
       const formattedModels: ModelItem[] = models.map(model => ({
-        id: model.modelId,
-        name: model.name || '未命名模型',
-        desc: model.description || model.name || '暂无描述',
-        image: fixImageUrl(model.previewUrl),
+        id: model.modelId as string | number,
+        name: String(model.name || '未命名模型'),
+        desc: String(model.description || model.name || '暂无描述'),
+        image: fixImageUrl(String(model.previewUrl || '')),
         author: model.userId
-          ? `用户_${model.userId.substring(model.userId.length - 6)}`
+          ? `用户_${String(model.userId).substring(String(model.userId).length - 6)}`
           : '匿名用户',
         authorAvatar: model.authorAvatar
-          ? fixImageUrl(model.authorAvatar)
+          ? fixImageUrl(String(model.authorAvatar))
           : '/static/images/Default avatar.png',
-        likes: model.collectCount || 0,
+        likes: (model.collectCount as number) || 0,
         isLiked: false,
-        viewCount: model.viewCount || 0
+        viewCount: (model.viewCount as number) || 0
       }))
 
       const leftList: ModelItem[] = []
@@ -326,7 +326,7 @@ export default {
       uni.showModal({
         title: this.texts.clearHistoryTitle || '确认清除',
         content: this.texts.clearHistoryContent || '确定要清除搜索历史吗？',
-        success: (res: any) => {
+        success: (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             uni.removeStorageSync('searchHistory')
             this.searchHistory = []

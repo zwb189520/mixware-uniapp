@@ -3,7 +3,7 @@ import { generateCacheKey, getCache, clearCache, clearUrlCache, setCache } from 
 import { isNoTokenUrl } from './validators.ts'
 import { handleSuccess, handleError, handleNetworkError } from './errorHandler.ts'
 import { install } from './interceptor.ts'
-import type { ApiResponse } from '@/types/api'
+import type { ApiResponse, RequestData, HttpMethod, ApiError } from '@/types/api'
 import {
   buildUrl,
   appendQueryParams,
@@ -20,10 +20,10 @@ import {
 
 export const BASE_URL = API.BASE_URL
 
-interface RequestOptions {
+interface InternalRequestOptions {
   url?: string
-  method?: string
-  data?: unknown
+  method?: HttpMethod
+  data?: RequestData | string
   header?: Record<string, string>
   showLoading?: boolean
   loadingText?: string
@@ -33,7 +33,6 @@ interface RequestOptions {
   sslVerify?: boolean
   silent?: boolean
   signal?: AbortSignal
-  [key: string]: unknown
 }
 
 const pendingRequests = new Map<string, UniApp.RequestTask>()
@@ -57,7 +56,7 @@ export const generateRequestId = (url: string, method: string): string => {
   return `${method.toUpperCase()}_${url}_${Date.now()}`
 }
 
-export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const request = <T = void>(options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   return new Promise((resolve, reject) => {
     const {
       url,
@@ -67,9 +66,8 @@ export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiR
       cacheTime = API.DEFAULT_CACHE_TIME
     } = options
 
-    // GET请求且启用缓存时，先检查缓存
-    if (method.toUpperCase() === 'GET' && cache) {
-      const cacheKey = generateCacheKey(url ?? '', data as Record<string, unknown>)
+    if (method === 'GET' && cache) {
+      const cacheKey = generateCacheKey(url ?? '', typeof data === 'string' ? {} : data as Record<string, unknown>)
       const cachedData = getCache(cacheKey)
       if (cachedData) {
         console.log('使用缓存数据:', url)
@@ -78,7 +76,6 @@ export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiR
       }
     }
 
-    // 显示加载提示
     if (options.showLoading) {
       uni.showLoading({
         title: options.loadingText || '加载中...',
@@ -86,15 +83,12 @@ export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiR
       })
     }
 
-    // 处理 URL
     let requestUrl = buildUrl(url ?? '', BASE_URL)
 
-    // GET 请求参数拼接到 URL
-    if (method.toUpperCase() === 'GET' && data && Object.keys(data as Record<string, unknown>).length > 0) {
-      requestUrl = appendQueryParams(requestUrl, data as Record<string, unknown>)
+    if (method === 'GET' && data && Object.keys(data).length > 0) {
+      requestUrl = appendQueryParams(requestUrl, typeof data === 'string' ? {} : data)
     }
 
-    // 验证 URL 格式
     if (!isValidUrl(requestUrl)) {
       console.error('无效的请求 URL:', requestUrl)
       if (options.showLoading) {
@@ -104,41 +98,34 @@ export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiR
       return
     }
 
-    // 检查是否为不需要token的接口
     const needToken = !isNoTokenUrl(requestUrl)
-
-    // 获取 token
     const token = getToken(needToken)
 
-    // 卫兵逻辑：如果接口需要 Token 但本地没有
     if (needToken && !token) {
       console.warn('检测到未登录，已拦截强制授权接口:', requestUrl)
       if (options.showLoading) {
         uni.hideLoading()
       }
-      resolve({ code: 401, msg: '未登录', data: undefined })
+      resolve({ code: 401, msg: '未登录' })
       return
     }
 
-    // 合并请求头
     const headers = mergeHeaders(token, options.header)
-
-    // 准备请求数据
     const contentType = (headers['Content-Type'] || '').toLowerCase()
-    let requestData = prepareRequestData(method, data, contentType)
+    const requestDataType = (typeof data === 'string' ? {} : (data ?? {})) as RequestData
+    let requestData = prepareRequestData(method, requestDataType, contentType)
 
-    // 请求日志 + 计时
-    const _timerKey = logRequest(method || 'GET', requestUrl, data)
+    const _timerKey = logRequest(method, requestUrl, data)
 
     const requestConfig = {
       url: requestUrl,
-      method: method || 'GET',
+      method,
       data: requestData,
       header: headers,
       timeout: options.timeout || API.TIMEOUT,
       sslVerify: options.sslVerify !== false,
       signal: options.signal,
-      requestId: options.signal ? undefined : generateRequestId(url ?? '', method || 'GET'),
+      requestId: options.signal ? undefined : generateRequestId(url ?? '', method),
       onAbort: (id: string) => {
         pendingRequests.delete(id)
       }
@@ -148,13 +135,13 @@ export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiR
       .then(res => {
         logResponse(_timerKey, res.statusCode, res.data)
 
-        const successData = handleSuccess(res as any, options, url ?? '', data as Record<string, unknown>, cache, cacheTime)
+        const successData = handleSuccess(res, options, url ?? '', typeof data === 'string' ? {} : data, cache, cacheTime)
         if (successData !== null) {
           resolve(successData as ApiResponse<T>)
           return
         }
 
-        const isHandled = handleError(res as any, options, requestUrl)
+        const isHandled = handleError(res, options, requestUrl)
         if (isHandled) {
           reject(res)
           return
@@ -162,37 +149,37 @@ export const request = <T = unknown>(options: RequestOptions = {}): Promise<ApiR
 
         reject(res)
       })
-      .catch(err => {
-        if ((err as Error).message === 'Request aborted') {
+      .catch((err: ApiError) => {
+        if (err.message === 'Request aborted') {
           console.log('请求已取消:', requestUrl)
           return
         }
         logRequestError(_timerKey, err)
-        handleNetworkError(err as any, options as any, requestUrl)
+        handleNetworkError(err, options, requestUrl)
         reject(err)
       })
   })
 }
 
-export const get = <T = unknown>(url: string, params: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const get = <T = void>(url: string, params: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   return request<T>({
     url,
     method: 'GET',
     data: params,
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const post = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const post = <T = void>(url: string, data: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   return request<T>({
     url,
     method: 'POST',
     data,
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const postWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const postWithQuery = <T = void>(url: string, data: RequestData = {}, queryParams: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
@@ -205,20 +192,20 @@ export const postWithQuery = <T = unknown>(url: string, data: unknown = {}, quer
       'Content-Type': 'application/x-www-form-urlencoded',
       ...options.header
     },
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const put = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const put = <T = void>(url: string, data: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   return request<T>({
     url,
     method: 'PUT',
     data,
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const putWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const putWithQuery = <T = void>(url: string, data: RequestData = {}, queryParams: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
@@ -227,20 +214,20 @@ export const putWithQuery = <T = unknown>(url: string, data: unknown = {}, query
     url: finalUrl,
     method: 'PUT',
     data,
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const del = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const del = <T = void>(url: string, data: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   return request<T>({
     url,
     method: 'DELETE',
     data,
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const delWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
+export const delWithQuery = <T = void>(url: string, data: RequestData = {}, queryParams: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
     finalUrl = appendQueryParams(url, queryParams)
@@ -249,12 +236,12 @@ export const delWithQuery = <T = unknown>(url: string, data: unknown = {}, query
     url: finalUrl,
     method: 'DELETE',
     data,
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const postForm = <T = unknown>(url: string, data: unknown = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
-  const formData = objectToFormUrlencoded(data as Record<string, unknown>)
+export const postForm = <T = void>(url: string, data: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
+  const formData = objectToFormUrlencoded(data)
 
   return request<T>({
     url,
@@ -264,12 +251,12 @@ export const postForm = <T = unknown>(url: string, data: unknown = {}, options: 
       'Content-Type': 'application/x-www-form-urlencoded',
       ...options.header
     },
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-export const postFormWithQuery = <T = unknown>(url: string, data: unknown = {}, queryParams: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
-  const formData = objectToFormUrlencoded(data as Record<string, unknown>)
+export const postFormWithQuery = <T = void>(url: string, data: RequestData = {}, queryParams: RequestData = {}, options: InternalRequestOptions = {}): Promise<ApiResponse<T>> => {
+  const formData = objectToFormUrlencoded(data)
 
   let finalUrl = url
   if (queryParams && Object.keys(queryParams).length > 0) {
@@ -284,28 +271,24 @@ export const postFormWithQuery = <T = unknown>(url: string, data: unknown = {}, 
       'Content-Type': 'application/x-www-form-urlencoded',
       ...options.header
     },
-    ...(options as Record<string, unknown>)
+    ...options
   })
 }
 
-interface UploadOptions extends RequestOptions {
+interface UploadOptions extends InternalRequestOptions {
   name?: string
-  formData?: unknown
-  [key: string]: unknown
+  formData?: RequestData
 }
 
-export const uploadFile = <T = unknown>(url: string, filePath: string, options: UploadOptions = {}): Promise<ApiResponse<T>> => {
+export const uploadFile = <T = void>(url: string, filePath: string, options: UploadOptions = {}): Promise<ApiResponse<T>> => {
   return new Promise((resolve, reject) => {
     const { name = 'file', formData = {}, header = {} } = options
 
     let requestUrl = buildUrl(url, BASE_URL)
-
-    // 添加token认证
     const needToken = !isNoTokenUrl(requestUrl)
     const token = getToken(needToken)
 
-    // 合并请求头，添加token
-    const headers = {
+    const headers: Record<string, string> = {
       ...header
     }
     if (token) {
@@ -319,17 +302,16 @@ export const uploadFile = <T = unknown>(url: string, filePath: string, options: 
       })
     }
 
-    // 记录请求开始
-    const timerKey = logRequest('UPLOAD', requestUrl, { filePath, formData: formData as Record<string, unknown> })
+    const timerKey = logRequest('UPLOAD', requestUrl, { filePath, formData })
 
     uni.uploadFile({
       url: requestUrl,
       filePath: filePath,
       name: name,
-      formData: formData as Record<string, unknown>,
+      formData: formData as Record<string, string>,
       header: headers,
       timeout: 30000,
-      success: (res: any) => {
+      success: (res: UniApp.UploadFileSuccessCallbackResult) => {
         logResponse(timerKey, res.statusCode, res.data)
 
         if (options.showLoading) {
@@ -341,8 +323,7 @@ export const uploadFile = <T = unknown>(url: string, filePath: string, options: 
           if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve(data)
           } else {
-            // 使用统一的错误处理
-            const isHandled = handleError(res as any, options as any, requestUrl)
+            const isHandled = handleError(res as unknown as { statusCode: number; data: unknown }, options, requestUrl)
             if (isHandled) {
               reject(res)
             } else {
@@ -362,14 +343,14 @@ export const uploadFile = <T = unknown>(url: string, filePath: string, options: 
           })
         }
       },
-      fail: (err: any) => {
-        logRequestError(timerKey, err)
-        handleNetworkError(err, options, requestUrl)
+      fail: (err: UniApp.GeneralCallbackResult) => {
+        logRequestError(timerKey, err as ApiError)
+        handleNetworkError(err as ApiError, options, requestUrl)
         if (options.showLoading) {
           uni.hideLoading()
         }
         reject({
-          code: err.errCode || -1,
+          code: (err as unknown as { errCode?: number }).errCode || -1,
           msg: err.errMsg || '上传请求失败',
           error: err
         })
@@ -378,5 +359,4 @@ export const uploadFile = <T = unknown>(url: string, filePath: string, options: 
   })
 }
 
-// 导出缓存相关函数
 export { install, clearCache, clearUrlCache }

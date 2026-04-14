@@ -44,10 +44,10 @@ import { useLanguageStore } from '@/stores/index.ts'
 export default {
   name: 'MaintenanceSection',
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.printer
     }
   },
@@ -67,14 +67,15 @@ export default {
   },
   watch: {
     deviceInfo: {
-      handler(newVal: any): void {
+      handler(newVal: Record<string, unknown> | null): void {
         if (newVal) {
-          if (newVal.printStatsTotalDuration !== undefined) {
-            const hours = (newVal.printStatsTotalDuration / 3600).toFixed(1)
+          if (newVal.printStatsTotalDuration !== undefined && newVal.printStatsTotalDuration !== null) {
+            const duration = Number(newVal.printStatsTotalDuration)
+            const hours = (duration / 3600).toFixed(1)
             this.totalPrintTime = hours + (this.texts.hours || '小时')
           }
 
-          if (newVal.statusUpdateTime) {
+          if (newVal.statusUpdateTime && typeof newVal.statusUpdateTime === 'string') {
             this.lastCleanDate = newVal.statusUpdateTime.split(' ')[0]
           }
         }

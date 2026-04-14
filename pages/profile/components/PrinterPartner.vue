@@ -106,13 +106,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.profile
     }
   },
@@ -159,10 +159,10 @@ export default {
       uni.showModal({
         title: this.texts.unbindConfirmation,
         content: this.texts.unbindContent,
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             try {
-              const result: any = await deleteDevice(deviceId as string)
+              const result = await deleteDevice(deviceId as string)
               console.log('解绑结果:', result)
 
               try {
@@ -173,7 +173,7 @@ export default {
 
                 await import('@/utils/bluetooth').then(module => module.initBluetooth())
                 console.log('蓝牙适配器已重新初始化')
-              } catch (bluetoothError: any) {
+              } catch (bluetoothError: unknown) {
                 console.error('重置蓝牙适配器失败:', bluetoothError)
               }
 
@@ -182,7 +182,7 @@ export default {
                 icon: 'success'
               })
               await this.checkPrinterStatus()
-            } catch (error: any) {
+            } catch (error: unknown) {
               console.error('解绑失败:', error)
               uni.showToast({
                 title: this.texts.unbindFailed,
@@ -204,11 +204,11 @@ export default {
     },
     async checkPrinterStatus(): Promise<void> {
       try {
-        const res: any = await getDeviceList()
+        const res = await getDeviceList()
         console.log('PrinterPartner getDeviceList 返回:', JSON.stringify(res, null, 2))
-        if (res.data && res.data.records && res.data.records.length > 0) {
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
           this.isBound = true
-          this.printerList = res.data.records
+          this.printerList = res.data
           console.log(
             '设备列表:',
             this.printerList.map((p: Printer) => ({
@@ -221,7 +221,7 @@ export default {
           this.isBound = false
           this.printerList = []
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('获取设备列表失败:', error)
         this.isBound = false
         this.printerList = []

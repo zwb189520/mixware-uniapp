@@ -23,7 +23,7 @@ export default {
     return {}
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     }
   },

@@ -73,13 +73,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.profileEdit
     }
   },
@@ -127,11 +127,11 @@ export default {
               uni.navigateBack()
             }, 500)
           })
-          .catch((error: any) => {
+          .catch((error) => {
             uni.hideLoading()
-
+            const err = error as Error
             uni.showToast({
-              title: error.message || this.texts.saveFailed,
+              title: err?.message || this.texts.saveFailed,
               icon: 'none'
             })
           })
@@ -146,7 +146,7 @@ export default {
           header: {
             Authorization: token ? `Bearer ${token}` : ''
           },
-          success: (uploadRes: any) => {
+          success: (uploadRes: UniApp.UploadFileSuccessCallbackResult) => {
             if (uploadRes.statusCode === 200) {
               try {
                 const uploadData = JSON.parse(uploadRes.data)
@@ -203,12 +203,12 @@ export default {
     handleAvatarEdit(): void {
       uni.showActionSheet({
         itemList: [this.texts.chooseFromAlbum, this.texts.takePhoto],
-        success: (res: any) => {
+        success: (res: UniApp.ShowActionSheetRes) => {
           if (res.tapIndex === 0) {
             uni.chooseImage({
               count: 1,
               sourceType: ['album'],
-              success: (chooseRes: any) => {
+              success: (chooseRes: UniApp.ChooseImageSuccessCallbackResult) => {
                 this.tempAvatar = chooseRes.tempFilePaths[0]
                 this.userInfo.avatar = this.tempAvatar
               }
@@ -217,7 +217,7 @@ export default {
             uni.chooseImage({
               count: 1,
               sourceType: ['camera'],
-              success: (chooseRes: any) => {
+              success: (chooseRes: UniApp.ChooseImageSuccessCallbackResult) => {
                 this.tempAvatar = chooseRes.tempFilePaths[0]
                 this.userInfo.avatar = this.tempAvatar
               }
@@ -232,7 +232,7 @@ export default {
         title: this.texts.editNickname,
         editable: true,
         placeholderText: this.texts.enterNickname,
-        success: (res: any) => {
+        success: (res: UniApp.ShowModalRes) => {
           if (res.confirm && res.content) {
             this.userInfo.nickname = res.content
           }
@@ -240,13 +240,18 @@ export default {
       })
     },
 
-    handleBirthdayChange(e: any): void {
+    handleBirthdayChange(e: { detail: { value: string } }): void {
       this.userInfo.birthday = e.detail.value
     },
 
     loadUserInfo(): void {
-      const userInfo = this.userStore.userInfo || {}
-      this.userInfo = { ...this.userInfo, ...userInfo }
+      const storeUserInfo = this.userStore.userInfo || {}
+      this.userInfo = {
+        id: String(storeUserInfo.userId || storeUserInfo.id || ''),
+        nickname: storeUserInfo.nickname || storeUserInfo.userName || '',
+        avatar: storeUserInfo.avatar || '',
+        birthday: storeUserInfo.birthday || ''
+      }
     }
   }
 }

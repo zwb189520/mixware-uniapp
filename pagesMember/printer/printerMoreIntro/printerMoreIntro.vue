@@ -52,14 +52,14 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore?.texts?.printerMoreIntro || {}
     }
   },
-  async onLoad(options: any): Promise<void> {
+  async onLoad(options: Record<string, string>): Promise<void> {
     this.languageStore.loadLanguage()
     if (options.deviceId) {
       this.deviceId = options.deviceId
@@ -76,7 +76,7 @@ export default {
     },
     async loadDefaultDevice(): Promise<void> {
       try {
-        const res: any = await getDefaultDevice()
+        const res = await getDefaultDevice()
         if (res.data && res.data.deviceId) {
           this.deviceId = res.data.deviceId
         }

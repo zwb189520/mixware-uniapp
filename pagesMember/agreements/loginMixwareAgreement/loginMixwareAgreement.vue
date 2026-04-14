@@ -63,10 +63,10 @@ export default {
     CustomNavbar
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.loginMixwareAgreement
     }
   },

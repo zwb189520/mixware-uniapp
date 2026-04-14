@@ -223,13 +223,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.commentList
     },
     sortText(): string {
@@ -248,7 +248,7 @@ export default {
       ]
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: Record<string, string>): void {
     this.postId = options.postId || ''
     this.postAuthorId = options.postAuthorId || ''
     this.languageStore.loadLanguage()
@@ -266,7 +266,7 @@ export default {
   },
   methods: {
     getCurrentUserId(): void {
-      this.currentUserId = this.userStore.userId || ''
+      this.currentUserId = String(this.userStore.userId || '')
     },
 
     async loadComments(): Promise<void> {
@@ -274,13 +274,13 @@ export default {
         return
 
       try {
-        const res: any = await getPostComments(this.postId)
+        const res = await getPostComments(this.postId)
         if ((res.code === 0 || res.code === 1) && res.data && res.data.length > 0) {
-          this.comments = this.transformComments(res.data)
+          this.comments = this.transformComments(res.data as unknown as Record<string, unknown>[])
         } else {
           this.loadLocalComments()
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('加载评论失败:', e)
         this.loadLocalComments()
       }
@@ -316,7 +316,7 @@ export default {
     },
 
     updateLocalPostCommentCount(): void {
-      let allLocalPosts: any[] = uni.getStorageSync('local_all_posts') || []
+      let allLocalPosts: Record<string, unknown>[] = uni.getStorageSync('local_all_posts') || []
       let postIndex = allLocalPosts.findIndex(p => String(p.id) === String(this.postId))
       if (postIndex !== -1) {
         allLocalPosts[postIndex].commentCount = this.calculateCommentCount(this.comments)
@@ -324,17 +324,17 @@ export default {
       }
     },
 
-    transformComments(apiComments: any[]): Comment[] {
+    transformComments(apiComments: Record<string, unknown>[]): Comment[] {
       return apiComments.map(comment => ({
-        id: comment.commentId,
-        userId: comment.userId,
-        userName: comment.username,
-        userAvatar: comment.avatarUrl,
-        content: comment.content,
-        time: this.formatTime(comment.createdAt),
-        likes: comment.likeCount,
-        isLiked: comment.isLiked,
-        replies: comment.replies ? this.transformComments(comment.replies) : []
+        id: comment.commentId as number | string,
+        userId: String(comment.userId),
+        userName: String(comment.username),
+        userAvatar: String(comment.avatarUrl),
+        content: String(comment.content),
+        time: this.formatTime(String(comment.createdAt)),
+        likes: comment.likeCount as number,
+        isLiked: comment.isLiked as boolean,
+        replies: comment.replies ? this.transformComments(comment.replies as Record<string, unknown>[]) : []
       }))
     },
 
@@ -359,11 +359,11 @@ export default {
     async handleLikeClick(commentId: number | string): Promise<void> {
       this.updateCommentLikeLocal(commentId)
       try {
-        const res: any = await toggleLike('COMMENT', String(commentId))
+        const res = await toggleLike('COMMENT', String(commentId))
         if (res.code !== 0 && res.code !== 1) {
           this.updateCommentLikeLocal(commentId)
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('点赞失败:', e)
         this.updateCommentLikeLocal(commentId)
       }
@@ -401,15 +401,15 @@ export default {
       uni.showModal({
         title: this.texts.deleteConfirm,
         content: this.texts.deleteContent,
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             try {
-              const result: any = await deleteComment(String(commentId))
+              const result = await deleteComment(String(commentId))
               if (result.code === 0 || result.code === 1) {
                 uni.showToast({ title: this.texts.deleteSuccess, icon: 'success' })
                 this.loadComments()
               }
-            } catch (e: any) {
+            } catch (e: unknown) {
               console.error('删除失败:', e)
               this.deleteCommentLocal(commentId)
               uni.showToast({ title: this.texts.deleteSuccess, icon: 'success' })
@@ -475,7 +475,7 @@ export default {
       this.closeCommentPopup()
 
       try {
-        const res: any = await createComment({
+        const res = await createComment({
           postId: this.postId,
           content: content,
           parentCommentId: parentId
@@ -484,13 +484,13 @@ export default {
         if (res.code === 0 || res.code === 1) {
           this.loadComments()
         }
-      } catch (e: any) {
-        console.error('发布失败:', e)
+      } catch (e: unknown) {
+        console.error('发送评论失败:', e)
       }
     },
 
-    handleKeyboardShow(e: any): void {
-      this.keyboardHeight = e.detail?.height || 0
+    handleKeyboardShow(e: unknown): void {
+      this.keyboardHeight = (e as { detail: { height: number } }).detail?.height || 0
     },
 
     handleKeyboardHide(): void {
@@ -504,7 +504,7 @@ export default {
     handleUploadImage(): void {
       uni.chooseImage({
         count: 1,
-        success: (res: any) => {
+        success: () => {
           uni.showToast({ title: this.texts.imageUploadInDev, icon: 'none' })
         }
       })

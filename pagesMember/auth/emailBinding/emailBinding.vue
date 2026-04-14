@@ -55,13 +55,13 @@ export default {
   },
 
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.accountSecurity.emailBinding
     },
     hasEmail(): boolean {
@@ -85,9 +85,9 @@ export default {
 
   methods: {
     loadUserInfo(): void {
-      const userInfo: any = this.userStore.userInfo || {}
-      if (userInfo.email) {
-        this.email = userInfo.email
+      const userInfo = this.userStore.userInfo
+      if (userInfo?.email) {
+        this.email = String(userInfo.email)
       }
     },
     handleChangeEmail(): void {
@@ -123,9 +123,10 @@ export default {
           title: this.texts.codeSent,
           icon: 'success'
         })
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error & { msg?: string }
         uni.showToast({
-          title: error.msg || this.texts.codeSendFailed,
+          title: err?.msg || this.texts.codeSendFailed,
           icon: 'none'
         })
       }
@@ -145,17 +146,19 @@ export default {
           title: this.texts.binding
         })
 
-        const userInfo: any = this.userStore.userInfo || {}
+        const userInfo = this.userStore.userInfo
         await updateUserInfo({
-          username: userInfo.username,
-          avatar: userInfo.avatar,
+          username: userInfo?.userName,
+          avatar: userInfo?.avatar,
           email: this.email,
-          birthday: userInfo.birthday
+          birthday: userInfo?.birthday
         })
 
-        userInfo.email = this.email
-        uni.setStorageSync('userInfo', userInfo)
-        uni.$emit('profileUpdate', userInfo)
+        if (userInfo) {
+          userInfo.email = this.email
+          uni.setStorageSync('userInfo', userInfo)
+          uni.$emit('profileUpdate', userInfo)
+        }
 
         uni.hideLoading()
 
@@ -171,10 +174,10 @@ export default {
             url: '/pagesMember/auth/login/login'
           })
         }, 1500)
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
         uni.showToast({
-          title: error.msg || this.texts.bindFailed,
+          title: (error as Error).message || this.texts.bindFailed,
           icon: 'none'
         })
       }

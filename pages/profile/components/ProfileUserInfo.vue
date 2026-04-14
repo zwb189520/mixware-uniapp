@@ -156,7 +156,7 @@ export default {
         if ((followersRes as any).code === 0) {
           this.followersCount = (followersRes as any).data?.length || 0
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('加载关注统计失败:', e)
       }
     },

@@ -64,6 +64,46 @@ import { createModelTask } from '@/api/modelTasks.ts'
 import { useLanguageStore, useUserStore } from '@/stores'
 import { API } from '@/constants/index'
 
+interface WebviewRef {
+  addEventListener: (event: string, callback: (e: Record<string, unknown>) => void) => void
+  show: () => void
+  close: () => void
+  setStyle: (style: Record<string, unknown>) => void
+  evalJS: (js: string) => void
+}
+
+declare const plus: {
+  screen: {
+    lockOrientation: (orientation: string) => void
+  }
+  navigator: {
+    setFullscreen: (fullscreen: boolean) => void
+  }
+  webview: {
+    create: (url: string, id: string, styles: Record<string, unknown>) => WebviewRef
+  }
+  nativeObj: {
+    Bitmap: new (id: string) => {
+      load: (path: string, success: () => void, fail: (e: Error) => void) => void
+      save: (path: string, options: Record<string, unknown>, success: () => void, fail: (e: Error) => void) => void
+      toBase64Data: () => string
+      clear: () => void
+    }
+  }
+  share: {
+    sendWithSystem: (msg: Record<string, unknown>, success: () => void, fail: (e: Error) => void) => void
+  }
+  io: {
+    resolveLocalFileSystemURL: (url: string, success: (entry: unknown) => void, fail: (err: Error) => void) => void
+    requestFileSystem: (type: number, size: number, success: (fs: unknown) => void, fail: (err: Error) => void) => void
+    PRIVATE_DOC: number
+  }
+  globalEvent: {
+    addEventListener: (event: string, callback: (msg: Record<string, unknown>) => void) => void
+    removeEventListener: (event: string, callback: (msg: Record<string, unknown>) => void) => void
+  }
+}
+
 interface ModelDataForPrint {
   id?: string
   name?: string
@@ -229,30 +269,32 @@ onMounted(() => {
           }
         `)
         }, 200)
-      },
-      false
+      }
     )
 
-    plusMessageListener.value = (msg: any) => {
+    plusMessageListener.value = (msg: Record<string, unknown>) => {
+      const msgData = msg.data as Record<string, unknown> | undefined
+      const args = msgData?.args as Record<string, unknown> | undefined
+      const argsData = args?.data as Record<string, unknown> | undefined
       if (
-        msg.data &&
-        msg.data.args &&
-        msg.data.args.data &&
-        msg.data.args.data.name == 'postMessage'
+        msgData &&
+        args &&
+        argsData &&
+        argsData.name == 'postMessage'
       ) {
         const evt = {
           detail: {
-            data: msg.data.args.data.arg
+            data: argsData.arg
           }
         }
         handleWebviewMessage(evt)
       }
     }
-    ;(plus as any).globalEvent.addEventListener('plusMessage', plusMessageListener.value)
+    plus.globalEvent.addEventListener('plusMessage', plusMessageListener.value)
   }
 })
 
-const sendMessage = (action: string, data: any = {}) => {
+const sendMessage = (action: string, data: Record<string, unknown> = {}) => {
   if (platform.value && platform.value != 'web') {
     if (webviewContext.value) {
       webviewContext.value.evalJS(`
@@ -336,14 +378,14 @@ const uploadSnapshotAndExportSTL = async (base64: string) => {
               // 继续导出STL
               sendMessage('exportSTL')
             },
-            (err: any) => {
+            (err: unknown) => {
               console.error('保存截图文件失败:', err)
               bitmap.clear()
               sendMessage('exportSTL')
             }
           )
         },
-        (err: any) => {
+        (err: unknown) => {
           console.error('加载base64图片失败:', err)
           sendMessage('exportSTL')
         }
@@ -512,11 +554,10 @@ const handlePrint = () => {
   sendMessage('snapshot')
 }
 
-const handleWebviewMessage = (evt: any) => {
+const handleWebviewMessage = (evt: { detail: { data: unknown } }) => {
   if (isUnloading.value) return
 
-  const msg: WebviewMessage = evt.detail.data
-  // 只打印action，不打印完整数据
+  const msg = evt.detail.data as WebviewMessage
   console.log('消息action:', msg.action)
 
   if (msg.action == 'loadDown') {
@@ -602,7 +643,7 @@ const handleWebviewMessage = (evt: any) => {
 }
 
 const handleH5Message = (event: MessageEvent) => {
-  let msgData: any = null
+  let msgData: Record<string, unknown> | null = null
   if ((event.data as any)?.data?.arg) {
     msgData = (event.data as any).data.arg
   } else if ((event.data as any)?.action) {
@@ -646,12 +687,15 @@ const saveAndShareStl = (content: string) => {
   // #ifdef APP-PLUS
   const fileName = 'model_' + Date.now() + '.stl'
 
-  plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
-    fs.root?.getFile(fileName, { create: true }, entry => {
-      entry.createWriter(writer => {
-        writer.onwriteend = () => {
+  plus.io.requestFileSystem(plus.io.PRIVATE_DOC, 0, (fs: unknown) => {
+    const fileSystem = fs as { root?: { getFile: (name: string, options: Record<string, boolean>, success: (entry: unknown) => void) => void } }
+    fileSystem.root?.getFile(fileName, { create: true }, (entry: unknown) => {
+      const fileEntry = entry as { createWriter: (success: (writer: unknown) => void) => void; fullPath?: string }
+      fileEntry.createWriter((writer: unknown) => {
+        const fileWriter = writer as { onwriteend: () => void; onerror: (e: Error) => void; write: (data: string) => void }
+        fileWriter.onwriteend = () => {
           console.log('写入成功')
-          const filePath = entry.fullPath || ''
+          const filePath = fileEntry.fullPath || ''
 
           plus.share.sendWithSystem(
             {
@@ -662,7 +706,7 @@ const saveAndShareStl = (content: string) => {
             () => {
               console.log('分享成功')
             },
-            e => {
+            (e: Error) => {
               console.log('分享失败: ' + JSON.stringify(e))
               uni.openDocument({
                 filePath: filePath,
@@ -675,14 +719,17 @@ const saveAndShareStl = (content: string) => {
           )
         }
 
-        writer.onerror = e => {
+        fileWriter.onerror = (e: Error) => {
           console.log('写入失败', e)
           uni.showToast({ title: texts.value.saveFileFailed || '保存文件失败', icon: 'none' })
         }
 
-        writer.write(content)
+        fileWriter.write(content)
       })
     })
+  }, (err: Error) => {
+    console.log('获取文件系统失败', err)
+    uni.showToast({ title: texts.value.saveFileFailed || '保存文件失败', icon: 'none' })
   })
   return
   // #endif
@@ -805,7 +852,7 @@ const uploadAndNavigateApp = async (stlContent: string) => {
         success: () => {
           console.log('跳转成功')
         },
-        fail: (err: any) => {
+        fail: (err: UniApp.GeneralCallbackResult) => {
           console.error('跳转失败:', err)
           if (webviewContext.value) {
             webviewContext.value.show()
@@ -817,14 +864,14 @@ const uploadAndNavigateApp = async (stlContent: string) => {
       console.error('上传失败，响应:', uploadRes)
       uni.showToast({ title: texts.value.uploadFailed || '上传失败', icon: 'none' })
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('uploadAndNavigateApp 错误:', err)
     uni.hideLoading()
     uni.showToast({
       title:
         (texts.value.uploadFailed || '上传失败') +
         ': ' +
-        (err.message || texts.value.unknownError || '未知错误'),
+        ((err as Error).message || texts.value.unknownError || '未知错误'),
       icon: 'none'
     })
   }
@@ -903,25 +950,38 @@ const saveStlToFile = (content: string, fileName: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     plus.io.requestFileSystem(
       plus.io.PRIVATE_DOC,
-      fs => {
-        fs.root?.getFile(
+      0,
+      (fs: unknown) => {
+        const fileSystem = fs as { root?: { getFile: (name: string, options: Record<string, boolean>, success: (entry: unknown) => void, fail: (err: Error) => void) => void } }
+        fileSystem.root?.getFile(
           fileName,
           { create: true },
-          entry => {
-            entry.createWriter(writer => {
-              writer.onwriteend = () => {
-                resolve(entry.fullPath || '')
+          (entry: unknown) => {
+            const fileEntry = entry as { createWriter: (success: (writer: unknown) => void, fail: (err: Error) => void) => void; fullPath?: string }
+            fileEntry.createWriter(
+              (writer: unknown) => {
+                const fileWriter = writer as { onwriteend: () => void; onerror: (e: Error) => void; write: (data: string) => void }
+                fileWriter.onwriteend = () => {
+                  resolve(fileEntry.fullPath || '')
+                }
+                fileWriter.onerror = (e: Error) => {
+                  reject(e)
+                }
+                fileWriter.write(content)
+              },
+              (err: Error) => {
+                reject(err)
               }
-              writer.onerror = e => {
-                reject(e)
-              }
-              writer.write(content)
-            }, reject)
+            )
           },
-          reject
+          (err: Error) => {
+            reject(err)
+          }
         )
       },
-      reject
+      (err: Error) => {
+        reject(err)
+      }
     )
   })
 }

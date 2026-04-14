@@ -73,7 +73,7 @@ export const streamRequest = ({
     requestHeaders['Authorization'] = `Bearer ${token}`
   }
 
-  const upperMethod = method.toUpperCase()
+  const upperMethod = method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'TRACE' | 'CONNECT'
   const isGet = upperMethod === 'GET'
   const payload = isGet
     ? undefined

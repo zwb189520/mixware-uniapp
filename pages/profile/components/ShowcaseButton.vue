@@ -42,7 +42,7 @@ export default {
   methods: {
     async checkWorksCount(): Promise<void> {
       try {
-        const userInfo = this.userStore.userInfo
+        const userInfo = uni.getStorageSync('userInfo') as unknown as { userId?: string | number } | null
         if (userInfo && userInfo.userId) {
           const res: any = await getPostList({
             userId: userInfo.userId,

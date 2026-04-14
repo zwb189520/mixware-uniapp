@@ -46,10 +46,10 @@ export default {
   },
 
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.accountSecurity.thirdPartyBinding
     }
   },
@@ -78,7 +78,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmCancel,
         content: this.texts.confirmCancelContent,
-        success: (res: any) => {
+        success: (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             this.googleBound = false
             uni.showToast({

@@ -1,5 +1,5 @@
 import { request } from './request'
-import type { ApiResponse, PaginatedData } from '@/types/api'
+import type { ApiResponse, PaginatedData, RequestData } from '@/types/api'
 
 export interface ModelTask {
   taskId: string
@@ -23,7 +23,7 @@ export function getModelTasks(params: ModelTaskQuery): Promise<ApiResponse<Pagin
   return request<PaginatedData<ModelTask>>({
     url: '/model-generate-tasks/list',
     method: 'GET',
-    data: params
+    data: params as unknown as RequestData
   })
 }
 
@@ -42,7 +42,7 @@ export function createModelTask(data: {
   return request<ModelTask>({
     url: '/model-generate-tasks',
     method: 'POST',
-    data
+    data: data as unknown as RequestData
   })
 }
 
@@ -50,7 +50,7 @@ export function updateModelTask(data: ModelTask): Promise<ApiResponse<ModelTask>
   return request<ModelTask>({
     url: '/model-generate-tasks',
     method: 'PUT',
-    data
+    data: data as unknown as RequestData
   })
 }
 

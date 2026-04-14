@@ -6,23 +6,9 @@ import type {
   WiFiListItem,
   SetBLEMTUResult,
   BluetoothSuccessResult,
-  WiFiInfo
+  WiFiInfo,
+  GetBLEDeviceCharacteristicsResult
 } from '@/types/bluetooth.d'
-
-interface LocalGetBLEDeviceCharacteristicsResult {
-  characteristics: Array<{
-    uuid: string
-    properties: {
-      read?: boolean
-      write?: boolean
-      writeNoResponse?: boolean
-      notify?: boolean
-      indicate?: boolean
-    }
-  }>
-  errMsg: string
-  errCode?: number
-}
 
 export function initBluetooth(): Promise<unknown> {
   return new Promise((resolve, reject) => {
@@ -764,7 +750,7 @@ export function sendWiFiConfig(deviceId: string, serverUrl: string, ssid: string
     uni.getBLEDeviceCharacteristics({
       deviceId,
       serviceId: '0000181A-0000-1000-8000-00805F9B34FB',
-      success: (res: LocalGetBLEDeviceCharacteristicsResult) => {
+      success: (res: GetBLEDeviceCharacteristicsResult) => {
         console.log('设备特征值:', res.characteristics)
 
         const writeCharacteristic = res.characteristics.find(

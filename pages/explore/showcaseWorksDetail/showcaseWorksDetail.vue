@@ -833,8 +833,8 @@ export default {
       this.isPopupOpen = true
     },
 
-    handleKeyboardShow(e: any): void {
-      this.keyboardHeight = e.detail?.height || 0
+    handleKeyboardShow(e: unknown): void {
+      this.keyboardHeight = (e as { detail: { height: number } }).detail?.height || 0
     },
 
     handleKeyboardHide(): void {

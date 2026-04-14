@@ -152,9 +152,9 @@ const handleBack = () => {
 const loadDevices = async () => {
   isLoading.value = true
   try {
-    const res: any = await getDeviceList()
-    if (res.data && res.data.records) {
-      devices.value = res.data.records
+    const res = await getDeviceList()
+    if (res.data) {
+      devices.value = Array.isArray(res.data) ? res.data : []
     }
   } catch (error) {
     console.error('加载设备列表失败:', error)
@@ -209,7 +209,7 @@ const handleSaveDevice = async () => {
   }
 
   try {
-    const res: any = await updateDeviceInfo(submitData)
+    const res = await updateDeviceInfo(submitData)
 
     if (res.code === 1 || res.code === 200) {
       uni.showToast({
@@ -237,7 +237,7 @@ const handleDeleteDevice = async (device: Device) => {
   uni.showModal({
     title: texts.deleteConfirm || '确认删除',
     content: `${texts.deleteConfirmContent || '确定要删除设备'} "${device.deviceName || device.deviceId}" ${texts.questionMark || '吗？'}`,
-    success: async (res: any) => {
+    success: async (res: UniApp.ShowModalRes) => {
       if (res.confirm) {
         try {
           await deleteDevice(device.deviceId)
@@ -284,7 +284,7 @@ const closeEditModal = () => {
 
 const handleSetDefault = async (device: Device) => {
   try {
-    const res: any = await setDefaultDevice(device.deviceId)
+    const res = await setDefaultDevice(device.deviceId)
     if (res.code === 1 || res.code === 200) {
       uni.showToast({
         title: texts.setDefaultSuccess || '设置默认设备成功',

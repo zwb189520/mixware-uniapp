@@ -2,7 +2,7 @@
   <view class="printer-intro-page">
     <view class="header-wrapper">
       <safe-area />
-      <custom-navbar :title="texts.title" @back="handleBack">
+      <custom-navbar :title="String(texts.title || '')" @back="handleBack">
         <!-- 打印机设置入口，暂时隐藏 -->
         <!-- <template #right>
           <view class="more-btn" @click="handleMoreInfo">
@@ -67,14 +67,14 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string | Record<string, string>> {
       return this.languageStore?.texts?.printerIntro || {}
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: Record<string, string>): void {
     console.log('printerIntro页面接收到的options:', options)
     if (options.deviceId) {
       this.deviceId = options.deviceId
@@ -107,7 +107,7 @@ export default {
       } catch (error) {
         console.error('初始化设备信息失败:', error)
         uni.showToast({
-          title: this.texts.connectionFailed || '加载设备信息失败',
+          title: String(this.texts.connectionFailed || '加载设备信息失败'),
           icon: 'none'
         })
       }
@@ -132,16 +132,16 @@ export default {
       }
 
       try {
-        const res: any = await getDefaultDevice()
+        const res = await getDefaultDevice()
         console.log('getDefaultDevice响应:', res)
         if (res.data && res.data.deviceId) {
           this.deviceId = res.data.deviceId
           console.log('从默认设备获取到deviceId:', this.deviceId)
         } else {
-          const listRes: any = await getDeviceList()
+          const listRes = await getDeviceList()
           console.log('getDeviceList响应:', listRes)
-          if (listRes.data && listRes.data.records && listRes.data.records.length > 0) {
-            const firstDevice = listRes.data.records[0]
+          if (listRes.data && listRes.data.length > 0) {
+            const firstDevice = listRes.data[0]
             this.deviceId = firstDevice.deviceId
             console.log('从设备列表获取第一个设备ID:', this.deviceId)
             await setDefaultDevice(firstDevice.deviceId)
@@ -155,7 +155,7 @@ export default {
       if (!this.deviceId) return
 
       try {
-        const res: any = await getDeviceStatus(this.deviceId)
+        const res = await getDeviceStatus(this.deviceId)
         console.log('--- [设备状态调试] ---')
         console.log('接口响应:', JSON.stringify(res, null, 2))
         if (res.data) {
@@ -163,7 +163,7 @@ export default {
         }
         console.log('---------------------')
 
-        if ((res.code === 1 || res.code === 200) && res.data) {
+        if (res.code === 1 && res.data) {
           const status = res.data
 
           if (status.deviceId === null && status.deviceState === null) {
@@ -214,8 +214,8 @@ export default {
         this.printerStatus = 'offline'
       }
     },
-    handlePrinterChange(printer: any): void {
-      this.deviceId = printer.id
+    handlePrinterChange(printer: Record<string, unknown>): void {
+      this.deviceId = String(printer.id || printer.deviceId || '')
       this.loadDeviceStatus()
     },
 

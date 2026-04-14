@@ -69,15 +69,18 @@ export default {
         const query = uni.createSelectorQuery().in(this)
         query.select('.category-tabs').boundingClientRect()
         query.select('#tab-' + this.currentTab).boundingClientRect()
-        query.exec((res: any) => {
-          if (res && res[0] && res[1]) {
-            const containerRect = res[0]
-            const tabRect = res[1]
-            const relativeLeft = tabRect.left - containerRect.left
-            const indicatorWidth = 40
-            this.indicatorStyle = {
-              left: relativeLeft + tabRect.width / 2 - indicatorWidth / 2 + 'px',
-              width: indicatorWidth + 'px'
+        query.exec((res: unknown) => {
+          const result = res as (UniApp.NodeInfo | null)[]
+          if (result && result[0] && result[1]) {
+            const containerRect = result[0]
+            const tabRect = result[1]
+            if (containerRect && tabRect) {
+              const relativeLeft = (tabRect.left || 0) - (containerRect.left || 0)
+              const indicatorWidth = 40
+              this.indicatorStyle = {
+                left: relativeLeft + (tabRect.width || 0) / 2 - indicatorWidth / 2 + 'px',
+                width: indicatorWidth + 'px'
+              }
             }
           }
         })

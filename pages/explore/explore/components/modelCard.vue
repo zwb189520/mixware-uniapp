@@ -60,11 +60,11 @@ export default {
     handleAuthorClick(): void {
       this.$emit('author-click', this.model)
     },
-    handleImageError(e: any): void {
+    handleImageError(e: Event): void {
       this.model.image = '/static/images/logo.png'
       this.$emit('image-error', e)
     },
-    handleAvatarError(e: any): void {
+    handleAvatarError(e: Event): void {
       this.model.authorAvatar = '/static/images/user-avatar.png'
       this.$emit('avatar-error', e)
     }

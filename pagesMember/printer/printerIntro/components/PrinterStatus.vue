@@ -19,12 +19,12 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
     statusText(): string {
-      const texts = this.languageStore?.texts?.printerIntro?.printStatus || {}
-      return texts[this.status] || this.status
+      const printStatus = this.languageStore?.texts?.printerIntro?.printStatus as Record<string, string> | undefined
+      return printStatus?.[this.status] || this.status
     },
     statusClass(): string {
       const statusMap: Record<string, string> = {

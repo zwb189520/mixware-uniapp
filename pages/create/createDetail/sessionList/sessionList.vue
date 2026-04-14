@@ -41,7 +41,7 @@
               session.title ? session.title : texts.unnamedSession
             }}</text>
             <text class="session-time">{{
-              formatTime(session.updateTime || session.createTime)
+              formatTime(session.updateTime || session.createTime || '')
             }}</text>
           </view>
           <view class="session-actions" @click.stop>
@@ -71,6 +71,9 @@ interface Session {
   title?: string
   updateTime?: string
   createTime?: string
+  describe?: string
+  examples?: { title?: string; describe?: string }[]
+  createdAt?: number
 }
 
 export default {
@@ -99,7 +102,7 @@ export default {
     }
   },
   computed: {
-    texts(): any {
+    texts(): Record<string, string> {
       return (
         this.languageStore.texts.create?.sessionList || {
           title: '会话列表',
@@ -121,7 +124,7 @@ export default {
         }
       )
     },
-    loadingText(): any {
+    loadingText(): Record<string, string> {
       return {
         contentdown: this.texts.contentdown || '上拉加载更多',
         contentrefresh: this.texts.contentrefresh || '加载中...',
@@ -138,10 +141,10 @@ export default {
       this.loading = true
 
       try {
-        const res: any = await getSessionList(this.page, this.size)
+        const res = await getSessionList(this.page, this.size)
         console.log('会话列表响应:', res)
         if (res.code === 1 || res.code === 0) {
-          const data = res.data || {}
+          const data = res.data as { records?: Session[] } || {}
           const records: Session[] = data.records || []
           console.log('会话记录:', records)
 
@@ -155,7 +158,7 @@ export default {
 
           this.hasMore = records.length === this.size
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('加载会话列表失败:', error)
         uni.showToast({
           title: this.texts.loadFailed,
@@ -168,9 +171,9 @@ export default {
 
     async createNewSession(): Promise<void> {
       try {
-        const res: any = await createSession()
+        const res = await createSession()
         if (res.code === 1 || res.code === 0) {
-          const session: Session = res.data
+          const session: Session = res.data as Session
           if (session && session.sessionId) {
             this.chatStore.addSession(session)
 
@@ -181,8 +184,8 @@ export default {
             })
           }
         }
-      } catch (error: any) {
-        console.error('创建会话失败:', error)
+      } catch (error: unknown) {
+        console.error(this.texts.createSessionFailed, error)
         uni.showToast({
           title: this.texts.createSessionFailed || '创建会话失败',
           icon: 'none'
@@ -198,7 +201,7 @@ export default {
 
       try {
         await setCurrentSession(session.sessionId)
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('设置当前会话失败:', error)
       }
 
@@ -211,7 +214,7 @@ export default {
       const session = this.sessionList[index]
       uni.showActionSheet({
         itemList: [this.texts.deleteSession || '删除会话'],
-        success: (res: any) => {
+        success: (res: UniApp.ShowActionSheetRes) => {
           if (res.tapIndex === 0) {
             this.deleteSession(index)
           }
@@ -225,7 +228,7 @@ export default {
       uni.showModal({
         title: this.texts.tip || '提示',
         content: this.texts.deleteConfirm,
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             try {
               this.chatStore.removeSession(index)

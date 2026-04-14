@@ -112,17 +112,17 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: Record<string, string>): void {
     this.recordId = options.recordId || ''
     this.modelId = options.modelId || ''
 
@@ -144,19 +144,19 @@ export default {
     async loadPrintRecord(): Promise<void> {
       try {
         uni.showLoading({ title: this.texts.loading || '加载中...' })
-        const res: any = await getPrintRecords(1, 20)
+        const res = await getPrintRecords(1, 20)
         uni.hideLoading()
 
-        if (res.code === 1 && res.data?.records) {
-          const record = res.data.records.find((r: any) => r.id === this.recordId)
+        if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
+          const records = res.data.records as unknown as Record<string, unknown>[]
+          const record = records.find((r) => r.id === this.recordId)
           if (record) {
             this.printData = {
-              modelName: record.modelName || record.name || '未命名模型',
-              modelImage:
-                record.modelImage || record.previewUrl || record.image || '/static/images/logo.png',
+              modelName: String(record.modelName || record.name || '未命名模型'),
+              modelImage: String(record.modelImage || record.previewUrl || record.image || '/static/images/logo.png'),
               printTime: this.formatPrintTime(record.printTime || record.duration),
               material: this.formatMaterial(record.material || record.weight),
-              size: this.formatSize(record.size || record.dimensions)
+              size: this.formatSize((record.size || record.dimensions) as Record<string, number> | string | null)
             }
           }
         }
@@ -167,7 +167,7 @@ export default {
       }
     },
 
-    loadFromParams(options: any): void {
+    loadFromParams(options: Record<string, string>): void {
       try {
         this.printData = {
           modelName: options.modelName ? decodeURIComponent(options.modelName) : '',
@@ -207,14 +207,14 @@ export default {
           return
         }
 
-        const res: any = await getUserInfo(userId)
+        const res = await getUserInfo(Number(userId)) as unknown as { code: number; data?: Record<string, unknown> }
 
         if (res.code === 1 && res.data) {
+          const data = res.data
           this.userData = {
-            avatar: res.data.avatar || res.data.avatarUrl || '/static/images/Default avatar.png',
+            avatar: String(data.avatar || data.avatarUrl || '/static/images/Default avatar.png'),
             nickname: 'Mixware3D',
-            username:
-              res.data.nickname || res.data.username || res.data.name || res.data.email || '用户'
+            username: String(data.nickname || data.username || data.name || data.email || '用户')
           }
         } else {
           this.userData = {
@@ -233,7 +233,7 @@ export default {
       }
     },
 
-    formatPrintTime(time: string | number): string {
+    formatPrintTime(time: unknown): string {
       if (!time) return '未知'
       if (typeof time === 'string' && time.includes('分')) return time
       if (typeof time === 'number') {
@@ -243,17 +243,17 @@ export default {
       return String(time)
     },
 
-    formatMaterial(material: string | number): string {
+    formatMaterial(material: unknown): string {
       if (!material) return '未知'
       if (typeof material === 'string' && material.includes('g')) return material
       if (typeof material === 'number') return `${material}g`
       return String(material)
     },
 
-    formatSize(size: any): string {
+    formatSize(size: Record<string, number> | string | null): string {
       if (!size) return '未知'
       if (typeof size === 'string') return size
-      if (typeof size === 'object' && size.x && size.y && size.z) {
+      if (typeof size === 'object' && size.x !== undefined && size.y !== undefined && size.z !== undefined) {
         return `${size.x}mm(X)*${size.y}mm(Y)*${size.z}mm(Z)`
       }
       return '未知'

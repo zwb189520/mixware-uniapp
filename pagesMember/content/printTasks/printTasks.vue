@@ -54,7 +54,7 @@ interface PrintTask {
   taskId: number | string
   previewUrl: string
   status: string
-  deviceId: string
+  deviceId: number | string
   createdAt: string
   errorMsg: string
 }
@@ -75,10 +75,10 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore?.texts?.printTasks || {}
     }
   },
@@ -97,7 +97,7 @@ export default {
       if (this.loading) return
       this.loading = true
       try {
-        const res: any = await getPrintTasks({
+        const res = await getPrintTasks({
           current: this.current,
           size: this.size
         })
@@ -110,10 +110,11 @@ export default {
           }
           this.total = res.data.total || 0
         }
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error
         console.error('加载打印任务失败:', error)
         uni.showToast({
-          title: error.message || this.texts.loadFailed || '加载失败',
+          title: err?.message || this.texts.loadFailed || '加载失败',
           icon: 'none'
         })
       } finally {

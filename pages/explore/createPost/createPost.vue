@@ -154,14 +154,14 @@ export default {
     }
   },
   computed: {
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     },
     canPublish(): boolean {
       return this.postForm.title.trim() !== '' && this.postForm.content.trim() !== ''
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: Record<string, string>): void {
     this.languageStore.loadLanguage()
     this.from = options.from || ''
 
@@ -179,8 +179,8 @@ export default {
       uni.navigateBack()
     },
 
-    handleTopicInput(e: any): void {
-      const val = e.detail.value
+    handleTopicInput(e: unknown): void {
+      const val = (e as { detail: { value: string } }).detail.value
       if (val.endsWith(' ') || val.endsWith(',') || val.endsWith('，')) {
         this.addTopic()
       }
@@ -202,7 +202,7 @@ export default {
         count: 9 - this.postForm.imageUrls.length,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
-        success: (res: any) => {
+        success: (res: UniApp.ChooseImageSuccessCallbackResult) => {
           this.postForm.imageUrls = [...this.postForm.imageUrls, ...res.tempFilePaths]
         }
       })
@@ -255,15 +255,16 @@ export default {
         for (const imageUrl of this.postForm.imageUrls) {
           if (!imageUrl.startsWith('http')) {
             console.log('上传图片:', imageUrl.substring(0, 50) + '...')
-            const uploadRes: any = await uploadFile('/upload/image', imageUrl)
+            const uploadRes = await uploadFile('/upload/image', imageUrl)
             console.log('上传结果:', JSON.stringify(uploadRes))
             if (uploadRes.code === 1 && uploadRes.data) {
-              let uploadedUrl = uploadRes.data.url || uploadRes.data.fileUrl
-              if (!uploadedUrl && uploadRes.data.originalFileName) {
-                uploadedUrl = `${API.UPLOAD_IMAGE_URL}/${uploadRes.data.originalFileName}`
+              const uploadData = uploadRes.data as { url?: string; fileUrl?: string; originalFileName?: string }
+              let uploadedUrl = uploadData.url || uploadData.fileUrl
+              if (!uploadedUrl && uploadData.originalFileName) {
+                uploadedUrl = `${API.UPLOAD_IMAGE_URL}/${uploadData.originalFileName}`
               }
               console.log('上传成功，URL:', uploadedUrl)
-              uploadedImageUrls.push(uploadedUrl)
+              uploadedImageUrls.push(uploadedUrl || '')
             } else {
               console.error('上传失败:', uploadRes)
             }
@@ -289,7 +290,7 @@ export default {
           tags: this.postForm.topics.join(',')
         }
 
-        const res: any = await createPost(postData)
+        const res = await createPost(postData)
         if (res.code === 0 || res.code === 1) {
           uni.hideLoading()
           uni.showToast({ title: this.texts.publishSuccess, icon: 'success' })
@@ -307,7 +308,7 @@ export default {
             }
           }, 1500)
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('发布帖子失败:', error)
         uni.hideLoading()
         uni.showToast({ title: this.texts.publishFailed, icon: 'none' })

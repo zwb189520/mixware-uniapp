@@ -1,4 +1,4 @@
-﻿
+
 <template>
   <view class="my-favorites-page">
     <safe-area />
@@ -55,10 +55,10 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore?.texts?.myFavorites || {}
     }
   },
@@ -78,17 +78,17 @@ export default {
       this.loading = true
 
       try {
-        const res: any = await getFavoriteModels()
+        const res = await getFavoriteModels()
         console.log('收藏列表响应:', res)
         if (res.code === 1 && res.data) {
-          this.favoritesList = res.data.map((item: any) => ({
-            id: item.modelId,
-            favoriteId: item.favoriteId,
-            title: item.name,
-            image: this.fixImageUrl(item.previewUrl),
-            time: this.formatTime(item.favoriteTime),
-            collectCount: item.collectCount,
-            groupId: item.groupId
+          this.favoritesList = res.data.map((item) => ({
+            id: String(item.modelId || item.id || ''),
+            favoriteId: String(item.favoriteId || ''),
+            title: String(item.name || item.title || ''),
+            image: this.fixImageUrl(String(item.previewUrl || item.thumb || '')),
+            time: this.formatTime(String(item.favoriteTime || item.createdAt || '')),
+            collectCount: Number(item.collectCount || item.likeCount || 0),
+            groupId: String(item.groupId || '')
           }))
           console.log('收藏列表数据:', this.favoritesList)
         } else {

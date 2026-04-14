@@ -52,7 +52,7 @@
 
 <script lang="ts">
 import CustomNavbar from '@/components/custom-navbar/custom-navbar.vue'
-import { getFollowingList, getFollowersList, toggleFollow } from '@/api/community'
+import { getFollowingList, getFollowersList, toggleFollow, type FollowUser as ApiFollowUser } from '@/api/community'
 import { useLanguageStore, useUserStore } from '@/stores/index.ts'
 
 interface FollowUser {
@@ -61,6 +61,16 @@ interface FollowUser {
   avatarUrl: string
   bio: string
   isFollowing: boolean
+}
+
+function transformUserData(apiUser: ApiFollowUser): FollowUser {
+  return {
+    userId: apiUser.userId,
+    username: apiUser.userName,
+    avatarUrl: apiUser.avatar || '/static/images/Default avatar.png',
+    bio: '',
+    isFollowing: false
+  }
 }
 
 export default {
@@ -78,13 +88,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.followList
     },
     pageTitle(): string {
@@ -94,8 +104,8 @@ export default {
       return this.activeTab === 'following' ? this.followingList : this.followersList
     }
   },
-  onLoad(options: any): void {
-    this.userId = options.userId || this.userStore.userId || ''
+  onLoad(options: Record<string, string>): void {
+    this.userId = options.userId || String(this.userStore.userId) || ''
     this.activeTab = options.tab || 'following'
     this.languageStore.loadLanguage()
 
@@ -107,9 +117,9 @@ export default {
   methods: {
     async loadFollowingList(): Promise<void> {
       try {
-        const res: any = await getFollowingList(this.userId)
-        if (res.code === 0) {
-          this.followingList = res.data || []
+        const res = await getFollowingList(this.userId)
+        if (res.code === 0 && res.data) {
+          this.followingList = res.data.map(transformUserData)
           this.followingCount = this.followingList.length
         }
       } catch (e) {
@@ -119,9 +129,9 @@ export default {
 
     async loadFollowersList(): Promise<void> {
       try {
-        const res: any = await getFollowersList(this.userId)
-        if (res.code === 0) {
-          this.followersList = res.data || []
+        const res = await getFollowersList(this.userId)
+        if (res.code === 0 && res.data) {
+          this.followersList = res.data.map(transformUserData)
           this.followersCount = this.followersList.length
         }
       } catch (e) {
@@ -144,9 +154,9 @@ export default {
           return
         }
 
-        const res: any = await toggleFollow(user.userId)
+        const res = await toggleFollow(user.userId)
         if (res.code === 0) {
-          const isFollowing = res.data
+          const isFollowing = res.data?.following ?? false
           user.isFollowing = isFollowing
 
           if (this.activeTab === 'following' && !isFollowing) {

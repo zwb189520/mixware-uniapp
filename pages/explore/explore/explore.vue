@@ -221,7 +221,7 @@ import {
 import { uploadImages } from '@/api/upload.ts'
 import { uploadModelFile } from '@/api/upload.ts'
 import { getHotExamples } from '@/api/session.ts'
-import type { HotExample } from '@/types/api'
+import type { HotExample, ApiResponse, Model, PaginatedData, ExploreModel } from '@/types/api'
 import { parseSnCode } from '@/api/devices.ts'
 import { useExploreStore, useUserStore } from '@/stores/index.ts'
 import { storeToRefs } from 'pinia'
@@ -232,48 +232,9 @@ type ExploreStore = ReturnType<typeof useExploreStore>
 type LanguageStore = ReturnType<typeof useLanguageStore>
 type UserStore = ReturnType<typeof useUserStore>
 
-interface ModelItem {
-  id: string | number
-  name: string
-  desc: string
-  image: string
-  author: string
-  authorAvatar: string
-  likes: number
-  isLiked: boolean
-  viewCount: number
-  category: string
-}
-
 interface TabItem {
   label: string
   value: string
-}
-
-interface ApiResponse<T = unknown> {
-  code: number
-  data?: T
-  msg?: string
-}
-
-interface ModelRecord {
-  id?: string | number
-  modelId?: string | number
-  name?: string
-  describe?: string
-  title?: string
-  previewUrl?: string
-  userName?: string
-  username?: string
-  userAvatar?: string
-  avatarUrl?: string
-  authorAvatar?: string
-  author?: string
-  likes?: number
-  likeCount?: number
-  isLiked?: boolean
-  viewCount?: number
-  category?: string
 }
 
 interface TouchEvent {
@@ -306,9 +267,20 @@ interface UploadResponse {
   }
 }
 
-interface TabItem {
-  label: string
-  value: string
+interface ModelRecord {
+  id: string | number
+  modelId?: string | number
+  name?: string
+  description?: string
+  previewUrl?: string
+  userId?: string
+  collectCount?: number
+  viewCount?: number
+  category?: string
+}
+
+interface ChooseFileResult {
+  tempFiles: Array<{ path: string | File; name: string }>
 }
 
 export default {
@@ -523,7 +495,7 @@ export default {
     async loadHotTags(): Promise<void> {
       if (!this.userStore.isLoggedIn) return
       try {
-        const res: ApiResponse<HotExample[]> = await getHotExamples(20)
+        const res = await getHotExamples(20)
         if (res.code === 0 || res.code === 1) {
           if (res.data && res.data.length > 0) {
             this.exploreStore.setHotTags(
@@ -531,14 +503,14 @@ export default {
             )
           }
         }
-      } catch (error: unknown) {
+      } catch (error) {
         console.error('加载热门标签失败:', error)
       }
     },
     async loadModels(params: LoadModelsParams = {}): Promise<void> {
       this.exploreStore.setLoading(true)
       try {
-        const res: ApiResponse<{ records: ModelRecord[] }> = await getModelPage({
+        const res = await getModelPage({
           current: params.page || 1,
           size: params.size || 100
         })
@@ -546,7 +518,7 @@ export default {
         if (res.code === 1 && res.data && res.data.records) {
           this.assignModelsToTabs(res.data.records)
         }
-        } catch (error: unknown) {
+        } catch (error) {
         console.error('获取模型列表失败:', error)
       } finally {
         this.exploreStore.setLoading(false)
@@ -568,7 +540,7 @@ export default {
       return categoryMap[apiCategory] || 'daily'
     },
 
-    assignModelsToTabs(models: ModelRecord[]): void {
+    assignModelsToTabs(models: Model[]): void {
       if (!models.length) {
         return
       }
@@ -584,7 +556,7 @@ export default {
         return url
       }
 
-      const formattedModels: ModelItem[] = models
+      const formattedModels: ExploreModel[] = models
         .filter((model) => model.modelId || model.id)
         .map((model) => ({
           id: (model.modelId || model.id) as string | number,
@@ -597,14 +569,14 @@ export default {
             : '/static/images/Default avatar.png',
           likes: model.likes || model.likeCount || 0,
           isLiked: model.isLiked || false,
-          viewCount: model.viewCount || 0,
+          viewCount: model.views || model.viewCount || 0,
           category: this.mapCategoryToTab(model.category || '')
         }))
 
       const tabData = {
-        daily: formattedModels.filter((m: ModelItem) => m.category === 'daily'),
-        hot: formattedModels.filter((m: ModelItem) => m.category === 'hot' || m.viewCount > 1000),
-        category: formattedModels.filter((m: ModelItem) => m.category !== 'daily' && m.category !== 'hot')
+        daily: formattedModels.filter((m: ExploreModel) => m.category === 'daily'),
+        hot: formattedModels.filter((m: ExploreModel) => m.category === 'hot' || m.viewCount > 1000),
+        category: formattedModels.filter((m: ExploreModel) => m.category !== 'daily' && m.category !== 'hot')
       }
 
       this.dailyModels = tabData.daily
@@ -620,12 +592,12 @@ export default {
       }
     },
 
-    async loadLikeStatus(models: ModelItem[]): Promise<void> {
+    async loadLikeStatus(models: ExploreModel[]): Promise<void> {
       try {
-        const checkPromises = models.map((model: ModelItem) =>
+        const checkPromises = models.map((model) =>
           checkModelLike(model.id).catch(() => ({ code: 0, data: { liked: false } }))
         )
-        const results: Array<ApiResponse<{ liked: boolean }>> = await Promise.all(checkPromises)
+        const results = await Promise.all(checkPromises)
         results.forEach((res, index: number) => {
           if (res.code === 1) {
             const model = models[index]
@@ -635,7 +607,7 @@ export default {
             }
           }
         })
-      } catch (e: unknown) {
+      } catch (e) {
         console.warn('获取点赞状态失败:', e)
       }
     },
@@ -666,7 +638,7 @@ export default {
 
       this.exploreStore.setLoading(true)
       try {
-        const res: any = await getModelPage({
+        const res = await getModelPage({
           current: 1,
           size: 20,
           name: keyword
@@ -681,17 +653,18 @@ export default {
           }
 
           console.log('API返回的模型数据:', res.data.records)
-          const formattedModels: ModelItem[] = res.data.records.map((model: any) => ({
+          const records = res.data.records as unknown as ModelRecord[]
+          const formattedModels: ExploreModel[] = records.map((model: ModelRecord) => ({
             id: model.modelId || model.id,
             name: model.name || '未命名模型',
             desc: model.description || model.name || '暂无描述',
-            image: fixImageUrl(model.previewUrl),
+            image: fixImageUrl(model.previewUrl || ''),
             author: model.userId ? model.userId.substring(0, 8) : '匿名用户',
-            authorAvatar: fixImageUrl(model.previewUrl),
+            authorAvatar: fixImageUrl(model.previewUrl || ''),
             likes: model.collectCount || 0,
             isLiked: false,
             viewCount: model.viewCount || 0,
-            category: this.mapCategoryToTab(model.category)
+            category: this.mapCategoryToTab(model.category || '')
           }))
 
           if (this.currentTab === 'daily') {
@@ -716,7 +689,7 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('搜索失败:', error)
         uni.showToast({
           title: this.texts.searchFailed || '搜索失败，请稍后重试',
@@ -730,13 +703,13 @@ export default {
       uni.scanCode({
         onlyFromCamera: true,
         scanType: ['qrCode', 'barCode'],
-        success: (res: any) => {
+        success: (res) => {
           console.log('扫码成功:', res)
           if (res.result) {
             this.handleScanResult(res.result)
           }
         },
-        fail: (err: any) => {
+        fail: (err: UniApp.GeneralCallbackResult) => {
           console.error('扫码失败:', err)
           uni.showToast({
             title: this.texts.scanFailed || '扫码失败',
@@ -749,7 +722,7 @@ export default {
       if (result) {
         uni.showLoading({ title: this.texts.parsing || '解析中...' })
         try {
-          const res: any = await parseSnCode(result)
+          const res = await parseSnCode(result)
           uni.hideLoading()
 
           if (res.data) {
@@ -765,7 +738,7 @@ export default {
               icon: 'none'
             })
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           uni.hideLoading()
           console.error('解析SN码失败:', error)
           uni.showToast({
@@ -780,7 +753,7 @@ export default {
       this.exploreStore.setKeyword(tag)
       this.searchModels(tag)
     },
-    handleModelClick(item: ModelItem): void {
+    handleModelClick(item: ExploreModel): void {
       if (!this.userStore.isLoggedIn) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
@@ -795,8 +768,8 @@ export default {
         url: `/pages/explore/modelDetail/modelDetail?id=${item.id}`
       })
     },
-    handleAuthorClick(item: ModelItem): void {},
-    async toggleLike(item: ModelItem): Promise<void> {
+    handleAuthorClick(item: ExploreModel): void {},
+    async toggleLike(item: ExploreModel): Promise<void> {
       if (!this.userStore.isLoggedIn) {
         uni.navigateTo({
           url: '/pagesMember/auth/login/login'
@@ -809,7 +782,7 @@ export default {
       }
 
       try {
-        const res: any = item.isLiked ? await unlikeModel(item.id) : await likeModel(item.id)
+        const res = await (item.isLiked ? unlikeModel(item.id) : likeModel(item.id))
         if (res.code === 1) {
           const newIsLiked = !item.isLiked
           const newLikes = item.likes + (newIsLiked ? 1 : -1)
@@ -819,15 +792,16 @@ export default {
             title: item.isLiked ? this.texts.likeSuccess : this.texts.cancelLike,
             icon: 'success'
           })
-        } else if (res.code === 100003) {
-          const realIsLiked = res.msg && res.msg.includes('已点赞')
+        } else {
+          const msg = (res as unknown as Record<string, unknown>).msg as string | undefined
+          const realIsLiked = msg?.includes('已点赞') ?? false
           this.exploreStore.updateModelLike(item.id, realIsLiked, item.likes)
-          uni.showToast({ title: res.msg, icon: 'none' })
+          uni.showToast({ title: msg || '操作失败', icon: 'none' })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('点赞操作失败:', error)
         uni.showToast({
-          title: error.message || this.texts.operationFailed,
+          title: (error as Error).message || this.texts.operationFailed,
           icon: 'none'
         })
       }
@@ -859,7 +833,7 @@ export default {
     },
 
     async uploadModel(): Promise<void> {
-      const modalRes: any = await this.showModalPromise({
+      const modalRes = await this.showModalPromise({
         title: this.texts.uploadSteps || '上传步骤',
         content:
           this.texts.uploadStepsContent ||
@@ -868,7 +842,7 @@ export default {
       if (!modalRes.confirm) return
 
       try {
-        const imgRes: any = await this.chooseImagePromise({ count: 1 })
+        const imgRes = await this.chooseImagePromise({ count: 1 })
         const imgPath = imgRes.tempFilePaths[0]
         uni.showToast({
           title: this.texts.imageSelected || '已选择图片',
@@ -876,9 +850,9 @@ export default {
           duration: 1000
         })
 
-        const stlRes: any = await this.chooseFilePromise({ count: 1, type: 'all' })
+        const stlRes = await this.chooseFilePromise({ count: 1, type: 'all' })
         const stlFile = stlRes.tempFiles[0]
-        const stlPath = stlFile.path
+        const stlPath = typeof stlFile.path === 'string' ? stlFile.path : stlFile.path.name
         const stlName = stlFile.name || 'model.stl'
         uni.showToast({
           title: this.texts.stlFileSelected || '已选择STL文件',
@@ -887,7 +861,7 @@ export default {
         })
 
         const categories = ['日用居家', '玩具手办', '亲子互动', '学习探索', '其他', '高速打印']
-        const sheetRes: any = await this.showActionSheetPromise({ itemList: categories })
+        const sheetRes = await this.showActionSheetPromise({ itemList: categories })
         const selectedCategory = categories[sheetRes.tapIndex]
         uni.showToast({
           title: this.texts.categorySelected || '已选择分类',
@@ -895,7 +869,7 @@ export default {
           duration: 1000
         })
 
-        const inputRes: any = await this.showModalPromise({
+        const inputRes = await this.showModalPromise({
           title: this.texts.modelName || '模型名称',
           content: '',
           placeholderText: stlName.replace('.stl', '').replace('.STL', ''),
@@ -906,7 +880,7 @@ export default {
 
         uni.showLoading({ title: this.texts.uploading || '上传中...' })
 
-        const imgUploadRes: any = await uploadImages([imgPath])
+        const imgUploadRes = await uploadImages([imgPath])
         if (!imgUploadRes || imgUploadRes.length === 0) {
           throw new Error('图片上传失败: 没有返回数据')
         }
@@ -915,7 +889,7 @@ export default {
           throw new Error(`图片上传失败: ${imgResult?.msg || imgResult?.message || '未知错误'}`)
         }
 
-        const stlUploadRes: any = await uploadModelFile(stlPath)
+        const stlUploadRes = await uploadModelFile(stlPath)
         if (stlUploadRes.code !== 1 && stlUploadRes.code !== 200) {
           throw new Error(
             `STL文件上传失败: ${stlUploadRes.msg || stlUploadRes.message || '未知错误'}`
@@ -925,10 +899,11 @@ export default {
         const userInfo = this.userStore.userInfo
         const userId = userInfo?.userId || userInfo?.id || ''
 
-        const previewUrl = imgUploadRes[0].data.files
-          ? imgUploadRes[0].data.files[0].fileUrl
-          : imgUploadRes[0].data
-        const downloadUrl = stlUploadRes.data.fileUrl || stlUploadRes.data
+        const imgData = imgUploadRes[0].data as Record<string, unknown> | undefined
+        const files = imgData?.files as Array<{ fileUrl: string }> | undefined
+        const previewUrl = files?.[0]?.fileUrl || String(imgData?.fileUrl || imgData?.url || '')
+        const stlData = stlUploadRes.data as Record<string, unknown> | undefined
+        const downloadUrl = String(stlData?.fileUrl || stlData?.url || stlUploadRes.data || '')
 
         await addModel({
           name: finalName,
@@ -943,41 +918,46 @@ export default {
         uni.hideLoading()
         uni.showToast({ title: this.texts.uploadSuccess || '上传成功', icon: 'success' })
         this.loadModels()
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
         uni.showToast({
-          title: error.message || this.texts.uploadFailed || '上传失败',
+          title: (error as Error).message || this.texts.uploadFailed || '上传失败',
           icon: 'none'
         })
       }
     },
 
-    showModalPromise(options: any): Promise<any> {
+    showModalPromise(options: UniApp.ShowModalOptions): Promise<UniApp.ShowModalRes> {
       return new Promise(resolve => {
-        uni.showModal({ ...options, success: resolve, fail: () => resolve({ cancel: true }) })
+        uni.showModal({ 
+          ...options, 
+          success: resolve, 
+          fail: () => resolve({ cancel: true, confirm: false } as UniApp.ShowModalRes) 
+        })
       })
     },
-    showActionSheetPromise(options: any): Promise<any> {
+    showActionSheetPromise(options: UniApp.ShowActionSheetOptions): Promise<UniApp.ShowActionSheetRes> {
       return new Promise((resolve, reject) => {
         uni.showActionSheet({ ...options, success: resolve, fail: reject })
       })
     },
-    chooseImagePromise(options: any): Promise<any> {
+    chooseImagePromise(options: UniApp.ChooseImageOptions): Promise<UniApp.ChooseImageSuccessCallbackResult> {
       return new Promise((resolve, reject) => {
         uni.chooseImage({ ...options, success: resolve, fail: reject })
       })
     },
-    chooseFilePromise(options: any): Promise<any> {
+    chooseFilePromise(options: UniApp.ChooseFileOptions): Promise<ChooseFileResult> {
       return new Promise((resolve, reject) => {
         // #ifdef H5
         if (typeof uni.chooseFile === 'function') {
-          uni.chooseFile({ ...options, success: resolve, fail: reject })
+          uni.chooseFile({ ...options, success: resolve as (res: unknown) => void, fail: reject })
         } else {
           const input = document.createElement('input')
           input.type = 'file'
           input.accept = '.stl,.STL'
-          input.onchange = (e: any) => {
-            const file = e.target.files[0]
+          input.onchange = (e: Event) => {
+            const target = e.target as HTMLInputElement | null
+            const file = target?.files?.[0]
             if (file) {
               resolve({ tempFiles: [{ path: file, name: file.name }] })
             } else {
@@ -989,7 +969,7 @@ export default {
         // #endif
         // #ifndef H5
         if (typeof uni.chooseFile === 'function') {
-          uni.chooseFile({ ...options, success: resolve, fail: reject })
+          uni.chooseFile({ ...options, success: resolve as (res: unknown) => void, fail: reject })
         } else {
           uni.showToast({ title: 'APP端请使用文件管理器选择STL文件', icon: 'none' })
           reject(new Error('APP端不支持文件选择'))

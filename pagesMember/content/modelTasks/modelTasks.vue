@@ -55,8 +55,8 @@ interface TaskItem {
   previewUrl: string
   status: string
   scaleFactor: number
-  createdAt: string
-  errorMsg: string
+  createdAt?: string
+  errorMsg?: string
   sourceModelUrl: string
 }
 
@@ -76,13 +76,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore?.texts?.modelTasks || {}
     }
   },
@@ -101,10 +101,10 @@ export default {
       if (this.loading) return
       this.loading = true
       try {
-        const userInfo: any = this.userStore.userInfo
+        const userInfo = this.userStore.userInfo
         console.log('用户信息:', userInfo)
         console.log('userId:', userInfo?.userId)
-        const res: any = await getModelTasks({
+        const res = await getModelTasks({
           current: this.current,
           size: this.size
         })
@@ -114,19 +114,20 @@ export default {
           console.log('任务记录:', records)
           console.log('记录数:', records.length)
           if (this.current === 1) {
-            this.taskList = records
+            this.taskList = records.map(r => ({ ...r, status: r.status || '' }))
           } else {
-            this.taskList = [...this.taskList, ...records]
+            this.taskList = [...this.taskList, ...records.map(r => ({ ...r, status: r.status || '' }))]
           }
           this.total = res.data.total || 0
           console.log('总任务数:', this.total)
         } else {
           console.log('接口返回异常:', res)
         }
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error
         console.error('加载模型任务失败:', error)
         uni.showToast({
-          title: error.message || this.texts.loadFailed || '加载失败',
+          title: err?.message || this.texts.loadFailed || '加载失败',
           icon: 'none'
         })
       } finally {
@@ -168,7 +169,7 @@ export default {
       }
       return statusTextMap[s] || status
     },
-    formatTime(time: string): string {
+    formatTime(time?: string): string {
       if (!time) return ''
       return time.replace('T', ' ').split('.')[0]
     }

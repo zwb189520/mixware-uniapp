@@ -81,6 +81,13 @@ import ManualInputModal from './ManualInputModal.vue'
 // @ts-ignore
 import uniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
+interface HttpInstance {
+  post: (url: string, data?: Record<string, unknown>) => Promise<{ code: number; msg: string; data?: unknown }>
+  get: (url: string, params?: Record<string, unknown>) => Promise<{ code: number; msg: string; data?: unknown }>
+}
+
+const $http = (uni as unknown as { $http: HttpInstance }).$http
+
 interface ScanResult {
   snCode: string
   deviceName?: string
@@ -144,7 +151,7 @@ const processSnCode = async (snCode: string) => {
 
   uni.showLoading({ title: texts.value.parsing || '解析中...' })
   try {
-    const res = await uni.$http.post('/devices/parseSnCode', { snCode })
+    const res = await $http.post('/devices/parseSnCode', { snCode })
     uni.hideLoading()
 
     if (res.code === 0) {
@@ -188,7 +195,7 @@ const handleAddDevice = async () => {
 
   uni.showLoading({ title: texts.value.adding || '添加中...' })
   try {
-    const res = await uni.$http.post('/devices/bind', {
+    const res = await $http.post('/devices/bind', {
       deviceId: scanResult.value.deviceId || '',
       snCode: scanResult.value.snCode
     })
@@ -227,10 +234,10 @@ const scanCode = (): Promise<ScanCodeResult | null> => {
     uni.scanCode({
       onlyFromCamera: true,
       scanType: ['qrCode', 'barCode'],
-      success: (res: any) => {
+      success: (res: UniApp.ScanCodeSuccessRes) => {
         resolve(res as ScanCodeResult)
       },
-      fail: (err: any) => {
+      fail: (err: UniApp.GeneralCallbackResult) => {
         if (err.errMsg && err.errMsg.includes('cancel')) {
           resolve(null)
         } else {

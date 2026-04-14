@@ -37,11 +37,11 @@ import { useLanguageStore } from '@/stores/index.ts'
 
 interface DeviceInfoData {
   deviceName: string
-  remark: string
-  snCode: string
+  remark?: string
+  snCode?: string
   deviceId: string
-  bindTime: string
-  status?: string
+  bindTime?: string
+  status?: number | string
   model?: string
   firmware?: string
 }
@@ -64,10 +64,10 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore?.texts?.printerMoreIntro || {}
     }
   },
@@ -85,7 +85,7 @@ export default {
     async loadDeviceInfo(): Promise<void> {
       if (!this.deviceId) return
       try {
-        const res: any = await getDeviceInfo(this.deviceId)
+        const res = await getDeviceInfo(this.deviceId)
         if (res.data) {
           const info: DeviceInfoData = res.data
           this.printerName = info.deviceName || this.texts.unnamedDevice || '未命名设备'
@@ -105,8 +105,8 @@ export default {
         editable: true,
         placeholderText: this.texts.enterNewDeviceName || '请输入新的设备名称',
         content: this.printerName,
-        success: async (res: any) => {
-          if (res.confirm && res.content.trim()) {
+        success: async (res: UniApp.ShowModalRes) => {
+          if (res.confirm && res.content?.trim()) {
             const newName = res.content.trim()
             try {
               const updateData = {
@@ -136,9 +136,9 @@ export default {
         editable: true,
         placeholderText: this.texts.enterDeviceRemark || '请输入设备备注',
         content: this.printerRemark,
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
-            const newRemark = res.content.trim()
+            const newRemark = res.content?.trim() || ''
             try {
               const updateData = {
                 deviceId: this.deviceId,

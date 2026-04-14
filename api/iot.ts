@@ -1,9 +1,10 @@
-﻿import { post, get } from './request'
+import { post, get } from './request'
 import { API } from '../constants/index.ts'
-import type { ApiResponse, Device } from '@/types/api'
+import type { ApiResponse, Device, RequestData } from '@/types/api'
 
 interface FirmwareInfo {
   version: string
+  currentVersion?: string
   buildDate?: string
   status?: string
   latestVersion?: string
@@ -36,13 +37,13 @@ export function updateFirmwareStatus(deviceId: string): Promise<ApiResponse<null
 }
 
 export function checkFirmware(firmwareCheckRequestDTO: Record<string, unknown>): Promise<ApiResponse<FirmwareInfo>> {
-  return post<FirmwareInfo>('/iot/firmware/checkVersion', firmwareCheckRequestDTO)
+  return post<FirmwareInfo>('/iot/firmware/checkVersion', firmwareCheckRequestDTO as RequestData)
 }
 
 export function verifyCredential(
   deviceCredentialVerifyDTO: Record<string, unknown>
 ): Promise<ApiResponse<DeviceCredential>> {
-  return post<DeviceCredential>('/iot/auth/verify', deviceCredentialVerifyDTO)
+  return post<DeviceCredential>('/iot/auth/verify', deviceCredentialVerifyDTO as RequestData)
 }
 
 export function getDeviceStatus(deviceId: string): Promise<ApiResponse<Device>> {

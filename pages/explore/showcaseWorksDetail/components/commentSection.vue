@@ -156,10 +156,10 @@ export default {
     return {}
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     },
     displayComments(): Comment[] {
@@ -186,7 +186,7 @@ export default {
       this.$emit('view-more')
     },
 
-    handleImageError(e: any): void {
+    handleImageError(e: Event): void {
       console.log('图片加载失败:', e)
     }
   }

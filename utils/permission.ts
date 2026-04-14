@@ -1,12 +1,39 @@
+interface WxAuthSetting {
+  authSetting: Record<string, boolean>
+}
+
+interface WxError {
+  errMsg: string
+}
+
+interface WxApi {
+  authorize: (options: {
+    scope: string
+    success: () => void
+    fail: (error: WxError) => void
+  }) => void
+  showModal: (options: {
+    title: string
+    content: string
+    showCancel: boolean
+    success: () => void
+  }) => void
+  openSetting: (options: {
+    success: (res: WxAuthSetting) => void
+  }) => void
+}
+
+declare const wx: WxApi | undefined
+
 export function checkBluetoothPermission() {
   return new Promise((resolve, reject) => {
-    if (typeof wx !== 'undefined' && wx.authorize) {
+    if (typeof wx !== 'undefined' && wx?.authorize) {
       wx.authorize({
         scope: 'scope.bluetooth',
         success: () => {
           resolve(true)
         },
-        fail: (error: { errMsg: string }) => {
+        fail: (error: WxError) => {
           console.error('蓝牙权限申请失败:', error)
           wx.showModal({
             title: '需要蓝牙权限',
@@ -14,7 +41,7 @@ export function checkBluetoothPermission() {
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: (res: { authSetting: Record<string, boolean> }) => {
+                success: (res: WxAuthSetting) => {
                   resolve(res.authSetting['scope.bluetooth'] || false)
                 }
               })
@@ -32,13 +59,13 @@ export function checkBluetoothPermission() {
 
 export function checkLocationPermission() {
   return new Promise((resolve, reject) => {
-    if (typeof wx !== 'undefined' && wx.authorize) {
+    if (typeof wx !== 'undefined' && wx?.authorize) {
       wx.authorize({
         scope: 'scope.userLocation',
         success: () => {
           resolve(true)
         },
-        fail: (error: { errMsg: string }) => {
+        fail: (error: WxError) => {
           console.error('位置权限申请失败:', error)
           wx.showModal({
             title: '需要位置权限',
@@ -46,7 +73,7 @@ export function checkLocationPermission() {
             showCancel: false,
             success: () => {
               wx.openSetting({
-                success: (res: { authSetting: Record<string, boolean> }) => {
+                success: (res: WxAuthSetting) => {
                   resolve(res.authSetting['scope.userLocation'] || false)
                 }
               })

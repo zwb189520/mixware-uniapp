@@ -1,4 +1,5 @@
-﻿import { get, post } from './request'
+import { get, post } from './request'
+import type { RequestData } from '@/types/api'
 
 /**
  * Google OAuth 回调处理
@@ -14,7 +15,7 @@ export function googleCallback(code: string, state: string): Promise<unknown> {
  * @param params - 用户信息参数
  */
 export function appleCallback(params: Record<string, unknown>): Promise<unknown> {
-  return post('/auth/oauth/callback/apple', params)
+  return post('/auth/oauth/callback/apple', params as RequestData)
 }
 
 /**

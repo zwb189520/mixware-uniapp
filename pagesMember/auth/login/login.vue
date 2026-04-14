@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="login-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -203,10 +203,10 @@ export default {
   },
 
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.login || {}
     }
   },
@@ -232,12 +232,12 @@ export default {
         uni.showLoading({ title: this.texts.loggingIn || '登录中...' })
         try {
           if (state.startsWith('google_')) {
-            googleCallback(code, state).then((result: any) => {
-              this.handleOAuthResult(result)
+            googleCallback(code, state).then((result: unknown) => {
+              this.handleOAuthResult(result as Record<string, unknown>)
             })
           }
           ;(window as any).history.replaceState({}, document.title, (window as any).location.pathname)
-        } catch (err: any) {
+        } catch (err: unknown) {
           uni.hideLoading()
           uni.showToast({ title: this.texts.loginFailed || '登录失败', icon: 'none' })
         }
@@ -257,13 +257,13 @@ export default {
       this.marketingOptIn = !this.marketingOptIn
     },
 
-    handleBirthdayChange(e: any): void {
+    handleBirthdayChange(e: { detail: { value: string } }): void {
       this.birthday = e.detail.value
     },
 
     initializeTestUser(): void {
-      const registeredUsers = uni.getStorageSync('registeredUsers') || []
-      const hasTestUser = registeredUsers.some((user: any) => user.email === 'test@example.com')
+      const registeredUsers: Record<string, unknown>[] = uni.getStorageSync('registeredUsers') || []
+      const hasTestUser = registeredUsers.some((user: Record<string, unknown>) => user.email === 'test@example.com')
 
       if (!hasTestUser) {
         const testUser = {
@@ -322,10 +322,10 @@ export default {
           title: this.texts.codeSent,
           icon: 'success'
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
         uni.showToast({
-          title: error.message || this.texts.sendCodeFailed || '发送验证码失败',
+          title: (error as Error).message || this.texts.sendCodeFailed || '发送验证码失败',
           icon: 'none'
         })
       }
@@ -427,10 +427,11 @@ export default {
             url: '/pages/profile/profile'
           })
         }, 500)
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
+        console.error('登录失败:', error)
         uni.showToast({
-          title: error.message || this.texts.loginFailed,
+          title: (error as Error).message || this.texts.loginFailed,
           icon: 'none'
         })
       }
@@ -456,7 +457,7 @@ export default {
             url: '/pages/profile/profile'
           })
         }, 500)
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
 
         if (this.timer) {
@@ -466,7 +467,7 @@ export default {
         this.countdown = 0
 
         uni.showToast({
-          title: error.message || this.texts.loginFailed,
+          title: (error as Error).message || this.texts.loginFailed,
           icon: 'none'
         })
       }
@@ -501,7 +502,7 @@ export default {
             url: '/pages/profile/profile'
           })
         }, 500)
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
 
         if (this.timer) {
@@ -511,7 +512,7 @@ export default {
         this.countdown = 0
 
         uni.showToast({
-          title: error.message || this.texts.registerFailed,
+          title: (error as Error).message || this.texts.registerFailed,
           icon: 'none'
         })
       }
@@ -542,9 +543,9 @@ export default {
 
       try {
         // #ifdef H5
-        const config: any = await getGoogleOAuthConfig()
+        const config = await getGoogleOAuthConfig() as { code: number; data?: { clientId: string; redirectUri: string } }
         if (config.code === 1 || config.code === 0) {
-          const { clientId, redirectUri } = config.data
+          const { clientId, redirectUri } = config.data || { clientId: '', redirectUri: '' }
           const state = 'google_' + Date.now()
           uni.setStorageSync('oauth_state', state)
           const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=profile email&state=${state}`
@@ -553,18 +554,21 @@ export default {
         // #endif
 
         // #ifdef APP-PLUS
-        const appConfig: any = await getGoogleOAuthConfig()
+        const appConfig = await getGoogleOAuthConfig() as { code: number; data?: { clientId: string; redirectUri: string } }
         if (appConfig.code === 1 || appConfig.code === 0) {
-          const { clientId, redirectUri } = appConfig.data
-          ;(plus as any).oauth.getServices((services: any[]) => {
-            const google = services.find((s: any) => s.id === 'google')
+          const { clientId, redirectUri } = appConfig.data || { clientId: '', redirectUri: '' }
+          const plusObj = plus as unknown as Record<string, unknown>
+          const oauth = plusObj.oauth as { getServices: (cb: (services: Record<string, unknown>[]) => void) => void }
+          oauth.getServices((services: Record<string, unknown>[]) => {
+            const google = services.find((s: Record<string, unknown>) => s.id === 'google')
             if (google) {
-              google.authorize(
-                async (e: any) => {
-                  const result: any = await googleCallback(e.code, '')
-                  this.handleOAuthResult(result)
+              const googleAuth = google as { authorize: (success: (e: Record<string, unknown>) => void, fail: (err: unknown) => void) => void }
+              googleAuth.authorize(
+                async (e: Record<string, unknown>) => {
+                  const result = await googleCallback(e.code as string, '')
+                  this.handleOAuthResult(result as Record<string, unknown>)
                 },
-                (err: any) => {
+                (err: unknown) => {
                   uni.hideLoading()
                   uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
                 }
@@ -579,10 +583,10 @@ export default {
           })
         }
         // #endif
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
         uni.showToast({
-          title: error.message || this.texts.googleLoginFailed,
+          title: (error as Error).message || this.texts.googleLoginFailed,
           icon: 'none'
         })
       }
@@ -604,16 +608,17 @@ export default {
           return
         }
         try {
-          const config: any = await getAppleConfig()
+          const config = await getAppleConfig() as { code: number; data?: { clientId: string; redirectUri: string } }
           if (config.code !== 1 && config.code !== 0) {
             uni.hideLoading()
             uni.showToast({ title: this.texts.configFetchFailed || '配置获取失败', icon: 'none' })
             return
           }
+          const configData = config.data || { clientId: '', redirectUri: '' }
           ;(window as any).AppleID.auth.init({
-            clientId: config.data.clientId,
+            clientId: configData.clientId,
             scope: 'name email',
-            redirectURI: config.data.redirectUri,
+            redirectURI: configData.redirectUri,
             usePopup: true
           })
           const response = await (window as any).AppleID.auth.signIn()
@@ -630,17 +635,18 @@ export default {
             uni.setStorageSync('apple_user_email', userData.email)
           }
 
-          const result: any = await appleCallback({
+          const result = await appleCallback({
             code: auth.code,
             id_token: auth.id_token,
             user: auth.user,
             email: userData.email || uni.getStorageSync('apple_user_email') || '',
             name: uni.getStorageSync('apple_user_name') || ''
           })
-          this.handleOAuthResult(result)
-        } catch (err: any) {
+          this.handleOAuthResult(result as Record<string, unknown>)
+        } catch (err: unknown) {
           uni.hideLoading()
-          if (err.error === 'user_cancelled_authorize') {
+          const errData = err as Record<string, unknown>
+          if (errData.error === 'user_cancelled_authorize') {
             uni.showToast({ title: this.texts.userCancelledAuth || '用户取消授权', icon: 'none' })
           } else {
             uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
@@ -651,21 +657,21 @@ export default {
         // #ifdef APP-PLUS
         uni.login({
           provider: 'apple',
-          success: (loginRes: any) => {
+          success: (loginRes: UniApp.LoginRes) => {
             uni.getUserInfo({
               provider: 'apple',
-              success: async (info: any) => {
-                const auth = info.authResult || {}
-                const userInfo = info.userInfo || {}
+              success: async (info) => {
+                const infoData = info as unknown as Record<string, unknown>
+                const auth = (infoData.authResult || infoData.userInfo || {}) as Record<string, unknown>
+                const userInfo = (infoData.userInfo || {}) as Record<string, unknown>
 
                 const code = auth.code || auth.authorizationCode
                 const identityToken = auth.identityToken || auth.id_token
                 const user = auth.user || userInfo.openId
-                const fullName =
-                  userInfo.fullName ||
-                  (userInfo.name
-                    ? `${userInfo.name.firstName || ''} ${userInfo.name.lastName || ''}`.trim()
-                    : '')
+                const fullNameInfo = userInfo.fullName || userInfo.name || {}
+                const fullName = typeof fullNameInfo === 'object' 
+                  ? `${(fullNameInfo as Record<string, string>).firstName || ''} ${(fullNameInfo as Record<string, string>).lastName || ''}`.trim()
+                  : String(fullNameInfo || '')
                 const email = userInfo.email
 
                 if (fullName) {
@@ -676,15 +682,15 @@ export default {
                 }
 
                 try {
-                  const result: any = await appleCallback({
+                  const result = await appleCallback({
                     code,
                     id_token: identityToken,
                     user,
                     email: email || uni.getStorageSync('apple_user_email') || '',
                     name: uni.getStorageSync('apple_user_name') || fullName || ''
                   })
-                  this.handleOAuthResult(result)
-                } catch (err: any) {
+                  this.handleOAuthResult(result as unknown as Record<string, unknown>)
+                } catch (err: unknown) {
                   uni.hideLoading()
                   uni.showToast({ title: this.texts.loginFailed || '登录失败', icon: 'none' })
                 }
@@ -698,9 +704,9 @@ export default {
               }
             })
           },
-          fail: (err: any) => {
+          fail: (err: UniApp.GeneralCallbackResult) => {
             uni.hideLoading()
-            if (err.code === 1000) {
+            if (err.errMsg?.includes('cancel')) {
               uni.showToast({ title: this.texts.userCancelledAuth || '用户取消授权', icon: 'none' })
             } else {
               uni.showToast({ title: this.texts.authFailed || '授权失败', icon: 'none' })
@@ -708,29 +714,31 @@ export default {
           }
         })
         // #endif
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
         uni.showToast({
-          title: error.message || this.texts.appleLoginFailed || 'Apple登录失败',
+          title: (error as Error).message || this.texts.appleLoginFailed || 'Apple登录失败',
           icon: 'none'
         })
       }
     },
 
-    handleOAuthResult(result: any): void {
+    handleOAuthResult(result: Record<string, unknown>): void {
       uni.hideLoading()
-      if (result.code === 1 || result.code === 0) {
-        const { token, userId, username, avatarUrl } = result.data
+      const code = result.code as number
+      if (code === 1 || code === 0) {
+        const data = result.data as Record<string, unknown> | undefined
+        const { token, userId, username, avatarUrl } = data || {}
         uni.setStorageSync('token', token)
         uni.setStorageSync('userInfo', { userId, username, avatarUrl })
-        uni.showToast({ title: this.texts.loginSuccess, icon: 'success' })
+        uni.showToast({ title: String(this.texts.loginSuccess || '登录成功'), icon: 'success' })
         setTimeout(() => {
           uni.switchTab({
             url: '/pages/profile/profile'
           })
         }, 500)
       } else {
-        uni.showToast({ title: result.msg || this.texts.loginFailed || '登录失败', icon: 'none' })
+        uni.showToast({ title: String(result.msg || this.texts.loginFailed || '登录失败'), icon: 'none' })
       }
     }
   }

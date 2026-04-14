@@ -49,16 +49,16 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
     languageLabel(): string {
       return this.languageStore.language === 'en' ? 'English' : '中文'
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.settings
     }
   },
@@ -101,7 +101,7 @@ export default {
       const options = ['中文', 'English']
       uni.showActionSheet({
         itemList: options,
-        success: (res: any) => {
+        success: (res: UniApp.ShowActionSheetRes) => {
           if (typeof res.tapIndex !== 'number') return
           const lang = res.tapIndex === 1 ? 'en' : 'zh'
           this.languageStore.setLanguage(lang)
@@ -141,7 +141,7 @@ export default {
       uni.showModal({
         title: this.texts.logoutTitle,
         content: this.texts.logoutContent,
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             try {
               await logout()

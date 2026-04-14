@@ -24,10 +24,10 @@ import { useLanguageStore } from '@/stores/index.ts'
 export default {
   name: 'FirmwareSettings',
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.printer
     }
   },
@@ -45,9 +45,9 @@ export default {
   },
   watch: {
     deviceInfo: {
-      handler(newVal: any): void {
+      handler(newVal: Record<string, unknown> | null): void {
         if (newVal && newVal.firmwareVersion) {
-          this.firmwareVersion = newVal.firmwareVersion
+          this.firmwareVersion = String(newVal.firmwareVersion)
         }
       },
       immediate: true

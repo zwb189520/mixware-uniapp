@@ -224,6 +224,16 @@ interface ShowcaseWork {
   title?: string
 }
 
+interface PostData {
+  postId: string | number
+  modelId: string | number
+  imageUrls?: string[]
+  likeCount?: number
+  isLiked?: boolean
+  username?: string
+  avatarUrl?: string
+}
+
 export default {
   components: {
     CustomNavbar,
@@ -256,13 +266,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     },
     showcaseLeftList(): ShowcaseWork[] {
@@ -272,7 +282,7 @@ export default {
       return this.showcaseWorks.filter((_, i) => i % 2 === 1)
     }
   },
-  onLoad(options: any): void {
+  onLoad(options: Record<string, string>): void {
     console.log('onLoad options:', options)
     this.languageStore.loadLanguage()
     const modelId = options.id || options.modelId
@@ -332,27 +342,33 @@ export default {
         return
       }
       try {
-        const res: any = await getPostList({
+        const res = await getPostList({
           current: 1,
           size: 100
         })
 
         if (res.code === 0 || res.code === 1) {
-          const records = res.data?.records || res.data || []
+          const rawData = res.data
+          let records: PostData[] = []
+          if (Array.isArray(rawData)) {
+            records = rawData
+          } else if (rawData && 'records' in rawData) {
+            records = (rawData as unknown as { records: PostData[] }).records || []
+          }
           this.showcaseWorks = records
-            .filter((post: any) => String(post.modelId) === String(this.modelId))
-            .map((post: any) => ({
-              ...post,
+            .filter((post) => String(post.modelId) === String(this.modelId))
+            .map((post) => ({
               id: post.postId,
               image: post.imageUrls?.[0] || '/static/images/3Dprinter.png',
               likes: post.likeCount || 0,
               isLiked: post.isLiked || false,
+              likeCount: post.likeCount || 0,
               userName: post.username,
               userAvatar: post.avatarUrl
             }))
           this.checkWorksLikeStatus()
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('加载晒物作品失败:', error)
       }
     },
@@ -361,11 +377,11 @@ export default {
       for (const work of this.showcaseWorks) {
         if (!work.id || String(work.id).includes('mock')) continue
         try {
-          const res: any = await checkLikeStatus('POST', String(work.id))
+          const res = await checkLikeStatus('POST', String(work.id))
           if (res.code === 0 || res.code === 1) {
-            work.isLiked = res.data
+            work.isLiked = (res.data as { liked: boolean })?.liked ?? false
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
         }
       }
     },
@@ -378,13 +394,14 @@ export default {
     async checkFavoriteStatus(): Promise<void> {
       if (!this.userStore.isLoggedIn) return
       try {
-        const res: any = await getFavoriteModels()
+        const res = await getFavoriteModels()
         if (res.code === 1 && res.data) {
-          const isCollected = res.data.some((item: any) => String(item.modelId) === String(this.modelId))
+          const data = res.data as unknown as { modelId: string | number }[]
+          const isCollected = data.some((item) => String(item.modelId) === String(this.modelId))
           this.modelInfo.isCollected = isCollected
           console.log('检查收藏状态:', isCollected)
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('检查收藏状态失败:', error)
       }
     },
@@ -405,24 +422,22 @@ export default {
       try {
         const isLoggedIn = this.userStore.isLoggedIn
 
-        const detailRes: any = await getModelDetail(id)
+        const detailRes = await getModelDetail(id)
         if (!detailRes || (detailRes.code !== 0 && detailRes.code !== 1)) {
           throw new Error(detailRes?.msg || '获取详情失败')
         }
 
-        const data = detailRes.data || {}
+        const data = detailRes.data as unknown as Record<string, unknown> || {}
         console.log('API返回数据:', data)
         console.log('previewUrl:', data.previewUrl)
         
         const fixImageUrl = (url: string): string => {
           if (!url) return ''
           console.log('处理图片URL:', url)
-          // 如果是完整URL，直接返回
           if (url.startsWith('http://') || url.startsWith('https://')) {
             console.log('处理后:', url)
             return url
           }
-          // 如果是相对路径，拼接IMAGE_URL
           const result = `${API.IMAGE_URL}${url.startsWith('/') ? url : '/' + url}`
           console.log('处理后:', result)
           return result
@@ -430,81 +445,86 @@ export default {
 
         this.modelInfo = {
           id: String(id),
-          name: data.name || '',
-          description: data.description || '',
-          category: data.category,
-          copyright: data.copyright || data.Copyright,
+          name: (data.name as string) || '',
+          description: (data.description as string) || '',
+          category: data.category as string,
+          copyright: (data.copyright as string) || (data.Copyright as string),
           images: data.previewUrl
-            ? [fixImageUrl(data.previewUrl)]
+            ? [fixImageUrl(data.previewUrl as string)]
             : ['/static/images/3Dprinter.png'],
-          likes: data.likeCount || data.likeNum || this.modelInfo.likes || 0,
-          collections: data.collectCount || data.collectNum || this.modelInfo.collections || 0,
-          isLiked: data.isLiked || false,
+          likes: (data.likeCount as number) || (data.likeNum as number) || this.modelInfo.likes || 0,
+          collections: (data.collectCount as number) || (data.collectNum as number) || this.modelInfo.collections || 0,
+          isLiked: (data.isLiked as boolean) || false,
           isCollected: this.modelInfo.isCollected || false,
-          author: data.username || data.nickname || data.userName || '',
+          author: (data.username as string) || (data.nickname as string) || (data.userName as string) || '',
           authorAvatar:
             data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar
-              ? fixImageUrl(data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar)
+              ? fixImageUrl((data.authorAvatar || data.avatarUrl || data.avatar || data.userAvatar) as string)
               : '/static/images/Default avatar.png',
-          modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || '')
+          modelFile: fixImageUrl((data.downloadUrl || data.modelFile || data.modelUrl) as string || '')
         }
 
         try {
           const [pageRes, likeRes] = await Promise.all([
-            getModelPage({ current: 1, size: 1, name: data.name }).catch(() => null),
+            getModelPage({ current: 1, size: 1, name: data.name as string }).catch(() => null),
             checkModelLike(id).catch(() => null)
           ])
 
-          if (pageRes && (pageRes as any).code === 1 && (pageRes as any).data && (pageRes as any).data.records) {
-            const modelFromPage = (pageRes as any).data.records.find((m: any) => String(m.modelId) === String(id))
-            if (modelFromPage) {
-              this.modelInfo.likes = modelFromPage.likeCount || 0
-              this.modelInfo.isLiked = modelFromPage.isLiked || false
+          if (pageRes && pageRes.code === 1 && pageRes.data) {
+            const pageData = pageRes.data as unknown as { records?: Record<string, unknown>[] }
+            if (pageData.records) {
+              const modelFromPage = pageData.records.find((m) => String(m.id) === String(id))
+              if (modelFromPage) {
+                this.modelInfo.likes = (modelFromPage.likes as number) || 0
+                this.modelInfo.isLiked = (modelFromPage.isLiked as boolean) || false
+              }
             }
           }
-          if (likeRes && (likeRes as any).code === 1) {
-            this.modelInfo.isLiked = (likeRes as any).data === true
+          if (likeRes && likeRes.code === 1) {
+            this.modelInfo.isLiked = (likeRes.data as { liked?: boolean })?.liked === true
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.warn('获取点赞信息失败:', e)
         }
 
         if (isLoggedIn) {
           try {
             const favoriteRes = await getFavoriteModels().catch(() => null)
-            if (favoriteRes && (favoriteRes as any).code === 1 && (favoriteRes as any).data) {
-              this.modelInfo.isCollected = (favoriteRes as any).data.some(
-                (item: any) => String(item.modelId) === String(id)
+            if (favoriteRes && favoriteRes.code === 1 && favoriteRes.data) {
+              const favData = favoriteRes.data as unknown as { modelId: string | number }[]
+              this.modelInfo.isCollected = favData.some(
+                (item) => String(item.modelId) === String(id)
               )
             }
-          } catch (e: any) {
+          } catch (e: unknown) {
             console.warn('获取收藏状态失败:', e)
           }
         }
 
-        let modelParam: any = {}
+        let modelParam: Record<string, unknown> = {}
         try {
           if (data.modelParam) {
             modelParam =
-              typeof data.modelParam === 'string' ? JSON.parse(data.modelParam) : data.modelParam
+              typeof data.modelParam === 'string' ? JSON.parse(data.modelParam as string) : data.modelParam as Record<string, unknown>
           }
-        } catch (e: any) {}
+        } catch (e: unknown) {}
 
-        let dimensions = modelParam.dimensions || modelParam.size || modelParam.modelSize || ''
-        let printTimeMinutes =
+        let dimensions = String(modelParam.dimensions || modelParam.size || modelParam.modelSize || '')
+        let printTimeMinutes = String(
           modelParam.print_time_minutes ||
           modelParam.printTime ||
           modelParam.printDuration ||
           modelParam.estimatedTime ||
           ''
-        let filamentLength = modelParam.filament_length_m || modelParam.filamentLength || ''
+        )
+        let filamentLength = String(modelParam.filament_length_m || modelParam.filamentLength || '')
 
         this.printModels = [
           {
             id: id,
-            name: data.name || '',
-            image: fixImageUrl(data.previewUrl) || '/static/images/3Dprinter.png',
-            modelFile: fixImageUrl(data.downloadUrl || data.modelFile || data.modelUrl || ''),
+            name: (data.name as string) || '',
+            image: fixImageUrl(data.previewUrl as string) || '/static/images/3Dprinter.png',
+            modelFile: fixImageUrl((data.downloadUrl || data.modelFile || data.modelUrl) as string || ''),
             size: dimensions,
             printTime: this.formatPrintTime(printTimeMinutes),
             filamentLength: filamentLength ? `${filamentLength}m` : ''
@@ -513,10 +533,10 @@ export default {
         this.checkDescriptionLength()
         this.loading = false
         this.loadShowcaseWorks()
-      } catch (error: any) {
+      } catch (error: unknown) {
         this.loading = false
         uni.showToast({
-          title: error.message || this.texts.loadFailed,
+          title: (error as Error).message || this.texts.loadFailed,
           icon: 'none'
         })
       }
@@ -541,7 +561,7 @@ export default {
           this.texts.report || '举报',
           this.texts.collect || '收藏'
         ],
-        success: (res: any) => {
+        success: (res: { tapIndex: number }) => {
           switch (res.tapIndex) {
             case 0:
               this.handleShare()
@@ -571,7 +591,7 @@ export default {
       this.modelInfo.likes += this.modelInfo.isLiked ? 1 : -1
 
       try {
-        const res: any = this.modelInfo.isLiked
+        const res = this.modelInfo.isLiked
           ? await likeModel(this.modelId)
           : await unlikeModel(this.modelId)
         if (res.code !== 1) {
@@ -592,12 +612,12 @@ export default {
             likes: this.modelInfo.likes
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         this.modelInfo.isLiked = !this.modelInfo.isLiked
         this.modelInfo.likes += this.modelInfo.isLiked ? 1 : -1
         console.error('点赞操作失败:', error)
         uni.showToast({
-          title: error.message || this.texts.operationFailed,
+          title: (error as Error).message || this.texts.operationFailed,
           icon: 'none'
         })
       }
@@ -627,28 +647,29 @@ export default {
           title: this.modelInfo.isCollected ? this.texts.collectSuccess : this.texts.cancelCollect,
           icon: 'success'
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         this.modelInfo.isCollected = !this.modelInfo.isCollected
         this.modelInfo.collections += this.modelInfo.isCollected ? 1 : -1
 
         uni.showToast({
-          title: error.message || this.texts.operationFailed,
+          title: (error as Error).message || this.texts.operationFailed,
           icon: 'none'
         })
       }
     },
     async updateModelCount(): Promise<void> {
       try {
-        const res: any = await getModelPage({ current: 1, size: 100 })
+        const res = await getModelPage({ current: 1, size: 100 })
         if (res.code === 1 && res.data && res.data.records) {
-          const model = res.data.records.find((m: any) => String(m.modelId) === String(this.modelId))
+          const records = res.data.records as unknown as Record<string, unknown>[]
+          const model = records.find((m) => String(m.id) === String(this.modelId))
           if (model) {
-            this.modelInfo.collections = model.collectCount || 0
-            this.modelInfo.likes = model.likeCount || 0
+            this.modelInfo.collections = (model.collectCount as number) || 0
+            this.modelInfo.likes = (model.likeCount as number) || 0
           }
         }
-      } catch (error: any) {
-        console.error('更新模型数量失败:', error)
+      } catch (error: unknown) {
+        console.error('加载模型详情失败:', error)
       }
     },
 
@@ -705,7 +726,7 @@ export default {
       })
     },
 
-    handleCarouselChange(e: any): void {
+    handleCarouselChange(e: { detail: { current: number } }): void {
       this.currentCarouselIndex = e.detail.current
     },
 
@@ -716,8 +737,11 @@ export default {
       })
     },
 
-    handleImageError(e: any): void {
-      e.target.src = '/static/images/3Dprinter.png'
+    handleImageError(e: Event): void {
+      const target = e.target as HTMLImageElement
+      if (target) {
+        target.src = '/static/images/3Dprinter.png'
+      }
     },
 
     handleAuthorClick(): void {
@@ -737,11 +761,11 @@ export default {
         title: this.texts.confirmDelete || '确认删除',
         content: this.texts.confirmDeleteModel || '确定要删除这个模型吗？删除后无法恢复。',
         confirmColor: '#FF0000',
-        success: async (res: any) => {
+        success: async (res: { confirm: boolean }) => {
           if (res.confirm) {
             uni.showLoading({ title: this.texts.deleting || '删除中...' })
             try {
-              const deleteRes: any = await deleteModel(this.modelId || '')
+              const deleteRes = await deleteModel(this.modelId || '')
               if (deleteRes.code === 1 || deleteRes.code === 200) {
                 uni.hideLoading()
                 uni.showToast({ title: this.texts.deleteSuccess || '删除成功', icon: 'success' })
@@ -751,10 +775,10 @@ export default {
               } else {
                 throw new Error(deleteRes.msg || this.texts.deleteFailed || '删除失败')
               }
-            } catch (error: any) {
+            } catch (error: unknown) {
               uni.hideLoading()
               uni.showToast({
-                title: error.message || this.texts.deleteFailed || '删除失败',
+                title: (error as Error).message || this.texts.deleteFailed || '删除失败',
                 icon: 'none'
               })
             }
@@ -812,14 +836,14 @@ export default {
 
       if (!isMock) {
         try {
-          const res: any = await toggleLike('POST', String(work.id))
+          const res = await toggleLike('POST', String(work.id))
           if (res.code === 0 || res.code === 1) {
-            const checkRes: any = await checkLikeStatus('POST', String(work.id))
+            const checkRes = await checkLikeStatus('POST', String(work.id))
             if (checkRes.code === 0 || checkRes.code === 1) {
-              work.isLiked = checkRes.data
+              work.isLiked = (checkRes.data as unknown as { liked: boolean })?.liked ?? (checkRes.data as unknown as boolean) ?? false
             }
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('点赞失败:', e)
         }
       } else {
@@ -847,30 +871,33 @@ export default {
 
     formatPrintTime(timeStr: string | number | unknown): string {
       if (!timeStr) return ''
+      let timeString: string
       if (typeof timeStr !== 'string') {
-        timeStr = String(timeStr)
+        timeString = String(timeStr)
+      } else {
+        timeString = timeStr
       }
 
       if (this.languageStore.language === 'en') {
-        const match = timeStr.match(/(\d+)小时(\d+)分钟/)
+        const match = timeString.match(/(\d+)小时(\d+)分钟/)
         if (match) {
           const hours = match[1]
           const minutes = match[2]
           return `${hours}h ${minutes}m`
         }
 
-        const hourMatch = timeStr.match(/(\d+)小时/)
+        const hourMatch = timeString.match(/(\d+)小时/)
         if (hourMatch) {
           return `${hourMatch[1]}h`
         }
 
-        const minuteMatch = timeStr.match(/(\d+)分钟/)
+        const minuteMatch = timeString.match(/(\d+)分钟/)
         if (minuteMatch) {
           return `${minuteMatch[1]}m`
         }
       }
 
-      return timeStr
+      return timeString
     }
   }
 }

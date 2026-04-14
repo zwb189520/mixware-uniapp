@@ -62,16 +62,19 @@ const goToSystemSettings = () => {
   })
 }
 
-const handleMessageReminderChange = (e: any) => {
-  messageReminder.value = e.detail.value
+const handleMessageReminderChange = (e: unknown) => {
+  const event = e as { detail: { value: boolean } }
+  messageReminder.value = event.detail.value
 }
 
-const handlePrintSuccessChange = (e: any) => {
-  printSuccess.value = e.detail.value
+const handlePrintSuccessChange = (e: unknown) => {
+  const event = e as { detail: { value: boolean } }
+  printSuccess.value = event.detail.value
 }
 
-const handlePrintFailureChange = (e: any) => {
-  printFailure.value = e.detail.value
+const handlePrintFailureChange = (e: unknown) => {
+  const event = e as { detail: { value: boolean } }
+  printFailure.value = event.detail.value
 }
 </script>
 

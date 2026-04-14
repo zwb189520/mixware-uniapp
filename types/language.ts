@@ -63,7 +63,42 @@ export interface CreateTextsSessionList {
   [key: string]: string
 }
 
+export interface ExploreTexts {
+  [key: string]: string
+}
+
+export interface ProfileTexts {
+  [key: string]: string
+}
+
+export interface PrinterTexts {
+  [key: string]: string
+}
+
+export interface SettingsTexts {
+  [key: string]: string
+}
+
+export interface AuthTexts {
+  [key: string]: string
+}
+
+export interface MessageTexts {
+  [key: string]: string
+}
+
+export interface ContentTexts {
+  [key: string]: string
+}
+
 export interface LanguageTexts {
   create: CreateTexts
+  explore: ExploreTexts
+  profile: ProfileTexts
+  printer: PrinterTexts
+  settings: SettingsTexts
+  auth: AuthTexts
+  message: MessageTexts
+  content: ContentTexts
   [key: string]: unknown
 }

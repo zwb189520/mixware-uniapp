@@ -151,8 +151,9 @@ import {
   getFirmwareInfo
 } from '@/api/iot.ts'
 import { getDeviceStatus } from '@/api/devices.ts'
+import type { Device } from '@/types/api'
 
-interface Device {
+interface LocalDevice {
   id: string
   name: string
 }
@@ -181,16 +182,16 @@ export default {
       modelDimensions: '' as string,
       printTime: '' as string,
       materialWeight: '' as string,
-      deviceList: [] as Device[],
-      currentDevice: { id: '', name: '' } as Device,
+      deviceList: [] as LocalDevice[],
+      currentDevice: { id: '', name: '' } as LocalDevice,
       statusTimer: null as ReturnType<typeof setInterval> | null
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     },
     displayStatus(): string {
@@ -231,7 +232,7 @@ export default {
       return 'text-idle'
     }
   },
-  async onLoad(options: any): Promise<void> {
+  async onLoad(options: Record<string, string>): Promise<void> {
     this.workId = options.workId || ''
     console.log('printDetail onLoad options:', options)
     console.log('接收到的 workId:', this.workId)
@@ -304,17 +305,12 @@ export default {
   methods: {
     async loadDeviceList(): Promise<void> {
       try {
-        const res: any = await getDeviceList()
-        const records = res?.data?.records ?? []
+        const res = await getDeviceList()
+        const records = res?.data ?? []
         this.deviceList = Array.isArray(records)
-          ? records.map((device: any) => ({
-              id: device.id || device.deviceId,
-              name:
-                device.deviceName ||
-                device.name ||
-                device.deviceId ||
-                this.texts.unnamedDevice ||
-                '未命名设备'
+          ? records.map((device) => ({
+              id: device.deviceId || '',
+              name: device.deviceName || device.name || this.texts.unnamedDevice || '未命名设备'
             }))
           : []
 
@@ -347,7 +343,7 @@ export default {
       const itemList = this.deviceList.map(d => d.name)
       uni.showActionSheet({
         itemList,
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowActionSheetRes) => {
           const selected = this.deviceList[res.tapIndex]
           this.currentDevice = selected
           this.deviceId = selected.id
@@ -365,7 +361,7 @@ export default {
       if (!this.deviceId) return
 
       try {
-        const res: any = await getFirmwareInfo(this.deviceId)
+        const res = await getFirmwareInfo(this.deviceId)
         if (res.code === 1 && res.data) {
           this.firmwareVersion = res.data.version || res.data.currentVersion || ''
         }
@@ -378,7 +374,7 @@ export default {
       uni.showModal({
         title: this.texts.pausePrint || '暂停打印',
         content: this.texts.confirmPausePrint || '确认暂停打印？',
-        success: async (res: any) => {
+        success: async (res: { confirm: boolean }) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.pausing || '暂停中...' })
@@ -387,9 +383,10 @@ export default {
             this.isPaused = true
             this.isPrinting = false
             this._toast(this.texts.printPaused || '打印已暂停', 'success')
-          } catch (e: any) {
+          } catch (e) {
             uni.hideLoading()
-            const errorMsg = e?.message || e?.msg || this.texts.pausePrintFailed || '暂停失败'
+            const error = e as Error & { msg?: string }
+            const errorMsg = error?.message || error?.msg || this.texts.pausePrintFailed || '暂停失败'
             this._toast(errorMsg)
           }
         }
@@ -400,7 +397,7 @@ export default {
       uni.showModal({
         title: this.texts.resumePrint || '恢复打印',
         content: this.texts.confirmResumePrint || '确认恢复打印？',
-        success: async (res: any) => {
+        success: async (res: { confirm: boolean }) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.resuming || '恢复中...' })
@@ -409,9 +406,10 @@ export default {
             this.isPaused = false
             this.isPrinting = true
             this._toast(this.texts.printResumed || '打印已恢复', 'success')
-          } catch (e: any) {
+          } catch (e) {
             uni.hideLoading()
-            const errorMsg = e?.message || e?.msg || this.texts.resumePrintFailed || '恢复失败'
+            const error = e as Error & { msg?: string }
+            const errorMsg = error?.message || error?.msg || this.texts.resumePrintFailed || '恢复失败'
             this._toast(errorMsg)
           }
         }
@@ -422,7 +420,7 @@ export default {
       uni.showModal({
         title: this.texts.cancelPrint || '取消打印',
         content: this.texts.confirmCancelPrint || '确认取消打印？此操作不可撤销。',
-        success: async (res: any) => {
+        success: async (res: { confirm: boolean }) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.stopping || '正在停止...' })
@@ -432,10 +430,11 @@ export default {
             this.isPrinting = false
             this._toast(this.texts.printCancelled || '已取消打印', 'success')
             setTimeout(() => uni.navigateBack(), 1500)
-          } catch (e: any) {
+          } catch (e) {
             uni.hideLoading()
+            const error = e as Error & { msg?: string }
             const errorMsg =
-              e?.message || e?.msg || this.texts.stopPrintFailed || '停止失败，请重试'
+              error?.message || error?.msg || this.texts.stopPrintFailed || '停止失败，请重试'
             this._toast(errorMsg)
           }
         }
@@ -447,7 +446,7 @@ export default {
       uni.showModal({
         title: this.texts.restartPrint || '重新打印',
         content: this.texts.confirmRestartPrint || '确认重新开始打印？',
-        success: async (res: any) => {
+        success: async (res: { confirm: boolean }) => {
           if (!res.confirm) return
           try {
             uni.showLoading({ title: this.texts.restarting || '重启中...' })
@@ -457,9 +456,10 @@ export default {
             this.isPrinting = true
             this.currentProgress = 0
             this._toast(this.texts.printRestarted || '已重新开始打印', 'success')
-          } catch (e: any) {
+          } catch (e) {
             uni.hideLoading()
-            const errorMsg = e?.message || e?.msg || this.texts.restartPrintFailed || '重启失败'
+            const error = e as Error & { msg?: string }
+            const errorMsg = error?.message || error?.msg || this.texts.restartPrintFailed || '重启失败'
             this._toast(errorMsg)
           }
         }
@@ -473,30 +473,31 @@ export default {
       try {
         uni.showLoading({ title: this.texts.loading || '加载中...' })
         const { getPrintTaskDetail } = await import('@/api/printTasks.ts')
-        const res: any = await getPrintTaskDetail(this.workId)
+        const res = await getPrintTaskDetail(this.workId)
         if (res.code === 1 && res.data) {
-          const data = res.data
+          const data = res.data as Record<string, unknown>
           console.log('任务详情返回:', data)
-          this.modelName = data.modelName || ''
-          this.modelImage = data.previewUrl || '/static/images/logo.png'
-          this.gcodeUrl = data.sliceGcodeUrl || ''
+          this.modelName = String(data.modelName || '')
+          this.modelImage = String(data.previewUrl || '/static/images/logo.png')
+          this.gcodeUrl = String(data.sliceGcodeUrl || '')
           this.deviceId = String(data.deviceId || data.device_id || '')
-          this.modelDimensions = data.dimensions || ''
-          this.printTime = data.printTime || ''
-          this.materialWeight = data.materialWeight || ''
+          this.modelDimensions = String(data.dimensions || '')
+          this.printTime = String(data.printTime || '')
+          this.materialWeight = String(data.materialWeight || '')
           this.isPrinting = data.status === 'printing'
           this.isPaused = data.status === 'paused'
-          this.currentProgress = data.progress || 0
+          this.currentProgress = Number(data.progress || 0)
           console.log('设置后的 deviceId:', this.deviceId)
 
           if (!this.modelName && data.modelId) {
             try {
               const { getModelDetail } = await import('@/api/models.ts')
-              const modelRes: any = await getModelDetail(data.modelId)
+              const modelRes = await getModelDetail(data.modelId as string | number)
               if (modelRes.code === 1 && modelRes.data) {
-                this.modelName = modelRes.data.name || ''
+                const modelData = modelRes.data as unknown as Record<string, unknown>
+                this.modelName = String(modelData.name || '')
                 if (!this.modelImage || this.modelImage === '/static/images/logo.png') {
-                  this.modelImage = modelRes.data.previewUrl || '/static/images/logo.png'
+                  this.modelImage = String(modelData.previewUrl || '/static/images/logo.png')
                 }
                 console.log('从模型详情获取名称:', this.modelName)
               }
@@ -534,11 +535,11 @@ export default {
     async fetchDeviceStatus(): Promise<void> {
       if (!this.deviceId) return
       try {
-        const res: any = await getDeviceStatus(this.deviceId)
+        const res = await getDeviceStatus(this.deviceId)
         console.log('设备状态返回:', res)
-        console.log('message内容:', res.data?.message)
         if (res.code === 1 || res.code === 0) {
           const data = res.data
+          console.log('message内容:', data?.message)
           this.printerStatus = data?.printState || ''
           const printState = data?.printState
           this.isPrinting = printState === 'Printing'
@@ -548,7 +549,7 @@ export default {
             this.printerStatus = 'Offline'
           }
           if (data?.message) {
-            this.parseMessage(data.message, printState)
+            this.parseMessage(data.message, printState || '')
           }
           if (data?.printTimeHms !== undefined) {
             this.printTimeHms = data.printTimeHms

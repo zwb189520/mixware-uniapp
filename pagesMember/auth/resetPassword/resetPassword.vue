@@ -104,9 +104,10 @@ const handleGetCode = () => {
         }
       }, 1000)
     })
-    .catch((error: any) => {
+    .catch((error: unknown) => {
+      const err = error as Error & { msg?: string }
       uni.showToast({
-        title: error.message || texts.value.sendFailed,
+        title: err?.message || err?.msg || texts.value.sendFailed,
         icon: 'none'
       })
     })
@@ -175,10 +176,11 @@ const handleSubmit = () => {
         })
       }, 1500)
     })
-    .catch((error: any) => {
+    .catch((error: unknown) => {
+      const err = error as Error & { msg?: string }
       uni.hideLoading()
       uni.showToast({
-        title: error.message || texts.value.resetFailed,
+        title: err?.message || err?.msg || texts.value.resetFailed,
         icon: 'none'
       })
     })

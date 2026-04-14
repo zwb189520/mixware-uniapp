@@ -1,5 +1,5 @@
-﻿import { get, post, postFormWithQuery, del } from './request'
-import type { ApiResponse, CommunityPost, Comment, PaginatedData } from '@/types/api'
+import { get, post, postFormWithQuery, del } from './request'
+import type { ApiResponse, CommunityPost, Comment, PaginatedData, RequestData } from '@/types/api'
 
 export function getPostDetail(postId: string): Promise<ApiResponse<CommunityPost>> {
   return get<CommunityPost>(
@@ -13,15 +13,15 @@ export function getPostDetail(postId: string): Promise<ApiResponse<CommunityPost
 }
 
 export function getPostList(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<CommunityPost>>> {
-  return get<PaginatedData<CommunityPost>>('/community/posts', params)
+  return get<PaginatedData<CommunityPost>>('/community/posts', params as RequestData)
 }
 
 export function getLikedPosts(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<CommunityPost>>> {
-  return get<PaginatedData<CommunityPost>>('/community/posts/liked', params)
+  return get<PaginatedData<CommunityPost>>('/community/posts/liked', params as RequestData)
 }
 
 export function createPost(postData: Record<string, unknown>): Promise<ApiResponse<CommunityPost>> {
-  return post<CommunityPost>('/community/posts', postData)
+  return post<CommunityPost>('/community/posts', postData as RequestData)
 }
 
 export function deletePost(postId: string): Promise<ApiResponse<null>> {
@@ -33,7 +33,7 @@ export function getPostComments(postId: string): Promise<ApiResponse<Comment[]>>
 }
 
 export function createComment(commentData: Record<string, unknown>): Promise<ApiResponse<Comment>> {
-  return post<Comment>('/community/comments', commentData)
+  return post<Comment>('/community/comments', commentData as RequestData)
 }
 
 export function deleteComment(commentId: string): Promise<ApiResponse<null>> {
@@ -66,10 +66,16 @@ export function checkFollowStatus(userId: string): Promise<ApiResponse<{ followi
   return get<{ following: boolean }>(`/community/follows/check/${userId}`)
 }
 
-export function getFollowingList(userId: string): Promise<ApiResponse<{ userId: string; userName: string; avatar: string }[]>> {
+export interface FollowUser {
+  userId: string
+  userName: string
+  avatar: string
+}
+
+export function getFollowingList(userId: string): Promise<ApiResponse<FollowUser[]>> {
   return get(`/community/users/${userId}/followings`)
 }
 
-export function getFollowersList(userId: string): Promise<ApiResponse<{ userId: string; userName: string; avatar: string }[]>> {
+export function getFollowersList(userId: string): Promise<ApiResponse<FollowUser[]>> {
   return get(`/community/users/${userId}/followers`)
 }

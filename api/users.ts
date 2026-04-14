@@ -1,5 +1,6 @@
 import { put, post, get, del, putWithQuery } from './request'
 import { useLanguageStore, useUserStore } from '@/stores/index.ts'
+import type { RequestData } from '@/types/api'
 
 interface UserInfo {
   userId?: number
@@ -68,7 +69,7 @@ function handleLoginSuccess(data: Record<string, unknown> | undefined, email?: s
   userStore.login(String(token ?? ''), {
     userId: userId as number | undefined,
     id: id as number | undefined,
-    username: username as string | undefined,
+    userName: username as string | undefined,
     nickname: username as string | undefined,
     avatar: avatarUrl as string | undefined,
     email: email,
@@ -89,7 +90,7 @@ export interface UserInfoDTO {
 }
 
 export function updateUserInfo(userInfoDTO: UserInfoDTO) {
-  return put('/users/updateUserInfo', userInfoDTO)
+  return put('/users/updateUserInfo', userInfoDTO as RequestData)
 }
 
 export function updateUserStatus(userId: number, accountStatus: number) {
@@ -104,19 +105,19 @@ export interface ThirdPartyLoginDTO {
 }
 
 export function thirdPartyLogin(thirdPartyLoginDTO: ThirdPartyLoginDTO) {
-  return post('/users/thirdPartyLogin', thirdPartyLoginDTO)
+  return post('/users/thirdPartyLogin', thirdPartyLoginDTO as RequestData)
 }
 
 export function sendVerificationCode(sendVerificationCodeDTO: SendVerificationCodeDTO): Promise<unknown> {
-  return post('/users/sendVerificationCode', sendVerificationCodeDTO)
+  return post('/users/sendVerificationCode', sendVerificationCodeDTO as unknown as RequestData)
 }
 
 export function register(registerDTO: RegisterDTO): Promise<unknown> {
-  return post('/users/register', registerDTO)
+  return post('/users/register', registerDTO as RequestData)
 }
 
 export function login(loginDTO: LoginDTO): Promise<unknown> {
-  return post('/users/login', loginDTO)
+  return post('/users/login', loginDTO as RequestData)
 }
 
 export function logout(): Promise<unknown> {
@@ -128,7 +129,7 @@ export function getUserInfo(userId: number): Promise<unknown> {
 }
 
 export function loginByCode(loginByCodeDTO: LoginByCodeDTO): Promise<unknown> {
-  return post('/users/loginByCode', loginByCodeDTO)
+  return post('/users/loginByCode', loginByCodeDTO as unknown as RequestData)
 }
 
 export function loginByCodeWithHandler(email: string, verificationCode: string): Promise<unknown> {
@@ -143,11 +144,11 @@ export function loginByCodeWithHandler(email: string, verificationCode: string):
 }
 
 export function createUser(userCreateDTO: UserCreateDTO): Promise<unknown> {
-  return post('/users/create', userCreateDTO)
+  return post('/users/create', userCreateDTO as unknown as RequestData)
 }
 
 export function getUserPage(params: Record<string, unknown> = {}): Promise<unknown> {
-  return get('/users/page', params)
+  return get('/users/page', params as RequestData)
 }
 
 export function adminTest(): Promise<unknown> {
@@ -163,7 +164,7 @@ export function getCurrentUserInfo(): Promise<unknown> {
 }
 
 export function resetPassword(resetPasswordDTO: ResetPasswordDTO): Promise<unknown> {
-  return post('/users/resetPassword/reset', resetPasswordDTO)
+  return post('/users/resetPassword/reset', resetPasswordDTO as unknown as RequestData)
 }
 
 export function sendResetPasswordCode(email: string): Promise<unknown> {
@@ -171,7 +172,7 @@ export function sendResetPasswordCode(email: string): Promise<unknown> {
 }
 
 export function changePassword(changePasswordDTO: ChangePasswordDTO): Promise<unknown> {
-  return post('/users/changePassword', changePasswordDTO)
+  return post('/users/changePassword', changePasswordDTO as unknown as RequestData)
 }
 
 export function sendVerificationCodeWithHandler(email: string): Promise<unknown> {
@@ -208,7 +209,7 @@ export function registerWithHandler(registerData: RegisterDTO): Promise<unknown>
     100211: texts.codeExpired || '验证码已过期'
   }
 
-  return post('/users/register', registerData).then(res => {
+  return post('/users/register', registerData as RequestData).then(res => {
     const r = res as ApiRes
     if (r.code !== 1 && r.code !== 200) {
       const errorMsg = errorCodeMap[r.code ?? 0] || r.msg || texts.registerFailed || '注册失败'

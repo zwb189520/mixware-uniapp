@@ -5,11 +5,14 @@ import type { ApiResponse } from '@/types/api'
 
 interface HunyuanTask {
   taskId: string
+  JobId?: string
+  RequestId?: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
   modelUrl?: string
   previewUrl?: string
   progress?: number
   error?: string
+  message?: string
 }
 
 export function textToModel(prompt: string): Promise<ApiResponse<HunyuanTask>> {

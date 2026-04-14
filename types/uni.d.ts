@@ -636,7 +636,7 @@ declare global {
     getConnectedWifi(options: UniGetConnectedWifiOptions): void
     showShareMenu(options: UniShowShareMenuOptions): void
     share(options: UniShareOptions): void
-    createSelectorQuery(): unknown
+    createSelectorQuery(): UniApp.SelectorQuery
     onKeyboardHeightChange(callback: (res: { height: number; duration: number }) => void): void
     offKeyboardHeightChange(callback?: (res: { height: number; duration: number }) => void): void
     scanCode(options: UniScanCodeOptions): void

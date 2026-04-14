@@ -41,6 +41,7 @@
 <script lang="ts">
 import { useLanguageStore } from '@/stores/index.ts'
 import { deleteDevice, bindDevice, getDeviceList } from '@/api/devices.ts'
+import type { Device } from '@/types/api'
 import {
   initBluetooth,
   startBluetoothScan,
@@ -88,10 +89,10 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.addPrinter || {}
     }
   },
@@ -111,7 +112,7 @@ export default {
       this.loading = true
       try {
         await this.scanBluetoothDevices()
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('扫描设备失败:', error)
       } finally {
         this.loading = false
@@ -151,7 +152,7 @@ export default {
         }
 
         checkDevices()
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
         console.error('蓝牙扫描失败:', error)
         uni.showToast({
@@ -165,12 +166,12 @@ export default {
       console.log('蓝牙扫描结束，结果:', devices)
       uni.hideLoading()
 
-      const mappedDevices: DeviceItem[] = devices.map((device: any) => ({
+      const mappedDevices: DeviceItem[] = devices.map((device: BluetoothDevice) => ({
         id: device.deviceId,
-        name: device.displayName,
+        name: device.displayName || device.deviceName,
         deviceId: device.deviceId,
-        deviceName: device.displayName,
-        rssi: device.RSSI,
+        deviceName: device.displayName || device.deviceName,
+        rssi: device.RSSI || device.rssi,
         isBluetooth: true
       }))
 
@@ -188,17 +189,17 @@ export default {
 
     async getBoundDevices(): Promise<any[]> {
       try {
-        const res: any = await getDeviceList()
+        const res = await getDeviceList()
         if (res.code === 1 || res.code === 200) {
-          const data = res.data
+          const data = res.data as Device[] | { records: Device[] }
           if (Array.isArray(data)) return data
-          if (data && Array.isArray(data.records)) return data.records
+          if (data && Array.isArray((data as { records: Device[] }).records)) return (data as { records: Device[] }).records
           return []
         } else {
           console.error('获取已绑定设备列表失败:', res)
           return []
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('获取已绑定设备列表异常:', error)
         return []
       }
@@ -213,7 +214,7 @@ export default {
         uni.hideLoading()
         stopBluetoothScan()
         console.log('蓝牙扫描已停止')
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.log('停止扫描失败:', error)
       }
     },

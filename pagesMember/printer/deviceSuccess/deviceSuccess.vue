@@ -52,6 +52,15 @@ import SafeArea from '@/components/safe-area/safe-area.vue'
 import { bindDevice, getDeviceInfo, setDefaultDevice } from '@/api/devices.ts'
 import { getDeviceStatus, getDeviceAuth } from '@/api/iot.ts'
 import { useLanguageStore } from '@/stores/index.ts'
+import type { ApiResponse, Device } from '@/types/api'
+
+interface DeviceStatusData {
+  deviceId?: string
+  deviceState?: string
+  printState?: string
+  message?: string
+  updateTime?: string
+}
 
 export default {
   name: 'DeviceSuccess',
@@ -66,10 +75,10 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.deviceSuccess
     },
     pageTitle(): string {
@@ -81,7 +90,7 @@ export default {
   mounted(): void {
     this.languageStore.loadLanguage()
   },
-  onLoad(options: any): void {
+  onLoad(options: Record<string, string>): void {
     this.printerId = options.printerId || null
     if (this.printerId) {
       this.bindPrinter()
@@ -94,8 +103,8 @@ export default {
       this.bindStatus = 'loading'
       console.log('开始绑定设备，设备ID:', this.printerId)
       try {
-        const res: any = await bindDevice({
-          deviceId: this.printerId
+        const res = await bindDevice({
+          deviceId: this.printerId as string
         })
         console.log('绑定API返回:', res)
         const bindOk =
@@ -105,15 +114,15 @@ export default {
           (res.msg && res.msg.includes('已绑定'))
         if (bindOk) {
           console.log('绑定成功（或已绑定），开始获取设备信息...')
-          let deviceInfo: any = null
-          let deviceStatus: any = null
+          let deviceInfo: ApiResponse<Device> | null = null
+          let deviceStatus: ApiResponse<DeviceStatusData> | null = null
 
           try {
             deviceInfo = await getDeviceInfo(this.printerId as string)
             console.log('设备信息获取完成:', deviceInfo)
-            if (deviceInfo.code === 1 || deviceInfo.code === 200) {
+            if (deviceInfo && (deviceInfo.code === 1 || deviceInfo.code === 200)) {
               console.log('设备信息获取成功')
-            } else {
+            } else if (deviceInfo) {
               console.warn('获取设备信息失败:', deviceInfo.msg)
             }
           } catch (infoError) {
@@ -122,14 +131,14 @@ export default {
 
           try {
             console.log('开始获取设备MQTT授权信息...')
-            const deviceAuth: any = await getDeviceAuth(this.printerId as string)
+            const deviceAuth = await getDeviceAuth(this.printerId as string)
             console.log('设备授权信息获取完成:', deviceAuth)
-            if (deviceAuth.code === 1 || deviceAuth.code === 200) {
+            if (deviceAuth && (deviceAuth.code === 1 || deviceAuth.code === 200)) {
               if (deviceAuth.data) {
                 uni.setStorageSync('deviceMqttConfig', deviceAuth.data)
                 console.log('MQTT配置已存储:', deviceAuth.data)
               }
-            } else {
+            } else if (deviceAuth) {
               console.warn('获取设备授权信息失败:', deviceAuth.msg)
             }
           } catch (authError) {
@@ -140,9 +149,9 @@ export default {
             console.log('开始获取设备状态...')
             deviceStatus = await getDeviceStatus(this.printerId as string)
             console.log('设备状态获取完成:', deviceStatus)
-            if (deviceStatus.code === 1 || deviceStatus.code === 200) {
+            if (deviceStatus && (deviceStatus.code === 1 || deviceStatus.code === 200)) {
               console.log('设备状态获取成功')
-            } else {
+            } else if (deviceStatus) {
               console.warn('获取设备状态失败:', deviceStatus.msg)
             }
           } catch (statusError) {
@@ -154,7 +163,7 @@ export default {
             console.log('设备信息已存储到本地缓存:', deviceInfo.data)
 
             try {
-              const setDefaultRes: any = await setDefaultDevice(this.printerId as string)
+              const setDefaultRes = await setDefaultDevice(this.printerId as string)
               console.log('设置默认设备响应:', setDefaultRes)
             } catch (setDefaultError) {
               console.error('设置默认设备失败:', setDefaultError)

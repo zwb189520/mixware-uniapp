@@ -75,12 +75,12 @@ export default {
   methods: {
     async loadDevices(): Promise<void> {
       try {
-        const res: any = await getDeviceList()
-        const records = res?.data?.records ?? []
+        const res = await getDeviceList()
+        const records = res?.data ?? []
 
         this.printers = Array.isArray(records)
-          ? records.map((device: any) => ({
-              id: device.id || device.deviceId,
+          ? records.map((device) => ({
+              id: String(device.id || device.deviceId || ''),
               name: device.deviceName || device.name || device.deviceId || '未命名设备'
             }))
           : []

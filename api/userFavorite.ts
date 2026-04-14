@@ -1,12 +1,12 @@
-﻿import { get, putWithQuery, delWithQuery } from './request'
-import type { ApiResponse, Model, PaginatedData } from '@/types/api'
+import { get, putWithQuery, delWithQuery } from './request'
+import type { ApiResponse, Model, PaginatedData, RequestData } from '@/types/api'
 
 export function addFavorite(modelId: string | number): Promise<ApiResponse<null>> {
-  return putWithQuery<null>('/user-model-favorite/add', null, { modelId })
+  return putWithQuery<null>('/user-model-favorite/add', {} as RequestData, { modelId })
 }
 
 export function cancelFavorite(modelId: string | number): Promise<ApiResponse<null>> {
-  return delWithQuery<null>('/user-model-favorite/cancel', null, { modelId })
+  return delWithQuery<null>('/user-model-favorite/cancel', {} as RequestData, { modelId })
 }
 
 export function getFavoriteModels(): Promise<ApiResponse<Model[]>> {

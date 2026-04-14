@@ -1,12 +1,12 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useStorageSync } from '../../composables/modules/useStorageSync'
-import type { Model } from '@/types/api'
+import type { ExploreModel } from '@/types/api'
 
 interface StorageState {
-  dailyModels: Model[]
-  hotModels: Model[]
-  categoryModels: Model[]
+  dailyModels: ExploreModel[]
+  hotModels: ExploreModel[]
+  categoryModels: ExploreModel[]
   hotTags: string[]
 }
 
@@ -15,9 +15,9 @@ export const useExploreStore = defineStore('explore', () => {
   const keyword = ref<string>('')
   const showSearch = ref<boolean>(false)
   const hotTags = ref<string[]>([])
-  const dailyModels = ref<Model[]>([])
-  const hotModels = ref<Model[]>([])
-  const categoryModels = ref<Model[]>([])
+  const dailyModels = ref<ExploreModel[]>([])
+  const hotModels = ref<ExploreModel[]>([])
+  const categoryModels = ref<ExploreModel[]>([])
   const loading = ref<boolean>(false)
 
   const {
@@ -31,12 +31,12 @@ export const useExploreStore = defineStore('explore', () => {
     hotTags: []
   })
 
-  const dailyLeftList = computed(() => dailyModels.value.filter((_: Model, i: number) => i % 2 === 0))
-  const dailyRightList = computed(() => dailyModels.value.filter((_: Model, i: number) => i % 2 === 1))
-  const hotLeftList = computed(() => hotModels.value.filter((_: Model, i: number) => i % 2 === 0))
-  const hotRightList = computed(() => hotModels.value.filter((_: Model, i: number) => i % 2 === 1))
-  const categoryLeftList = computed(() => categoryModels.value.filter((_: Model, i: number) => i % 2 === 0))
-  const categoryRightList = computed(() => categoryModels.value.filter((_: Model, i: number) => i % 2 === 1))
+  const dailyLeftList = computed(() => dailyModels.value.filter((_: ExploreModel, i: number) => i % 2 === 0))
+  const dailyRightList = computed(() => dailyModels.value.filter((_: ExploreModel, i: number) => i % 2 === 1))
+  const hotLeftList = computed(() => hotModels.value.filter((_: ExploreModel, i: number) => i % 2 === 0))
+  const hotRightList = computed(() => hotModels.value.filter((_: ExploreModel, i: number) => i % 2 === 1))
+  const categoryLeftList = computed(() => categoryModels.value.filter((_: ExploreModel, i: number) => i % 2 === 0))
+  const categoryRightList = computed(() => categoryModels.value.filter((_: ExploreModel, i: number) => i % 2 === 1))
 
   function setCurrentTab(tab: string): void {
     currentTab.value = tab
@@ -55,19 +55,19 @@ export const useExploreStore = defineStore('explore', () => {
     storageState.value.hotTags = tags
   }
 
-  function setDailyModels(models: Model[]): void {
+  function setDailyModels(models: ExploreModel[]): void {
     dailyModels.value = models
     storageState.value.dailyModels = models
     persistToStorage()
   }
 
-  function setHotModels(models: Model[]): void {
+  function setHotModels(models: ExploreModel[]): void {
     hotModels.value = models
     storageState.value.hotModels = models
     persistToStorage()
   }
 
-  function setCategoryModels(models: Model[]): void {
+  function setCategoryModels(models: ExploreModel[]): void {
     categoryModels.value = models
     storageState.value.categoryModels = models
     persistToStorage()
@@ -78,7 +78,7 @@ export const useExploreStore = defineStore('explore', () => {
   }
 
   function updateModelLike(modelId: string | number, isLiked: boolean, likes: number): void {
-    const updateInList = (list: Model[]) => {
+    const updateInList = (list: ExploreModel[]) => {
       const model = list.find(m => m.id === modelId)
       if (model) {
         model.isLiked = isLiked

@@ -71,7 +71,7 @@ const handleDeleteAccount = () => {
     content: texts.value.deleteAccountContent,
     confirmText: texts.value.confirm,
     cancelText: texts.value.cancel,
-    success: (res: any) => {
+    success: (res: UniApp.ShowModalRes) => {
       if (res.confirm) {
         performDeleteAccount()
       }
@@ -106,10 +106,11 @@ const performDeleteAccount = async () => {
         icon: 'none'
       })
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('删除账号失败:', error)
+    const err = error as Error & { msg?: string }
     uni.showToast({
-      title: error.msg || texts.value.deleteFailed,
+      title: err?.msg || texts.value.deleteFailed,
       icon: 'none'
     })
   } finally {

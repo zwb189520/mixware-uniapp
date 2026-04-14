@@ -60,11 +60,11 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
-      return this.languageStore.texts.create
+    texts(): Record<string, string> {
+      return this.languageStore.texts.create as unknown as Record<string, string>
     }
   },
   mounted(): void {
@@ -77,7 +77,7 @@ export default {
     handleMore(): void {
       uni.showActionSheet({
         itemList: [this.texts.share, this.texts.report, this.texts.help],
-        success: (res: any) => {
+        success: (res: UniApp.ShowActionSheetRes) => {
           switch (res.tapIndex) {
             case 0:
               uni.showShareMenu()
@@ -97,7 +97,7 @@ export default {
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
-        success: (res: any) => {
+        success: (res: UniApp.ChooseImageSuccessCallbackResult) => {
           const tempFilePaths = res.tempFilePaths[0]
           this.uploadedImage = tempFilePaths
           uni.showToast({
@@ -117,7 +117,7 @@ export default {
     handleImageClick(): void {
       uni.showActionSheet({
         itemList: [this.texts.viewLargeImage, this.texts.changeImage],
-        success: (res: any) => {
+        success: (res: UniApp.ShowActionSheetRes) => {
           if (res.tapIndex === 0) {
             uni.previewImage({
               urls: [this.uploadedImage as string],
@@ -148,7 +148,7 @@ export default {
           title: this.texts.generating3D
         })
 
-        const res: any = await imageToModel(this.uploadedImage, '')
+        const res = await imageToModel(this.uploadedImage, '')
         console.log('完整响应数据:', res)
 
         uni.hideLoading()
@@ -157,7 +157,7 @@ export default {
           const jobId = res.data.JobId || res.data.taskId
 
           try {
-            const taskRes: any = await createModelTask({
+            const taskRes = await createModelTask({
               sourceModelUrl: this.uploadedImage,
               previewUrl: this.uploadedImage,
               scaleFactor: 1
@@ -192,11 +192,11 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('生成3D模型失败:', error)
         uni.hideLoading()
         uni.showToast({
-          title: error.message || this.texts.generate3DFailed,
+          title: (error as Error).message || this.texts.generate3DFailed,
           icon: 'none'
         })
       } finally {

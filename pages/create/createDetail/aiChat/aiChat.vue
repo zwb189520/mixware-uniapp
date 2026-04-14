@@ -209,8 +209,8 @@ export default {
   methods: {
     loadSessionFromStorage(): boolean {
       try {
-        const storedSessionId = uni.getStorageSync('aiChatSessionId') as string | undefined
-        const storedSessionData = uni.getStorageSync('aiChatSessionData') as Record<string, unknown> | undefined
+        const storedSessionId = uni.getStorageSync('aiChatSessionId') as string
+        const storedSessionData = uni.getStorageSync('aiChatSessionData') as unknown as { title?: string; describe?: string; examples?: Example[] } | null
 
         if (storedSessionId && storedSessionData) {
           this.chatStore.setSessionId(storedSessionId)

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="my-likes-page">
     <safe-area />
     <custom-navbar :title="texts.title" @back="handleBack" />
@@ -73,10 +73,14 @@ const loadLikes = async () => {
   loading.value = true
 
   try {
-    const localLikes = uni.getStorageSync('likesList') || []
-    likesList.value = localLikes.map((item: any) => ({
-      ...item,
-      time: formatTime(item.time || item.timestamp || new Date().toISOString())
+    const localLikes = uni.getStorageSync('likesList')
+    const likesArray = Array.isArray(localLikes) ? localLikes : []
+    likesList.value = likesArray.map((item: Record<string, unknown>) => ({
+      id: String(item.id || ''),
+      title: String(item.title || item.name || ''),
+      image: String(item.image || item.previewUrl || ''),
+      time: formatTime(String(item.time || item.timestamp || new Date().toISOString())),
+      timestamp: String(item.timestamp || '')
     }))
   } catch (error) {
     console.error('加载点赞列表失败:', error)

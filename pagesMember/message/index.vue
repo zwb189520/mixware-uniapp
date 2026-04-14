@@ -25,10 +25,10 @@ export default {
     SafeArea
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore?.texts?.message || {}
     }
   },
@@ -43,9 +43,9 @@ export default {
       uni.showModal({
         title: this.texts.prompt,
         content: this.texts.clearConfirm,
-        success: (res: any) => {
+        success: (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
-            const messageListComponent = this.$refs.messageList as any
+            const messageListComponent = this.$refs.messageList as unknown as { clearAllMessages: () => void }
             if (messageListComponent) {
               messageListComponent.clearAllMessages()
             }

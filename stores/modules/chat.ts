@@ -23,6 +23,8 @@ interface Session {
   describe?: string
   examples?: Example[]
   createdAt?: number
+  updateTime?: string
+  createTime?: string
 }
 
 interface StorageState {

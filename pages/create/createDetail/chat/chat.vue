@@ -88,11 +88,11 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
-      return this.languageStore.texts.create
+    texts(): Record<string, string> {
+      return this.languageStore.texts.create as unknown as Record<string, string>
     }
   },
   mounted(): void {
@@ -105,7 +105,7 @@ export default {
     handleMore(): void {
       uni.showActionSheet({
         itemList: [this.texts.share, this.texts.report, this.texts.help],
-        success: (res: any) => {
+        success: (res: UniApp.ShowActionSheetRes) => {
           switch (res.tapIndex) {
             case 0:
               uni.showShareMenu()
@@ -146,7 +146,7 @@ export default {
           title: this.texts.generating3D
         })
 
-        const res: any = await textToModel(content)
+        const res = await textToModel(content)
 
         uni.hideLoading()
 
@@ -161,7 +161,7 @@ export default {
           const jobId = res.data.taskId || res.data.JobId || res.data.RequestId
 
           try {
-            const taskRes: any = await createModelTask({
+            const taskRes = await createModelTask({
               sourceModelUrl: '',
               previewUrl: '',
               scaleFactor: 1
@@ -175,7 +175,7 @@ export default {
                 scaleFactor: 1
               })
             }
-          } catch (e: any) {
+          } catch (e: unknown) {
             console.error('创建模型任务记录失败:', e)
           }
 
@@ -214,19 +214,20 @@ export default {
             icon: 'none'
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         uni.hideLoading()
 
+        const err = error as Error & { message?: string }
         const aiMsg: Message = {
           id: `ai-${Date.now()}`,
           role: 'assistant',
-          content: error.message || this.texts.generate3DFailed
+          content: err.message || this.texts.generate3DFailed
         }
         this.messages.push(aiMsg)
         this.scrollToBottom()
 
         uni.showToast({
-          title: error.message || this.texts.generate3DFailed,
+          title: err.message || this.texts.generate3DFailed,
           icon: 'none'
         })
       } finally {
@@ -240,17 +241,17 @@ export default {
     initRecorder(): void {
       if (!this.recorderManager) {
         this.recorderManager = uni.getRecorderManager()
-        this.recorderManager.onStop(async (res: any) => {
-          if (res.duration < 500) {
+        this.recorderManager.onStop(async (res: Record<string, unknown>) => {
+          if (Number(res.duration) < 500) {
             uni.showToast({ title: this.texts.recordingTooShort || '录音时间太短', icon: 'none' })
             return
           }
           uni.showLoading({ title: this.texts.recognizing || '识别中...' })
           try {
-            const result: any = await audioOffline(res.tempFilePath)
+            const result = await audioOffline(res.tempFilePath as string)
             uni.hideLoading()
             if (result.code === 1 || result.code === 0) {
-              this.promptText = result.data || ''
+              this.promptText = result.data?.text || ''
               if (this.promptText.trim()) {
                 this.handleGenerate3D()
               }
@@ -260,7 +261,7 @@ export default {
                 icon: 'none'
               })
             }
-          } catch (err: any) {
+          } catch (err: unknown) {
             uni.hideLoading()
             console.error('语音识别失败:', err)
             uni.showToast({ title: this.texts.recognitionFailed || '识别失败', icon: 'none' })

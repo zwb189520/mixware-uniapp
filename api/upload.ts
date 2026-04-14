@@ -1,9 +1,9 @@
-﻿import { get, uploadFile } from './request'
-import type { ApiResponse } from '@/types/api'
+import { get, uploadFile } from './request'
+import type { ApiResponse, RequestData } from '@/types/api'
 
 interface UploadOptions {
   name?: string
-  formData?: Record<string, unknown>
+  formData?: RequestData
   header?: Record<string, string>
   showLoading?: boolean
   loadingText?: string
@@ -21,7 +21,7 @@ export function uploadModelFile(filePath: string, options: UploadOptions = {}): 
   return uploadFile<UploadResult>('/upload/model', filePath, {
     name: 'file',
     ...options
-  })
+  } as { name?: string; formData?: RequestData; header?: Record<string, string>; showLoading?: boolean; loadingText?: string })
 }
 
 export function uploadImages(files: string[], options: UploadOptions = {}): Promise<ApiResponse<UploadResult>[]> {
@@ -30,7 +30,7 @@ export function uploadImages(files: string[], options: UploadOptions = {}): Prom
       uploadFile<UploadResult>('/upload/images', file, {
         name: 'files',
         ...options
-      })
+      } as { name?: string; formData?: RequestData; header?: Record<string, string>; showLoading?: boolean; loadingText?: string })
     )
   )
 }
@@ -46,9 +46,9 @@ export function uploadImage(
     formData: {
       type,
       id
-    },
+    } as RequestData,
     ...options
-  })
+  } as { name?: string; formData?: RequestData; header?: Record<string, string>; showLoading?: boolean; loadingText?: string })
 }
 
 export function getModelDownloadUrl(fileUrl: string): Promise<ApiResponse<{ downloadUrl: string }>> {

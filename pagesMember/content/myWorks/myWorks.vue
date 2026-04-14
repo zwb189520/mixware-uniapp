@@ -87,13 +87,13 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    userStore(): any {
+    userStore(): ReturnType<typeof useUserStore> {
       return useUserStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore?.texts?.myWorks || {}
     }
   },
@@ -129,12 +129,17 @@ export default {
     uni.$off('refreshLikedPosts')
   },
   methods: {
+    fixImageUrl(url: string): string {
+      if (!url) return ''
+      return url.replace('localhost:9000', '47.102.212.37:9000')
+    },
     switchTab(tab: 'works' | 'likes'): void {
       if (this.activeTab === tab) return
       this.activeTab = tab
       this.loadData()
     },
     async loadData(): Promise<void> {
+      console.log('【作品博物馆】loadData触发, activeTab:', this.activeTab)
       if (this.activeTab === 'works') {
         await this.loadWorks()
       } else {
@@ -144,33 +149,40 @@ export default {
     async loadLikedPosts(): Promise<void> {
       this.loading = true
       try {
-        const res: any = await getLikedPosts({
+        const res = await getLikedPosts({
           current: 1,
           size: 100
         })
-        if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
-          this.worksList = res.data.records.map((post: any) => ({
-            id: post.postId,
-            title: post.title,
-            image:
-              post.imageUrls && post.imageUrls.length > 0
-                ? post.imageUrls[0]
-                : 'https://picsum.photos/400/400?random=' + post.postId,
-            printTime: '-',
-            printDate:
-              post.createdAt && typeof post.createdAt === 'string'
-                ? post.createdAt.split('T')[0]
-                : '',
-            type: 'model',
-            status: 'completed',
-            isPost: true,
-            isLiked: true
-          }))
+        console.log('【作品博物馆】点赞列表API响应:', JSON.stringify(res))
+        console.log('【作品博物馆】res.data:', res.data)
+        console.log('【作品博物馆】res.data.records:', res.data?.records)
+        console.log('【作品博物馆】res.data类型:', typeof res.data)
+        const records = (res.data?.records || res.data || []) as unknown as Record<string, unknown>[]
+        console.log('【作品博物馆】最终使用的records:', records)
+        if ((res.code === 0 || res.code === 1) && records.length > 0) {
+          this.worksList = records.map((post: Record<string, unknown>) => {
+             console.log('【作品博物馆】每条post数据:', post)
+             const imageUrl = Array.isArray(post.imageUrls) && post.imageUrls.length > 0 
+               ? String(post.imageUrls[0]) 
+               : ''
+             return {
+               id: String(post.postId || post.id || ''),
+               title: String(post.title || post.name || ''),
+               image: this.fixImageUrl(imageUrl) || `https://picsum.photos/400/400?random=${post.postId}`,
+               printTime: '-',
+               printDate: String(post.createdAt || post.createTime || '').split('T')[0] || '',
+               type: 'model',
+               status: 'completed',
+               isPost: true,
+               isLiked: true
+             }
+           })
+          console.log('【作品博物馆】处理后的worksList:', this.worksList)
         } else {
           this.worksList = []
         }
       } catch (error) {
-        console.error('加载点赞列表失败:', error)
+        console.error('【作品博物馆】加载点赞列表失败:', error)
         this.worksList = []
       } finally {
         this.loading = false
@@ -179,44 +191,48 @@ export default {
 
     async loadWorks(): Promise<void> {
       this.loading = true
+      console.log('【作品博物馆】loadWorks开始')
       try {
-        const userInfo: any = this.userStore.userInfo
+        const userInfo = this.userStore.userInfo
+        console.log('【作品博物馆】userInfo:', userInfo)
         if (userInfo && userInfo.userId) {
-          const res: any = await getPostList({
+          const res = await getPostList({
             userId: userInfo.userId,
             current: 1,
             size: 100
           })
-          if ((res.code === 0 || res.code === 1) && res.data && res.data.records) {
-            let apiPosts: WorkItem[] = res.data.records.map((post: any) => ({
-              id: post.postId,
-              title: post.title,
-              image:
-                post.imageUrls && post.imageUrls.length > 0
-                  ? post.imageUrls[0]
-                  : 'https://picsum.photos/400/400?random=' + post.postId,
-              printTime: '-',
-              printDate:
-                post.createdAt && typeof post.createdAt === 'string'
-                  ? post.createdAt.split('T')[0]
-                  : '',
-              type: 'model',
-              status: 'completed',
-              isPost: true
-            }))
+          console.log('【作品博物馆】getPostList API响应:', JSON.stringify(res))
+          console.log('【作品博物馆】res.data:', res.data)
+          const records = (res.data?.records || res.data || []) as unknown as Record<string, unknown>[]
+          console.log('【作品博物馆】最终使用的records:', records)
+          if ((res.code === 0 || res.code === 1) && records.length > 0) {
+            let apiPosts: WorkItem[] = records.map((post: Record<string, unknown>) => {
+              console.log('【作品博物馆】每条post数据:', post)
+              const imageUrl = Array.isArray(post.imageUrls) && post.imageUrls.length > 0 
+                ? String(post.imageUrls[0]) 
+                : ''
+              return {
+                id: String(post.postId || post.id || ''),
+                title: String(post.title || post.name || ''),
+                image: this.fixImageUrl(imageUrl) || `https://picsum.photos/400/400?random=${post.postId}`,
+                printTime: '-',
+                printDate: String(post.createdAt || post.createTime || '').split('T')[0] || '',
+                type: 'model',
+                status: 'completed',
+                isPost: true
+              }
+            })
 
-            const newlyCreatedPost: any = uni.getStorageSync('newlyCreatedPost')
+            const newlyCreatedPost = uni.getStorageSync('newlyCreatedPost') as Record<string, unknown> | undefined
             if (newlyCreatedPost && String(newlyCreatedPost.userId) === String(userInfo?.userId)) {
               if (!apiPosts.some(ap => String(ap.id) === String(newlyCreatedPost.id))) {
                 apiPosts.unshift({
-                  id: newlyCreatedPost.id,
-                  title: newlyCreatedPost.title,
-                  image: newlyCreatedPost.image,
+                  id: String(newlyCreatedPost.id || ''),
+                  title: String(newlyCreatedPost.title || ''),
+                  image: this.fixImageUrl(String(newlyCreatedPost.image || '')),
                   printTime: '-',
                   printDate:
-                    newlyCreatedPost.createdAt && typeof newlyCreatedPost.createdAt === 'string'
-                      ? newlyCreatedPost.createdAt.split('T')[0]
-                      : '',
+                    String(newlyCreatedPost.createdAt || '').split('T')[0] || '',
                   type: 'model',
                   status: 'completed',
                   isPost: true
@@ -228,10 +244,11 @@ export default {
             this.worksList = apiPosts
           }
         }
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as Error
         console.error('加载作品失败:', error)
         uni.showToast({
-          title: error.message || this.texts.loadFailed || '加载失败',
+          title: err?.message || this.texts.loadFailed || '加载失败',
           icon: 'none'
         })
       } finally {
@@ -286,10 +303,10 @@ export default {
         content: deleteConfirmContentText,
         confirmText: confirmText,
         cancelText: cancelText,
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             try {
-              const response: any = await deleteModel(work.id as number)
+              const response = await deleteModel(work.id as number)
               if (response.code === 1) {
                 uni.showToast({ title: deleteSuccessText, icon: 'success' })
                 this.worksList = this.worksList.filter(item => item.id !== work.id)

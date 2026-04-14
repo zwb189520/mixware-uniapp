@@ -1,4 +1,5 @@
 import { request } from './request'
+import type { ApiResponse, PaginatedData, RequestData } from '@/types/api'
 
 export interface PrintTask {
   taskId: string
@@ -19,11 +20,11 @@ export interface PrintTaskQuery {
   userId?: number
 }
 
-export function getPrintTasks(params: PrintTaskQuery) {
+export function getPrintTasks(params: PrintTaskQuery): Promise<ApiResponse<PaginatedData<PrintTask>>> {
   return request({
     url: '/print-tasks/list',
     method: 'GET',
-    data: params
+    data: params as unknown as RequestData
   })
 }
 
@@ -45,7 +46,7 @@ export function createPrintTask(data: {
   return request({
     url: '/print-tasks',
     method: 'POST',
-    data
+    data: data as unknown as RequestData
   })
 }
 
@@ -53,7 +54,7 @@ export function updatePrintTask(data: PrintTask) {
   return request({
     url: '/print-tasks',
     method: 'PUT',
-    data
+    data: data as unknown as RequestData
   })
 }
 

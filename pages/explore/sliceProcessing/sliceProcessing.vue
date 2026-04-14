@@ -106,14 +106,14 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.explore
     }
   },
-  async onLoad(options: any): Promise<void> {
+  async onLoad(options: Record<string, string>): Promise<void> {
     this.modelId = options.modelId || ''
     try {
       this.modelName = options.modelName ? decodeURIComponent(options.modelName) : ''
@@ -141,7 +141,7 @@ export default {
 
     this.scalePercent = parseFloat(options.scalePercent) || 100
     this.deviceId = options.deviceId || ''
-    this.addSupports = options.addSupports === 'true' || options.addSupports === true
+    this.addSupports = options.addSupports === 'true' || options.addSupports === 'true'
 
     this.languageStore.loadLanguage()
     this.initializeTexts()
@@ -209,8 +209,8 @@ export default {
       try {
         const scaleFactor = this.scalePercent / 100
 
-        const submitRes: any = await scaleAndSliceModel({
-          modelIdOrUrl: this.modelUrl,
+        const submitRes = await scaleAndSliceModel({
+          modelUrl: this.modelUrl,
           scaleFactor: scaleFactor,
           deviceId: this.deviceId,
           addSupports: this.addSupports
@@ -289,7 +289,7 @@ export default {
           return
         }
         try {
-          const res: any = await getScaleAndSliceStatus(taskId)
+          const res = await getScaleAndSliceStatus(taskId)
           console.log('轮询状态:', JSON.stringify(res))
 
           if (res.code !== 1 && res.code !== 0) {
@@ -304,8 +304,8 @@ export default {
             realCompleted = true
             gcodeUrl = data?.gcodeUrl || ''
             dimensions = data?.dimensions || ''
-            printTime = data?.printTime || ''
-            materialWeight = data?.materialWeight || ''
+            printTime = String(data?.printTime || '')
+            materialWeight = String(data?.materialWeight || '')
             this.printTimeHms = data?.printTimeHms || ''
             this.filamentLengthM = data?.filamentLengthM || 0
             checkComplete()
@@ -372,13 +372,13 @@ export default {
 
     async loadModelImages(): Promise<void> {
       try {
-        const res: any = await getModelDetail(this.modelId)
+        const res = await getModelDetail(this.modelId)
 
         if (!res || (res.code !== 0 && res.code !== 1)) {
           throw new Error(res?.msg || '获取详情失败')
         }
 
-        const data = res.data || {}
+        const data = res.data as Record<string, unknown> | undefined
 
         const fixImageUrl = (url: string): string => {
           if (!url) return ''
@@ -387,7 +387,8 @@ export default {
             .replace('api/uploads/image', '9000/image')
         }
 
-        const images = data.previewUrl ? [fixImageUrl(data.previewUrl)] : []
+        const previewUrl = data?.previewUrl as string | undefined
+        const images = previewUrl ? [fixImageUrl(previewUrl)] : []
 
         if (images.length > 0) {
           this.modelImage = images[0]
@@ -395,7 +396,7 @@ export default {
           this.modelImage = '/static/images/logo.png'
         }
 
-        this.modelUrl = data.downloadUrl || data.modelFile || data.modelUrl || ''
+        this.modelUrl = String(data?.downloadUrl || data?.modelFile || data?.modelUrl || '')
 
         if (this.modelUrl) {
           this.startSliceTask()
@@ -411,14 +412,15 @@ export default {
         uni.showLoading({ title: this.texts.sendingPrintCommand || '正在发送打印指令...' })
 
         let deviceId = ''
-        const deviceRes: any = await getDefaultDevice()
-        if (deviceRes.data?.deviceId) {
-          deviceId = deviceRes.data.deviceId
+        const deviceRes = await getDefaultDevice()
+        if (deviceRes.code === 1 && deviceRes.data) {
+          const defaultDevice = deviceRes.data as unknown as Record<string, unknown>
+          deviceId = String(defaultDevice.deviceId || defaultDevice.id || '')
         } else {
-          const listRes: any = await getDeviceList()
-          const devices = listRes.data?.records || listRes.data || []
+          const listRes = await getDeviceList()
+          const devices = Array.isArray(listRes.data) ? listRes.data : []
           if (devices.length > 0) {
-            deviceId = devices[0].deviceId
+            deviceId = String(devices[0].deviceId || '')
           }
         }
 
@@ -428,9 +430,11 @@ export default {
           return
         }
 
-        const statusRes: any = await getDeviceStatus(deviceId)
-        const deviceStatus = statusRes.data?.status || statusRes.data
-        if (deviceStatus === 'PRINTING' || deviceStatus === 'PAUSED') {
+        const statusRes = await getDeviceStatus(deviceId)
+        const statusData = statusRes.data as unknown as Record<string, unknown> | undefined
+        const deviceStatus = statusData?.status || statusRes.data
+        const statusStr = String(deviceStatus)
+        if (statusStr === 'PRINTING' || statusStr === 'PAUSED') {
           uni.hideLoading()
           uni.showModal({
             title: this.texts.deviceBusy || '设备忙',
@@ -440,7 +444,7 @@ export default {
           })
           return
         }
-        if (deviceStatus === 'OFFLINE' || deviceStatus === 'offline') {
+        if (statusStr === 'OFFLINE' || statusStr === 'offline') {
           uni.hideLoading()
           uni.showModal({
             title: this.texts.deviceOffline || '设备离线',
@@ -453,7 +457,7 @@ export default {
 
         let printTaskId = ''
         try {
-          const taskRes: any = await createPrintTask({
+          const taskRes = await createPrintTask({
             modelId: parseInt(this.modelId) || 0,
             sourceModelUrl: this.modelUrl,
             previewUrl: this.modelImage,
@@ -462,13 +466,14 @@ export default {
             deviceId: deviceId
           })
           if (taskRes.code === 1 && taskRes.data) {
-            printTaskId = taskRes.data.taskId || taskRes.data.id || ''
+            const taskData = taskRes.data as Record<string, unknown>
+            printTaskId = String(taskData.taskId || taskData.id || '')
           }
         } catch (e) {
           console.error('创建打印任务记录失败:', e)
         }
 
-        const res: any = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl, this.taskId)
+        const res = await sendPrintCommand(deviceId, this.modelId, 'P', this.gcodeUrl, this.taskId)
         uni.hideLoading()
 
         if (res.code === 1 || res.code === 0) {
@@ -511,7 +516,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmCancel || '确认取消',
         content: this.texts.cancelContent || '取消后将不自动打印，模型处理将在后台继续，是否确认？',
-        success: (res: any) => {
+        success: (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             this.clearAllTimers()
             if (this.eventSource) {

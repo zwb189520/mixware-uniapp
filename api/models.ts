@@ -1,30 +1,50 @@
-﻿import { post, get, put, del, postWithQuery } from './request'
-import type { ApiResponse, Model, PaginatedData } from '@/types/api'
+import { post, get, put, del, postWithQuery } from './request'
+import type { ApiResponse, Model, PaginatedData, RequestData, ModelDimensions } from '@/types/api'
 
-interface ModelData {
-  name?: string
-  category?: string
-  previewUrl?: string
-  downloadUrl?: string
-  description?: string
-  userId?: string | number
-  editableStatus?: string
-  modelFile?: string
-  modelUrl?: string
-  thumb?: string
-  image?: string
-  dimensions?: {
-    x?: number
-    y?: number
-    z?: number
-    width?: number
-    height?: number
-    depth?: number
-  }
+interface AddModelParams {
+  name: string
+  category: string
+  previewUrl: string
+  downloadUrl: string
+  description: string
+  userId: string | number
+  editableStatus: string
 }
 
-export function addModel(modelData: ModelData): Promise<ApiResponse<Model>> {
-  return post<Model>('/models/add', {
+interface ScaleAndSliceParams {
+  modelUrl?: string
+  modelId?: string | number
+  deviceId?: string
+  scale?: number
+  preset?: string
+  material?: string
+  scaleFactor?: number
+  addSupports?: boolean
+}
+
+interface ScaleAndSliceStatus {
+  status: string
+  progress: number
+  gcodeUrl: string
+  dimensions?: string
+  printTime?: number
+  materialWeight?: number
+  printTimeHms?: string
+  filamentLengthM?: number
+  errorMessage?: string
+}
+
+interface ProcessedModelData {
+  downloadUrl: string
+  modelUrl: string
+  modelType: string
+  thumb: string
+  dimensions: ModelDimensions
+  name: string
+}
+
+export function addModel(modelData: Partial<AddModelParams>): Promise<ApiResponse<Model>> {
+  const params: AddModelParams = {
     name: modelData.name || '',
     category: modelData.category || '',
     previewUrl: modelData.previewUrl || '',
@@ -32,10 +52,11 @@ export function addModel(modelData: ModelData): Promise<ApiResponse<Model>> {
     description: modelData.description || '',
     userId: modelData.userId || '',
     editableStatus: modelData.editableStatus || 'editable'
-  })
+  }
+  return post<Model>('/models/add', params as unknown as RequestData)
 }
 
-export function getModelList(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<Model>>> {
+export function getModelList(params: RequestData = {}): Promise<ApiResponse<PaginatedData<Model>>> {
   return get<PaginatedData<Model>>('/models/page', params)
 }
 
@@ -43,7 +64,7 @@ export function getModelDetail(modelId: string | number): Promise<ApiResponse<Mo
   return get<Model>(`/models/${modelId}`)
 }
 
-export function updateModel(modelId: string | number, updateData: Record<string, unknown>): Promise<ApiResponse<Model>> {
+export function updateModel(modelId: string | number, updateData: RequestData): Promise<ApiResponse<Model>> {
   return put<Model>(`/models/update/${modelId}`, updateData)
 }
 
@@ -52,33 +73,26 @@ export function deleteModel(modelId: string | number): Promise<ApiResponse<null>
 }
 
 export function likeModel(modelId: string | number): Promise<ApiResponse<null>> {
-  return postWithQuery<null>('/model-like/like', null, { modelId })
+  return postWithQuery<null>('/model-like/like', {}, { modelId: String(modelId) })
 }
 
 export function unlikeModel(modelId: string | number): Promise<ApiResponse<null>> {
-  return postWithQuery<null>('/model-like/unlike', null, { modelId })
+  return postWithQuery<null>('/model-like/unlike', {}, { modelId: String(modelId) })
 }
 
 export function checkModelLike(modelId: string | number): Promise<ApiResponse<{ liked: boolean }>> {
-  return get<{ liked: boolean }>('/model-like/check', { modelId })
+  return get<{ liked: boolean }>('/model-like/check', { modelId: String(modelId) })
 }
 
-export function getModelPage(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<Model>>> {
+export function getModelPage(params: RequestData = {}): Promise<ApiResponse<PaginatedData<Model>>> {
   return get<PaginatedData<Model>>('/models/page', params)
 }
 
-export function getMyModels(params: Record<string, unknown> = {}): Promise<ApiResponse<PaginatedData<Model>>> {
+export function getMyModels(params: RequestData = {}): Promise<ApiResponse<PaginatedData<Model>>> {
   return get<PaginatedData<Model>>('/models/my', params)
 }
 
-export function processModelData(modelData: ModelData | null): {
-  downloadUrl: string
-  modelUrl: string
-  modelType: string
-  thumb: string
-  dimensions: { x: number; y: number; z: number }
-  name: string
-} {
+export function processModelData(modelData: Partial<Model> | null): ProcessedModelData {
   if (!modelData) {
     return {
       downloadUrl: '',
@@ -111,7 +125,7 @@ export function processModelData(modelData: ModelData | null): {
     thumb = modelData.image
   }
 
-  const dimensions = modelData.dimensions
+  const dimensions: ModelDimensions = modelData.dimensions
     ? {
         x: modelData.dimensions.x || modelData.dimensions.width || 0,
         y: modelData.dimensions.y || modelData.dimensions.height || 0,
@@ -141,15 +155,15 @@ function extractFileType(url: string): string {
       stl: 'stl'
     }
     return typeMap[ext] || ''
-  } catch (e) {
+  } catch {
     return ''
   }
 }
 
-export function scaleAndSliceModel(data: Record<string, unknown>): Promise<ApiResponse<{ taskId: string }>> {
-  return post<{ taskId: string }>('/models/scaleAndSlice', data)
+export function scaleAndSliceModel(data: ScaleAndSliceParams): Promise<ApiResponse<{ taskId: string }>> {
+  return post<{ taskId: string }>('/models/scaleAndSlice', data as RequestData)
 }
 
-export function getScaleAndSliceStatus(taskId: string | number): Promise<ApiResponse<{ status: string; progress: number; gcodeUrl?: string }>> {
-  return get<{ status: string; progress: number; gcodeUrl?: string }>(`/models/scaleAndSlice/status/${taskId}`)
+export function getScaleAndSliceStatus(taskId: string | number): Promise<ApiResponse<ScaleAndSliceStatus>> {
+  return get<ScaleAndSliceStatus>(`/models/scaleAndSlice/status/${taskId}`)
 }

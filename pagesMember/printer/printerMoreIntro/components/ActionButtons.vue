@@ -22,10 +22,10 @@ export default {
     }
   },
   computed: {
-    languageStore(): any {
+    languageStore(): ReturnType<typeof useLanguageStore> {
       return useLanguageStore()
     },
-    texts(): any {
+    texts(): Record<string, string> {
       return this.languageStore.texts.printer
     }
   },
@@ -47,7 +47,7 @@ export default {
       uni.showModal({
         title: this.texts.confirmUnbind || '确认解除绑定',
         content: this.texts.confirmUnbindContent || '解除绑定后将无法控制此打印机，确定要继续吗？',
-        success: async (res: any) => {
+        success: async (res: UniApp.ShowModalRes) => {
           if (res.confirm) {
             try {
               await deleteDevice(this.deviceId)
@@ -58,9 +58,10 @@ export default {
               setTimeout(() => {
                 uni.navigateBack()
               }, 1500)
-            } catch (error: any) {
+            } catch (error) {
+              const err = error as Error
               uni.showToast({
-                title: error.message || this.texts.unbindFailed || '解除绑定失败',
+                title: err?.message || this.texts.unbindFailed || '解除绑定失败',
                 icon: 'none'
               })
             }
