@@ -259,6 +259,11 @@ export default {
         y: 0,
         z: 0
       } as Dimensions,
+      originalDimensions: {
+        x: 0,
+        y: 0,
+        z: 0
+      } as Dimensions,
       modelScale: 1 as number,
       scalePercent: 100 as number,
       addSupports: false as boolean,
@@ -332,6 +337,7 @@ export default {
         const dimensions = this.parseDimensions(parsedDimensions)
         if (dimensions) {
           this.dimensions = dimensions
+          this.originalDimensions = { ...dimensions }
           console.log('使用从 modelDetail 传递的尺寸:', this.dimensions)
         }
       } catch (e) {
@@ -720,17 +726,27 @@ export default {
         return
       }
 
-      this.dimensions = {
+      const actualDimensions = {
         x: Math.round(dimensions.x * 10) / 10,
         y: Math.round(dimensions.y * 10) / 10,
         z: Math.round(dimensions.z * 10) / 10
       }
 
-      const maxDim = Math.max(this.dimensions.x, this.dimensions.y, this.dimensions.z)
+      if (this.originalDimensions.x > 0) {
+        const originalMax = Math.max(this.originalDimensions.x, this.originalDimensions.y, this.originalDimensions.z)
+        const actualMax = Math.max(actualDimensions.x, actualDimensions.y, actualDimensions.z)
+        if (originalMax > 0 && actualMax > 0) {
+          const targetScale = originalMax / actualMax
+          this.scalePercent = Math.round(targetScale * 100)
+          this.modelScale = targetScale
+        }
+        this.dimensions = { ...this.originalDimensions }
+      } else {
+        this.dimensions = actualDimensions
+      }
+
+      const maxDim = Math.max(this.dimensions.x * this.modelScale, this.dimensions.y * this.modelScale, this.dimensions.z * this.modelScale)
       if (maxDim > 100) {
-        const targetScale = 99 / maxDim
-        this.scalePercent = Math.floor(targetScale * 100)
-        this.modelScale = targetScale
         this.isOutOfBounds = true
         this.boundaryMessage = this.texts.modelTooLarge || '模型尺寸超过100mm，禁止打印'
       } else {
